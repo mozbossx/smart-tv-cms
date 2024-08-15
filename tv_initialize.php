@@ -76,14 +76,24 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
                     $bgColorData = $resultBgColorQuery->fetch_assoc();
                     $topbarColorData = $resultTopbarColorQuery->fetch_assoc();
                     $containersData = $resultContainersQuery->fetch_assoc();
-
                     $backgroundColor = $bgColorData['background_hex_color'];
-
                     $topbarColor = $topbarColorData['topbar_hex_color'];
+
                     $topbarTvNameColor = $topbarColorData['topbar_tvname_font_color'];
+                    $topbarTvNameFontStyle = $topbarColorData['topbar_tvname_font_style'];
+                    $topbarTvNameFontFamily = $topbarColorData['topbar_tvname_font_family'];
+
                     $topbarDeviceIdColor = $topbarColorData['topbar_deviceid_font_color'];
+                    $topbarDeviceIdFontStyle = $topbarColorData['topbar_deviceid_font_style'];
+                    $topbarDeviceIdFontFamily = $topbarColorData['topbar_deviceid_font_family'];
+
                     $topbarTimeColor = $topbarColorData['topbar_time_font_color'];
+                    $topbarTimeFontStyle = $topbarColorData['topbar_time_font_style'];
+                    $topbarTimeFontFamily = $topbarColorData['topbar_time_font_family'];
+
                     $topbarDateColor = $topbarColorData['topbar_date_font_color'];
+                    $topbarDateFontStyle = $topbarColorData['topbar_date_font_style'];
+                    $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
                 }
                     
                 // Redirect to the same page with tvId as query parameter
@@ -147,14 +157,24 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
                     $bgColorData = $resultBgColorQuery->fetch_assoc();
                     $topbarColorData = $resultTopbarColorQuery->fetch_assoc();
                     $containersData = $resultContainersQuery->fetch_assoc();
-
                     $backgroundColor = $bgColorData['background_hex_color'];
-
                     $topbarColor = $topbarColorData['topbar_hex_color'];
+
                     $topbarTvNameColor = $topbarColorData['topbar_tvname_font_color'];
+                    $topbarTvNameFontStyle = $topbarColorData['topbar_tvname_font_style'];
+                    $topbarTvNameFontFamily = $topbarColorData['topbar_tvname_font_family'];
+
                     $topbarDeviceIdColor = $topbarColorData['topbar_deviceid_font_color'];
+                    $topbarDeviceIdFontStyle = $topbarColorData['topbar_deviceid_font_style'];
+                    $topbarDeviceIdFontFamily = $topbarColorData['topbar_deviceid_font_family'];
+
                     $topbarTimeColor = $topbarColorData['topbar_time_font_color'];
+                    $topbarTimeFontStyle = $topbarColorData['topbar_time_font_style'];
+                    $topbarTimeFontFamily = $topbarColorData['topbar_time_font_family'];
+
                     $topbarDateColor = $topbarColorData['topbar_date_font_color'];
+                    $topbarDateFontStyle = $topbarColorData['topbar_date_font_style'];
+                    $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
                 }
                
                 // Redirect to the same page with tvId as query parameter
@@ -216,14 +236,24 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
                     $bgColorData = $resultBgColorQuery->fetch_assoc();
                     $topbarColorData = $resultTopbarColorQuery->fetch_assoc();
                     $containersData = $resultContainersQuery->fetch_assoc();
-
                     $backgroundColor = $bgColorData['background_hex_color'];
-
                     $topbarColor = $topbarColorData['topbar_hex_color'];
+
                     $topbarTvNameColor = $topbarColorData['topbar_tvname_font_color'];
+                    $topbarTvNameFontStyle = $topbarColorData['topbar_tvname_font_style'];
+                    $topbarTvNameFontFamily = $topbarColorData['topbar_tvname_font_family'];
+
                     $topbarDeviceIdColor = $topbarColorData['topbar_deviceid_font_color'];
+                    $topbarDeviceIdFontStyle = $topbarColorData['topbar_deviceid_font_style'];
+                    $topbarDeviceIdFontFamily = $topbarColorData['topbar_deviceid_font_family'];
+
                     $topbarTimeColor = $topbarColorData['topbar_time_font_color'];
+                    $topbarTimeFontStyle = $topbarColorData['topbar_time_font_style'];
+                    $topbarTimeFontFamily = $topbarColorData['topbar_time_font_family'];
+
                     $topbarDateColor = $topbarColorData['topbar_date_font_color'];
+                    $topbarDateFontStyle = $topbarColorData['topbar_date_font_style'];
+                    $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
                 }
                 
                 // Redirect to the same page with tvId as query parameter

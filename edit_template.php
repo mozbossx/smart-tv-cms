@@ -12,10 +12,22 @@ $tvHeight = '';
 $tvWidth = '';
 $backgroundColor = '';
 $topbarColor = '';
+
 $topbarTvNameColor = '';
+$topbarTvNameFontStyle = '';
+$topbarTvNameFontFamily = '';
+
 $topbarDeviceIdColor = '';
+$topbarDeviceIdFontStyle = '';
+$topbarDeviceIdFontFamily = '';
+
 $topbarTimeColor = '';
+$topbarTimeFontStyle = '';
+$topbarTimeFontFamily = '';
+
 $topbarDateColor = '';
+$topbarDateFontStyle = '';
+$topbarDateFontFamily = '';
 
 // Check if tvId is set in the URL
 if (isset($_GET['tvId'])) {
@@ -45,10 +57,22 @@ if (isset($_GET['tvId'])) {
     if ($resultTopbarColorQuery->num_rows > 0) {
         $topbarColorData = $resultTopbarColorQuery->fetch_assoc();
         $topbarColor = $topbarColorData['topbar_hex_color'];
+
         $topbarTvNameColor = $topbarColorData['topbar_tvname_font_color'];
+        $topbarTvNameFontStyle = $topbarColorData['topbar_tvname_font_style'];
+        $topbarTvNameFontFamily = $topbarColorData['topbar_tvname_font_family'];
+
         $topbarDeviceIdColor = $topbarColorData['topbar_deviceid_font_color'];
+        $topbarDeviceIdFontStyle = $topbarColorData['topbar_deviceid_font_style'];
+        $topbarDeviceIdFontFamily = $topbarColorData['topbar_deviceid_font_family'];
+
         $topbarTimeColor = $topbarColorData['topbar_time_font_color'];
+        $topbarTimeFontStyle = $topbarColorData['topbar_time_font_style'];
+        $topbarTimeFontFamily = $topbarColorData['topbar_time_font_family'];
+
         $topbarDateColor = $topbarColorData['topbar_date_font_color'];
+        $topbarDateFontStyle = $topbarColorData['topbar_date_font_style'];
+        $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
     }
 
     $stmtTopbarColor->close();
@@ -116,6 +140,7 @@ $conn->close();
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Edit Template</title>
@@ -137,7 +162,7 @@ $conn->close();
                         <div>
                             <!-- Display iframe based on tvId -->
                             <div class="tv-frame">
-                                <iframe src="tv.php?tvId=<?php echo $tvId?>" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
+                                <iframe id="tv-iframe" src="tv.php?tvId=<?php echo $tvId?>" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
                             </div>
                             <div class="line-separator"></div>
                             <div class="form-row">
@@ -152,47 +177,13 @@ $conn->close();
                                         <?php endforeach; ?>
                                     </form>
                                 </div>
-                                <div class="form-column" style="flex: 1; border: 1px black solid; border-radius: 5px">
-                                    <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;">Customize Background</p>
-                                    <form id="editBackgroundColorForm" enctype="multipart/form-data" style="padding: 8px;">                                        
-                                        <div class="option-div-color">
-                                            <input type="color" id="background_color" name="background_color" value="<?php echo htmlspecialchars($backgroundColor); ?>">
-                                            <label for="background_color"> TV Background Color</label>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="form-column" style="flex: 1; border: 1px black solid; border-radius: 5px">
-                                    <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;">Customize Top Bar</p>
-                                    <form id="editTopBarColorForm" enctype="multipart/form-data" style="padding: 8px;">
-                                        <div class="option-div-color">
-                                            <input type="color" id="topbar_color" name="topbar_color" value="<?php echo htmlspecialchars($topbarColor); ?>">
-                                            <label for="topbar_color"> Top Bar Color</label>
-                                        </div>
-                                        <div class="option-div-color">
-                                            <input type="color" id="topbar_tvname_color" name="topbar_tvname_color" value="<?php echo htmlspecialchars($topbarTvNameColor); ?>">
-                                            <label for="topbar_tvname_color"> TV Name Font Color</label>
-                                        </div>
-                                        <div class="option-div-color">
-                                            <input type="color" id="topbar_deviceid_color" name="topbar_deviceid_color" value="<?php echo htmlspecialchars($topbarDeviceIdColor); ?>">
-                                            <label for="topbar_deviceid_color"> Device ID Font Color</label>
-                                        </div>
-                                        <div class="option-div-color">
-                                            <input type="color" id="topbar_time_color" name="topbar_time_color" value="<?php echo htmlspecialchars($topbarTimeColor); ?>">
-                                            <label for="topbar_time_color"> Time Font Color</label>
-                                        </div>
-                                        <div class="option-div-color">
-                                            <input type="color" id="topbar_date_color" name="topbar_date_color" value="<?php echo htmlspecialchars($topbarDateColor); ?>">
-                                            <label for="topbar_date_color"> Date Font Color</label>
-                                        </div>
-                                    </form>
-                                </div>
                             </div>
                             <div class="form-row" style="margin-top: 5px">
                                 <div class="form-column" style="flex: 1; border: 1px black solid; border-radius: 5px">
                                     <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;">Customize Content Containers</p>
-                                    <form id="editContentContainerForm" enctype="multipart/form-data" style="padding: 8px">
+                                    <form id="editContentContainerForm" enctype="multipart/form-data" style="padding: 8px;">
                                         <?php foreach ($containers as $container): ?>
-                                            <div style="display: flex; flex-direction: column; border: 1px solid gray; border-radius: 5px; padding: 5px; margin-bottom: 10px">
+                                            <div class="option-div-container-color">
                                                 <p><?php echo $container['container_name'];?></p>
                                                 <div class="option-div-color">
                                                     <input type="color" id="container_<?php echo $container['container_id']; ?>_bg_color" name="container_<?php echo $container['container_id']; ?>_bg_color" value="<?php echo htmlspecialchars($container['parent_background_color']); ?>">
@@ -220,13 +211,188 @@ $conn->close();
                 </div>
             </div>
         </div>
+        <!-- Top Bar Customization Right-side panel -->
+        <div id="topbarRightSidePanel" class="right-side-panel">
+            <div class="panel-close-btn">
+                <button onclick="closeTopbarRightSidePanel()">x</button>
+            </div>
+            <h3>Customize Top Bar</h3>
+            <br>
+            <form id="editTopBarColorForm" enctype="multipart/form-data" style="padding-bottom: 45px">
+                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                    <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
+                    <label for="topbar_color" class="floating-label">Top Bar Color</label>
+                </div>
+                <div class="split-container" style="margin-bottom: 0">
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                        <input type="color" id="topbar_tvname_color" name="topbar_tvname_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarTvNameColor); ?>">
+                        <label for="topbar_tvname_color" class="floating-label">TV Name Font Color</label>
+                    </div>
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                        <select id="topbar_tvname_font_style" name="topbar_tvname_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                            <option value="normal" <?php echo $topbarTvNameFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                            <option value="italic" <?php echo $topbarTvNameFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                        </select>
+                        <label for="topbar_tvname_font_style" class="floating-label">TV Name Font Style</label>
+                    </div>
+                </div>
+                <div class="split-container" style="margin-bottom: 0">
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                        <input type="color" id="topbar_deviceid_color" name="topbar_deviceid_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarDeviceIdColor); ?>">
+                        <label for="topbar_deviceid_color" class="floating-label">Device ID Font Color</label>
+                    </div>
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                        <select id="topbar_deviceid_font_style" name="topbar_deviceid_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                            <option value="normal" <?php echo $topbarDeviceIdFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                            <option value="italic" <?php echo $topbarDeviceIdFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                        </select>
+                        <label for="topbar_deviceid_font_style" class="floating-label">Device ID Font Style</label>
+                    </div>
+                </div>
+                <div class="split-container" style="margin-bottom: 0">
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                        <input type="color" id="topbar_time_color" name="topbar_time_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarTimeColor); ?>">
+                        <label for="topbar_time_color" class="floating-label">Time Font Color</label>
+                    </div>
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                        <select id="topbar_time_font_style" name="topbar_time_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                            <option value="normal" <?php echo $topbarTimeFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                            <option value="italic" <?php echo $topbarTimeFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                        </select>
+                        <label for="topbar_time_font_style" class="floating-label">Time Font Style</label>
+                    </div>
+                </div>
+                <div class="split-container" style="margin-bottom: 0">
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                        <input type="color" id="topbar_date_color" name="topbar_date_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarDateColor); ?>">
+                        <label for="topbar_date_color" class="floating-label">Date Font Color</label>
+                    </div>
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                        <select id="topbar_date_font_style" name="topbar_date_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                            <option value="normal" <?php echo $topbarDateFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                            <option value="italic" <?php echo $topbarDateFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                        </select>
+                        <label for="topbar_date_font_style" class="floating-label">Date Font Style</label>
+                    </div>
+                </div>
+                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                    <select id="topbar_tvname_font_family" name="topbar_tvname_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                        <option value="Questrial" <?php echo $topbarTvNameFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                        <option value="Arial" <?php echo $topbarTvNameFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                        <option value="Verdana" <?php echo $topbarTvNameFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                        <option value="Times New Roman" <?php echo $topbarTvNameFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                        <option value="Georgia" <?php echo $topbarTvNameFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                        <option value="Courier New" <?php echo $topbarTvNameFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                        <option value="Libre Baskerville" <?php echo $topbarTvNameFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                    </select>
+                    <label for="topbar_tvname_font_family" class="floating-label">TV Name Font Family</label>
+                </div>
+                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                    <select id="topbar_deviceid_font_family" name="topbar_deviceid_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                        <option value="Questrial" <?php echo $topbarDeviceIdFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                        <option value="Arial" <?php echo $topbarDeviceIdFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                        <option value="Verdana" <?php echo $topbarDeviceIdFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                        <option value="Times New Roman" <?php echo $topbarDeviceIdFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                        <option value="Georgia" <?php echo $topbarDeviceIdFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                        <option value="Courier New" <?php echo $topbarDeviceIdFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                        <option value="Libre Baskerville" <?php echo $topbarDeviceIdFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                    </select>
+                    <label for="topbar_deviceid_font_family" class="floating-label">Device ID Font Family</label>
+                </div>
+                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                    <select id="topbar_time_font_family" name="topbar_time_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                        <option value="Questrial" <?php echo $topbarTimeFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                        <option value="Arial" <?php echo $topbarTimeFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                        <option value="Verdana" <?php echo $topbarTimeFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                        <option value="Times New Roman" <?php echo $topbarTimeFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                        <option value="Georgia" <?php echo $topbarTimeFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                        <option value="Courier New" <?php echo $topbarTimeFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                        <option value="Libre Baskerville" <?php echo $topbarTimeFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                    </select>
+                    <label for="topbar_time_font_family" class="floating-label">Time Font Family</label>
+                </div>
+                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                    <select id="topbar_date_font_family" name="topbar_date_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                        <option value="Questrial" <?php echo $topbarDateFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                        <option value="Arial" <?php echo $topbarDateFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                        <option value="Verdana" <?php echo $topbarDateFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                        <option value="Times New Roman" <?php echo $topbarDateFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                        <option value="Georgia" <?php echo $topbarDateFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                        <option value="Courier New" <?php echo $topbarDateFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                        <option value="Libre Baskerville" <?php echo $topbarDateFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                    </select>
+                    <label for="topbar_date_font_family" class="floating-label">Date Font Family</label>
+                </div>
+            </form>
+        </div>
+        <!-- Background Customization Right-side panel -->
+        <div id="backgroundRightSidePanel" class="right-side-panel">
+            <div class="panel-close-btn">
+                <button onclick="closeBackgroundRightSidePanel()">x</button>
+            </div>
+            <br>
+            <h3>Customize Background</h3>
+            <form id="editBackgroundColorForm" enctype="multipart/form-data" style="padding: 8px;">                                        
+                <div class="option-div-color">
+                    <input type="color" id="background_color" name="background_color" value="<?php echo htmlspecialchars($backgroundColor); ?>">
+                    <label for="background_color"> TV Background Color</label>
+                </div>
+            </form>
+        </div>
     </div>
     <script>
+        // Function to close the right side panel
+        function closeTopbarRightSidePanel() {
+            topbarRightSidePanel.classList.remove('open');
+        }
+
+        function closeBackgroundRightSidePanel() {
+            backgroundRightSidePanel.classList.remove('open');
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const backgroundColorForm = document.getElementById('editBackgroundColorForm');
             const topBarColorForm = document.getElementById('editTopBarColorForm');
             const contentContainerForm = document.getElementById('editContentContainerForm');
             const visibilityForm = document.getElementById('visibilitySettingsForm');
+
+            const iframe = document.getElementById('tv-iframe');
+            const topbarRightSidePanel = document.getElementById('topbarRightSidePanel');
+            const backgroundRightSidePanel = document.getElementById('backgroundRightSidePanel');
+
+            // Function to open and close the right side panels
+            function openTopbarRightSidePanel() {
+                closeBackgroundRightSidePanel();  // Close the background panel if it's open
+                topbarRightSidePanel.classList.add('open');
+            }
+
+            function openBackgroundRightSidePanel() {
+                closeTopbarRightSidePanel();  // Close the top bar panel if it's open
+                backgroundRightSidePanel.classList.add('open');
+            }
+
+            function closeTopbarRightSidePanel() {
+                topbarRightSidePanel.classList.remove('open');
+            }
+
+            function closeBackgroundRightSidePanel() {
+                backgroundRightSidePanel.classList.remove('open');
+            }
+
+            // Add event listeners to the iframe content
+            iframe.onload = function () {
+                const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+
+                // Click event for the top bar
+                iframeDocument.getElementById('topbar').addEventListener('click', function () {
+                    openTopbarRightSidePanel();
+                });
+
+                // Click event for the background
+                iframeDocument.getElementById('tvBackgroundColor').addEventListener('click', function () {
+                    openBackgroundRightSidePanel();
+                });
+            };
 
             // Fetch the WebSocket URL from the PHP file
             fetch('websocket_conn.php')
@@ -288,21 +454,42 @@ $conn->close();
                         ws.send(JSON.stringify(data));
                     });
 
-                    // Submit topbar color changes
-                    const topbarFields = ['topbar_color', 'topbar_tvname_color', 'topbar_deviceid_color', 'topbar_time_color', 'topbar_date_color'];
+                    const topbarFields = [
+                        'topbar_color', 'topbar_tvname_color', 'topbar_deviceid_color', 
+                        'topbar_time_color', 'topbar_date_color', 'topbar_tvname_font_style', 
+                        'topbar_tvname_font_family', 'topbar_deviceid_font_style', 
+                        'topbar_deviceid_font_family', 'topbar_time_font_style', 
+                        'topbar_time_font_family', 'topbar_date_font_style', 
+                        'topbar_date_font_family'
+                    ];
+
+                    // Function to send WebSocket message
+                    function sendTopbarUpdate() {
+                        const formData = new FormData(topBarColorForm);
+                        ws.send(JSON.stringify({
+                            action: 'update_topbar_color',
+                            tv_id: <?php echo $tvId; ?>,
+                            topbar_hex_color: formData.get('topbar_color'),
+                            topbar_tvname_font_color: formData.get('topbar_tvname_color'),
+                            topbar_tvname_font_style: formData.get('topbar_tvname_font_style'),
+                            topbar_tvname_font_family: formData.get('topbar_tvname_font_family'),
+                            topbar_deviceid_font_color: formData.get('topbar_deviceid_color'),
+                            topbar_deviceid_font_style: formData.get('topbar_deviceid_font_style'),
+                            topbar_deviceid_font_family: formData.get('topbar_deviceid_font_family'),
+                            topbar_time_font_color: formData.get('topbar_time_color'),
+                            topbar_time_font_style: formData.get('topbar_time_font_style'),
+                            topbar_time_font_family: formData.get('topbar_time_font_family'),
+                            topbar_date_font_color: formData.get('topbar_date_color'),
+                            topbar_date_font_style: formData.get('topbar_date_font_style'),
+                            topbar_date_font_family: formData.get('topbar_date_font_family')
+                        }));
+                    }
+
+                    // Attach event listeners to all relevant fields
                     topbarFields.forEach(id => {
-                        topBarColorForm.querySelector(`#${id}`).addEventListener('input', () => {
-                            const formData = new FormData(topBarColorForm);
-                            ws.send(JSON.stringify({
-                                action: 'update_topbar_color',
-                                tv_id: <?php echo $tvId; ?>,
-                                topbar_hex_color: formData.get('topbar_color'),
-                                topbar_tvname_font_color: formData.get('topbar_tvname_color'),
-                                topbar_deviceid_font_color: formData.get('topbar_deviceid_color'),
-                                topbar_time_font_color: formData.get('topbar_time_color'),
-                                topbar_date_font_color: formData.get('topbar_date_color')
-                            }));
-                        });
+                        const element = topBarColorForm.querySelector(`#${id}`);
+                        element.addEventListener('input', sendTopbarUpdate);
+                        element.addEventListener('change', sendTopbarUpdate);
                     });
 
                     // Automatically submit the content container form when a color changes
@@ -366,6 +553,8 @@ $conn->close();
                     console.error('Error fetching WebSocket URL:', error);
                 });
         });
+
+        
     </script>
 </body>
 </html>

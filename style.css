@@ -1718,11 +1718,19 @@ input[type="checkbox"] {
     border-radius: 5px;
 }
 
+.option-div-container-color {
+    display: flex; 
+    flex-direction: column; 
+    border: 1px solid gray; 
+    border-radius: 5px; 
+    padding: 5px; 
+    margin-bottom: 10px;
+}
+
 .option-div-color {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
-    font-family: Arial, sans-serif;
     background: #f3f3f3;
     padding: 15px;
     border-radius: 5px;
@@ -1895,6 +1903,40 @@ input[type=range]:focus::-ms-fill-lower {
 }
 input[type=range]:focus::-ms-fill-upper {
   background: #3071A9;
+}
+
+/* Right-side panel styling */
+.right-side-panel {
+    position: fixed;
+    right: -500px; /* Hidden initially */
+    top: 0;
+    width: 300px;
+    height: 100%;
+    background: #e1e1e1;
+    border-left: 1px solid #ccc;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+    overflow-y: auto;
+    transition: right 0.4s ease;
+    z-index: 1000;
+    padding: 10px;
+    padding-bottom: 30px;
+}
+
+.right-side-panel.open {
+    right: 0; /* Show the panel */
+}
+
+.panel-close-btn {
+    display: block;
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.panel-close-btn button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
 }
 
 /* Media query for smaller screens */

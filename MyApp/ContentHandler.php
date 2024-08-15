@@ -382,19 +382,56 @@ class ContentHandler implements MessageComponentInterface
             // Define the table and fields to update
             $table = 'topbar_tv_tb';
             $idField = 'tv_id';
-            $fields = ['topbar_hex_color','topbar_tvname_font_color','topbar_deviceid_font_color','topbar_time_font_color','topbar_date_font_color'];
+            $fields = ['topbar_hex_color',
+                       'topbar_tvname_font_color',
+                       'topbar_tvname_font_style',
+                       'topbar_tvname_font_family',
+                       'topbar_deviceid_font_color',
+                       'topbar_deviceid_font_style',
+                       'topbar_deviceid_font_family',
+                       'topbar_time_font_color',
+                       'topbar_time_font_style',
+                       'topbar_time_font_family',
+                       'topbar_date_font_color',
+                       'topbar_date_font_style',
+                       'topbar_date_font_family'];
             
             // Extract the tv_id and topbar_color details from the incoming data
             $tvId = $data['tv_id'] ?? null;
             $topbarColor = $data['topbar_hex_color'] ?? null;
+
             $topbarTvNameColor = $data['topbar_tvname_font_color'] ?? null;
+            $topbarTvNameFontStyle = $data['topbar_tvname_font_style'] ?? null;
+            $topbarTvNameFontFamily = $data['topbar_tvname_font_family'] ?? null;
+
             $topbarDeviceIdColor = $data['topbar_deviceid_font_color'] ?? null;
+            $topbarDeviceIdFontStyle = $data['topbar_deviceid_font_style'] ?? null;
+            $topbarDeviceIdFontFamily = $data['topbar_deviceid_font_family'] ?? null;
+
             $topbarTimeColor = $data['topbar_time_font_color'] ?? null;
+            $topbarTimeFontStyle = $data['topbar_time_font_style'] ?? null;
+            $topbarTimeFontFamily = $data['topbar_time_font_family'] ?? null;
+
             $topbarDateColor = $data['topbar_date_font_color'] ?? null;
+            $topbarDateFontStyle = $data['topbar_date_font_style'] ?? null;
+            $topbarDateFontFamily = $data['topbar_date_font_family'] ?? null;
             
             if ($tvId !== null || $topbarColor !== null || $topbarTvNameColor !== null || $topbarDeviceIdColor !== null || $topbarTimeColor !== null || $topbarDateColor !== null) {
                 // Prepare the parameters for the update statement
-                $params = [$topbarColor, $topbarTvNameColor, $topbarDeviceIdColor, $topbarTimeColor, $topbarDateColor, $tvId];
+                $params = [$topbarColor, 
+                           $topbarTvNameColor, 
+                           $topbarTvNameFontStyle, 
+                           $topbarTvNameFontFamily,
+                           $topbarDeviceIdColor, 
+                           $topbarDeviceIdFontStyle,
+                           $topbarDeviceIdFontFamily,
+                           $topbarTimeColor, 
+                           $topbarTimeFontStyle,
+                           $topbarTimeFontFamily,
+                           $topbarDateColor, 
+                           $topbarDateFontStyle,
+                           $topbarDateFontFamily,
+                           $tvId];
                 $fieldAssignments = implode(', ', array_map(fn($field) => "$field = ?", $fields));
                 $stmt = $this->pdo->prepare("UPDATE {$table} SET {$fieldAssignments} WHERE {$idField} = ?");
                 
@@ -412,9 +449,17 @@ class ContentHandler implements MessageComponentInterface
                         'tv_id' => $tvId,
                         'topbar_hex_color' => $topbarColor,
                         'topbar_tvname_font_color' => $topbarTvNameColor,
+                        'topbar_tvname_font_style' => $topbarTvNameFontStyle,
+                        'topbar_tvname_font_family' => $topbarTvNameFontFamily,
                         'topbar_deviceid_font_color' => $topbarDeviceIdColor,
+                        'topbar_deviceid_font_style' => $topbarDeviceIdFontStyle,
+                        'topbar_deviceid_font_family' => $topbarDeviceIdFontFamily,
                         'topbar_time_font_color' => $topbarTimeColor,
+                        'topbar_time_font_style' => $topbarTimeFontStyle,
+                        'topbar_time_font_family' => $topbarTimeFontFamily,
                         'topbar_date_font_color' => $topbarDateColor,
+                        'topbar_date_font_style' => $topbarDateFontStyle,
+                        'topbar_date_font_family' => $topbarDateFontFamily,
                     ];
                 } else {
                     $response = [

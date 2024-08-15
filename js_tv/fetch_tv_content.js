@@ -365,8 +365,9 @@ Ws.addEventListener('message', function (event) {
     } else if (data.action === 'update_background_color') {
         // Update tv background without refreshing the entire page
         if (data.success) {
+            const backgroundElement = document.getElementById('tvBackgroundColor');
             // Update the <body> background color
-            document.body.style.backgroundColor = data.background_hex_color;
+            backgroundElement.style.backgroundColor = data.background_hex_color;
         } else {
             console.error('Failed to update background color:', data.message);
         }
@@ -395,15 +396,36 @@ Ws.addEventListener('message', function (event) {
             console.error('Failed to update container colors:', data.message);
         }
     } else if (data.action === 'update_topbar_color') {
-        // Update topbar colors without refreshing the entire page
+        // Update topbar colors and styles without refreshing the entire page
         if (data.success) {
             const topbarElement = document.getElementById('topbar');
             if (topbarElement) {
                 topbarElement.style.backgroundColor = data.topbar_hex_color;
-                topbarElement.querySelector('.tv-name').style.color = data.topbar_tvname_font_color;
-                topbarElement.querySelector('.device-id').style.color = data.topbar_deviceid_font_color;
-                topbarElement.querySelector('.time').style.color = data.topbar_time_font_color;
-                topbarElement.querySelector('.date').style.color = data.topbar_date_font_color;
+                const tvNameElement = topbarElement.querySelector('.tv-name');
+                const deviceIdElement = topbarElement.querySelector('.device-id');
+                const timeElement = topbarElement.querySelector('.time');
+                const dateElement = topbarElement.querySelector('.date');
+    
+                if (tvNameElement) {
+                    tvNameElement.style.color = data.topbar_tvname_font_color;
+                    tvNameElement.style.fontStyle = data.topbar_tvname_font_style;
+                    tvNameElement.style.fontFamily = data.topbar_tvname_font_family;
+                }
+                if (deviceIdElement) {
+                    deviceIdElement.style.color = data.topbar_deviceid_font_color;
+                    deviceIdElement.style.fontStyle = data.topbar_deviceid_font_style;
+                    deviceIdElement.style.fontFamily = data.topbar_deviceid_font_family;
+                }
+                if (timeElement) {
+                    timeElement.style.color = data.topbar_time_font_color;
+                    timeElement.style.fontStyle = data.topbar_time_font_style;
+                    timeElement.style.fontFamily = data.topbar_time_font_family;
+                }
+                if (dateElement) {
+                    dateElement.style.color = data.topbar_date_font_color;
+                    dateElement.style.fontStyle = data.topbar_date_font_style;
+                    dateElement.style.fontFamily = data.topbar_date_font_family;
+                }
             }
         }
     } else if (data.action === 'save_layout') {

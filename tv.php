@@ -25,30 +25,33 @@ include 'tv_initialize.php';
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style_tv.css">
     <!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
     <title><?php echo $_SESSION['tv_name'] ?></title>
 </head>
 <p id="screen" style="color: white; position: fixed"></p>
-<body style="background: <?php echo $backgroundColor ?>">
+<body>
     <?php include('tv_topbar.php'); ?>
-    <div class="main-container" id="main-container">
-    <?php foreach ($containers as $container): ?>
-            <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
-                 style="background: <?php echo $container['parent_background_color']; ?>;
-                        display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
-                        height: <?php echo $container['height_px']; ?>px;
-                        width: <?php echo $container['width_px']; ?>px;">
-                <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>"><?php echo $container['container_name']; ?></h1>
-                <div id="<?php echo $container['container_name']; ?>CarouselContainer" class="carousel-container"
-                     style="background: <?php echo $container['child_background_color']; ?>;
-                            color: <?php echo $container['child_font_color']; ?>;">
-                    <!-- Content for <?php echo $container['container_name']; ?> will be displayed here -->
+    <div style="background: <?php echo $backgroundColor ?>; cursor: pointer; width: 100%; height: 100%" id="tvBackgroundColor">
+        <div class="main-container" id="main-container">
+        <?php foreach ($containers as $container): ?>
+                <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
+                    style="background: <?php echo $container['parent_background_color']; ?>;
+                            display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
+                            height: <?php echo $container['height_px']; ?>px;
+                            width: <?php echo $container['width_px']; ?>px;">
+                    <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>"><?php echo $container['container_name']; ?></h1>
+                    <div id="<?php echo $container['container_name']; ?>CarouselContainer" class="carousel-container"
+                        style="background: <?php echo $container['child_background_color']; ?>;
+                                color: <?php echo $container['child_font_color']; ?>;">
+                        <!-- Content for <?php echo $container['container_name']; ?> will be displayed here -->
+                    </div>
+                    <div class="resize-handle"></div>
                 </div>
-                <div class="resize-handle"></div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web-animations/2.3.1/web-animations.min.js"></script>
@@ -105,7 +108,6 @@ include 'tv_initialize.php';
 
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
-                console.log('Received WebSocket message:', message);
 
                 if (message.action === 'save_layout') {
                     ws.send(JSON.stringify({
