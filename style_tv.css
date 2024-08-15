@@ -1,0 +1,231 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: "Questrial", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+.topbar {
+    height: 7.0vh;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.device-id {
+    flex: 1; /* Takes up available space */
+    padding-left: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.tv-name {
+    flex: auto;
+    text-align: center;
+    font-weight: bold;
+}
+
+.date-time {
+    flex: 1; /* Takes up available space */
+    text-align: right;
+    padding-right: 10px;
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+}
+
+#live-clock {
+    margin-bottom: 2px; /* Adjust the margin as needed */
+    display: block;
+    font-weight: 700;
+}
+
+#live-date {
+    display: block;
+}
+
+.main-container {
+    /* position: relative;
+    width: 100%;
+    height: 100%; */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-gap: 10px;
+    position: relative;
+}
+
+.content-container {
+    position: absolute;
+    width: 300px;
+    height: 200px;
+    min-width: 250px;
+    min-height: 200px;
+    padding: 5px;
+    box-sizing: border-box;
+    overflow: hidden;
+    margin: 5px;
+    border-radius: 5px;
+    cursor:move;
+    top: 0;
+    left: 0;
+}
+
+.carousel-container {
+    height: 84.5%;
+    border: black 1px solid;
+    border-radius: 5px;
+}
+
+.resize-handle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 6px;
+    background: #000000;
+    bottom: 0;
+    right: 0;
+    cursor: se-resize;
+    z-index: 10;
+}
+
+.content-container-con {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+.content-main {
+    flex: 1;
+    overflow: auto; /* Optional: ensures scrolling if content overflows */
+}
+
+.content-details {
+    margin-top: auto;
+}
+
+.media-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.carousel-item {
+    display: none;
+    width: 100%;
+    height: auto;
+    animation: fadeIn 2s ease-out;
+}
+
+.line-separator {
+    display: block;
+    height: 0.5px;
+    margin: 10px 0; /* Adjust the margin to position the line */
+}
+
+.content-title {
+    font-weight: bolder;
+    user-select: none;
+    padding-bottom: 6px;
+    margin: 0;
+}
+
+.main-message {
+    white-space: pre-wrap;
+    max-height: 100%; /* Prevent overflow */
+    overflow: hidden; /* Hide overflow content */
+    text-align: justify; /* Justify text */
+    word-wrap: break-word; /* Break words if necessary */
+    line-height: 1.4; /* Line height for readability */
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+}
+
+.page-number-container {
+    bottom: 0;
+    text-align: center;
+    font-weight: bold;
+}
+
+.no-announcements-message {
+    text-align: center;
+    color: #666;
+    margin-top: 5px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.carousel-item.active {
+    display: block;
+}
+
+/* Small TVs (Under 32 inches) */
+@media (max-width: 800px) {
+    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message{
+        font-size: 1.50vh;
+    }
+    .tv-name, .content-title, .main-message {
+        font-size: 2.50vh;
+    }
+}
+
+/* Medium TVs (32 to 49 inches) */
+@media (min-width: 801px) and (max-width: 1200px) {
+    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
+        font-size: 1.75vh;
+    }
+    .tv-name, .content-title, .main-message {
+        font-size: 2.75vh;
+    }
+}
+
+/* Large TVs (50 to 59 inches) */
+@media (min-width: 1201px) and (max-width: 1500px) {
+    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
+        font-size: 2.00vh;
+    }
+    .tv-name, .content-title, .main-message {
+        font-size: 3.00vh;
+    }
+}
+
+/* Extra Large TVs (60 to 69 inches) */
+@media (min-width: 1501px) and (max-width: 1800px) {
+    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
+        font-size: 2.25vh;
+    }
+    .tv-name, .content-title, .main-message {
+        font-size: 3.25vh;
+    }
+}
+
+/* Super Large TVs (70 inches and above) */
+@media (min-width: 1801px) {
+    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
+        font-size: 2.50vh;
+    }
+    .tv-name, .content-title, .main-message {
+        font-size: 3.50vh;
+    }
+}
