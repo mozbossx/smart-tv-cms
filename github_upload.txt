@@ -1,0 +1,10 @@
+1. Set-up process
+git init
+git add .
+git commit -am "initial commit"
+git remote add origin "https://github.com/mozbossx/smart-tv-cms"
+git push origin master
+
+2. When commiting new updates:
+git commit -am "my_update_title"
+git push origin master
