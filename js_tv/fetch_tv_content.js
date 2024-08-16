@@ -55,7 +55,7 @@ const updateAnnouncementUI = (data) => {
         <div class="content-container-con">
             <div class="content-main">
                 ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                <pre class="main-message" style="word-break: break-word">${data.ann_body}</pre>
+                <pre class="main-message" style="word-break: break-word; font-family: ${childFontFamily}">${data.ann_body}</pre>
             </div>
             <div class="content-details">
                 <div class="line-separator"></div>
@@ -383,12 +383,15 @@ Ws.addEventListener('message', function (event) {
                     // Update the container's background and font colors
                     containerElement.style.backgroundColor = container.parent_background_color;
                     containerElement.querySelector('.content-title').style.color = container.parent_font_color;
+                    containerElement.querySelector('.content-title').style.fontStyle = container.parent_font_style;
+                    containerElement.querySelector('.content-title').style.fontFamily = container.parent_font_family;
 
                     const carouselContainer = containerElement.querySelector('.carousel-container');
                     if (carouselContainer) {
                         // Update the carousel container's background and font colors
                         carouselContainer.style.backgroundColor = container.child_background_color;
                         carouselContainer.style.color = container.child_font_color;
+                        carouselContainer.style.fontStyle = container.child_font_style;
                     }
                 }
             });

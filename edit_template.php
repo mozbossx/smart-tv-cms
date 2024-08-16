@@ -178,34 +178,6 @@ $conn->close();
                                     </form>
                                 </div>
                             </div>
-                            <div class="form-row" style="margin-top: 5px">
-                                <div class="form-column" style="flex: 1; border: 1px black solid; border-radius: 5px">
-                                    <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;">Customize Content Containers</p>
-                                    <form id="editContentContainerForm" enctype="multipart/form-data" style="padding: 8px;">
-                                        <?php foreach ($containers as $container): ?>
-                                            <div class="option-div-container-color">
-                                                <p><?php echo $container['container_name'];?></p>
-                                                <div class="option-div-color">
-                                                    <input type="color" id="container_<?php echo $container['container_id']; ?>_bg_color" name="container_<?php echo $container['container_id']; ?>_bg_color" value="<?php echo htmlspecialchars($container['parent_background_color']); ?>">
-                                                    <label for="container_<?php echo $container['container_id']; ?>"> Background Color</label>
-                                                </div>
-                                                <div class="option-div-color">
-                                                    <input type="color" id="container_<?php echo $container['container_id']; ?>_font_color" name="container_<?php echo $container['container_id']; ?>_font_color" value="<?php echo htmlspecialchars($container['parent_font_color']); ?>">
-                                                    <label for="container_<?php echo $container['container_id']; ?>"> Font Color</label>
-                                                </div>
-                                                <div class="option-div-color">
-                                                    <input type="color" id="container_<?php echo $container['container_id']; ?>_card_bg_color" name="container_<?php echo $container['container_id']; ?>_card_bg_color" value="<?php echo htmlspecialchars($container['child_background_color']); ?>">
-                                                    <label for="container_<?php echo $container['container_id']; ?>_card_bg_color"> Card Background Color</label>
-                                                </div>
-                                                <div class="option-div-color">
-                                                    <input type="color" id="container_<?php echo $container['container_id']; ?>_fcard_color" name="container_<?php echo $container['container_id']; ?>_fcard_color" value="<?php echo htmlspecialchars($container['child_font_color']); ?>">
-                                                    <label for="container_<?php echo $container['container_id']; ?>_fcard_color"> Card Font Color</label>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </form>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -214,7 +186,7 @@ $conn->close();
         <!-- Top Bar Customization Right-side panel -->
         <div id="topbarRightSidePanel" class="right-side-panel">
             <div class="panel-close-btn">
-                <button onclick="closeTopbarRightSidePanel()">x</button>
+                <button onclick="closeTopbarRightSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
             </div>
             <h3>Customize Top Bar</h3>
             <br>
@@ -223,6 +195,7 @@ $conn->close();
                     <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
                     <label for="topbar_color" class="floating-label">Top Bar Color</label>
                 </div>
+                <div class="line-separator" style="margin-top: 0"></div>
                 <div class="split-container" style="margin-bottom: 0">
                     <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
                         <input type="color" id="topbar_tvname_color" name="topbar_tvname_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarTvNameColor); ?>">
@@ -275,6 +248,7 @@ $conn->close();
                         <label for="topbar_date_font_style" class="floating-label">Date Font Style</label>
                     </div>
                 </div>
+                <div class="line-separator" style="margin-top: 0"></div>
                 <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
                     <select id="topbar_tvname_font_family" name="topbar_tvname_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
                         <option value="Questrial" <?php echo $topbarTvNameFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
@@ -328,19 +302,97 @@ $conn->close();
         <!-- Background Customization Right-side panel -->
         <div id="backgroundRightSidePanel" class="right-side-panel">
             <div class="panel-close-btn">
-                <button onclick="closeBackgroundRightSidePanel()">x</button>
+                <button onclick="closeBackgroundRightSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
             </div>
             <br>
             <h3>Customize Background</h3>
+            <br>
             <form id="editBackgroundColorForm" enctype="multipart/form-data" style="padding: 8px;">                                        
-                <div class="option-div-color">
-                    <input type="color" id="background_color" name="background_color" value="<?php echo htmlspecialchars($backgroundColor); ?>">
-                    <label for="background_color"> TV Background Color</label>
+                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                    <input type="color" id="background_color" name="background_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($backgroundColor); ?>">
+                    <label for="background_color" class="floating-label">TV Background Color</label>
                 </div>
+            </form>
+        </div>
+        <!-- Containers Customization Right-side panel -->
+        <div id="contentContainerRightSidePanel" class="right-side-panel">
+            <div class="panel-close-btn">
+                <button onclick="closeContainerRightSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
+            </div>
+            <br>
+            <h3>Customize Container</h3>
+            <br>
+            <form id="editContentContainerForm" enctype="multipart/form-data">
+                <?php foreach ($containers as $container): ?>
+                    <div class="option-div-container-color" style="padding: 0">
+                        <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><?php echo $container['container_name'];?></p>
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                            <input type="color" id="container_<?php echo $container['container_id']; ?>_bg_color" name="container_<?php echo $container['container_id']; ?>_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($container['parent_background_color']); ?>">
+                            <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Background Color</label>
+                        </div>
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                            <input type="color" id="container_<?php echo $container['container_id']; ?>_card_bg_color" name="container_<?php echo $container['container_id']; ?>_card_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($container['child_background_color']); ?>">
+                            <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Card Background Color</label>
+                        </div>
+                        <div class="line-separator" style="margin-top: 0; margin-left: 12px; margin-right: 12px"></div>
+                        <div class="split-container" style="margin-bottom: 0">
+                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                <input type="color" id="container_<?php echo $container['container_id']; ?>_font_color" name="container_<?php echo $container['container_id']; ?>_font_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($container['parent_font_color']); ?>">
+                                <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Font Color</label>
+                            </div>
+                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                <select id="container_<?php echo $container['container_id']; ?>_fontstyle" name="container_<?php echo $container['container_id']; ?>_fontstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                    <option value="normal" <?php echo htmlspecialchars($container['parent_font_style']) == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                                    <option value="italic" <?php echo htmlspecialchars($container['parent_font_style']) == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                                </select>
+                                <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Font Style</label>
+                            </div>
+                        </div>
+                        <div class="split-container" style="margin-bottom: 0">
+                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                <input type="color" id="container_<?php echo $container['container_id']; ?>_fcard_color" name="container_<?php echo $container['container_id']; ?>_fcard_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($container['child_font_color']); ?>">
+                                <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Card Font Color</label>
+                            </div>
+                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                <select id="container_<?php echo $container['container_id']; ?>_fcardstyle" name="container_<?php echo $container['container_id']; ?>_fcardstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                    <option value="normal" <?php echo htmlspecialchars($container['child_font_style']) == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                                    <option value="italic" <?php echo htmlspecialchars($container['child_font_style']) == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                                </select>
+                                <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Card Font Style</label>
+                            </div>
+                        </div>
+                        <div class="line-separator" style="margin-top: 0; margin-left: 12px; margin-right: 12px"></div>
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                            <select id="container_<?php echo $container['container_id']; ?>_fontfamily" name="container_<?php echo $container['container_id']; ?>_fontfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                <option value="Questrial" <?php echo htmlspecialchars($container['parent_font_family']) == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                                <option value="Arial" <?php echo htmlspecialchars($container['parent_font_family']) == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                                <option value="Verdana" <?php echo htmlspecialchars($container['parent_font_family']) == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                                <option value="Times New Roman" <?php echo htmlspecialchars($container['parent_font_family']) == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                                <option value="Georgia" <?php echo htmlspecialchars($container['parent_font_family']) == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                                <option value="Courier New" <?php echo htmlspecialchars($container['parent_font_family']) == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                                <option value="Libre Baskerville" <?php echo htmlspecialchars($container['parent_font_family']) == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                            </select>
+                            <label for="container_<?php echo $container['container_id']; ?>_fontfamily" class="floating-label">Font Family</label>
+                        </div>
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                            <select id="container_<?php echo $container['container_id']; ?>_fcardfamily" name="container_<?php echo $container['container_id']; ?>_fcardfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                <option value="Questrial" <?php echo htmlspecialchars($container['child_font_family']) == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                                <option value="Arial" <?php echo htmlspecialchars($container['child_font_family']) == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                                <option value="Verdana" <?php echo htmlspecialchars($container['child_font_family']) == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                                <option value="Times New Roman" <?php echo htmlspecialchars($container['child_font_family']) == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                                <option value="Georgia" <?php echo htmlspecialchars($container['child_font_family']) == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                                <option value="Courier New" <?php echo htmlspecialchars($container['child_font_family']) == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                                <option value="Libre Baskerville" <?php echo htmlspecialchars($container['child_font_family']) == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                            </select>
+                            <label for="container_<?php echo $container['container_id']; ?>_fcardfamily" class="floating-label">Card Font Family</label>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </form>
         </div>
     </div>
     <script>
+        var childFontFamily = <?php echo json_encode($container['child_font_family']); ?>;
         // Function to close the right side panel
         function closeTopbarRightSidePanel() {
             topbarRightSidePanel.classList.remove('open');
@@ -348,6 +400,10 @@ $conn->close();
 
         function closeBackgroundRightSidePanel() {
             backgroundRightSidePanel.classList.remove('open');
+        }
+
+        function closeContainerRightSidePanel() {
+            contentContainerRightSidePanel.classList.remove('open');
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -359,16 +415,25 @@ $conn->close();
             const iframe = document.getElementById('tv-iframe');
             const topbarRightSidePanel = document.getElementById('topbarRightSidePanel');
             const backgroundRightSidePanel = document.getElementById('backgroundRightSidePanel');
+            const contentContainerRightSidePanel = document.getElementById('contentContainerRightSidePanel');
 
             // Function to open and close the right side panels
             function openTopbarRightSidePanel() {
                 closeBackgroundRightSidePanel();  // Close the background panel if it's open
+                closeContainerRightSidePanel();  // Close the container panel if it's open
                 topbarRightSidePanel.classList.add('open');
             }
 
             function openBackgroundRightSidePanel() {
                 closeTopbarRightSidePanel();  // Close the top bar panel if it's open
+                closeContainerRightSidePanel();  // Close the container panel if it's open
                 backgroundRightSidePanel.classList.add('open');
+            }
+
+            function openContentContainerRightSidePanel(containerId) {
+                closeTopbarRightSidePanel();  // Close the top bar panel if it's open
+                closeBackgroundRightSidePanel();  // Close the background panel if it's open
+                contentContainerRightSidePanel.classList.add('open');
             }
 
             function closeTopbarRightSidePanel() {
@@ -377,6 +442,10 @@ $conn->close();
 
             function closeBackgroundRightSidePanel() {
                 backgroundRightSidePanel.classList.remove('open');
+            }
+
+            function closeContainerRightSidePanel() {
+                contentContainerRightSidePanel.classList.remove('open');
             }
 
             // Add event listeners to the iframe content
@@ -391,6 +460,15 @@ $conn->close();
                 // Click event for the background
                 iframeDocument.getElementById('tvBackgroundColor').addEventListener('click', function () {
                     openBackgroundRightSidePanel();
+                });
+
+                var contentDocument = iframe.contentDocument || iframe.contentWindow.document;
+                var containers = contentDocument.querySelectorAll('.content-container');
+                containers.forEach(function(container) {
+                    container.addEventListener('click', function() {
+                        // Open the right-side panel here
+                        openContentContainerRightSidePanel();
+                    });
                 });
             };
 
@@ -493,10 +571,10 @@ $conn->close();
                     });
 
                     // Automatically submit the content container form when a color changes
-                    contentContainerForm.querySelectorAll('input[type="color"]').forEach(input => {
+                    contentContainerForm.querySelectorAll('input[type="color"], select').forEach(input => {
                         input.addEventListener('input', () => {
                             const colorsData = {};
-                            contentContainerForm.querySelectorAll('input[type="color"]').forEach(colorInput => {
+                            contentContainerForm.querySelectorAll('input[type="color"], select').forEach(colorInput => {
                                 const containerId = colorInput.id.split('_')[1];
                                 const colorType = colorInput.id.split('_')[2];
 
@@ -513,6 +591,14 @@ $conn->close();
                                     colorsData[containerId]['card_bg_color'] = colorInput.value;
                                 } else if (colorType === 'fcard') {
                                     colorsData[containerId]['fcard_color'] = colorInput.value;
+                                } else if (colorType === 'fcardstyle') {
+                                    colorsData[containerId]['fcardstyle'] = colorInput.value;
+                                } else if (colorType === 'fcardfamily') {
+                                    colorsData[containerId]['fcardfamily'] = colorInput.value;
+                                } else if (colorType === 'fontfamily') {
+                                    colorsData[containerId]['fontfamily'] = colorInput.value;
+                                } else if (colorType === 'fontstyle') {
+                                    colorsData[containerId]['fontstyle'] = colorInput.value;
                                 }
                             });
 
@@ -522,7 +608,7 @@ $conn->close();
                                 containers: colorsData
                             };
 
-                            console.log("Data being sent: ", data);
+                            console.log("Colors Data: ", colorsData);
                             ws.send(JSON.stringify(data));
                         });
                     });
@@ -553,8 +639,6 @@ $conn->close();
                     console.error('Error fetching WebSocket URL:', error);
                 });
         });
-
-        
     </script>
 </body>
 </html>

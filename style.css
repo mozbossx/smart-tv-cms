@@ -1700,7 +1700,9 @@ tr:nth-child(even) {
     border: 15px solid black;
     border-radius: 5px;
     transform:scale(0.85);
-    transform-origin:left center;
+    transform-origin: left center;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* Hide the default checkbox */
@@ -1721,10 +1723,11 @@ input[type="checkbox"] {
 .option-div-container-color {
     display: flex; 
     flex-direction: column; 
-    border: 1px solid gray; 
+    /* border: 1px solid gray;  */
+    background: #f3f3f3;
     border-radius: 5px; 
     padding: 5px; 
-    margin-bottom: 10px;
+    margin-bottom: 25px;
 }
 
 .option-div-color {
@@ -1920,10 +1923,16 @@ input[type=range]:focus::-ms-fill-upper {
     z-index: 1000;
     padding: 10px;
     padding-bottom: 30px;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 .right-side-panel.open {
     right: 0; /* Show the panel */
+}
+
+.right-side-panel ::-webkit-scrollbar{
+    display: none;
 }
 
 .panel-close-btn {

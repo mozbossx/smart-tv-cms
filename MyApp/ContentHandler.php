@@ -491,16 +491,20 @@ class ContentHandler implements MessageComponentInterface
             $containers = $data['containers'] ?? [];
             
             if ($tvId !== null && !empty($containers)) {
-                $stmtUpdateColors = $this->pdo->prepare("UPDATE {$table} SET parent_background_color = ?, parent_font_color = ?, child_background_color = ?, child_font_color = ? WHERE {$idField} = ? AND tv_id = ?");
+                $stmtUpdateColors = $this->pdo->prepare("UPDATE {$table} SET parent_background_color = ?, parent_font_color = ?, parent_font_style = ?, parent_font_family = ?, child_background_color = ?, child_font_color = ?, child_font_style = ?, child_font_family = ? WHERE {$idField} = ? AND tv_id = ?");
                 
                 foreach ($containers as $containerId => $colors) {
                     $bgColor = $colors['bg_color'] ?? null;
                     $fontColor = $colors['font_color'] ?? null;
+                    $fontStyle = $colors['fontstyle'] ?? null;
+                    $fontFamily = $colors['fontfamily'] ?? null;
                     $cardBgColor = $colors['card_bg_color'] ?? null;
-                    $cardFontColor = $colors['card_font_color'] ?? null;
+                    $cardFontColor = $colors['fcard_color'] ?? null;
+                    $cardFontStyle = $colors['fcardstyle'] ?? null;
+                    $cardFontFamily = $colors['fcardfamily'] ?? null;
             
                     if ($bgColor !== null && $fontColor !== null && $cardBgColor !== null) {
-                        $params = [$bgColor, $fontColor, $cardBgColor, $cardFontColor, $containerId, $tvId];
+                        $params = [$bgColor, $fontColor, $fontStyle, $fontFamily, $cardBgColor, $cardFontColor, $cardFontStyle, $cardFontFamily,$containerId, $tvId];
                         if (!$stmtUpdateColors->execute($params)) {
                             error_log("Failed to execute update query for container_id {$containerId}: " . implode(", ", $stmtUpdateColors->errorInfo()));
                             $from->send(json_encode(['action' => 'update_container_colors', 'success' => false, 'message' => "Failed to update container_id {$containerId}"]));
@@ -512,7 +516,7 @@ class ContentHandler implements MessageComponentInterface
                 }
                 
                 // Fetch the updated container colors to send back to the client
-                $stmtFetchColors = $this->pdo->prepare("SELECT container_id, parent_background_color, parent_font_color, child_background_color, child_font_color FROM {$table} WHERE tv_id = ?");
+                $stmtFetchColors = $this->pdo->prepare("SELECT container_id, parent_background_color, parent_font_color, parent_font_style, parent_font_family, child_background_color, child_font_color, child_font_style, child_font_family FROM {$table} WHERE tv_id = ?");
                 $stmtFetchColors->execute([$tvId]);
                 $updatedContainers = $stmtFetchColors->fetchAll(PDO::FETCH_ASSOC);
         
@@ -531,7 +535,7 @@ class ContentHandler implements MessageComponentInterface
             }
             
             $from->send(json_encode($response));
-        }        
+        }
 
         else if (isset($data['action']) && $data['action'] === 'update_container_dimensions') {
             // Define the table and fields to update

@@ -41,11 +41,13 @@ include 'tv_initialize.php';
                     style="background: <?php echo $container['parent_background_color']; ?>;
                             display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
                             height: <?php echo $container['height_px']; ?>px;
-                            width: <?php echo $container['width_px']; ?>px;">
-                    <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>"><?php echo $container['container_name']; ?></h1>
+                            width: <?php echo $container['width_px']; ?>px;"
+                    onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
+                    <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>"><?php echo $container['container_name']; ?></h1>
                     <div id="<?php echo $container['container_name']; ?>CarouselContainer" class="carousel-container"
                         style="background: <?php echo $container['child_background_color']; ?>;
-                                color: <?php echo $container['child_font_color']; ?>;">
+                               color: <?php echo $container['child_font_color']; ?>;
+                               font-style: <?php echo $container['child_font_style'];?>;">
                         <!-- Content for <?php echo $container['container_name']; ?> will be displayed here -->
                     </div>
                     <div class="resize-handle"></div>
@@ -59,6 +61,7 @@ include 'tv_initialize.php';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/muuri/0.5.3/muuri.min.js"></script>
     <script src="js_tv/fetch_tv_content.js"></script>
     <script>
+        var childFontFamily = <?php echo json_encode($container['child_font_family']); ?>;
         window.onload = function() {
             var w = window.innerWidth;
             var h = window.innerHeight;
@@ -79,6 +82,13 @@ include 'tv_initialize.php';
             var screenHeightElement = document.getElementById("screen");
             screenHeightElement.innerText = w + " x " + h;
         });
+
+        function openContentContainerRightSidePanel(containerId) {
+            window.parent.postMessage({
+                action: 'openContentContainerRightSidePanel',
+                containerId: containerId
+            }, '*');
+        }
 
         initGrid();
 
