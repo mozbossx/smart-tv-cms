@@ -12,6 +12,7 @@ $tvHeight = '';
 $tvWidth = '';
 $backgroundColor = '';
 $topbarColor = '';
+$topbarPosition = '';
 
 $topbarTvNameColor = '';
 $topbarTvNameFontStyle = '';
@@ -57,6 +58,7 @@ if (isset($_GET['tvId'])) {
     if ($resultTopbarColorQuery->num_rows > 0) {
         $topbarColorData = $resultTopbarColorQuery->fetch_assoc();
         $topbarColor = $topbarColorData['topbar_hex_color'];
+        $topbarPosition = $topbarColorData['topbar_position'];
 
         $topbarTvNameColor = $topbarColorData['topbar_tvname_font_color'];
         $topbarTvNameFontStyle = $topbarColorData['topbar_tvname_font_style'];
@@ -195,6 +197,13 @@ $conn->close();
                     <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
                     <label for="topbar_color" class="floating-label">Top Bar Color</label>
                 </div>
+                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                    <select id="topbar_position" name="topbar_position" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                        <option value="top" <?php echo $topbarPosition == 'top' ? 'selected' : ''; ?>>Top</option>
+                        <option value="bottom" <?php echo $topbarPosition == 'bottom' ? 'selected' : ''; ?>>Bottom</option>
+                    </select>
+                    <label for="topbar_position" class="floating-label">Top Bar Position</label>
+                </div>
                 <div class="line-separator" style="margin-top: 0"></div>
                 <div class="split-container" style="margin-bottom: 0">
                     <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
@@ -253,6 +262,7 @@ $conn->close();
                     <select id="topbar_tvname_font_family" name="topbar_tvname_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
                         <option value="Questrial" <?php echo $topbarTvNameFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
                         <option value="Arial" <?php echo $topbarTvNameFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                        <option value="Helvetica" <?php echo $topbarTvNameFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
                         <option value="Verdana" <?php echo $topbarTvNameFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
                         <option value="Times New Roman" <?php echo $topbarTvNameFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
                         <option value="Georgia" <?php echo $topbarTvNameFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
@@ -265,6 +275,7 @@ $conn->close();
                     <select id="topbar_deviceid_font_family" name="topbar_deviceid_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
                         <option value="Questrial" <?php echo $topbarDeviceIdFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
                         <option value="Arial" <?php echo $topbarDeviceIdFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                        <option value="Helvetica" <?php echo $topbarDeviceIdFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
                         <option value="Verdana" <?php echo $topbarDeviceIdFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
                         <option value="Times New Roman" <?php echo $topbarDeviceIdFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
                         <option value="Georgia" <?php echo $topbarDeviceIdFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
@@ -277,6 +288,7 @@ $conn->close();
                     <select id="topbar_time_font_family" name="topbar_time_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
                         <option value="Questrial" <?php echo $topbarTimeFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
                         <option value="Arial" <?php echo $topbarTimeFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                        <option value="Helvetica" <?php echo $topbarTimeFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
                         <option value="Verdana" <?php echo $topbarTimeFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
                         <option value="Times New Roman" <?php echo $topbarTimeFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
                         <option value="Georgia" <?php echo $topbarTimeFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
@@ -289,6 +301,7 @@ $conn->close();
                     <select id="topbar_date_font_family" name="topbar_date_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
                         <option value="Questrial" <?php echo $topbarDateFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
                         <option value="Arial" <?php echo $topbarDateFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                        <option value="Helvetica" <?php echo $topbarDateFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
                         <option value="Verdana" <?php echo $topbarDateFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
                         <option value="Times New Roman" <?php echo $topbarDateFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
                         <option value="Georgia" <?php echo $topbarDateFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
@@ -366,6 +379,7 @@ $conn->close();
                             <select id="container_<?php echo $container['container_id']; ?>_fontfamily" name="container_<?php echo $container['container_id']; ?>_fontfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
                                 <option value="Questrial" <?php echo htmlspecialchars($container['parent_font_family']) == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
                                 <option value="Arial" <?php echo htmlspecialchars($container['parent_font_family']) == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                                <option value="Helvetica" <?php echo htmlspecialchars($container['parent_font_family']) == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
                                 <option value="Verdana" <?php echo htmlspecialchars($container['parent_font_family']) == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
                                 <option value="Times New Roman" <?php echo htmlspecialchars($container['parent_font_family']) == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
                                 <option value="Georgia" <?php echo htmlspecialchars($container['parent_font_family']) == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
@@ -378,6 +392,7 @@ $conn->close();
                             <select id="container_<?php echo $container['container_id']; ?>_fcardfamily" name="container_<?php echo $container['container_id']; ?>_fcardfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
                                 <option value="Questrial" <?php echo htmlspecialchars($container['child_font_family']) == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
                                 <option value="Arial" <?php echo htmlspecialchars($container['child_font_family']) == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                                <option value="Helvetica" <?php echo htmlspecialchars($container['child_font_family']) == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
                                 <option value="Verdana" <?php echo htmlspecialchars($container['child_font_family']) == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
                                 <option value="Times New Roman" <?php echo htmlspecialchars($container['child_font_family']) == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
                                 <option value="Georgia" <?php echo htmlspecialchars($container['child_font_family']) == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
@@ -533,12 +548,12 @@ $conn->close();
                     });
 
                     const topbarFields = [
-                        'topbar_color', 'topbar_tvname_color', 'topbar_deviceid_color', 
+                        'topbar_color','topbar_tvname_color', 'topbar_deviceid_color', 
                         'topbar_time_color', 'topbar_date_color', 'topbar_tvname_font_style', 
                         'topbar_tvname_font_family', 'topbar_deviceid_font_style', 
                         'topbar_deviceid_font_family', 'topbar_time_font_style', 
                         'topbar_time_font_family', 'topbar_date_font_style', 
-                        'topbar_date_font_family'
+                        'topbar_date_font_family', 'topbar_position',
                     ];
 
                     // Function to send WebSocket message
@@ -559,7 +574,8 @@ $conn->close();
                             topbar_time_font_family: formData.get('topbar_time_font_family'),
                             topbar_date_font_color: formData.get('topbar_date_color'),
                             topbar_date_font_style: formData.get('topbar_date_font_style'),
-                            topbar_date_font_family: formData.get('topbar_date_font_family')
+                            topbar_date_font_family: formData.get('topbar_date_font_family'),
+                            topbar_position: formData.get('topbar_position')
                         }));
                     }
 

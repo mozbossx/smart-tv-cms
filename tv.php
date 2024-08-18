@@ -33,10 +33,15 @@ include 'tv_initialize.php';
 </head>
 <p id="screen" style="color: white; position: fixed"></p>
 <body>
-    <?php include('tv_topbar.php'); ?>
-    <div style="background: <?php echo $backgroundColor ?>; cursor: pointer; width: 100%; height: 100%" id="tvBackgroundColor">
+    <?php 
+        if ($topbarPosition === 'top'){
+            include('tv_topbar.php'); 
+        }
+    ?>
+    <div style="background: <?php echo $backgroundColor ?>; cursor: pointer; width: 100%; height: calc(100% - 7vh)" id="tvBackgroundColor">
         <div class="main-container" id="main-container">
         <?php foreach ($containers as $container): ?>
+                <?php $containerNameLower = strtolower($container['container_name']); ?>
                 <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
                     style="background: <?php echo $container['parent_background_color']; ?>;
                             display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
@@ -47,21 +52,26 @@ include 'tv_initialize.php';
                     <div id="<?php echo $container['container_name']; ?>CarouselContainer" class="carousel-container"
                         style="background: <?php echo $container['child_background_color']; ?>;
                                color: <?php echo $container['child_font_color']; ?>;
-                               font-style: <?php echo $container['child_font_style'];?>;">
-                        <!-- Content for <?php echo $container['container_name']; ?> will be displayed here -->
+                               font-style: <?php echo $container['child_font_style'];?>;
+                               font-family: <?php echo $container['child_font_family']; ?>">
+                        <!-- Content for carousel-container will be displayed here -->
                     </div>
+                    <div class="<?php echo $container['container_name']; ?>PageNumberContainer" id="<?php echo $container['container_name']; ?>PageNumberContainer" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
                     <div class="resize-handle"></div>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
-
+    <?php 
+        if ($topbarPosition === 'bottom'){
+            include('tv_topbar.php'); 
+        }
+    ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web-animations/2.3.1/web-animations.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/muuri/0.5.3/muuri.min.js"></script>
     <script src="js_tv/fetch_tv_content.js"></script>
     <script>
-        var childFontFamily = <?php echo json_encode($container['child_font_family']); ?>;
         window.onload = function() {
             var w = window.innerWidth;
             var h = window.innerHeight;

@@ -94,6 +94,8 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
                     $topbarDateColor = $topbarColorData['topbar_date_font_color'];
                     $topbarDateFontStyle = $topbarColorData['topbar_date_font_style'];
                     $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
+
+                    $topbarPosition = $topbarColorData['topbar_position'];
                 }
                     
                 // Redirect to the same page with tvId as query parameter
@@ -175,6 +177,8 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
                     $topbarDateColor = $topbarColorData['topbar_date_font_color'];
                     $topbarDateFontStyle = $topbarColorData['topbar_date_font_style'];
                     $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
+
+                    $topbarPosition = $topbarColorData['topbar_position'];
                 }
                
                 // Redirect to the same page with tvId as query parameter
@@ -254,6 +258,8 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
                     $topbarDateColor = $topbarColorData['topbar_date_font_color'];
                     $topbarDateFontStyle = $topbarColorData['topbar_date_font_style'];
                     $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
+
+                    $topbarPosition = $topbarColorData['topbar_position'];
                 }
                 
                 // Redirect to the same page with tvId as query parameter

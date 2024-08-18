@@ -18,7 +18,7 @@ $display_time = '';
 $tv_display = '';
 $media_path = '';
 
-// Check if ann_id is set in the URL
+// Check if news_id is set in the URL
 if (isset($_GET['news_id'])) {
     $news_id = $_GET['news_id'];
 

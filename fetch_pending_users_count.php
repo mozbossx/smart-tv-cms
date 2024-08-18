@@ -28,7 +28,7 @@ if ($user_type == "Admin") {
     $query = "
         SELECT 
             (SELECT COUNT(*) FROM users_tb WHERE (status = 'Pending' OR status = 'Rejected' OR status = 'Approved') AND user_id = ?) +
-            (SELECT COUNT(*) FROM announcements_tb WHERE ann_author = ? AND status != 'Approved') AS combined_count
+            (SELECT COUNT(*) FROM announcements_tb WHERE announcements_author = ? AND status != 'Approved') AS combined_count
     ";
 }
 

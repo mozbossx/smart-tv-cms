@@ -36,24 +36,18 @@
             display: block;
             object-fit: cover;
         }
+
+        .changeFont {
+            font-family: 'Courier New';
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <div class="flex-container">
-        <div class="flex-item">
-            <img src="servers/announcements_media/387.png" alt="Image 1">
-        </div>
-        <div class="flex-item">
-            <img src="servers/announcements_media/387.png" alt="Image 2">
-        </div>
-        <div class="flex-item">
-            <img src="servers/announcements_media/387.png" alt="Image 3">
-        </div>
-        <div class="flex-item">
-            <img src="servers/announcements_media/387.png" alt="Image 4">
-        </div>
-        <div class="flex-item">
-            <img src="servers/announcements_media/387.png" alt="Image 5">
+    <div class="changeFont">
+        This is a different font.
+        <div>
+            <p>Hello World!</p>
         </div>
     </div>
 </body>

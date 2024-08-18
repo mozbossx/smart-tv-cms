@@ -24,12 +24,12 @@ const formatTime = (timeString) => {
 // 1. updateAnnouncementUI
 const updateAnnouncementUI = (data) => {
     // Check if the status is 'Pending' and return early if true
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data.ann_id) {
+    if (data.status === 'Pending' || data.isCancelled === 1 || !data.announcements_id) {
         return;
     }
 
     // Check if the announcement already exists in the DOM
-    const existingAnnouncementDiv = document.querySelector(`[data-ann-id="${data.ann_id}"]`);
+    const existingAnnouncementDiv = document.querySelector(`[data-ann-id="${data.announcements_id}"]`);
 
     const formattedCreatedDate = formatDate(data.created_date);
     const formattedCreatedTime = formatTime(data.created_time);
@@ -58,7 +58,7 @@ const updateAnnouncementUI = (data) => {
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <pre class="ann-body" style="word-break: break-word">${data.ann_body}</pre>
                     <div class="line-separator"></div>
-                    <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.ann_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                    <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcements_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                     <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                     <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                 </div>
@@ -137,8 +137,8 @@ const updateAnnouncementUI = (data) => {
         `;
 
         if (data.category == "Announcement") {
-            containerDiv.dataset.annId = data.ann_id;
-            containerDiv.setAttribute('data-ann-id', data.ann_id);
+            containerDiv.dataset.annId = data.announcements_id;
+            containerDiv.setAttribute('data-ann-id', data.announcements_id);
             // Check if the announcement has media
             if (data.media_path) {
                 // Determine media type based on file extension
@@ -156,7 +156,7 @@ const updateAnnouncementUI = (data) => {
                         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                         <pre class="ann-body" style="word-break: break-word">${data.ann_body}</pre>
                         <div class="line-separator"></div>
-                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.ann_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcements_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                     </div>
@@ -166,7 +166,7 @@ const updateAnnouncementUI = (data) => {
                     <div class="content-container-con">
                         <pre class="ann-body" style="word-break: break-word">${data.ann_body}</pre>
                         <div class="line-separator"></div>
-                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.ann_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcements_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                     </div>
@@ -174,17 +174,17 @@ const updateAnnouncementUI = (data) => {
             }
 
             deleteButton.innerHTML  = '<i class="fa fa-trash" aria-hidden="true"></i> Delete';
-            deleteButton.onclick = () => showDeleteAnnModal(data.ann_id);
+            deleteButton.onclick = () => showDeleteAnnModal(data.announcements_id);
 
             archiveButton.innerHTML  = '<i class="fa fa-archive" aria-hidden="true"></i> Archive';
-            archiveButton.onclick = () => showArchiveAnnModal(data.ann_id);
+            archiveButton.onclick = () => showArchiveAnnModal(data.announcements_id);
 
             editButton.innerHTML  = '<i class="fa fa-pencil-square" aria-hidden="true"></i> Edit';
             editButton.onclick = () => {
-                window.location.href = `edit_announcement.php?ann_id=${data.ann_id}?=${data.ann_author}`;
+                window.location.href = `edit_announcement.php?announcements_id=${data.announcements_id}?=${data.announcements_author}`;
             };
 
-            if (userType !== 'Student' && userType !== 'Faculty' || data.ann_author === full_name) {
+            if (userType !== 'Student' && userType !== 'Faculty' || data.announcements_author === full_name) {
                 contentDiv.appendChild(deleteButton);
                 contentDiv.appendChild(archiveButton);
                 contentDiv.appendChild(editButton);
@@ -258,7 +258,7 @@ const archiveAnnouncement = (type, id) => {
     const data = {
         action: 'archive',
         type: 'announcement',
-        ann_id : id
+        announcements_id : id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -318,7 +318,7 @@ const deleteAnnouncement = (type, id) => {
     const data = {
         action: 'delete',
         type: 'announcement',
-        ann_id : id
+        announcements_id : id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -341,12 +341,12 @@ const displayNoAnnouncementsMessage = () => {
 // 1. updateEventUI
 const updateEventUI = (data) => {
     // Check if the status is 'Pending' and return early if true
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data.event_id) {
+    if (data.status === 'Pending' || data.isCancelled === 1 || !data.events_id) {
         return;
     }
 
     // Check if the event already exists in the DOM
-    const existingEventDiv = document.querySelector(`[data-event-id="${data.event_id}"]`);
+    const existingEventDiv = document.querySelector(`[data-event-id="${data.events_id}"]`);
 
     const formattedCreatedDate = formatDate(data.created_date);
     const formattedCreatedTime = formatTime(data.created_time);
@@ -458,8 +458,8 @@ const updateEventUI = (data) => {
         `;
 
         if (data.category == "Event") {
-            containerDiv.dataset.eventId = data.event_id;
-            containerDiv.setAttribute('data-event-id', data.event_id);
+            containerDiv.dataset.eventId = data.events_id;
+            containerDiv.setAttribute('data-event-id', data.events_id);
             // Check if the event has media
             if (data.media_path) {
                 // Determine media type based on file extension
@@ -503,14 +503,14 @@ const updateEventUI = (data) => {
             }
 
             deleteButton.innerHTML  = '<i class="fa fa-trash" aria-hidden="true"></i> Delete';
-            deleteButton.onclick = () => showDeleteEventModal(data.event_id);
+            deleteButton.onclick = () => showDeleteEventModal(data.events_id);
 
             archiveButton.innerHTML  = '<i class="fa fa-archive" aria-hidden="true"></i> Archive';
-            archiveButton.onclick = () => showArchiveEventModal(data.event_id);
+            archiveButton.onclick = () => showArchiveEventModal(data.events_id);
 
             editButton.innerHTML  = '<i class="fa fa-pencil-square" aria-hidden="true"></i> Edit';
             editButton.onclick = () => {
-                window.location.href = `edit_event.php?event_id=${data.event_id}?=${data.event_author}`;
+                window.location.href = `edit_event.php?events_id=${data.events_id}?=${data.event_author}`;
             };
 
             if (userType !== 'Student' && userType !== 'Faculty' || data.event_author === full_name) {
@@ -587,7 +587,7 @@ const archiveEvent = (type, id) => {
     const data = {
         action: 'archive',
         type: 'event',
-        event_id : id
+        events_id : id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -647,7 +647,7 @@ const deleteEvent = (type, id) => {
     const data = {
         action: 'delete',
         type: 'event',
-        event_id: id
+        events_id: id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -2070,13 +2070,13 @@ Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
     if (data.action === 'delete' || data.action === 'archive') {
         if (data.type === 'announcement' && data.success) {
-            const announcementDiv = document.querySelector(`[data-ann-id="${data.ann_id}"]`);
+            const announcementDiv = document.querySelector(`[data-ann-id="${data.announcements_id}"]`);
             if (announcementDiv) {
                 announcementDiv.remove();
                 fetchAndUpdateAnnouncements();
             }
         } else if (data.type === 'event' && data.success) {
-            const eventDiv = document.querySelector(`[data-event-id="${data.event_id}"]`);
+            const eventDiv = document.querySelector(`[data-event-id="${data.events_id}"]`);
             if (eventDiv) {
                 eventDiv.remove();
                 fetchAndUpdateEvents();
@@ -2135,7 +2135,7 @@ Ws.addEventListener('message', function(event) {
             fetchAndUpdateSOs();
         }
     } else if (data.action === 'approve_post' && data.success && data.announcement) {
-        const announcementDiv = document.querySelector(`[data-ann-id="${data.announcement.ann_id}"]`);
+        const announcementDiv = document.querySelector(`[data-ann-id="${data.announcement.announcements_id}"]`);
         if (announcementDiv) {
             announcementDiv.classList.add('approved');
         }

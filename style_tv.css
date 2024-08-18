@@ -1,7 +1,6 @@
 * {
     margin: 0;
     padding: 0;
-    font-family: "Questrial", sans-serif;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -83,7 +82,8 @@ body {
 }
 
 .carousel-container {
-    height: 84.5%;
+    /* height: 84.5%; */
+    height: calc(100% - 8.0vh);
     border: black 1px solid;
     border-radius: 5px;
 }

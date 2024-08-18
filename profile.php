@@ -43,9 +43,9 @@ $stmt->close();
 // Fetch the number of posts created by the user in each category
 $queries = [
     'announcements' => [
-        'approved' => "SELECT COUNT(*) as count FROM announcements_tb WHERE ann_author = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM announcements_tb WHERE ann_author = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM announcements_tb WHERE ann_author = ? AND status = 'Rejected'"
+        'approved' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcements_author = ? AND status = 'Approved'",
+        'pending' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcements_author = ? AND status = 'Pending'",
+        'rejected' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcements_author = ? AND status = 'Rejected'"
     ],
     'events' => [
         'approved' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author = ? AND status = 'Approved'",

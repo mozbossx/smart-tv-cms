@@ -43,8 +43,8 @@ class ContentHandler implements MessageComponentInterface
         // Handle delete actions
         if (isset($data['action']) && $data['action'] === 'delete') {
             $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'ann_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcements_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'events_id'],
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
                 'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterials_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
@@ -78,8 +78,8 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'archive') {
             $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'ann_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcements_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'events_id'],
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
                 'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterials_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
@@ -125,8 +125,8 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'unarchive') {
             $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'ann_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcements_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'events_id'],
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
                 'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterials_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
@@ -172,8 +172,8 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'unarchive_and_update_expiration') {
             $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'ann_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcements_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'events_id'],
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
                 'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterials_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
@@ -226,13 +226,13 @@ class ContentHandler implements MessageComponentInterface
             $validTypes = [
                 'announcement' => [
                     'table' => 'announcements_tb',
-                    'idField' => 'ann_id',
-                    'fields' => ['ann_body', 'ann_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
+                    'idField' => 'announcements_id',
+                    'fields' => ['ann_body', 'announcements_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
                     'mediaFolder' => 'announcements_media'
                 ],
                 'event' => [
                     'table' => 'events_tb',
-                    'idField' => 'event_id',
+                    'idField' => 'events_id',
                     'fields' => ['event_heading', 'event_location', 'reg_link', 'event_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
                     'mediaFolder' => 'events_media'
                 ],
@@ -394,7 +394,9 @@ class ContentHandler implements MessageComponentInterface
                        'topbar_time_font_family',
                        'topbar_date_font_color',
                        'topbar_date_font_style',
-                       'topbar_date_font_family'];
+                       'topbar_date_font_family',
+                       'topbar_position',
+                    ];
             
             // Extract the tv_id and topbar_color details from the incoming data
             $tvId = $data['tv_id'] ?? null;
@@ -415,6 +417,8 @@ class ContentHandler implements MessageComponentInterface
             $topbarDateColor = $data['topbar_date_font_color'] ?? null;
             $topbarDateFontStyle = $data['topbar_date_font_style'] ?? null;
             $topbarDateFontFamily = $data['topbar_date_font_family'] ?? null;
+
+            $topbarPosition = $data['topbar_position'] ?? null;
             
             if ($tvId !== null || $topbarColor !== null || $topbarTvNameColor !== null || $topbarDeviceIdColor !== null || $topbarTimeColor !== null || $topbarDateColor !== null) {
                 // Prepare the parameters for the update statement
@@ -431,6 +435,7 @@ class ContentHandler implements MessageComponentInterface
                            $topbarDateColor, 
                            $topbarDateFontStyle,
                            $topbarDateFontFamily,
+                           $topbarPosition,
                            $tvId];
                 $fieldAssignments = implode(', ', array_map(fn($field) => "$field = ?", $fields));
                 $stmt = $this->pdo->prepare("UPDATE {$table} SET {$fieldAssignments} WHERE {$idField} = ?");
@@ -460,6 +465,7 @@ class ContentHandler implements MessageComponentInterface
                         'topbar_date_font_color' => $topbarDateColor,
                         'topbar_date_font_style' => $topbarDateFontStyle,
                         'topbar_date_font_family' => $topbarDateFontFamily,
+                        'topbar_position' => $topbarPosition,
                     ];
                 } else {
                     $response = [
@@ -935,18 +941,18 @@ class ContentHandler implements MessageComponentInterface
         }
 
         else if (isset($data['action']) && $data['action'] === 'approve_post') {
-            $ann_id = $data['ann_id'];
+            $announcements_id = $data['announcements_id'];
         
             // Update the announcement status in the database
-            $stmt = $this->pdo->prepare("UPDATE announcements_tb SET status = 'Approved' WHERE ann_id = ?");
-            $stmt->execute([$ann_id]);
+            $stmt = $this->pdo->prepare("UPDATE announcements_tb SET status = 'Approved' WHERE announcements_id = ?");
+            $stmt->execute([$announcements_id]);
         
             $announcement = $stmt->rowCount() > 0;
         
             if ($announcement) {
                 // Fetch the updated announcement data
-                $stmt = $this->pdo->prepare("SELECT * FROM announcements_tb WHERE ann_id = ?");
-                $stmt->execute([$ann_id]);
+                $stmt = $this->pdo->prepare("SELECT * FROM announcements_tb WHERE announcements_id = ?");
+                $stmt->execute([$announcements_id]);
                 $announcementData = $stmt->fetch(PDO::FETCH_ASSOC);
         
                 // Prepare the response with complete announcement data
@@ -1044,8 +1050,8 @@ class ContentHandler implements MessageComponentInterface
             };
 
             $idField = match ($data['type']) {
-                'announcement' => 'ann_id',
-                'event' => 'event_id',
+                'announcement' => 'announcements_id',
+                'event' => 'events_id',
                 'news' => 'news_id',
                 'promaterial' => 'promaterials_id',
                 'peo' => 'peo_id',
@@ -1054,7 +1060,7 @@ class ContentHandler implements MessageComponentInterface
             };
 
             $authorField = match ($data['type']) {
-                'announcement' => 'ann_author',
+                'announcement' => 'announcements_author',
                 'event' => 'event_author',
                 'news' => 'news_author',
                 'promaterial' => 'promaterials_author',
