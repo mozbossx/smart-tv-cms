@@ -47,15 +47,14 @@ const updateUI = (data, type) => {
         return;
     }
 
-    console.log(type);
-    console.log(data);
-
     const formattedCreatedDate = formatDate(data.created_date);
     const formattedCreatedTime = formatTime(data.created_time);
     const formattedExpirationDate = formatDate(data.expiration_date);
     const formattedExpirationTime = formatTime(data.expiration_time);
+    const id = data[`${type}s_id`]; // Assuming the ID of the item to delete/archive is sent in the message
 
-    const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}s_id`]}"]`);
+    // const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}s_id`]}"]`);
+    const existingDiv = document.querySelector(`[data-${type}-id="${id}"]`);
     let mediaContent = '';
 
     if (data.media_path) {
@@ -136,6 +135,8 @@ const updateUI = (data, type) => {
         }
         resetCountdown(existingDiv, data.display_time, currentIndexKey);
         updatePageNumber(currentIndexKey);
+
+        console.log("existingDiv called");
     } else {
         const containerDiv = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}s_id`];
@@ -167,7 +168,7 @@ const updateUI = (data, type) => {
         containerDiv.appendChild(contentDiv);
         contentsArray.push(containerDiv);
         carouselContainer.appendChild(containerDiv);
-        carouselContainer.appendChild(pageNumberContainer);
+        // carouselContainer.appendChild(pageNumberContainer);
 
         if (contentsArray.length === 1) {
             containerDiv.classList.add('active');
@@ -175,6 +176,8 @@ const updateUI = (data, type) => {
         } else {
             updatePageNumber(currentIndexKey);
         }
+
+        console.log("existingDiv NOT called");
     }
 };
 
@@ -376,6 +379,7 @@ const fetchAndUpdateContents = (type) => {
     contents[type + 's'] = [];
     const { carouselContainer, pageNumberContainer } = getContainerElements(type); // Get the containers dynamically
     carouselContainer.innerHTML = ''; // Clear the container
+    pageNumberContainer.innerHTML = ''; // Clear the container
 
     const urlParams = new URLSearchParams(window.location.search);
     const tvId = urlParams.get('tvId');
@@ -414,26 +418,32 @@ const fetchAndUpdateContents = (type) => {
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
     if (data.action === 'delete' || data.action === 'archive') {
-        if (data.type === 'announcement' && data.success) {
-            const announcementDiv = document.querySelector(`[data-announcement-id="${data.announcements_id}"]`);
-            if (announcementDiv) {
-                contents.announcements = contents.announcements.filter(ann => ann.dataset.announcementId !== data.announcements_id);
-                announcementDiv.remove();
-                fetchAndUpdateContents('announcement');
+        const type = data.type;
+        const id = data[`${type}s_id`]; 
+
+        const removeContent = (type, id) => {
+            const contentDiv = document.querySelector(`[data-${type}-id="${id}"]`);
+            if (contentDiv) {
+                const indexToRemove = contents[`${type}s`].findIndex(item => item.dataset[`${type}Id`] === id);
+                if (indexToRemove !== 0) {
+                    contents[`${type}s`].splice(indexToRemove, 1); // Remove from the array
+                    currentIndex[type] = Math.max(0, currentIndex[type] - 1); // Adjust the current index
+                }
+                contentDiv.remove(); // Remove from DOM
+                fetchAndUpdateContents(type);
             }
+        };
+
+        if (data.success) {
+            removeContent(type, id); // Call the helper function
         }
+        
     } else if (data.action === 'unarchive' || data.action === 'unarchive_and_update_expiration') {
-        if (data.type === 'announcement') {
-            fetchAndUpdateContents('announcement');
-        }
+        
     } else if (data.action === 'update') {
-        if (data.type === 'announcement') {
-            fetchAndUpdateContents('announcement');
-        }
+        
     } else if (data.action === 'post_content') {
-        if (data.type === 'announcement') {
-            fetchAndUpdateContents('announcement');
-        }
+        
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVName();
         location.reload();
