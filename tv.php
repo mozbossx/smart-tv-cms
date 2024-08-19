@@ -49,14 +49,14 @@ include 'tv_initialize.php';
                             width: <?php echo $container['width_px']; ?>px;"
                     onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
                     <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>"><?php echo $container['container_name']; ?></h1>
-                    <div id="<?php echo $container['container_name']; ?>CarouselContainer" class="carousel-container"
+                    <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
                         style="background: <?php echo $container['child_background_color']; ?>;
                                color: <?php echo $container['child_font_color']; ?>;
                                font-style: <?php echo $container['child_font_style'];?>;
                                font-family: <?php echo $container['child_font_family']; ?>">
                         <!-- Content for carousel-container will be displayed here -->
                     </div>
-                    <div class="<?php echo $container['container_name']; ?>PageNumberContainer" id="<?php echo $container['container_name']; ?>PageNumberContainer" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
+                    <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="<?php echo $containerNameLower; ?>PageNumberContainer" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
                     <div class="resize-handle"></div>
                 </div>
             <?php endforeach; ?>

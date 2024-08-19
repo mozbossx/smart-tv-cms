@@ -233,7 +233,7 @@ class ContentHandler implements MessageComponentInterface
                 'event' => [
                     'table' => 'events_tb',
                     'idField' => 'events_id',
-                    'fields' => ['event_heading', 'event_location', 'reg_link', 'event_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
+                    'fields' => ['event_heading', 'event_location', 'reg_link', 'events_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
                     'mediaFolder' => 'events_media'
                 ],
                 'news' => [
@@ -522,7 +522,7 @@ class ContentHandler implements MessageComponentInterface
                 }
                 
                 // Fetch the updated container colors to send back to the client
-                $stmtFetchColors = $this->pdo->prepare("SELECT container_id, parent_background_color, parent_font_color, parent_font_style, parent_font_family, child_background_color, child_font_color, child_font_style, child_font_family FROM {$table} WHERE tv_id = ?");
+                $stmtFetchColors = $this->pdo->prepare("SELECT container_id, type, parent_background_color, parent_font_color, parent_font_style, parent_font_family, child_background_color, child_font_color, child_font_style, child_font_family FROM {$table} WHERE tv_id = ?");
                 $stmtFetchColors->execute([$tvId]);
                 $updatedContainers = $stmtFetchColors->fetchAll(PDO::FETCH_ASSOC);
         
@@ -1061,7 +1061,7 @@ class ContentHandler implements MessageComponentInterface
 
             $authorField = match ($data['type']) {
                 'announcement' => 'announcements_author',
-                'event' => 'event_author',
+                'event' => 'events_author',
                 'news' => 'news_author',
                 'promaterial' => 'promaterials_author',
                 'peo' => 'peo_author',

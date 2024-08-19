@@ -379,7 +379,7 @@ const updateEventUI = (data) => {
                     <p class="field-title">Registration Link</p>
                     <pre class="eve-body" style="word-break: break-word"><small>${data.reg_link}</small></pre>
                     <div class="line-separator"></div>
-                    <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.event_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                    <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.events_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                     <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                     <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                 </div>
@@ -481,7 +481,7 @@ const updateEventUI = (data) => {
                         <p class="field-title">Registration Link</p>
                         <pre class="eve-body" style="word-break: break-word"><small>${data.reg_link}</small></pre>
                         <div class="line-separator"></div>
-                        <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.event_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.events_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                     </div>
@@ -495,7 +495,7 @@ const updateEventUI = (data) => {
                         <p class="field-title">Registration Link</p>
                         <pre class="eve-body" style="word-break: break-word"><small>${data.reg_link}</small></pre>
                         <div class="line-separator"></div>
-                        <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.event_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.events_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                     </div>
@@ -510,10 +510,10 @@ const updateEventUI = (data) => {
 
             editButton.innerHTML  = '<i class="fa fa-pencil-square" aria-hidden="true"></i> Edit';
             editButton.onclick = () => {
-                window.location.href = `edit_event.php?events_id=${data.events_id}?=${data.event_author}`;
+                window.location.href = `edit_event.php?events_id=${data.events_id}?=${data.events_author}`;
             };
 
-            if (userType !== 'Student' && userType !== 'Faculty' || data.event_author === full_name) {
+            if (userType !== 'Student' && userType !== 'Faculty' || data.events_author === full_name) {
                 contentDiv.appendChild(deleteButton);
                 contentDiv.appendChild(archiveButton);
                 contentDiv.appendChild(editButton);

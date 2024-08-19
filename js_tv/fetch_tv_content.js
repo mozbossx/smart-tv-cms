@@ -1,12 +1,27 @@
 const Ws = new WebSocket('ws://192.168.1.12:8081');
-const announcementCarouselContainer = document.getElementById('AnnouncementsCarouselContainer');
-const eventCarouselContainer = document.getElementById('EventsCarouselContainer');
-const announcementPageNumberContainer = document.getElementById('AnnouncementsPageNumberContainer');
-const eventPageNumberContainer = document.getElementById('EventsPageNumberContainer');
 
-let currentIndex = { announcement: 0, event: 0 };
-let contents = { announcements: [], events: [] };
-let displayTimeIntervals = { announcement: null, event: null };
+// Function to get the containers based on type
+const getContainerElements = (type) => {
+    const carouselContainer = document.getElementById(`${type}sCarouselContainer`);
+    const pageNumberContainer = document.getElementById(`${type}sPageNumberContainer`);
+
+    // Check if the containers are found
+    if (!carouselContainer) {
+        console.error(`Carousel container for ${type} not found.`);
+    }
+    if (!pageNumberContainer) {
+        console.error(`Page number container for ${type} not found.`);
+    }
+
+    return {
+        carouselContainer,
+        pageNumberContainer
+    };
+};
+
+let currentIndex = { announcement: 0, event: 0, news: 0 };
+let contents = { announcements: [], events: [], news: [] };
+let displayTimeIntervals = { announcement: null, event: null, news: null };
 
 // Function to format date to "MM DD YYYY"
 const formatDate = (dateString) => {
@@ -24,15 +39,16 @@ const formatTime = (timeString) => {
 
 // Unified function to update UI for announcements and events
 const updateUI = (data, type) => {
-    const isAnnouncement = type === 'announcement';
-    const container = isAnnouncement ? announcementCarouselContainer : eventCarouselContainer;
-    const pageNumberContainer = isAnnouncement ? announcementPageNumberContainer : eventPageNumberContainer;
-    const currentIndexKey = isAnnouncement ? 'announcement' : 'event';
-    const contentsArray = isAnnouncement ? contents.announcements : contents.events;
+    const { carouselContainer, pageNumberContainer } = getContainerElements(type);
+    const currentIndexKey = type;
+    const contentsArray = contents[`${type}s`];
 
     if (data.status === 'Pending' || data.isCancelled === 1 || !data[`${type}s_id`]) {
         return;
     }
+
+    console.log(type);
+    console.log(data);
 
     const formattedCreatedDate = formatDate(data.created_date);
     const formattedCreatedTime = formatTime(data.created_time);
@@ -49,25 +65,69 @@ const updateUI = (data, type) => {
             isVideo ? `<video controls><source src="servers/${type}s_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
-    const contentHTML = `
-        <div class="content-container-con">
-            <div class="content-main">
-                ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                <p class="main-message" style="word-break: break-word;">${data.ann_body}</p>
-            </div>
-            <div class="content-details">
-                <div style="display: flex; flex-direction: row; margin: 0">
-                    <div>
-                        <p class="author"><small>Posted by ${data[`${type}s_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
-                        <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
-                    </div>
-                    <div style="margin-left: auto; margin-top: auto">
-                        <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+    let contentHTML = '';
+
+    if (type === 'announcement') {
+        contentHTML = `
+            <div class="content-container-con">
+                <div class="content-main">
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                    <p class="main-message" style="word-break: break-word;">${data.ann_body}</p>
+                </div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div>
+                            <p class="author"><small>Posted by ${data[`${type}s_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                        </div>
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+    } else if (type === 'event') {
+        contentHTML = `
+            <div class="content-container-con">
+                <div class="content-main">
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                    <p class="main-message" style="word-break: break-word;">${data.event_heading}</p>
+                </div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div>
+                            <p class="author"><small>Posted by ${data[`${type}s_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                        </div>
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (type === 'new') {
+        contentHTML = `
+            <div class="content-container-con">
+                <div class="content-main">
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                    <p class="main-message" style="word-break: break-word;">${data.news_heading}</p>
+                </div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div>
+                            <p class="author"><small>Posted by ${data[`${type}s_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                        </div>
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     if (existingDiv) {
         const contentDiv = existingDiv.querySelector('.content-container-con');
@@ -84,7 +144,7 @@ const updateUI = (data, type) => {
 
         const contentDiv = document.createElement('div');
 
-        containerDiv.setAttribute('data-announcement-id', data.announcements_id);
+        // containerDiv.setAttribute('data-announcement-id', data.announcements_id);
 
         containerDiv.style = `
             width: auto;
@@ -106,8 +166,8 @@ const updateUI = (data, type) => {
         contentDiv.innerHTML = contentHTML;
         containerDiv.appendChild(contentDiv);
         contentsArray.push(containerDiv);
-        container.appendChild(containerDiv);
-        container.appendChild(pageNumberContainer);
+        carouselContainer.appendChild(containerDiv);
+        carouselContainer.appendChild(pageNumberContainer);
 
         if (contentsArray.length === 1) {
             containerDiv.classList.add('active');
@@ -129,9 +189,9 @@ const resetCountdown = (div, newDisplayTime, type) => {
 
 // Function to update page number
 const updatePageNumber = (type) => {
-    const currentIndexKey = type === 'announcement' ? 'announcement' : 'event';
-    const pageNumberContainer = type === 'announcement' ? announcementPageNumberContainer : eventPageNumberContainer;
-    const contentsArray = type === 'announcement' ? contents.announcements : contents.events;
+    const { pageNumberContainer } = getContainerElements(type); // Get the page number container dynamically
+    const currentIndexKey = type;
+    const contentsArray = contents[`${type}s`];
 
     if (contentsArray.length > 0) {
         pageNumberContainer.textContent = `${currentIndex[currentIndexKey] + 1} of ${contentsArray.length}`;
@@ -142,8 +202,8 @@ const updatePageNumber = (type) => {
 
 // Function to show next content
 const showNextContent = (type) => {
-    const contentsArray = type === 'announcement' ? contents.announcements : contents.events;
-    const currentIndexKey = type === 'announcement' ? 'announcement' : 'event';
+    const currentIndexKey = type;
+    const contentsArray = contents[`${type}s`];
 
     if (contentsArray.length > 0) {
         // Remove active class from the current item
@@ -167,7 +227,8 @@ const showNextContent = (type) => {
 
 // Function to reset display time
 const resetDisplayTime = (type) => {
-    const currentContent = type === 'announcement' ? contents.announcements[currentIndex.announcement] : contents.events[currentIndex.event];
+    const currentContent = contents[`${type}s`][currentIndex[type]];
+    // const currentContent = type === 'announcement' ? contents.announcements[currentIndex.announcement] : contents.events[currentIndex.event];
     const displayTimeElement = currentContent.querySelector('.display-time');
     const originalDisplayTime = currentContent.dataset.displayTime;
 
@@ -198,7 +259,8 @@ const setCarouselInterval = (displayTime, type) => {
     let timeLeft = displayTime;
 
     displayTimeIntervals[type] = setInterval(() => {
-        const displayTimeElement = type === 'announcement' ? contents.announcements[currentIndex.announcement].querySelector('.time-left') : contents.events[currentIndex.event].querySelector('.time-left');
+        const displayTimeElement = contents[`${type}s`][currentIndex[type]].querySelector('.time-left');
+        // const displayTimeElement = type === 'announcement' ? contents.announcements[currentIndex.announcement].querySelector('.time-left') : contents.events[currentIndex.event].querySelector('.time-left');
         if (timeLeft > 0) {
             timeLeft -= 1;
             displayTimeElement.textContent = `${timeLeft}s`;
@@ -209,61 +271,81 @@ const setCarouselInterval = (displayTime, type) => {
     }, 1000);
 };
 
-const startAnnouncementCarousel = () => {
-    console.log('Starting carousel with announcements:', announcements);
-    console.log('Current index:', announcementCurrentIndex);
-    if (announcements.length > 0) {
-        // Remove active class from all announcements
-        announcements.forEach(ann => ann.classList.remove('active'));
+// const startAnnouncementCarousel = () => {
+//     console.log('Starting carousel with announcements:', announcements);
+//     console.log('Current index:', announcementCurrentIndex);
+//     if (announcements.length > 0) {
+//         // Remove active class from all announcements
+//         announcements.forEach(ann => ann.classList.remove('active'));
 
-        // Set the current announcement as active
-        if (announcements[announcementCurrentIndex]) {
-            announcements[announcementCurrentIndex].classList.add('active');
-            resetAnnouncementDisplayTime();
-        } else {
-            console.error("Invalid current announcement index.");
-        }
-    } else {
-        console.error("Cannot start carousel: No valid announcements available.");
-        // Optionally handle this scenario
-    }
-};
+//         // Set the current announcement as active
+//         if (announcements[announcementCurrentIndex]) {
+//             announcements[announcementCurrentIndex].classList.add('active');
+//             resetAnnouncementDisplayTime();
+//         } else {
+//             console.error("Invalid current announcement index.");
+//         }
+//     } else {
+//         console.error("Cannot start carousel: No valid announcements available.");
+//         // Optionally handle this scenario
+//     }
+// };
 
-const startEventCarousel = () => {
-    console.log('Starting carousel with events:', events);
-    console.log('Current index:', eventCurrentIndex);
-    if (events.length > 0) {
-        // Remove active class from all event
-        events.forEach(event => event.classList.remove('active'));
+// const startEventCarousel = () => {
+//     console.log('Starting carousel with events:', events);
+//     console.log('Current index:', eventCurrentIndex);
+//     if (events.length > 0) {
+//         // Remove active class from all event
+//         events.forEach(event => event.classList.remove('active'));
 
-        // Set the current event as active
-        if (events[eventCurrentIndex]) {
-            events[eventCurrentIndex].classList.add('active');
-            resetEventDisplayTime();
-        } else {
-            console.error("Invalid current event index.");
-        }
-    } else {
-        console.error("Cannot start carousel: No valid events available.");
-        // Optionally handle this scenario
-    }
-};
+//         // Set the current event as active
+//         if (events[eventCurrentIndex]) {
+//             events[eventCurrentIndex].classList.add('active');
+//             resetEventDisplayTime();
+//         } else {
+//             console.error("Invalid current event index.");
+//         }
+//     } else {
+//         console.error("Cannot start carousel: No valid events available.");
+//         // Optionally handle this scenario
+//     }
+// }; 
+
+// const startNewsCarousel = () => {
+//     console.log('Starting carousel with events:', events);
+//     console.log('Current index:', eventCurrentIndex);
+//     if (events.length > 0) {
+//         // Remove active class from all event
+//         events.forEach(event => event.classList.remove('active'));
+
+//         // Set the current event as active
+//         if (events[eventCurrentIndex]) {
+//             events[eventCurrentIndex].classList.add('active');
+//             resetEventDisplayTime();
+//         } else {
+//             console.error("Invalid current event index.");
+//         }
+//     } else {
+//         console.error("Cannot start carousel: No valid events available.");
+//         // Optionally handle this scenario
+//     }
+// };
 
 // Function to display "No Announcement/s to be displayed" message
-const displayNoAnnouncementsMessage = () => {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('no-announcements-message');
-    messageDiv.textContent = 'No announcements to be displayed';
-    announcementCarouselContainer.appendChild(messageDiv);
-};
+// const displayNoAnnouncementsMessage = () => {
+//     const messageDiv = document.createElement('div');
+//     messageDiv.classList.add('no-announcements-message');
+//     messageDiv.textContent = 'No announcements to be displayed';
+//     announcementCarouselContainer.appendChild(messageDiv);
+// };
 
 // Function to display "No Event/s to be displayed" message
-const displayNoEventsMessage = () => {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('no-events-message');
-    messageDiv.textContent = 'No events to be displayed';
-    eventCarouselContainer.appendChild(messageDiv);
-};
+// const displayNoEventsMessage = () => {
+//     const messageDiv = document.createElement('div');
+//     messageDiv.classList.add('no-events-message');
+//     messageDiv.textContent = 'No events to be displayed';
+//     eventCarouselContainer.appendChild(messageDiv);
+// };
 
 const fetchSmartTVName = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -292,8 +374,8 @@ const updateTvName = (newTvName) => {
 // Function to fetch and update contents
 const fetchAndUpdateContents = (type) => {
     contents[type + 's'] = [];
-    const container = type === 'announcement' ? announcementCarouselContainer : eventCarouselContainer;
-    container.innerHTML = '';
+    const { carouselContainer, pageNumberContainer } = getContainerElements(type); // Get the containers dynamically
+    carouselContainer.innerHTML = ''; // Clear the container
 
     const urlParams = new URLSearchParams(window.location.search);
     const tvId = urlParams.get('tvId');
@@ -373,15 +455,49 @@ Ws.addEventListener('message', function (event) {
                 const containerElement = document.querySelector(`[data-container-id="${container.container_id}"]`);
                 if (containerElement) {
                     containerElement.style.backgroundColor = container.parent_background_color;
-                    containerElement.querySelector('.content-title').style.color = container.parent_font_color;
+                    const titleElement = containerElement.querySelector('.content-title');
+                    if (titleElement) {
+                        titleElement.style.color = container.parent_font_color;
+                        titleElement.style.fontFamily = container.parent_font_family;
+                        titleElement.style.fontStyle = container.parent_font_style;
+                    }
+
+                    // Update the carousel container styles
+                    const { carouselContainer } = getContainerElements(container.type); // Get the carousel container
+                    if (carouselContainer) {
+                        carouselContainer.style.backgroundColor = container.child_background_color; // Change the background color
+                        carouselContainer.style.color = container.child_font_color; // Change the text color
+                        carouselContainer.style.fontFamily = container.child_font_family; // Change the font family
+                        carouselContainer.style.fontStyle = container.child_font_style; // Change the font style
+                    } else {
+                        console.error(`Carousel container not found for type: ${container.type}`);
+                    }
+                    
+                    // Update the page number container styles
+                    const { pageNumberContainer } = getContainerElements(container.type);
+                    if (pageNumberContainer) {
+                        pageNumberContainer.style.color = container.parent_font_color; // Change the color
+                        pageNumberContainer.style.fontFamily = container.parent_font_family; // Change the font family
+                        pageNumberContainer.style.fontStyle = container.parent_font_style; // Change the font style
+                    } else {
+                        console.error(`Page number container not found for type: ${container.type}`);
+                    }
+                } else {
+                    console.error(`Container not found for ID: ${container.container_id}`);
                 }
             });
+        } else {
+            console.error('Failed to update container colors:', data.message);
         }
     } else if (data.action === 'update_topbar_color') {
         if (data.success) {
             const topbarElement = document.getElementById('topbar');
             if (topbarElement) {
                 topbarElement.style.backgroundColor = data.topbar_hex_color;
+                topbarElement.querySelector('.tv-name').style.color = data.topbar_tvname_font_color;
+                topbarElement.querySelector('.device-id').style.color = data.topbar_deviceid_font_color;
+                topbarElement.querySelector('.time').style.color = data.topbar_time_font_color;
+                topbarElement.querySelector('.date').style.color = data.topbar_date_font_color;
             }
         }
     } else if (data.action === 'save_layout') {
@@ -397,5 +513,6 @@ Ws.addEventListener('message', function (event) {
 document.addEventListener('DOMContentLoaded', () => {
     fetchAndUpdateContents('announcement');
     fetchAndUpdateContents('event');
+    fetchAndUpdateContents('new');
     fetchSmartTVName();
 });

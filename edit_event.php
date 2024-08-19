@@ -8,7 +8,7 @@ include 'get_session.php';
 
 // Initialize variables to store event data
 $events_id = '';
-$event_author = '';
+$events_author = '';
 $created_date = '';
 $created_time = '';
 $event_heading = '';
@@ -25,7 +25,7 @@ if (isset($_GET['events_id'])) {
     $events_id = $_GET['events_id'];
 
     // Fetch event data from the database
-    $query = "SELECT events_id, event_author, created_date, created_time, event_heading, event_location, reg_link, expiration_date, expiration_time, display_time, tv_display, media_path FROM events_tb WHERE events_id = ?";
+    $query = "SELECT events_id, events_author, created_date, created_time, event_heading, event_location, reg_link, expiration_date, expiration_time, display_time, tv_display, media_path FROM events_tb WHERE events_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $events_id);
     $stmt->execute();
@@ -34,7 +34,7 @@ if (isset($_GET['events_id'])) {
     if ($result->num_rows > 0) {
         $event = $result->fetch_assoc();
         $events_id = $event['events_id'];
-        $event_author = $event['event_author'];
+        $events_author = $event['events_author'];
         $created_date = $event['created_date'];
         $created_time = $event['created_time'];
         $event_heading = $event['event_heading'];
@@ -96,7 +96,7 @@ if ($result_tv->num_rows > 0) {
                         <form id="editEventForm" enctype="multipart/form-data">
                             <div style="display: none; height: 0">
                                 <input type="hidden" id="events_id" name="events_id" style="display: none" value="<?php echo htmlspecialchars($events_id); ?>" readonly>
-                                <input type="hidden" id="event_author" name="event_author" style="display: none" value="<?php echo htmlspecialchars($event_author); ?>" readonly>
+                                <input type="hidden" id="events_author" name="events_author" style="display: none" value="<?php echo htmlspecialchars($events_author); ?>" readonly>
                                 <input type="hidden" id="created_date" name="created_date" style="display: none" value="<?php echo htmlspecialchars($created_date); ?>" readonly>
                                 <input type="hidden" id="created_time" name="created_time" style="display: none" value="<?php echo htmlspecialchars($created_time); ?>" readonly>
                             </div>

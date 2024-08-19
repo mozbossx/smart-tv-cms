@@ -48,9 +48,9 @@ $queries = [
         'rejected' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcements_author = ? AND status = 'Rejected'"
     ],
     'events' => [
-        'approved' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author = ? AND status = 'Rejected'"
+        'approved' => "SELECT COUNT(*) as count FROM events_tb WHERE events_author = ? AND status = 'Approved'",
+        'pending' => "SELECT COUNT(*) as count FROM events_tb WHERE events_author = ? AND status = 'Pending'",
+        'rejected' => "SELECT COUNT(*) as count FROM events_tb WHERE events_author = ? AND status = 'Rejected'"
     ],
     'news' => [
         'approved' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author = ? AND status = 'Approved'",
