@@ -1726,8 +1726,6 @@ input[type="checkbox"] {
     border: 1px solid gray;
     background: #f3f3f3;
     border-radius: 5px; 
-    padding: 5px; 
-    margin-bottom: 25px;
     /* box-shadow: -2px 0 5px rgba(0,0,0,0.5); */
 }
 

@@ -336,79 +336,15 @@ $conn->close();
             <h3>Customize Container</h3>
             <br>
             <form id="editContentContainerForm" enctype="multipart/form-data">
-                <?php foreach ($containers as $container): ?>
-                    <div class="option-div-container-color" style="padding: 0">
-                        <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><?php echo $container['container_name'];?></p>
-                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                            <input type="color" id="container_<?php echo $container['container_id']; ?>_bg_color" name="container_<?php echo $container['container_id']; ?>_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($container['parent_background_color']); ?>">
-                            <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Background Color</label>
-                        </div>
-                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                            <input type="color" id="container_<?php echo $container['container_id']; ?>_card_bg_color" name="container_<?php echo $container['container_id']; ?>_card_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($container['child_background_color']); ?>">
-                            <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Card Background Color</label>
-                        </div>
-                        <div class="line-separator" style="margin-top: 0; margin-left: 12px; margin-right: 12px"></div>
-                        <div class="split-container" style="margin-bottom: 0">
-                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                                <input type="color" id="container_<?php echo $container['container_id']; ?>_font_color" name="container_<?php echo $container['container_id']; ?>_font_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($container['parent_font_color']); ?>">
-                                <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Font Color</label>
-                            </div>
-                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                                <select id="container_<?php echo $container['container_id']; ?>_fontstyle" name="container_<?php echo $container['container_id']; ?>_fontstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                                    <option value="normal" <?php echo htmlspecialchars($container['parent_font_style']) == 'normal' ? 'selected' : ''; ?>>Normal</option>
-                                    <option value="italic" <?php echo htmlspecialchars($container['parent_font_style']) == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
-                                </select>
-                                <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Font Style</label>
-                            </div>
-                        </div>
-                        <div class="split-container" style="margin-bottom: 0">
-                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                                <input type="color" id="container_<?php echo $container['container_id']; ?>_fcard_color" name="container_<?php echo $container['container_id']; ?>_fcard_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($container['child_font_color']); ?>">
-                                <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Card Font Color</label>
-                            </div>
-                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                                <select id="container_<?php echo $container['container_id']; ?>_fcardstyle" name="container_<?php echo $container['container_id']; ?>_fcardstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                                    <option value="normal" <?php echo htmlspecialchars($container['child_font_style']) == 'normal' ? 'selected' : ''; ?>>Normal</option>
-                                    <option value="italic" <?php echo htmlspecialchars($container['child_font_style']) == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
-                                </select>
-                                <label for="container_<?php echo $container['container_id']; ?>" class="floating-label">Card Font Style</label>
-                            </div>
-                        </div>
-                        <div class="line-separator" style="margin-top: 0; margin-left: 12px; margin-right: 12px"></div>
-                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                            <select id="container_<?php echo $container['container_id']; ?>_fontfamily" name="container_<?php echo $container['container_id']; ?>_fontfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                                <option value="Questrial" <?php echo htmlspecialchars($container['parent_font_family']) == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
-                                <option value="Arial" <?php echo htmlspecialchars($container['parent_font_family']) == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
-                                <option value="Helvetica" <?php echo htmlspecialchars($container['parent_font_family']) == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
-                                <option value="Verdana" <?php echo htmlspecialchars($container['parent_font_family']) == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
-                                <option value="Times New Roman" <?php echo htmlspecialchars($container['parent_font_family']) == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
-                                <option value="Georgia" <?php echo htmlspecialchars($container['parent_font_family']) == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
-                                <option value="Courier New" <?php echo htmlspecialchars($container['parent_font_family']) == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
-                                <option value="Libre Baskerville" <?php echo htmlspecialchars($container['parent_font_family']) == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
-                            </select>
-                            <label for="container_<?php echo $container['container_id']; ?>_fontfamily" class="floating-label">Font Family</label>
-                        </div>
-                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                            <select id="container_<?php echo $container['container_id']; ?>_fcardfamily" name="container_<?php echo $container['container_id']; ?>_fcardfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                                <option value="Questrial" <?php echo htmlspecialchars($container['child_font_family']) == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
-                                <option value="Arial" <?php echo htmlspecialchars($container['child_font_family']) == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
-                                <option value="Helvetica" <?php echo htmlspecialchars($container['child_font_family']) == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
-                                <option value="Verdana" <?php echo htmlspecialchars($container['child_font_family']) == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
-                                <option value="Times New Roman" <?php echo htmlspecialchars($container['child_font_family']) == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
-                                <option value="Georgia" <?php echo htmlspecialchars($container['child_font_family']) == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
-                                <option value="Courier New" <?php echo htmlspecialchars($container['child_font_family']) == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
-                                <option value="Libre Baskerville" <?php echo htmlspecialchars($container['child_font_family']) == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
-                            </select>
-                            <label for="container_<?php echo $container['container_id']; ?>_fcardfamily" class="floating-label">Card Font Family</label>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                <!-- Dynamic content will be added here -->
             </form>
         </div>
     </div>
     <script>
-        var childFontFamily = <?php echo json_encode($container['child_font_family']); ?>;
-        // Function to close the right side panel
+        let ws;
+        var containers = <?php echo json_encode($containers); ?>;
+        const contentContainerForm = document.getElementById('editContentContainerForm');
+
         function closeTopbarRightSidePanel() {
             topbarRightSidePanel.classList.remove('open');
         }
@@ -421,10 +357,160 @@ $conn->close();
             contentContainerRightSidePanel.classList.remove('open');
         }
 
+        // Function to initialize WebSocket connection
+        function initializeWebSocket() {
+            fetch('websocket_conn.php')
+                .then(response => response.text())
+                .then(url => {
+                    ws = new WebSocket(url);
+
+                    ws.onopen = () => console.log("WebSocket connection established.");
+
+                    ws.onmessage = function (event) {
+                        const message = JSON.parse(event.data);
+                    };
+
+                    ws.onerror = function (error) {
+                        console.error('WebSocket Error:', error);
+                    };
+                })
+                .catch(error => {
+                    console.error('Error fetching WebSocket URL:', error);
+                });
+        }
+            
+        initializeWebSocket();
+
+        function openContentContainerRightSidePanel(containerId) {
+            closeTopbarRightSidePanel();  // Close the top bar panel if it's open
+            closeBackgroundRightSidePanel();  // Close the background panel if it's open
+            contentContainerRightSidePanel.classList.add('open');
+
+            editContentContainerForm.innerHTML = '';
+
+            // Fetch and display the specific container details
+            const container = containers.find(c => c.container_id == containerId);
+            if (container) {
+                // Create and append the container details dynamically
+                const containerDiv = document.createElement('div');
+                containerDiv.className = 'option-div-container-color';
+                containerDiv.innerHTML = `
+                    <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;">${container.container_name}</p>
+                    <div style="padding: 8px;">
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                        <input type="color" id="container_${container.container_id}_bg_color" name="container_${container.container_id}_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.parent_background_color}">
+                        <label for="container_${container.container_id}_bg_color" class="floating-label">Background Color</label>
+                    </div>
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                        <input type="color" id="container_${container.container_id}_card_bg_color" name="container_${container.container_id}_card_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.child_background_color}">
+                        <label for="container_${container.container_id}_card_bg_color" class="floating-label">Card Background Color</label>
+                    </div>
+                    <div class="line-separator" style="margin-top: 0; margin-left: 12px; margin-right: 12px"></div>
+                    <div class="split-container" style="margin-bottom: 0">
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                            <input type="color" id="container_${container.container_id}_font_color" name="container_${container.container_id}_font_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.parent_font_color}">
+                            <label for="container_${container.container_id}_font_color" class="floating-label">Font Color</label>
+                        </div>
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                            <select id="container_${container.container_id}_fontstyle" name="container_${container.container_id}_fontstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                <option value="normal" ${container.parent_font_style == 'normal' ? 'selected' : ''}>Normal</option>
+                                <option value="italic" ${container.parent_font_style == 'italic' ? 'selected' : ''} style="font-style: italic">Italic</option>
+                            </select>
+                            <label for="container_${container.container_id}_fontstyle" class="floating-label">Font Style</label>
+                        </div>
+                    </div>
+                    <div class="split-container" style="margin-bottom: 0">
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                            <input type="color" id="container_${container.container_id}_fcard_color" name="container_${container.container_id}_fcard_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.child_font_color}">
+                            <label for="container_${container.container_id}_fcard_color" class="floating-label">Card Font Color</label>
+                        </div>
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                            <select id="container_${container.container_id}_fcardstyle" name="container_${container.container_id}_fcardstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                <option value="normal" ${container.child_font_style == 'normal' ? 'selected' : ''}>Normal</option>
+                                <option value="italic" ${container.child_font_style == 'italic' ? 'selected' : ''} style="font-style: italic">Italic</option>
+                            </select>
+                            <label for="container_${container.container_id}_fcardstyle" class="floating-label">Card Font Style</label>
+                        </div>
+                    </div>
+                    <div class="line-separator" style="margin-top: 0; margin-left: 12px; margin-right: 12px"></div>
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                        <select id="container_${container.container_id}_fontfamily" name="container_${container.container_id}_fontfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                            <option value="Questrial" ${container.parent_font_family == 'Questrial' ? 'selected' : ''} style="font-family: Questrial">Questrial</option>
+                            <option value="Arial" ${container.parent_font_family == 'Arial' ? 'selected' : ''} style="font-family: Arial">Arial</option>
+                            <option value="Helvetica" ${container.parent_font_family == 'Helvetica' ? 'selected' : ''} style="font-family: Helvetica">Helvetica</option>
+                            <option value="Verdana" ${container.parent_font_family == 'Verdana' ? 'selected' : ''} style="font-family: Verdana">Verdana</option>
+                            <option value="Times New Roman" ${container.parent_font_family == 'Times New Roman' ? 'selected' : ''} style="font-family: Times New Roman">Times New Roman</option>
+                            <option value="Georgia" ${container.parent_font_family == 'Georgia' ? 'selected' : ''} style="font-family: Georgia">Georgia</option>
+                            <option value="Courier New" ${container.parent_font_family == 'Courier New' ? 'selected' : ''} style="font-family: Courier New">Courier New</option>
+                            <option value="Libre Baskerville" ${container.parent_font_family == 'Libre Baskerville' ? 'selected' : ''} style="font-family: Libre Baskerville">Libre Baskerville</option>
+                        </select>
+                        <label for="container_${container.container_id}_fontfamily" class="floating-label">Font Family</label>
+                    </div>
+                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                        <select id="container_${container.container_id}_fcardfamily" name="container_${container.container_id}_fcardfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                            <option value="Questrial" ${container.child_font_family == 'Questrial' ? 'selected' : ''} style="font-family: Questrial">Questrial</option>
+                            <option value="Arial" ${container.child_font_family == 'Arial' ? 'selected' : ''} style="font-family: Arial">Arial</option>
+                            <option value="Helvetica" ${container.child_font_family == 'Helvetica' ? 'selected' : ''} style="font-family: Helvetica">Helvetica</option>
+                            <option value="Verdana" ${container.child_font_family == 'Verdana' ? 'selected' : ''} style="font-family: Verdana">Verdana</option>
+                            <option value="Times New Roman" ${container.child_font_family == 'Times New Roman' ? 'selected' : ''} style="font-family: Times New Roman">Times New Roman</option>
+                            <option value="Georgia" ${container.child_font_family == 'Georgia' ? 'selected' : ''} style="font-family: Georgia">Georgia</option>
+                            <option value="Courier New" ${container.child_font_family == 'Courier New' ? 'selected' : ''} style="font-family: Courier New">Courier New</option>
+                            <option value="Libre Baskerville" ${container.child_font_family == 'Libre Baskerville' ? 'selected' : ''} style="font-family: Libre Baskerville">Libre Baskerville</option>
+                        </select>
+                        <label for="container_${container.container_id}_fcardfamily" class="floating-label">Card Font Family</label>
+                    </div>
+                    </div>
+                `;
+                contentContainerForm.appendChild(containerDiv);
+
+                // Automatically submit the content container form when a color changes
+                contentContainerForm.querySelectorAll('input[type="color"], select').forEach(input => {
+                    input.addEventListener('input', () => {
+                        const colorsData = {};
+                        contentContainerForm.querySelectorAll('input[type="color"], select').forEach(colorInput => {
+                            const containerId = colorInput.id.split('_')[1];
+                            const colorType = colorInput.id.split('_')[2];
+
+                            if (!colorsData[containerId]) {
+                                colorsData[containerId] = {};
+                            }
+
+                            // Use `bg_color` and `font_color` instead of `bg` and `font`
+                            if (colorType === 'bg') {
+                                colorsData[containerId]['bg_color'] = colorInput.value;
+                            } else if (colorType === 'font') {
+                                colorsData[containerId]['font_color'] = colorInput.value;
+                            } else if (colorType === 'card') {
+                                colorsData[containerId]['card_bg_color'] = colorInput.value;
+                            } else if (colorType === 'fcard') {
+                                colorsData[containerId]['fcard_color'] = colorInput.value;
+                            } else if (colorType === 'fcardstyle') {
+                                colorsData[containerId]['fcardstyle'] = colorInput.value;
+                            } else if (colorType === 'fcardfamily') {
+                                colorsData[containerId]['fcardfamily'] = colorInput.value;
+                            } else if (colorType === 'fontfamily') {
+                                colorsData[containerId]['fontfamily'] = colorInput.value;
+                            } else if (colorType === 'fontstyle') {
+                                colorsData[containerId]['fontstyle'] = colorInput.value;
+                            }
+                        });
+
+                        const data = {
+                            action: 'update_container_colors',
+                            tv_id: <?php echo $tvId; ?>,
+                            containers: colorsData
+                        };
+                        ws.send(JSON.stringify(data));
+                    });
+                });
+            } else {
+                console.error('Container not found for ID:', containerId); // Debugging line
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const backgroundColorForm = document.getElementById('editBackgroundColorForm');
             const topBarColorForm = document.getElementById('editTopBarColorForm');
-            const contentContainerForm = document.getElementById('editContentContainerForm');
             const visibilityForm = document.getElementById('visibilitySettingsForm');
 
             const iframe = document.getElementById('tv-iframe');
@@ -445,24 +531,6 @@ $conn->close();
                 backgroundRightSidePanel.classList.add('open');
             }
 
-            function openContentContainerRightSidePanel(containerId) {
-                closeTopbarRightSidePanel();  // Close the top bar panel if it's open
-                closeBackgroundRightSidePanel();  // Close the background panel if it's open
-                contentContainerRightSidePanel.classList.add('open');
-            }
-
-            function closeTopbarRightSidePanel() {
-                topbarRightSidePanel.classList.remove('open');
-            }
-
-            function closeBackgroundRightSidePanel() {
-                backgroundRightSidePanel.classList.remove('open');
-            }
-
-            function closeContainerRightSidePanel() {
-                contentContainerRightSidePanel.classList.remove('open');
-            }
-
             // Add event listeners to the iframe content
             iframe.onload = function () {
                 const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
@@ -478,182 +546,93 @@ $conn->close();
                 });
 
                 var contentDocument = iframe.contentDocument || iframe.contentWindow.document;
-                var containers = contentDocument.querySelectorAll('.content-container');
-                containers.forEach(function(container) {
+                // Click event for the containers
+                var containersElements = iframeDocument.querySelectorAll('.content-container');
+                containersElements.forEach(function(container) {
                     container.addEventListener('click', function() {
-                        // Open the right-side panel here
-                        openContentContainerRightSidePanel();
+                        const containerId = container.dataset.containerId; // Use data-container-id
+                        openContentContainerRightSidePanel(containerId);
                     });
                 });
             };
+            
+            // Automatically submit the backgroundColorForm when the color changes
+            const backgroundColorInput = document.getElementById('background_color');
+            backgroundColorInput.addEventListener('input', () => {
+                const formData = new FormData(backgroundColorForm);
+                const data = {
+                    action: 'update_background_color',
+                    tv_id: <?php echo $tvId; ?>,
+                    background_hex_color: formData.get('background_color')
+                };
 
-            // Fetch the WebSocket URL from the PHP file
-            fetch('websocket_conn.php')
-                .then(response => response.text())
-                .then(url => {
-                    const ws = new WebSocket(url);
-
-                    ws.onopen = () => console.log("WebSocket connection established.");
-
-                    ws.onmessage = function (event) {
-                        const message = JSON.parse(event.data);
-                        if (message.action === 'update_background_color') {
-                            if (message.success) {
-                                console.log('Background Color updated!');
-                            } else {
-                                // Display an error message if needed
-                                console.error('Update failed:', message.message);
-                            }
-                        } else if (message.action === 'update_topbar_color') {
-                            if (message.success) {
-                                console.log('Top Bar Color updated!');
-                            } else {
-                                // Display an error message if needed
-                                console.error('Update failed:', message.message);
-                            }
-                        } else if (message.action === 'update_container_colors') {
-                            if (message.success) {
-                                console.log('Container color updated!');
-                            } else {
-                                console.error('Update failed:', message.message);
-                            }
-                        } else if (message.action === 'show_hide_content') {
-                            if (message.success) {
-                                console.log('Content visibility updated!');
-                            } else {
-                                console.error('Update failed:', message.message);
-                            }
-                        }
-                    };
-
-                    ws.onerror = function (error) {
-                        console.error('WebSocket Error:', error);
-                    };
-
-                    // Automatically submit the backgroundColorForm when the color changes
-                    const backgroundColorInput = document.getElementById('background_color');
-                    backgroundColorInput.addEventListener('input', () => {
-                        const formData = new FormData(backgroundColorForm);
-                        const data = {
-                            action: 'update_background_color',
-                            tv_id: <?php echo $tvId; ?>,
-                            background_hex_color: formData.get('background_color')
-                        };
-
-                        formData.forEach((value, key) => {
-                            data[key] = value;
-                        });
-
-                        ws.send(JSON.stringify(data));
-                    });
-
-                    const topbarFields = [
-                        'topbar_color','topbar_tvname_color', 'topbar_deviceid_color', 
-                        'topbar_time_color', 'topbar_date_color', 'topbar_tvname_font_style', 
-                        'topbar_tvname_font_family', 'topbar_deviceid_font_style', 
-                        'topbar_deviceid_font_family', 'topbar_time_font_style', 
-                        'topbar_time_font_family', 'topbar_date_font_style', 
-                        'topbar_date_font_family', 'topbar_position',
-                    ];
-
-                    // Function to send WebSocket message
-                    function sendTopbarUpdate() {
-                        const formData = new FormData(topBarColorForm);
-                        ws.send(JSON.stringify({
-                            action: 'update_topbar_color',
-                            tv_id: <?php echo $tvId; ?>,
-                            topbar_hex_color: formData.get('topbar_color'),
-                            topbar_tvname_font_color: formData.get('topbar_tvname_color'),
-                            topbar_tvname_font_style: formData.get('topbar_tvname_font_style'),
-                            topbar_tvname_font_family: formData.get('topbar_tvname_font_family'),
-                            topbar_deviceid_font_color: formData.get('topbar_deviceid_color'),
-                            topbar_deviceid_font_style: formData.get('topbar_deviceid_font_style'),
-                            topbar_deviceid_font_family: formData.get('topbar_deviceid_font_family'),
-                            topbar_time_font_color: formData.get('topbar_time_color'),
-                            topbar_time_font_style: formData.get('topbar_time_font_style'),
-                            topbar_time_font_family: formData.get('topbar_time_font_family'),
-                            topbar_date_font_color: formData.get('topbar_date_color'),
-                            topbar_date_font_style: formData.get('topbar_date_font_style'),
-                            topbar_date_font_family: formData.get('topbar_date_font_family'),
-                            topbar_position: formData.get('topbar_position')
-                        }));
-                    }
-
-                    // Attach event listeners to all relevant fields
-                    topbarFields.forEach(id => {
-                        const element = topBarColorForm.querySelector(`#${id}`);
-                        element.addEventListener('input', sendTopbarUpdate);
-                        element.addEventListener('change', sendTopbarUpdate);
-                    });
-
-                    // Automatically submit the content container form when a color changes
-                    contentContainerForm.querySelectorAll('input[type="color"], select').forEach(input => {
-                        input.addEventListener('input', () => {
-                            const colorsData = {};
-                            contentContainerForm.querySelectorAll('input[type="color"], select').forEach(colorInput => {
-                                const containerId = colorInput.id.split('_')[1];
-                                const colorType = colorInput.id.split('_')[2];
-
-                                if (!colorsData[containerId]) {
-                                    colorsData[containerId] = {};
-                                }
-
-                                // Use `bg_color` and `font_color` instead of `bg` and `font`
-                                if (colorType === 'bg') {
-                                    colorsData[containerId]['bg_color'] = colorInput.value;
-                                } else if (colorType === 'font') {
-                                    colorsData[containerId]['font_color'] = colorInput.value;
-                                } else if (colorType === 'card') {
-                                    colorsData[containerId]['card_bg_color'] = colorInput.value;
-                                } else if (colorType === 'fcard') {
-                                    colorsData[containerId]['fcard_color'] = colorInput.value;
-                                } else if (colorType === 'fcardstyle') {
-                                    colorsData[containerId]['fcardstyle'] = colorInput.value;
-                                } else if (colorType === 'fcardfamily') {
-                                    colorsData[containerId]['fcardfamily'] = colorInput.value;
-                                } else if (colorType === 'fontfamily') {
-                                    colorsData[containerId]['fontfamily'] = colorInput.value;
-                                } else if (colorType === 'fontstyle') {
-                                    colorsData[containerId]['fontstyle'] = colorInput.value;
-                                }
-                            });
-
-                            const data = {
-                                action: 'update_container_colors',
-                                tv_id: <?php echo $tvId; ?>,
-                                containers: colorsData
-                            };
-
-                            console.log("Colors Data: ", colorsData);
-                            ws.send(JSON.stringify(data));
-                        });
-                    });
-
-                    // Automatically submit the visibility form when changes are made
-                    visibilityForm.querySelectorAll('input[type="checkbox"]').forEach(input => {
-                        input.addEventListener('change', () => {
-                            const formData = new FormData(visibilityForm);
-
-                            // Loop through the checkboxes to gather their states
-                            const containersData = {};
-                            visibilityForm.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                                const containerId = checkbox.id.split('_')[1];
-                                containersData[containerId] = checkbox.checked ? 1 : 0;
-                            });
-
-                            const data = {
-                                action: 'show_hide_content',
-                                tv_id: <?php echo $tvId; ?>,
-                                containers: containersData // Change key from "visible" to "containers"
-                            };
-
-                            ws.send(JSON.stringify(data));
-                        });
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching WebSocket URL:', error);
+                formData.forEach((value, key) => {
+                    data[key] = value;
                 });
+
+                ws.send(JSON.stringify(data));
+            });
+
+            const topbarFields = [
+                'topbar_color','topbar_tvname_color', 'topbar_deviceid_color', 
+                'topbar_time_color', 'topbar_date_color', 'topbar_tvname_font_style', 
+                'topbar_tvname_font_family', 'topbar_deviceid_font_style', 
+                'topbar_deviceid_font_family', 'topbar_time_font_style', 
+                'topbar_time_font_family', 'topbar_date_font_style', 
+                'topbar_date_font_family', 'topbar_position',
+            ];
+
+            // Function to send WebSocket message
+            function sendTopbarUpdate() {
+                const formData = new FormData(topBarColorForm);
+                ws.send(JSON.stringify({
+                    action: 'update_topbar_color',
+                    tv_id: <?php echo $tvId; ?>,
+                    topbar_hex_color: formData.get('topbar_color'),
+                    topbar_tvname_font_color: formData.get('topbar_tvname_color'),
+                    topbar_tvname_font_style: formData.get('topbar_tvname_font_style'),
+                    topbar_tvname_font_family: formData.get('topbar_tvname_font_family'),
+                    topbar_deviceid_font_color: formData.get('topbar_deviceid_color'),
+                    topbar_deviceid_font_style: formData.get('topbar_deviceid_font_style'),
+                    topbar_deviceid_font_family: formData.get('topbar_deviceid_font_family'),
+                    topbar_time_font_color: formData.get('topbar_time_color'),
+                    topbar_time_font_style: formData.get('topbar_time_font_style'),
+                    topbar_time_font_family: formData.get('topbar_time_font_family'),
+                    topbar_date_font_color: formData.get('topbar_date_color'),
+                    topbar_date_font_style: formData.get('topbar_date_font_style'),
+                    topbar_date_font_family: formData.get('topbar_date_font_family'),
+                    topbar_position: formData.get('topbar_position')
+                }));
+            }
+
+            // Attach event listeners to all relevant fields
+            topbarFields.forEach(id => {
+                const element = topBarColorForm.querySelector(`#${id}`);
+                element.addEventListener('input', sendTopbarUpdate);
+                element.addEventListener('change', sendTopbarUpdate);
+            });
+
+            // Automatically submit the visibility form when changes are made
+            visibilityForm.querySelectorAll('input[type="checkbox"]').forEach(input => {
+                input.addEventListener('change', () => {
+                    const formData = new FormData(visibilityForm);
+
+                    // Loop through the checkboxes to gather their states
+                    const containersData = {};
+                    visibilityForm.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                        const containerId = checkbox.id.split('_')[1];
+                        containersData[containerId] = checkbox.checked ? 1 : 0;
+                    });
+
+                    const data = {
+                        action: 'show_hide_content',
+                        tv_id: <?php echo $tvId; ?>,
+                        containers: containersData // Change key from "visible" to "containers"
+                    };
+
+                    ws.send(JSON.stringify(data));
+                });
+            });
         });
     </script>
 </body>

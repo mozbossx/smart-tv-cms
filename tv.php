@@ -38,7 +38,7 @@ include 'tv_initialize.php';
             include('tv_topbar.php'); 
         }
     ?>
-    <div style="background: <?php echo $backgroundColor ?>; cursor: pointer; width: 100%; height: calc(100% - 7vh)" id="tvBackgroundColor">
+    <div style="background: <?php echo $backgroundColor ?>; cursor: pointer; width: 100%; height: calc(100% - 7vh); overflow: hidden; display: flex; flex-direction: column; /* Arrange containers vertically */ height: 100vh; overflow: hidden; /* Prevent any overflow */" id="tvBackgroundColor">
         <div class="main-container" id="main-container">
         <?php foreach ($containers as $container): ?>
                 <?php $containerNameLower = strtolower($container['container_name']); ?>
@@ -57,7 +57,6 @@ include 'tv_initialize.php';
                         <!-- Content for carousel-container will be displayed here -->
                     </div>
                     <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="<?php echo $containerNameLower; ?>PageNumberContainer" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
-                    <div class="resize-handle"></div>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -70,6 +69,7 @@ include 'tv_initialize.php';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web-animations/2.3.1/web-animations.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/muuri/0.5.3/muuri.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
     <script src="js_tv/fetch_tv_content.js"></script>
     <script>
         window.onload = function() {
@@ -112,6 +112,9 @@ include 'tv_initialize.php';
                 dragReleaseDuration: 400,
                 dragContainer: document.body,
                 layoutOnInit: true, // Layout should initialize
+                layout: {
+                    fillGaps: true // Prevent overflow by filling gaps
+                }
             });
 
             // Directly establish WebSocket connection and load layout from the server
@@ -151,6 +154,104 @@ include 'tv_initialize.php';
             // Save layout whenever items are moved
             grid.on('move', function () {
                 saveLayoutToServer(grid, ws);
+            });
+
+            grid.on('dragReleaseEnd', function () {
+                grid.layout(true);
+            });
+
+            // Make each container resizable with constraints
+            interact('.content-container').resizable({
+                edges: { left: true, right: true, bottom: true, top: true },
+                listeners: {
+                    move(event) {
+                        const target = event.target;
+                        const parentContainer = target.parentElement;
+
+                        let x = (parseFloat(target.getAttribute('data-x')) || 0);
+                        let y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+                        // Calculate the new dimensions
+                        let newWidth = event.rect.width;
+                        let newHeight = event.rect.height;
+
+                        // Get the parent container's dimensions
+                        const maxWidth = parentContainer.clientWidth - target.offsetLeft;
+                        const maxHeight = parentContainer.clientHeight - target.offsetTop;
+
+                        // Apply constraints to ensure no overflow
+                        if (newWidth > maxWidth) newWidth = maxWidth;
+                        if (newHeight > maxHeight) newHeight = maxHeight;
+
+                        // Update the element's style
+                        target.style.width = newWidth + 'px';
+                        target.style.height = newHeight + 'px';
+
+                        // Translate when resizing from top or left edges
+                        x += event.deltaRect.left;
+                        y += event.deltaRect.top;
+
+                        target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+
+                        // Update the data attributes
+                        target.setAttribute('data-x', x);
+                        target.setAttribute('data-y', y);
+
+                        // Refresh Muuri layout
+                        grid.refreshItems().layout();
+                    },
+                    end(event) {
+                        const target = event.target;
+                        const containerId = target.getAttribute('data-container-id');
+                        const newWidth = parseInt(target.style.width, 10);
+                        const newHeight = parseInt(target.style.height, 10);
+
+                        // Send the new dimensions to the server
+                        const message = JSON.stringify({
+                            action: 'update_container_dimensions',
+                            tv_id: <?php echo $_GET['tvId']; ?>,
+                            container_id: containerId,
+                            width: newWidth,
+                            height: newHeight
+                        });
+
+                        ws.send(message);
+
+                        // Ensure the layout is recalculated
+                        grid.refreshItems().layout(); 
+                    }
+                }
+            });
+
+            // Update drag constraints based on parent container
+            grid.on('dragStart', function (item) {
+                const parentContainer = item.getElement().parentElement;
+                item.getElement().style.pointerEvents = 'none'; // Disable pointer events during drag
+                item.getElement().style.position = 'absolute'; // Set position to absolute for dragging
+                item.getElement().style.zIndex = 1000; // Bring to front
+
+                // Set dynamic constraints based on parent container size
+                const maxWidth = parentContainer.clientWidth;
+                const maxHeight = parentContainer.clientHeight;
+
+                item.getElement().style.maxWidth = maxWidth + 'px'; // Set max width
+                item.getElement().style.maxHeight = maxHeight + 'px'; // Set max height
+            });
+
+            grid.on('dragMove', function (item) {
+                const parentContainer = item.getElement().parentElement;
+                const maxWidth = parentContainer.clientWidth;
+                const maxHeight = parentContainer.clientHeight;
+
+                // Update the constraints dynamically during drag
+                item.getElement().style.maxWidth = maxWidth + 'px';
+                item.getElement().style.maxHeight = maxHeight + 'px';
+            });
+
+            grid.on('dragEnd', function (item) {
+                item.getElement().style.pointerEvents = ''; // Re-enable pointer events
+                item.getElement().style.position = ''; // Reset position
+                item.getElement().style.zIndex = ''; // Reset z-index
             });
         }
 

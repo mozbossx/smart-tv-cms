@@ -135,8 +135,6 @@ const updateUI = (data, type) => {
         }
         resetCountdown(existingDiv, data.display_time, currentIndexKey);
         updatePageNumber(currentIndexKey);
-
-        console.log("existingDiv called");
     } else {
         const containerDiv = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}s_id`];
@@ -176,8 +174,6 @@ const updateUI = (data, type) => {
         } else {
             updatePageNumber(currentIndexKey);
         }
-
-        console.log("existingDiv NOT called");
     }
 };
 
@@ -273,82 +269,6 @@ const setCarouselInterval = (displayTime, type) => {
         }
     }, 1000);
 };
-
-// const startAnnouncementCarousel = () => {
-//     console.log('Starting carousel with announcements:', announcements);
-//     console.log('Current index:', announcementCurrentIndex);
-//     if (announcements.length > 0) {
-//         // Remove active class from all announcements
-//         announcements.forEach(ann => ann.classList.remove('active'));
-
-//         // Set the current announcement as active
-//         if (announcements[announcementCurrentIndex]) {
-//             announcements[announcementCurrentIndex].classList.add('active');
-//             resetAnnouncementDisplayTime();
-//         } else {
-//             console.error("Invalid current announcement index.");
-//         }
-//     } else {
-//         console.error("Cannot start carousel: No valid announcements available.");
-//         // Optionally handle this scenario
-//     }
-// };
-
-// const startEventCarousel = () => {
-//     console.log('Starting carousel with events:', events);
-//     console.log('Current index:', eventCurrentIndex);
-//     if (events.length > 0) {
-//         // Remove active class from all event
-//         events.forEach(event => event.classList.remove('active'));
-
-//         // Set the current event as active
-//         if (events[eventCurrentIndex]) {
-//             events[eventCurrentIndex].classList.add('active');
-//             resetEventDisplayTime();
-//         } else {
-//             console.error("Invalid current event index.");
-//         }
-//     } else {
-//         console.error("Cannot start carousel: No valid events available.");
-//         // Optionally handle this scenario
-//     }
-// }; 
-
-// const startNewsCarousel = () => {
-//     console.log('Starting carousel with events:', events);
-//     console.log('Current index:', eventCurrentIndex);
-//     if (events.length > 0) {
-//         // Remove active class from all event
-//         events.forEach(event => event.classList.remove('active'));
-
-//         // Set the current event as active
-//         if (events[eventCurrentIndex]) {
-//             events[eventCurrentIndex].classList.add('active');
-//             resetEventDisplayTime();
-//         } else {
-//             console.error("Invalid current event index.");
-//         }
-//     } else {
-//         console.error("Cannot start carousel: No valid events available.");
-//         // Optionally handle this scenario
-//     }
-// };
-
-// Function to display "No Announcement/s to be displayed" message
-// const displayNoAnnouncementsMessage = () => {
-//     const messageDiv = document.createElement('div');
-//     messageDiv.classList.add('no-announcements-message');
-//     messageDiv.textContent = 'No announcements to be displayed';
-//     announcementCarouselContainer.appendChild(messageDiv);
-// };
-
-// Function to display "No Event/s to be displayed" message
-// const displayNoEventsMessage = () => {
-//     const messageDiv = document.createElement('div');
-//     messageDiv.classList.add('no-events-message');
-//     messageDiv.textContent = 'No events to be displayed';
-//     eventCarouselContainer.appendChild(messageDiv);
-// };
 
 const fetchSmartTVName = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -496,8 +416,6 @@ Ws.addEventListener('message', function (event) {
                     console.error(`Container not found for ID: ${container.container_id}`);
                 }
             });
-        } else {
-            console.error('Failed to update container colors:', data.message);
         }
     } else if (data.action === 'update_topbar_color') {
         if (data.success) {
@@ -505,9 +423,20 @@ Ws.addEventListener('message', function (event) {
             if (topbarElement) {
                 topbarElement.style.backgroundColor = data.topbar_hex_color;
                 topbarElement.querySelector('.tv-name').style.color = data.topbar_tvname_font_color;
+                topbarElement.querySelector('.tv-name').style.fontStyle = data.topbar_tvname_font_style;
+                topbarElement.querySelector('.tv-name').style.fontFamily = data.topbar_tvname_font_family;
+
                 topbarElement.querySelector('.device-id').style.color = data.topbar_deviceid_font_color;
+                topbarElement.querySelector('.device-id').style.fontStyle = data.topbar_deviceid_font_style;
+                topbarElement.querySelector('.device-id').style.fontFamily = data.topbar_deviceid_font_family;
+
                 topbarElement.querySelector('.time').style.color = data.topbar_time_font_color;
+                topbarElement.querySelector('.time').style.fontStyle = data.topbar_time_font_style;
+                topbarElement.querySelector('.time').style.fontFamily = data.topbar_time_font_family;
+
                 topbarElement.querySelector('.date').style.color = data.topbar_date_font_color;
+                topbarElement.querySelector('.date').style.fontStyle = data.topbar_date_font_style;
+                topbarElement.querySelector('.date').style.fontFamily = data.topbar_date_font_family;
             }
         }
     } else if (data.action === 'save_layout') {
