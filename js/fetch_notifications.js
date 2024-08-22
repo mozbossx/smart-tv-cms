@@ -28,7 +28,7 @@ const showNotification = (data) => {
     const rejectButton = document.createElement('button');
 
     const notificationDiv = document.createElement('div');
-    notificationDiv.dataset.annId = data.announcements_id;
+    notificationDiv.dataset.annId = data.announcement_id;
 
     notificationDiv.style = `
         padding: 10px;
@@ -43,7 +43,7 @@ const showNotification = (data) => {
             <p style="margin-bottom: 5px"><strong>Pending Announcement</strong></p>
             <pre class="ann-body">${data.ann_body}</pre>
             <p style="color: #6E6E6E"><small>${data.user_type}</small></p>
-            <p style="color: #6E6E6E"><small>Posted by ${data.announcements_author} on ${formattedDate} at ${formattedTime}</small></p>
+            <p style="color: #6E6E6E"><small>Posted by ${data.announcement_author} on ${formattedDate} at ${formattedTime}</small></p>
             <p style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
         `;
     } else {
@@ -76,7 +76,7 @@ const showNotification = (data) => {
     `;
 
     approveButton.innerHTML  = '<i class="fa fa-check" aria-hidden="true"></i> Approve';
-    approveButton.onclick = () => showApproveContentModal(data.announcements_id);
+    approveButton.onclick = () => showApproveContentModal(data.announcement_id);
 
     rejectButton.innerHTML  = '<i class="fa fa-times" aria-hidden="true"></i> Reject';
 
@@ -378,10 +378,10 @@ const approveUser = (user_id) => {
     Ws.send(JSON.stringify(approveUserData));
 };
 
-const approveContent = (announcements_id) => {
+const approveContent = (announcement_id) => {
     const approveContentData = { 
         action: 'approve_post', 
-        announcements_id: announcements_id 
+        announcement_id: announcement_id 
     };
     Ws.send(JSON.stringify(approveContentData));
 };
@@ -425,21 +425,21 @@ Ws.addEventListener('message', function (event) {
     } else if (data.action === 'approve_post') {
         console.log("Processing approve_post action:", data);  // Debugging line
 
-        if (data.success && data.announcement && data.announcement.announcements_id) {
-            const announcements_id = data.announcement.announcements_id;
-            const pendingContentDiv = document.querySelector(`[data-ann-id="${announcements_id}"]`);
+        if (data.success && data.announcement && data.announcement.announcement_id) {
+            const announcement_id = data.announcement.announcement_id;
+            const pendingContentDiv = document.querySelector(`[data-ann-id="${announcement_id}"]`);
 
-            console.log("Looking for pendingContentDiv with announcements_id:", announcements_id);  // Debugging line
+            console.log("Looking for pendingContentDiv with announcement_id:", announcement_id);  // Debugging line
             console.log("Found pendingContentDiv:", pendingContentDiv);  // Debugging line
 
             if (pendingContentDiv) {
                 console.log("Removing pendingContentDiv:", pendingContentDiv);  // Debugging line
                 pendingContentDiv.remove();
             } else {
-                console.error("No pendingContentDiv found for announcements_id:", announcements_id);  // Debugging line
+                console.error("No pendingContentDiv found for announcement_id:", announcement_id);  // Debugging line
             }
         } else {
-            console.error("Invalid data or announcements_id missing in response:", data);  // Debugging line
+            console.error("Invalid data or announcement_id missing in response:", data);  // Debugging line
         }
 
         updateNotificationCount();

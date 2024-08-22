@@ -144,6 +144,7 @@ $conn->close();
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Edit Template</title>
 </head>
@@ -154,21 +155,21 @@ $conn->close();
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-pencil-square" style="padding-right: 5px"></i>Edit Template</h1>
                     <div class="content-form">
-                        <div class="left-side-button">
-                            <button type="button" class="back-button" onclick="javascript:history.back()"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</button>
-                        </div>
+                        <!-- Breadcrumb Navigation -->
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="admin_options.php" style="color: #264B2B">Admin Options</a></li>
+                                <li class="breadcrumb-item"><a href="manage_templates.php" style="color: #264B2B">Manage Templates</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Edit Template</li>
+                            </ol>
+                        </nav>
                         <div class="line-separator"></div>
                         <?php include('error_message.php'); ?>
-                        <div>
-                            <!-- Display iframe based on tvId -->
-                            <div class="tv-frame">
-                                <iframe id="tv-iframe" src="tv.php?tvId=<?php echo $tvId?>" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
-                            </div>
-                            <div class="line-separator"></div>
-                            <div class="form-row">
-                                <div class="form-column" style="flex: 1; border: 1px black solid; border-radius: 5px">
+                        <div class="container-indicators">
+                            <!-- Sidebar -->
+                            <div style="height: 100vh; flex: 1">
+                                <div class="space-y-4" style="margin-top: 0;">
                                     <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;">Show/Hide Content Containers</p>
                                     <form id="visibilitySettingsForm" style="padding: 8px;">
                                         <?php foreach ($containers as $container): ?>
@@ -180,15 +181,28 @@ $conn->close();
                                     </form>
                                 </div>
                             </div>
+<!-- Scale buttons -->
+                            
+                            <!-- Content Area -->
+                            <div class="tv-frame-parent">
+                                <!-- Display iframe based on tvId -->
+                                <div class="tv-frame" id="tv-frame">
+                                    <iframe id="tv-iframe" src="tv2.php?tvId=<?php echo $tvId?>" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
+                                </div>
+                                <div class="scale-buttons">
+                                    <button id="scale-down"><i class="fa fa-search-minus"></i></button>
+                                    <button id="scale-up"><i class="fa fa-search-plus"></i></button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Top Bar Customization Right-side panel -->
-        <div id="topbarRightSidePanel" class="right-side-panel">
+        <!-- Top Bar Customization Left-side panel -->
+        <div id="topbarLeftSidePanel" class="left-side-panel">
             <div class="panel-close-btn">
-                <button onclick="closeTopbarRightSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
+                <button onclick="closeTopbarLeftSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
             </div>
             <h3>Customize Top Bar</h3>
             <br>
@@ -312,10 +326,10 @@ $conn->close();
                 </div>
             </form>
         </div>
-        <!-- Background Customization Right-side panel -->
-        <div id="backgroundRightSidePanel" class="right-side-panel">
+        <!-- Background Customization Left-side panel -->
+        <div id="backgroundLeftSidePanel" class="left-side-panel">
             <div class="panel-close-btn">
-                <button onclick="closeBackgroundRightSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
+                <button onclick="closeBackgroundLeftSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
             </div>
             <br>
             <h3>Customize Background</h3>
@@ -327,10 +341,10 @@ $conn->close();
                 </div>
             </form>
         </div>
-        <!-- Containers Customization Right-side panel -->
-        <div id="contentContainerRightSidePanel" class="right-side-panel">
+        <!-- Containers Customization Left-side panel -->
+        <div id="contentContainerLeftSidePanel" class="left-side-panel">
             <div class="panel-close-btn">
-                <button onclick="closeContainerRightSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
+                <button onclick="closeContainerLeftSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
             </div>
             <br>
             <h3>Customize Container</h3>
@@ -340,23 +354,23 @@ $conn->close();
             </form>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
         let ws;
         var containers = <?php echo json_encode($containers); ?>;
         const contentContainerForm = document.getElementById('editContentContainerForm');
 
-        function closeTopbarRightSidePanel() {
-            topbarRightSidePanel.classList.remove('open');
+        function closeTopbarLeftSidePanel() {
+            topbarLeftSidePanel.classList.remove('open');
         }
 
-        function closeBackgroundRightSidePanel() {
-            backgroundRightSidePanel.classList.remove('open');
+        function closeBackgroundLeftSidePanel() {
+            backgroundLeftSidePanel.classList.remove('open');
         }
 
-        function closeContainerRightSidePanel() {
-            contentContainerRightSidePanel.classList.remove('open');
+        function closeContainerLeftSidePanel() {
+            contentContainerLeftSidePanel.classList.remove('open');
         }
-
         // Function to initialize WebSocket connection
         function initializeWebSocket() {
             fetch('websocket_conn.php')
@@ -381,10 +395,10 @@ $conn->close();
             
         initializeWebSocket();
 
-        function openContentContainerRightSidePanel(containerId) {
-            closeTopbarRightSidePanel();  // Close the top bar panel if it's open
-            closeBackgroundRightSidePanel();  // Close the background panel if it's open
-            contentContainerRightSidePanel.classList.add('open');
+        function openContentContainerLeftSidePanel(containerId) {
+            closeTopbarLeftSidePanel();  // Close the top bar panel if it's open
+            closeBackgroundLeftSidePanel();  // Close the background panel if it's open
+            contentContainerLeftSidePanel.classList.add('open');
 
             editContentContainerForm.innerHTML = '';
 
@@ -514,21 +528,64 @@ $conn->close();
             const visibilityForm = document.getElementById('visibilitySettingsForm');
 
             const iframe = document.getElementById('tv-iframe');
-            const topbarRightSidePanel = document.getElementById('topbarRightSidePanel');
-            const backgroundRightSidePanel = document.getElementById('backgroundRightSidePanel');
-            const contentContainerRightSidePanel = document.getElementById('contentContainerRightSidePanel');
+            const topbarLeftSidePanel = document.getElementById('topbarLeftSidePanel');
+            const backgroundLeftSidePanel = document.getElementById('backgroundLeftSidePanel');
+            const contentContainerLeftSidePanel = document.getElementById('contentContainerLeftSidePanel');
 
-            // Function to open and close the right side panels
-            function openTopbarRightSidePanel() {
-                closeBackgroundRightSidePanel();  // Close the background panel if it's open
-                closeContainerRightSidePanel();  // Close the container panel if it's open
-                topbarRightSidePanel.classList.add('open');
+            const tvFrame = document.getElementById('tv-frame');
+            const scaleUpButton = document.getElementById('scale-up');
+            const scaleDownButton = document.getElementById('scale-down');
+            let scale = 1;
+            let isDragging = false;
+            let startX, startY, scrollLeft, scrollTop;
+
+            // Scale Up Button
+            scaleUpButton.addEventListener('click', () => {
+                scale += 0.1;
+                tvFrame.style.transform = `scale(${scale})`;
+            });
+
+            // Scale Down Button
+            scaleDownButton.addEventListener('click', () => {
+                if (scale > 0.2) {  // Prevent scaling too small
+                    scale -= 0.1;
+                    tvFrame.style.transform = `scale(${scale})`;
+                }
+            });
+
+            // Drag to Pan
+            tvFrame.parentElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX - tvFrame.offsetLeft;
+                startY = e.clientY - tvFrame.offsetTop;
+                tvFrame.parentElement.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                tvFrame.parentElement.style.cursor = 'grab';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const x = e.clientX - startX;
+                const y = e.clientY - startY;
+                tvFrame.style.left = `${x}px`;
+                tvFrame.style.top = `${y}px`;
+            });
+
+            // Function to open and close the left side panels
+            function openTopbarLeftSidePanel() {
+                closeBackgroundLeftSidePanel();  // Close the background panel if it's open
+                closeContainerLeftSidePanel();  // Close the container panel if it's open
+                topbarLeftSidePanel.classList.add('open');
             }
 
-            function openBackgroundRightSidePanel() {
-                closeTopbarRightSidePanel();  // Close the top bar panel if it's open
-                closeContainerRightSidePanel();  // Close the container panel if it's open
-                backgroundRightSidePanel.classList.add('open');
+            function openBackgroundLeftSidePanel() {
+                closeTopbarLeftSidePanel();  // Close the top bar panel if it's open
+                closeContainerLeftSidePanel();  // Close the container panel if it's open
+                backgroundLeftSidePanel.classList.add('open');
             }
 
             // Add event listeners to the iframe content
@@ -537,12 +594,12 @@ $conn->close();
 
                 // Click event for the top bar
                 iframeDocument.getElementById('topbar').addEventListener('click', function () {
-                    openTopbarRightSidePanel();
+                    openTopbarLeftSidePanel();
                 });
 
                 // Click event for the background
                 iframeDocument.getElementById('tvBackgroundColor').addEventListener('click', function () {
-                    openBackgroundRightSidePanel();
+                    openBackgroundLeftSidePanel();
                 });
 
                 var contentDocument = iframe.contentDocument || iframe.contentWindow.document;
@@ -551,7 +608,7 @@ $conn->close();
                 containersElements.forEach(function(container) {
                     container.addEventListener('click', function() {
                         const containerId = container.dataset.containerId; // Use data-container-id
-                        openContentContainerRightSidePanel(containerId);
+                        openContentContainerLeftSidePanel(containerId);
                     });
                 });
             };

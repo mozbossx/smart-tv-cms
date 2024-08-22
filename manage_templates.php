@@ -28,21 +28,26 @@ if (!$resultTVQuery) {
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Manage Templates</title>
 </head>
 <body>
     <div class="main-section" id="all-content">
+        <?php include('error_message.php'); ?>
         <?php include('top_header.php'); ?>
         <?php include('sidebar.php'); ?>
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-window-restore" style="padding-right: 5px"></i>Manage Templates</h1>
                     <div class="content-form">
-                        <div class="left-side-button">
-                            <button type="button" class="back-button" onclick="javascript:history.back()"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</button>
-                        </div>
+                        <!-- Breadcrumb Navigation -->
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="admin_options.php" style="color: #264B2B">Admin Options</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Manage Templates</li>
+                            </ol>
+                        </nav>
                         <div class="line-separator"></div>
                         <?php include('error_message.php'); ?>
                         <div>
@@ -56,16 +61,17 @@ if (!$resultTVQuery) {
                                         $tvHeight = $row['height_px'];
                                         $tvWidth = $row['width_px'];
                                         echo "<div class='content-container' style='overflow: hidden'>";
-                                        echo "<div class='tv-frame' style='user-select: none;'>";
-                                        echo "<iframe src='tv.php?tvId=$tvId' class='tv-screen' style='pointer-events: none; user-select: none; height: {$tvHeight}px; width: {$tvWidth}px'></iframe>";
-                                        echo "</div>";
-                                        echo "<div class='line-separator'></div>";
-                                        echo "<h2>" . htmlspecialchars($row['tv_name']) . "</h2>";
-                                        echo "<p>Device ID: " . htmlspecialchars($row['device_id']) . "</p>";
-                                        echo "<p>Brand: " . htmlspecialchars($row['tv_brand']) . "</p>";
-                                        echo "<p>Screen Dimensions: " . htmlspecialchars($row['width_px']) . " x " . htmlspecialchars($row['height_px']) . "</p>";
-                                        echo "<div class='line-separator'></div>";
-                                        echo "<button class='green-button' onclick='window.location.href=\"edit_template.php?tvId=$tvId&initialize=false\"'>Edit Template</button>";
+                                            echo "<h2>" . htmlspecialchars($row['tv_name']) . "</h2>";
+                                            echo "<p>Device ID: " . htmlspecialchars($row['device_id']) . "</p>";
+                                            echo "<p>Brand: " . htmlspecialchars($row['tv_brand']) . "</p>";
+                                            echo "<p>Screen Dimensions: " . htmlspecialchars($row['width_px']) . " x " . htmlspecialchars($row['height_px']) . "</p>";
+                                            echo "<div class='line-separator'></div>";
+                                            echo "<button class='green-button' onclick='window.location.href=\"edit_template.php?tvId=$tvId&initialize=false\"'>Edit Template</button>";
+                                            echo "<div style='width: auto; height: 100%; overflow: auto;'>";
+                                                echo "<div class='tv-frame' id='tv-frame' style='position: unset; scale: 1; padding: 0; margin: 0;'>";
+                                                    echo "<iframe src='tv2.php?tvId=$tvId' class='tv-screen' style='pointer-events: none; user-select: none; height: {$tvHeight}px; width: {$tvWidth}px'></iframe>";
+                                                echo "</div>";
+                                            echo "</div>";
                                         echo "</div>";
                                     }
                                 } else {

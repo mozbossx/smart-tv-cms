@@ -24,12 +24,12 @@ const formatTime = (timeString) => {
 // 1. updateAnnouncementUI
 const updateAnnouncementUI = (data) => {
     // Check if the status is 'Pending' and return early if true
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data.announcements_id) {
+    if (data.status === 'Pending' || data.isCancelled === 1 || !data.announcement_id) {
         return;
     }
 
     // Check if the announcement already exists in the DOM
-    const existingAnnouncementDiv = document.querySelector(`[data-ann-id="${data.announcements_id}"]`);
+    const existingAnnouncementDiv = document.querySelector(`[data-ann-id="${data.announcement_id}"]`);
 
     const formattedCreatedDate = formatDate(data.created_date);
     const formattedCreatedTime = formatTime(data.created_time);
@@ -58,7 +58,7 @@ const updateAnnouncementUI = (data) => {
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <pre class="ann-body" style="word-break: break-word">${data.ann_body}</pre>
                     <div class="line-separator"></div>
-                    <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcements_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                    <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcement_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                     <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                     <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                 </div>
@@ -67,7 +67,6 @@ const updateAnnouncementUI = (data) => {
     } else {
         const containerDiv = document.createElement('div');
         const contentDiv = document.createElement('div');
-        const postDiv = document.createElement('div');
         const deleteButton = document.createElement('button');
         const archiveButton = document.createElement('button');
         const editButton = document.createElement('button');
@@ -75,10 +74,10 @@ const updateAnnouncementUI = (data) => {
         containerDiv.style = `
             height: auto;
             width: auto;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             margin-right: 8px;
-            border: black 1px solid;
-            border-radius: 5px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         `;
 
         // const isOdd = annCarouselContainer.children.length % 2 !== 0;
@@ -86,59 +85,50 @@ const updateAnnouncementUI = (data) => {
         contentDiv.style = `
             background-color: #dffce5;
             border: none;
-            border-top-left-radius: 5px;
-            border-top-right-radius: 5px;
-            padding: 10px;
+            border-radius: 15px;
+            padding: 20px;
             color: black;
             height: auto;
             text-align: left;
             bottom: 0;
         `;
 
-        postDiv.style = `
-            background-color: #264b2b;
-            border: none;
-            border-bottom-left-radius: 5px;
-            border-bottom-right-radius: 5px;
-            padding: 5px;
-            color: black;
-            height: auto;
-            text-align: right;
-        `;
-
         deleteButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-top: 5px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
         `;
 
         archiveButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         editButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         if (data.category == "Announcement") {
-            containerDiv.dataset.annId = data.announcements_id;
-            containerDiv.setAttribute('data-ann-id', data.announcements_id);
+            containerDiv.dataset.annId = data.announcement_id;
+            containerDiv.setAttribute('data-ann-id', data.announcement_id);
             // Check if the announcement has media
             if (data.media_path) {
                 // Determine media type based on file extension
@@ -156,7 +146,7 @@ const updateAnnouncementUI = (data) => {
                         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                         <pre class="ann-body" style="word-break: break-word">${data.ann_body}</pre>
                         <div class="line-separator"></div>
-                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcements_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcement_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                     </div>
@@ -166,7 +156,7 @@ const updateAnnouncementUI = (data) => {
                     <div class="content-container-con">
                         <pre class="ann-body" style="word-break: break-word">${data.ann_body}</pre>
                         <div class="line-separator"></div>
-                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcements_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcement_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                     </div>
@@ -174,30 +164,25 @@ const updateAnnouncementUI = (data) => {
             }
 
             deleteButton.innerHTML  = '<i class="fa fa-trash" aria-hidden="true"></i> Delete';
-            deleteButton.onclick = () => showDeleteAnnModal(data.announcements_id);
+            deleteButton.onclick = () => showDeleteAnnModal(data.announcement_id);
 
             archiveButton.innerHTML  = '<i class="fa fa-archive" aria-hidden="true"></i> Archive';
-            archiveButton.onclick = () => showArchiveAnnModal(data.announcements_id);
+            archiveButton.onclick = () => showArchiveAnnModal(data.announcement_id);
 
             editButton.innerHTML  = '<i class="fa fa-pencil-square" aria-hidden="true"></i> Edit';
             editButton.onclick = () => {
-                window.location.href = `edit_announcement.php?announcements_id=${data.announcements_id}?=${data.announcements_author}`;
+                window.location.href = `edit_announcement.php?announcement_id=${data.announcement_id}?=${data.announcement_author}`;
             };
 
-            if (userType !== 'Student' && userType !== 'Faculty' || data.announcements_author === full_name) {
+            if (userType !== 'Student' && userType !== 'Faculty' || data.announcement_author === full_name) {
                 contentDiv.appendChild(deleteButton);
                 contentDiv.appendChild(archiveButton);
                 contentDiv.appendChild(editButton);
             }
         }
-        
-        postDiv.innerHTML = `
-            
-        `;
 
-        // Append 'contentDiv' and 'postDiv' to 'containerDiv'
+        // Append 'contentDiv' to 'containerDiv'
         containerDiv.appendChild(contentDiv);
-        containerDiv.appendChild(postDiv);
 
         annCarouselContainer.insertBefore(containerDiv, annCarouselContainer.firstChild);
     }
@@ -258,7 +243,7 @@ const archiveAnnouncement = (type, id) => {
     const data = {
         action: 'archive',
         type: 'announcement',
-        announcements_id : id
+        announcement_id : id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -318,7 +303,7 @@ const deleteAnnouncement = (type, id) => {
     const data = {
         action: 'delete',
         type: 'announcement',
-        announcements_id : id
+        announcement_id : id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -341,12 +326,12 @@ const displayNoAnnouncementsMessage = () => {
 // 1. updateEventUI
 const updateEventUI = (data) => {
     // Check if the status is 'Pending' and return early if true
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data.events_id) {
+    if (data.status === 'Pending' || data.isCancelled === 1 || !data.event_id) {
         return;
     }
 
     // Check if the event already exists in the DOM
-    const existingEventDiv = document.querySelector(`[data-event-id="${data.events_id}"]`);
+    const existingEventDiv = document.querySelector(`[data-event-id="${data.event_id}"]`);
 
     const formattedCreatedDate = formatDate(data.created_date);
     const formattedCreatedTime = formatTime(data.created_time);
@@ -379,7 +364,7 @@ const updateEventUI = (data) => {
                     <p class="field-title">Registration Link</p>
                     <pre class="eve-body" style="word-break: break-word"><small>${data.reg_link}</small></pre>
                     <div class="line-separator"></div>
-                    <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.events_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                    <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.event_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                     <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                     <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                 </div>
@@ -388,7 +373,6 @@ const updateEventUI = (data) => {
     } else {
         const containerDiv = document.createElement('div');
         const contentDiv = document.createElement('div');
-        const postDiv = document.createElement('div');
         const deleteButton = document.createElement('button');
         const archiveButton = document.createElement('button');
         const editButton = document.createElement('button');
@@ -396,10 +380,10 @@ const updateEventUI = (data) => {
         containerDiv.style = `
             height: auto;
             width: auto;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             margin-right: 8px;
-            border: black 1px solid;
-            border-radius: 5px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         `;
 
         // const isOdd = eveCarouselContainer.children.length % 2 !== 0;
@@ -407,59 +391,50 @@ const updateEventUI = (data) => {
         contentDiv.style = `
             background-color: #dffce5;
             border: none;
-            border-top-left-radius: 5px;
-            border-top-right-radius: 5px;
-            padding: 10px;
+            border-radius: 15px;
+            padding: 20px;;
             color: black;
             height: auto;
             text-align: left;
             bottom: 0;
         `;
 
-        postDiv.style = `
-            background-color: #264b2b;
-            border: none;
-            border-bottom-left-radius: 5px;
-            border-bottom-right-radius: 5px;
-            padding: 5px;
-            color: black;
-            height: auto;
-            text-align: right;
-        `;
-
         deleteButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-top: 5px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
         `;
 
         archiveButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         editButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         if (data.category == "Event") {
-            containerDiv.dataset.eventId = data.events_id;
-            containerDiv.setAttribute('data-event-id', data.events_id);
+            containerDiv.dataset.eventId = data.event_id;
+            containerDiv.setAttribute('data-event-id', data.event_id);
             // Check if the event has media
             if (data.media_path) {
                 // Determine media type based on file extension
@@ -481,7 +456,7 @@ const updateEventUI = (data) => {
                         <p class="field-title">Registration Link</p>
                         <pre class="eve-body" style="word-break: break-word"><small>${data.reg_link}</small></pre>
                         <div class="line-separator"></div>
-                        <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.events_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.event_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                     </div>
@@ -495,7 +470,7 @@ const updateEventUI = (data) => {
                         <p class="field-title">Registration Link</p>
                         <pre class="eve-body" style="word-break: break-word"><small>${data.reg_link}</small></pre>
                         <div class="line-separator"></div>
-                        <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.events_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        <p class="eve-author" style="color: #6E6E6E"><small>Posted by ${data.event_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                     </div>
@@ -503,30 +478,25 @@ const updateEventUI = (data) => {
             }
 
             deleteButton.innerHTML  = '<i class="fa fa-trash" aria-hidden="true"></i> Delete';
-            deleteButton.onclick = () => showDeleteEventModal(data.events_id);
+            deleteButton.onclick = () => showDeleteEventModal(data.event_id);
 
             archiveButton.innerHTML  = '<i class="fa fa-archive" aria-hidden="true"></i> Archive';
-            archiveButton.onclick = () => showArchiveEventModal(data.events_id);
+            archiveButton.onclick = () => showArchiveEventModal(data.event_id);
 
             editButton.innerHTML  = '<i class="fa fa-pencil-square" aria-hidden="true"></i> Edit';
             editButton.onclick = () => {
-                window.location.href = `edit_event.php?events_id=${data.events_id}?=${data.events_author}`;
+                window.location.href = `edit_event.php?event_id=${data.event_id}?=${data.event_author}`;
             };
 
-            if (userType !== 'Student' && userType !== 'Faculty' || data.events_author === full_name) {
+            if (userType !== 'Student' && userType !== 'Faculty' || data.event_author === full_name) {
                 contentDiv.appendChild(deleteButton);
                 contentDiv.appendChild(archiveButton);
                 contentDiv.appendChild(editButton);
             }
         }
-        
-        postDiv.innerHTML = `
-            
-        `;
 
-        // Append 'contentDiv' and 'postDiv' to 'containerDiv'
+        // Append 'contentDiv' to 'containerDiv'
         containerDiv.appendChild(contentDiv);
-        containerDiv.appendChild(postDiv);
 
         eveCarouselContainer.insertBefore(containerDiv, eveCarouselContainer.firstChild);
     }
@@ -587,7 +557,7 @@ const archiveEvent = (type, id) => {
     const data = {
         action: 'archive',
         type: 'event',
-        events_id : id
+        event_id : id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -647,7 +617,7 @@ const deleteEvent = (type, id) => {
     const data = {
         action: 'delete',
         type: 'event',
-        events_id: id
+        event_id: id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -713,7 +683,6 @@ const updateNewsUI = (data) => {
     } else {
         const containerDiv = document.createElement('div');
         const contentDiv = document.createElement('div');
-        const postDiv = document.createElement('div');
         const deleteButton = document.createElement('button');
         const archiveButton = document.createElement('button');
         const editButton = document.createElement('button');
@@ -721,10 +690,10 @@ const updateNewsUI = (data) => {
         containerDiv.style = `
             height: auto;
             width: auto;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             margin-right: 8px;
-            border: black 1px solid;
-            border-radius: 5px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         `;
 
         // const isOdd = newsCarouselContainer.children.length % 2 !== 0;
@@ -732,54 +701,45 @@ const updateNewsUI = (data) => {
         contentDiv.style = `
             background-color: #dffce5;
             border: none;
-            border-top-left-radius: 5px;
-            border-top-right-radius: 5px;
-            padding: 10px;
+            border-radius: 15px;
+            padding: 20px;;
             color: black;
             height: auto;
             text-align: left;
             bottom: 0;
         `;
 
-        postDiv.style = `
-            background-color: #264b2b;
-            border: none;
-            border-bottom-left-radius: 5px;
-            border-bottom-right-radius: 5px;
-            padding: 5px;
-            color: black;
-            height: auto;
-            text-align: right;
-        `;
-
         deleteButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-top: 5px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
         `;
 
         archiveButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         editButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         if (data.category == "News") {
@@ -836,14 +796,9 @@ const updateNewsUI = (data) => {
                 contentDiv.appendChild(editButton);
             }
         }
-        
-        postDiv.innerHTML = `
-            
-        `;
 
-        // Append 'contentDiv' and 'postDiv' to 'containerDiv'
+        // Append 'contentDiv' to 'containerDiv'
         containerDiv.appendChild(contentDiv);
-        containerDiv.appendChild(postDiv);
 
         newsCarouselContainer.insertBefore(containerDiv, newsCarouselContainer.firstChild);
     }
@@ -987,12 +942,12 @@ const displayNoNewsMessage = () => {
 // 1. updatePromaterialUI
 const updatePromaterialUI = (data) => {
     // Check if the status is 'Pending' and return early if true
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data.promaterials_id) {
+    if (data.status === 'Pending' || data.isCancelled === 1 || !data.promaterial_id) {
         return;
     }
 
     // Check if the announcement already exists in the DOM
-    const existingPromaterialDiv = document.querySelector(`[data-promaterials-id="${data.promaterials_id}"]`);
+    const existingPromaterialDiv = document.querySelector(`[data-promaterials-id="${data.promaterial_id}"]`);
 
     const formattedCreatedDate = formatDate(data.created_date);
     const formattedCreatedTime = formatTime(data.created_time);
@@ -1020,7 +975,7 @@ const updatePromaterialUI = (data) => {
                 <div class="content-container-con">
                     <div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>
                     <div class="line-separator"></div>
-                    <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.promaterials_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                    <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.promaterial_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                     <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                     <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                 </div>
@@ -1029,7 +984,6 @@ const updatePromaterialUI = (data) => {
     } else {
         const containerDiv = document.createElement('div');
         const contentDiv = document.createElement('div');
-        const postDiv = document.createElement('div');
         const deleteButton = document.createElement('button');
         const archiveButton = document.createElement('button');
         const editButton = document.createElement('button');
@@ -1037,10 +991,10 @@ const updatePromaterialUI = (data) => {
         containerDiv.style = `
             height: auto;
             width: auto;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             margin-right: 8px;
-            border: black 1px solid;
-            border-radius: 5px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         `;
 
         // const isOdd = annCarouselContainer.children.length % 2 !== 0;
@@ -1048,59 +1002,50 @@ const updatePromaterialUI = (data) => {
         contentDiv.style = `
             background-color: #dffce5;
             border: none;
-            border-top-left-radius: 5px;
-            border-top-right-radius: 5px;
-            padding: 10px;
+            border-radius: 15px;
+            padding: 20px;;
             color: black;
             height: auto;
             text-align: left;
             bottom: 0;
         `;
 
-        postDiv.style = `
-            background-color: #264b2b;
-            border: none;
-            border-bottom-left-radius: 5px;
-            border-bottom-right-radius: 5px;
-            padding: 5px;
-            color: black;
-            height: auto;
-            text-align: right;
-        `;
-
         deleteButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-top: 5px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
         `;
 
         archiveButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         editButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         if (data.category == "Promotional Materials") {
-            containerDiv.dataset.promaterialId = data.promaterials_id;
-            containerDiv.setAttribute('data-promaterials-id', data.promaterials_id);
+            containerDiv.dataset.promaterialId = data.promaterial_id;
+            containerDiv.setAttribute('data-promaterials-id', data.promaterial_id);
             // Check if the announcement has media
             if (data.media_path) {
                 // Determine media type based on file extension
@@ -1117,7 +1062,7 @@ const updatePromaterialUI = (data) => {
                     <div class="content-container-con">
                         <div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>
                         <div class="line-separator"></div>
-                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.promaterials_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.promaterial_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs | <i class="fa fa-television" aria-hidden="true"></i> ${data.tv_display}</p>
                     </div>
@@ -1125,30 +1070,25 @@ const updatePromaterialUI = (data) => {
             }
 
             deleteButton.innerHTML  = '<i class="fa fa-trash" aria-hidden="true"></i> Delete';
-            deleteButton.onclick = () => showDeletePromaterialModal(data.promaterials_id);
+            deleteButton.onclick = () => showDeletePromaterialModal(data.promaterial_id);
 
             archiveButton.innerHTML  = '<i class="fa fa-archive" aria-hidden="true"></i> Archive';
-            archiveButton.onclick = () => showArchivePromaterialModal(data.promaterials_id);
+            archiveButton.onclick = () => showArchivePromaterialModal(data.promaterial_id);
 
             editButton.innerHTML  = '<i class="fa fa-pencil-square" aria-hidden="true"></i> Edit';
             editButton.onclick = () => {
-                window.location.href = `edit_promaterial.php?promaterials_id=${data.promaterials_id}?=${data.promaterials_author}`;
+                window.location.href = `edit_promaterial.php?promaterial_id=${data.promaterial_id}?=${data.promaterial_author}`;
             };
 
-            if (userType !== 'Student' && userType !== 'Faculty' || data.promaterials_id === full_name) {
+            if (userType !== 'Student' && userType !== 'Faculty' || data.promaterial_id === full_name) {
                 contentDiv.appendChild(deleteButton);
                 contentDiv.appendChild(archiveButton);
                 contentDiv.appendChild(editButton);
             }
         }
-        
-        postDiv.innerHTML = `
-            
-        `;
 
-        // Append 'contentDiv' and 'postDiv' to 'containerDiv'
+        // Append 'contentDiv' to 'containerDiv'
         containerDiv.appendChild(contentDiv);
-        containerDiv.appendChild(postDiv);
 
         promaterialsCarouselContainer.insertBefore(containerDiv, promaterialsCarouselContainer.firstChild);
     }
@@ -1209,7 +1149,7 @@ const archivePromaterial = (type, id) => {
     const data = {
         action: 'archive',
         type: 'promaterial',
-        promaterials_id : id
+        promaterial_id : id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -1269,7 +1209,7 @@ const deletePromaterial = (type, id) => {
     const data = {
         action: 'delete',
         type: 'promaterial',
-        promaterials_id : id
+        promaterial_id : id
     };
     Ws.send(JSON.stringify(data));
 };
@@ -1331,7 +1271,6 @@ const updatePEOUI = (data) => {
     } else {
         const containerDiv = document.createElement('div');
         const contentDiv = document.createElement('div');
-        const postDiv = document.createElement('div');
         const deleteButton = document.createElement('button');
         const archiveButton = document.createElement('button');
         const editButton = document.createElement('button');
@@ -1339,10 +1278,10 @@ const updatePEOUI = (data) => {
         containerDiv.style = `
             height: auto;
             width: auto;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             margin-right: 8px;
-            border: black 1px solid;
-            border-radius: 5px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         `;
 
         // const isOdd = peoCarouselContainer.children.length % 2 !== 0;
@@ -1350,54 +1289,45 @@ const updatePEOUI = (data) => {
         contentDiv.style = `
             background-color: #dffce5;
             border: none;
-            border-top-left-radius: 5px;
-            border-top-right-radius: 5px;
-            padding: 10px;
+            border-radius: 15px;
+            padding: 20px;;
             color: black;
             height: auto;
             text-align: left;
             bottom: 0;
         `;
 
-        postDiv.style = `
-            background-color: #264b2b;
-            border: none;
-            border-bottom-left-radius: 5px;
-            border-bottom-right-radius: 5px;
-            padding: 5px;
-            color: black;
-            height: auto;
-            text-align: right;
-        `;
-
         deleteButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-top: 5px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
         `;
 
         archiveButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         editButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         if (data.category == "PEO") {
@@ -1443,14 +1373,9 @@ const updatePEOUI = (data) => {
                 contentDiv.appendChild(editButton);
             }
         }
-        
-        postDiv.innerHTML = `
-            
-        `;
 
-        // Append 'contentDiv' and 'postDiv' to 'containerDiv'
+        // Append 'contentDiv' to 'containerDiv'
         containerDiv.appendChild(contentDiv);
-        containerDiv.appendChild(postDiv);
 
         peoCarouselContainer.insertBefore(containerDiv, peoCarouselContainer.firstChild);
     }
@@ -1633,7 +1558,6 @@ const updateSOUI = (data) => {
     } else {
         const containerDiv = document.createElement('div');
         const contentDiv = document.createElement('div');
-        const postDiv = document.createElement('div');
         const deleteButton = document.createElement('button');
         const archiveButton = document.createElement('button');
         const editButton = document.createElement('button');
@@ -1641,10 +1565,10 @@ const updateSOUI = (data) => {
         containerDiv.style = `
             height: auto;
             width: auto;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             margin-right: 8px;
-            border: black 1px solid;
-            border-radius: 5px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         `;
 
         // const isOdd = soCarouselContainer.children.length % 2 !== 0;
@@ -1652,54 +1576,45 @@ const updateSOUI = (data) => {
         contentDiv.style = `
             background-color: #dffce5;
             border: none;
-            border-top-left-radius: 5px;
-            border-top-right-radius: 5px;
-            padding: 10px;
+            border-radius: 15px;
+            padding: 20px;;
             color: black;
             height: auto;
             text-align: left;
             bottom: 0;
         `;
 
-        postDiv.style = `
-            background-color: #264b2b;
-            border: none;
-            border-bottom-left-radius: 5px;
-            border-bottom-right-radius: 5px;
-            padding: 5px;
-            color: black;
-            height: auto;
-            text-align: right;
-        `;
-
         deleteButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-top: 5px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
         `;
 
         archiveButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         editButton.style = `
-            background-color: #4e7251;
-            color: white;
-            border: none;
+            background-color: #316038;
+            color: #fff;
+            padding: 8px 16px;
             border-radius: 5px;
-            padding: 5px;
+            border: none;
             cursor: pointer;
-            margin-left: 7px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
         `;
 
         if (data.category == "SO") {
@@ -1745,14 +1660,9 @@ const updateSOUI = (data) => {
                 contentDiv.appendChild(editButton);
             }
         }
-        
-        postDiv.innerHTML = `
-            
-        `;
 
-        // Append 'contentDiv' and 'postDiv' to 'containerDiv'
+        // Append 'contentDiv' to 'containerDiv'
         containerDiv.appendChild(contentDiv);
-        containerDiv.appendChild(postDiv);
 
         soCarouselContainer.insertBefore(containerDiv, soCarouselContainer.firstChild);
     }
@@ -2070,13 +1980,13 @@ Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
     if (data.action === 'delete' || data.action === 'archive') {
         if (data.type === 'announcement' && data.success) {
-            const announcementDiv = document.querySelector(`[data-ann-id="${data.announcements_id}"]`);
+            const announcementDiv = document.querySelector(`[data-ann-id="${data.announcement_id}"]`);
             if (announcementDiv) {
                 announcementDiv.remove();
                 fetchAndUpdateAnnouncements();
             }
         } else if (data.type === 'event' && data.success) {
-            const eventDiv = document.querySelector(`[data-event-id="${data.events_id}"]`);
+            const eventDiv = document.querySelector(`[data-event-id="${data.event_id}"]`);
             if (eventDiv) {
                 eventDiv.remove();
                 fetchAndUpdateEvents();
@@ -2088,7 +1998,7 @@ Ws.addEventListener('message', function(event) {
                 fetchAndUpdateNews();
             }
         } else if (data.type === 'promaterial' && data.success) {
-            const promaterialDiv = document.querySelector(`[data-promaterials-id="${data.promaterials_id}"]`);
+            const promaterialDiv = document.querySelector(`[data-promaterials-id="${data.promaterial_id}"]`);
             if (promaterialDiv) {
                 promaterialDiv.remove();
                 fetchAndUpdatePromaterials();
@@ -2135,7 +2045,7 @@ Ws.addEventListener('message', function(event) {
             fetchAndUpdateSOs();
         }
     } else if (data.action === 'approve_post' && data.success && data.announcement) {
-        const announcementDiv = document.querySelector(`[data-ann-id="${data.announcement.announcements_id}"]`);
+        const announcementDiv = document.querySelector(`[data-ann-id="${data.announcement.announcement_id}"]`);
         if (announcementDiv) {
             announcementDiv.classList.add('approved');
         }

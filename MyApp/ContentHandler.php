@@ -43,10 +43,10 @@ class ContentHandler implements MessageComponentInterface
         // Handle delete actions
         if (isset($data['action']) && $data['action'] === 'delete') {
             $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcements_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'events_id'],
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
-                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterials_id'],
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
                 'so' => ['table' => 'so_tb', 'idField' => 'so_id']
             ];
@@ -78,10 +78,10 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'archive') {
             $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcements_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'events_id'],
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
-                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterials_id'],
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
                 'so' => ['table' => 'so_tb', 'idField' => 'so_id']
             ];
@@ -125,10 +125,10 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'unarchive') {
             $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcements_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'events_id'],
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
-                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterials_id'],
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
                 'so' => ['table' => 'so_tb', 'idField' => 'so_id']
             ];
@@ -172,10 +172,10 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'unarchive_and_update_expiration') {
             $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcements_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'events_id'],
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
-                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterials_id'],
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
                 'so' => ['table' => 'so_tb', 'idField' => 'so_id']
             ];
@@ -226,14 +226,14 @@ class ContentHandler implements MessageComponentInterface
             $validTypes = [
                 'announcement' => [
                     'table' => 'announcements_tb',
-                    'idField' => 'announcements_id',
-                    'fields' => ['ann_body', 'announcements_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
+                    'idField' => 'announcement_id',
+                    'fields' => ['ann_body', 'announcement_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
                     'mediaFolder' => 'announcements_media'
                 ],
                 'event' => [
                     'table' => 'events_tb',
-                    'idField' => 'events_id',
-                    'fields' => ['event_heading', 'event_location', 'reg_link', 'events_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
+                    'idField' => 'event_id',
+                    'fields' => ['event_heading', 'event_location', 'reg_link', 'event_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
                     'mediaFolder' => 'events_media'
                 ],
                 'news' => [
@@ -244,8 +244,8 @@ class ContentHandler implements MessageComponentInterface
                 ],
                 'promaterial' => [
                     'table' => 'promaterials_tb',
-                    'idField' => 'promaterials_id',
-                    'fields' => ['promaterials_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
+                    'idField' => 'promaterial_id',
+                    'fields' => ['promaterial_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
                     'mediaFolder' => 'promaterials_media'
                 ],
                 'peo' => [
@@ -941,18 +941,18 @@ class ContentHandler implements MessageComponentInterface
         }
 
         else if (isset($data['action']) && $data['action'] === 'approve_post') {
-            $announcements_id = $data['announcements_id'];
+            $announcement_id = $data['announcement_id'];
         
             // Update the announcement status in the database
-            $stmt = $this->pdo->prepare("UPDATE announcements_tb SET status = 'Approved' WHERE announcements_id = ?");
-            $stmt->execute([$announcements_id]);
+            $stmt = $this->pdo->prepare("UPDATE announcements_tb SET status = 'Approved' WHERE announcement_id = ?");
+            $stmt->execute([$announcement_id]);
         
             $announcement = $stmt->rowCount() > 0;
         
             if ($announcement) {
                 // Fetch the updated announcement data
-                $stmt = $this->pdo->prepare("SELECT * FROM announcements_tb WHERE announcements_id = ?");
-                $stmt->execute([$announcements_id]);
+                $stmt = $this->pdo->prepare("SELECT * FROM announcements_tb WHERE announcement_id = ?");
+                $stmt->execute([$announcement_id]);
                 $announcementData = $stmt->fetch(PDO::FETCH_ASSOC);
         
                 // Prepare the response with complete announcement data
@@ -1050,20 +1050,20 @@ class ContentHandler implements MessageComponentInterface
             };
 
             $idField = match ($data['type']) {
-                'announcement' => 'announcements_id',
-                'event' => 'events_id',
+                'announcement' => 'announcement_id',
+                'event' => 'event_id',
                 'news' => 'news_id',
-                'promaterial' => 'promaterials_id',
+                'promaterial' => 'promaterial_id',
                 'peo' => 'peo_id',
                 'so' => 'so_id',
                 default => 'No Content ID Found'
             };
 
             $authorField = match ($data['type']) {
-                'announcement' => 'announcements_author',
-                'event' => 'events_author',
+                'announcement' => 'announcement_author',
+                'event' => 'event_author',
                 'news' => 'news_author',
-                'promaterial' => 'promaterials_author',
+                'promaterial' => 'promaterial_author',
                 'peo' => 'peo_author',
                 'so' => 'so_author',
                 default => 'No Author Found'

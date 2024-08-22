@@ -64,6 +64,8 @@ body {
     grid-gap: 10px;
     position: relative;
     background: none;
+    overflow: hidden;
+    height: 100%;
 }
 
 .content-container {

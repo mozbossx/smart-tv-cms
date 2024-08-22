@@ -7,8 +7,8 @@ include 'config_connection.php';
 include 'get_session.php';
 
 // Initialize variables to store promaterials data
-$promaterials_id = '';
-$promaterials_author = '';
+$promaterial_id = '';
+$promaterial_author = '';
 $created_date = '';
 $created_time = '';
 $expiration_date = '';
@@ -18,20 +18,20 @@ $tv_display = '';
 $media_path = '';
 
 // Check if ann_id is set in the URL
-if (isset($_GET['promaterials_id'])) {
-    $promaterials_id = $_GET['promaterials_id'];
+if (isset($_GET['promaterial_id'])) {
+    $promaterial_id = $_GET['promaterial_id'];
 
     // Fetch promaterials data from the database
-    $query = "SELECT promaterials_id, promaterials_author, created_date, created_time, expiration_date, expiration_time, display_time, tv_display, media_path FROM promaterials_tb WHERE promaterials_id = ?";
+    $query = "SELECT promaterial_id, promaterial_author, created_date, created_time, expiration_date, expiration_time, display_time, tv_display, media_path FROM promaterials_tb WHERE promaterial_id = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $promaterials_id);
+    $stmt->bind_param("i", $promaterial_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $promaterials = $result->fetch_assoc();
-        $promaterials_id = $promaterials['promaterials_id'];
-        $promaterials_author = $promaterials['promaterials_author'];
+        $promaterial_id = $promaterials['promaterial_id'];
+        $promaterial_author = $promaterials['promaterial_author'];
         $created_date = $promaterials['created_date'];
         $created_time = $promaterials['created_time'];
         $expiration_datetime = new DateTime($promaterials['expiration_date'] . ' ' . $promaterials['expiration_time']);
@@ -91,8 +91,8 @@ if ($result_tv->num_rows > 0) {
                     <div class="content-form">
                         <form id="editPromaterialForm" enctype="multipart/form-data">
                             <div style="display: none; height: 0">
-                                <input type="hidden" id="promaterials_id" name="promaterials_id" style="display: none" value="<?php echo htmlspecialchars($promaterials_id); ?>" readonly>
-                                <input type="hidden" id="promaterials_author" name="promaterials_author" style="display: none" value="<?php echo htmlspecialchars($promaterials_author); ?>" readonly>
+                                <input type="hidden" id="promaterial_id" name="promaterial_id" style="display: none" value="<?php echo htmlspecialchars($promaterial_id); ?>" readonly>
+                                <input type="hidden" id="promaterial_author" name="promaterial_author" style="display: none" value="<?php echo htmlspecialchars($promaterial_author); ?>" readonly>
                                 <input type="hidden" id="created_date" name="created_date" style="display: none" value="<?php echo htmlspecialchars($created_date); ?>" readonly>
                                 <input type="hidden" id="created_time" name="created_time" style="display: none" value="<?php echo htmlspecialchars($created_time); ?>" readonly>
                             </div>

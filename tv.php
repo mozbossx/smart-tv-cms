@@ -229,23 +229,8 @@ include 'tv_initialize.php';
                 item.getElement().style.pointerEvents = 'none'; // Disable pointer events during drag
                 item.getElement().style.position = 'absolute'; // Set position to absolute for dragging
                 item.getElement().style.zIndex = 1000; // Bring to front
-
-                // Set dynamic constraints based on parent container size
-                const maxWidth = parentContainer.clientWidth;
-                const maxHeight = parentContainer.clientHeight;
-
-                item.getElement().style.maxWidth = maxWidth + 'px'; // Set max width
-                item.getElement().style.maxHeight = maxHeight + 'px'; // Set max height
-            });
-
-            grid.on('dragMove', function (item) {
-                const parentContainer = item.getElement().parentElement;
-                const maxWidth = parentContainer.clientWidth;
-                const maxHeight = parentContainer.clientHeight;
-
-                // Update the constraints dynamically during drag
-                item.getElement().style.maxWidth = maxWidth + 'px';
-                item.getElement().style.maxHeight = maxHeight + 'px';
+                item.getElement().style.maxWidth = parentContainer.clientWidth + 'px'; // Set max width
+                item.getElement().style.maxHeight = parentContainer.clientHeight + 'px'; // Set max height
             });
 
             grid.on('dragEnd', function (item) {

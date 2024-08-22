@@ -143,7 +143,7 @@ const updateUI = (data, type) => {
 
         const contentDiv = document.createElement('div');
 
-        // containerDiv.setAttribute('data-announcement-id', data.announcements_id);
+        // containerDiv.setAttribute('data-announcement-id', data.announcement_id);
 
         containerDiv.style = `
             width: auto;

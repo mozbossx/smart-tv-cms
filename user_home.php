@@ -33,7 +33,7 @@ include 'get_session.php';
                     <div id="announcementList" class="content-container">
                         <h1 class="content-title"><i class="fa fa-bullhorn" style="margin-right: 6px" aria-hidden="true"></i>Announcements</h1>
                         <div class="scroll-div">
-                            <div id="annCarouselContainer">
+                            <div id="announcementCarouselContainer">
                                 <!-- Latest announcement will be displayed here -->
                             </div>
                         </div>
@@ -41,8 +41,8 @@ include 'get_session.php';
                     <div id="eventList" class="content-container">
                         <h1 class="content-title"><i class="fa fa-calendar-check-o" style="margin-right: 6px" aria-hidden="true"></i>Upcoming Events</h1>
                         <div class="scroll-div">
-                            <div id="eveCarouselContainer">
-                                <!-- Latest events  will be displayed here -->
+                            <div id="eventCarouselContainer">
+                                <!-- Latest event  will be displayed here -->
                             </div>
                         </div>
                     </div>
@@ -57,7 +57,7 @@ include 'get_session.php';
                     <div id="promaterialList" class="content-container">
                         <h1 class="content-title"><i class="fa fa-object-group" style="margin-right: 6px" aria-hidden="true"></i>Promotional Materials</h1>
                         <div class="scroll-div">
-                            <div id="promaterialsCarouselContainer">
+                            <div id="promaterialCarouselContainer">
                                 <!-- Latest promotional materials will be displayed here -->
                             </div>
                         </div>
@@ -98,21 +98,65 @@ include 'get_session.php';
             </div>
         </div>
     </div>
-    <div id="confirmDeleteAnnouncementModal" class="modal"></div>
-    <div id="confirmDeleteEventModal" class="modal"></div>
-    <div id="confirmDeleteNewsModal" class="modal"></div>
+    <!-- Archive Modals -->
+    <div id="confirmArchiveAnnouncementModal" class="modal">
+        <div id="archiveAnnouncementModalContent"></div>
+    </div>
+    <div id="confirmArchiveEventModal" class="modal">
+        <div id="archiveEventModalContent"></div>
+    </div>
+    <div id="confirmArchiveNewsModal" class="modal">
+        <div id="archiveNewsModalContent"></div>
+    </div>
+    <div id="confirmArchivePromaterialModal" class="modal">
+        <div id="archivePromaterialModalContent"></div>
+    </div>
+    <div id="confirmArchivePeoModal" class="modal">
+        <div id="archivePeoModalContent"></div>
+    </div>
+    <div id="confirmArchiveSoModal" class="modal">
+        <div id="archiveSoModalContent"></div>
+    </div>
+    
+    <!-- Delete Modals -->
+    <div id="confirmDeleteAnnouncementModal" class="modal">
+        <div id="deleteAnnouncementModalContent"></div>
+    </div>
+    <div id="confirmDeleteEventModal" class="modal">
+        <div id="deleteEventModalContent"></div>
+    </div>
+    <div id="confirmDeleteNewsModal" class="modal">
+        <div id="deleteNewsModalContent"></div>
+    </div>
+    <div id="confirmDeletePromaterialModal" class="modal">
+        <div id="deletePromaterialModalContent"></div>
+    </div>
+    <div id="confirmDeletePeoModal" class="modal">
+        <div id="deletePeoModalContent"></div>
+    </div>
+    <div id="confirmDeleteSoModal" class="modal">
+        <div id="deleteSoModalContent"></div>
+    </div>
+
+
+
+
+
+    <div id="confirmDeleteNewsModal" class="modal">
+        <div id="deleteModalContent"></div>
+    </div>
     <div id="confirmDeletePromaterialModal" class="modal"></div>
-    <div id="confirmDeletePEOModal" class="modal"></div>
-    <div id="confirmDeleteSOModal" class="modal"></div>
+    <div id="confirmDeletePeoModal" class="modal"></div>
+    <div id="confirmDeleteSoModal" class="modal"></div>
     <div id="confirmArchiveAnnouncementModal" class="modal"></div>
     <div id="confirmArchiveEventModal" class="modal"></div>
     <div id="confirmArchiveNewsModal" class="modal"></div>
     <div id="confirmArchivePromaterialModal" class="modal"></div>
-    <div id="confirmArchivePEOModal" class="modal"></div>
-    <div id="confirmArchiveSOModal" class="modal"></div>
+    <div id="confirmArchivePeoModal" class="modal"></div>
+    <div id="confirmArchiveSoModal" class="modal"></div>
 
     <!-- JavaScript to fetch all content using WebSocket-->
-    <script src="js/fetch_content.js"></script>
+    <script src="js/fetch_content2.js"></script>
     <script>
         const userType = '<?php echo $user_type; ?>';
         const full_name = '<?php echo $full_name; ?>';

@@ -27,25 +27,59 @@ $stmt->close();
 ?>
 
 <div class="header">
-    <nav class="header-bar">
+    <div class="header-bar">
         <div style="padding-left: 20px; padding-top: 10px">
             <img src="images/USC Logo Full.png" class="logo-header" id="logo">
         </div>
-        <div class="links">
-            <a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo ($current_page === 'user_home.php' || $current_page === 'edit_announcement.php' || $current_page === 'edit_event.php' || $current_page === 'edit_news.php' || $current_page === 'edit_promaterial.php' || $current_page === 'edit_peo.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>Home</a>
-            <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_form_form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php' || $current_page === 'form_facilities.php' || $current_page === 'add_new_feature.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>Create Post</a>
-            <a href="notifications.php?pageid=Notifications?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Notifications <span style="background: crimson; color: white; padding: 2px; border-radius: 3px; text-align: center; margin-left: 3px; border: 1px white solid;" id="notificationCount"></span></a>
-            <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives</a>
-            <?php if ($user_type === 'Admin') { ?>
-                <a href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php'? 'class="active-header-content" style="color:black"' : ''; ?>>Admin Options</a>
-            <?php } ?>
-            <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>My Profile</a>
-            <a href="settings.php?pageid=Settings?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'settings.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Settings</a>
-        </div>
-    </nav>
-    <div class="toggle">
-        <div class="hamburger">
-            <span></span>
+        <nav id='menu'>
+            <input type='checkbox' id='responsive-menu' onclick='updatemenu()'><label for="responsive-menu"></label>
+            <ul>
+                <li>
+                    <a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                    <?php echo ($current_page === 'user_home.php' || $current_page === 'edit_announcement.php' || $current_page === 'edit_event.php' || $current_page === 'edit_news.php' || $current_page === 'edit_promaterial.php' || $current_page === 'edit_peo.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>Home</a>
+                </li>
+                <li>
+                    <a class='dropdown-arrow' href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                    <?php echo ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php' || $current_page === 'form_facilities.php' || $current_page === 'add_new_feature.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>Create Post</a>
+                    <ul class='sub-menus'>
+                        <li><a href='form_announcement.php'>Announcement</a></li>
+                        <li><a href='form_event.php'>Event</a></li>
+                        <li><a href='form_news.php'>News</a></li>
+                        <li><a href='form_promotional_material.php'>Promotional Material</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="notifications.php?pageid=Notifications?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                        <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Notifications 
+                        <span id="notificationCount" style="background: crimson; color: white; padding: 2px; border-radius: 3px; text-align: center; margin-left: 3px; border: 1px white solid;"></span>
+                    </a>
+                </li>
+                <li>
+                    <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                    <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives</a>
+                </li>
+                <?php if ($user_type === 'Admin') { ?>
+                <li>
+                    <a class='dropdown-arrow' href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                    <?php echo $current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php'? 'class="active-header-content" style="color:black"' : ''; ?>>Admin Options</a>
+                    <ul class='sub-menus'>
+                        <li><a href="manage_users.php">Manage Users</a></li>
+                        <li><a href="manage_smart_tvs.php">Manage Smart TVs</a></li>
+                        <li><a href="manage_templates.php">Manage Templates</a></li>
+                        <li><a href="manage_posts.php">Manage Posts</a></li>
+                    </ul>
+                </li>
+                <?php } ?>
+                <li>
+                    <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                    <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>My Profile</a>
+                </li>
+            </ul>
+        </nav>
+        <div class="toggle">
+            <div class="hamburger">
+                <span></span>
+            </div>
         </div>
     </div>
 </div>
@@ -66,6 +100,15 @@ $stmt->close();
                     openDropdown.classList.remove('show');
                 }
             }
+        }
+    }
+
+    function updatemenu() {
+        if (document.getElementById('responsive-menu').checked == true) {
+            document.getElementById('menu').style.borderBottomRightRadius = '0';
+            document.getElementById('menu').style.borderBottomLeftRadius = '0';
+        } else{
+            document.getElementById('menu').style.borderRadius = '10px';
         }
     }
 </script>

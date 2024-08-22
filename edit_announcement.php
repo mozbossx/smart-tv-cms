@@ -7,8 +7,8 @@ include 'config_connection.php';
 include 'get_session.php';
 
 // Initialize variables to store announcement data
-$announcements_id = '';
-$announcements_author = '';
+$announcement_id = '';
+$announcement_author = '';
 $created_date = '';
 $created_time = '';
 $ann_body = '';
@@ -18,21 +18,21 @@ $display_time = '';
 $tv_display = '';
 $media_path = '';
 
-// Check if announcements_id is set in the URL
-if (isset($_GET['announcements_id'])) {
-    $announcements_id = $_GET['announcements_id'];
+// Check if announcement_id is set in the URL
+if (isset($_GET['announcement_id'])) {
+    $announcement_id = $_GET['announcement_id'];
 
     // Fetch announcement data from the database
-    $query = "SELECT announcements_id, announcements_author, created_date, created_time, ann_body, expiration_date, expiration_time, display_time, tv_display, media_path FROM announcements_tb WHERE announcements_id = ?";
+    $query = "SELECT announcement_id, announcement_author, created_date, created_time, ann_body, expiration_date, expiration_time, display_time, tv_display, media_path FROM announcements_tb WHERE announcement_id = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $announcements_id);
+    $stmt->bind_param("i", $announcement_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $announcement = $result->fetch_assoc();
-        $announcements_id = $announcement['announcements_id'];
-        $announcements_author = $announcement['announcements_author'];
+        $announcement_id = $announcement['announcement_id'];
+        $announcement_author = $announcement['announcement_author'];
         $created_date = $announcement['created_date'];
         $created_time = $announcement['created_time'];
         $ann_body = $announcement['ann_body'];
@@ -93,8 +93,8 @@ if ($result_tv->num_rows > 0) {
                     <div class="content-form">
                         <form id="editAnnouncementForm" enctype="multipart/form-data">
                             <div style="display: none; height: 0">
-                                <input type="hidden" id="announcements_id" name="announcements_id" style="display: none" value="<?php echo htmlspecialchars($announcements_id); ?>" readonly>
-                                <input type="hidden" id="announcements_author" name="announcements_author" style="display: none" value="<?php echo htmlspecialchars($announcements_author); ?>" readonly>
+                                <input type="hidden" id="announcement_id" name="announcement_id" style="display: none" value="<?php echo htmlspecialchars($announcement_id); ?>" readonly>
+                                <input type="hidden" id="announcement_author" name="announcement_author" style="display: none" value="<?php echo htmlspecialchars($announcement_author); ?>" readonly>
                                 <input type="hidden" id="created_date" name="created_date" style="display: none" value="<?php echo htmlspecialchars($created_date); ?>" readonly>
                                 <input type="hidden" id="created_time" name="created_time" style="display: none" value="<?php echo htmlspecialchars($created_time); ?>" readonly>
                             </div>
