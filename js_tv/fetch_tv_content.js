@@ -1,9 +1,9 @@
-const Ws = new WebSocket('ws://192.168.1.12:8081');
+const Ws = new WebSocket('ws://192.168.1.20:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
-    const carouselContainer = document.getElementById(`${type}sCarouselContainer`);
-    const pageNumberContainer = document.getElementById(`${type}sPageNumberContainer`);
+    const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+    const pageNumberContainer = document.getElementById(`${type}PageNumberContainer`);
 
     // Check if the containers are found
     if (!carouselContainer) {
@@ -43,7 +43,7 @@ const updateUI = (data, type) => {
     const currentIndexKey = type;
     const contentsArray = contents[`${type}s`];
 
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data[`${type}s_id`]) {
+    if (data.status === 'Pending' || data.isCancelled === 1 || !data[`${type}_id`]) {
         return;
     }
 
@@ -51,17 +51,17 @@ const updateUI = (data, type) => {
     const formattedCreatedTime = formatTime(data.created_time);
     const formattedExpirationDate = formatDate(data.expiration_date);
     const formattedExpirationTime = formatTime(data.expiration_time);
-    const id = data[`${type}s_id`]; // Assuming the ID of the item to delete/archive is sent in the message
+    const id = data[`${type}_id`]; // Assuming the ID of the item to delete/archive is sent in the message
 
-    // const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}s_id`]}"]`);
+    // const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const existingDiv = document.querySelector(`[data-${type}-id="${id}"]`);
     let mediaContent = '';
 
     if (data.media_path) {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
-        mediaContent = isImage ? `<img src="servers/${type}s_media/${data.media_path}">` :
-            isVideo ? `<video controls><source src="servers/${type}s_media/${data.media_path}" type="video/mp4"></video>` : '';
+        mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}">` :
+            isVideo ? `<video controls><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
     let contentHTML = '';
@@ -76,7 +76,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted by ${data[`${type}s_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                             <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
@@ -96,7 +96,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted by ${data[`${type}s_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                             <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
@@ -106,7 +106,7 @@ const updateUI = (data, type) => {
                 </div>
             </div>
         `;
-    } else if (type === 'new') {
+    } else if (type === 'news') {
         contentHTML = `
             <div class="content-container-con">
                 <div class="content-main">
@@ -116,7 +116,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted by ${data[`${type}s_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                             <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
@@ -137,7 +137,7 @@ const updateUI = (data, type) => {
         updatePageNumber(currentIndexKey);
     } else {
         const containerDiv = document.createElement('div');
-        containerDiv.dataset[`${type}Id`] = data[`${type}s_id`];
+        containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
         containerDiv.classList.add('carousel-item');
         containerDiv.dataset.displayTime = data.display_time;
 
@@ -294,8 +294,33 @@ const updateTvName = (newTvName) => {
     }
 };
 
+const startCarousel = (type) => {
+    if (contents[type + 's'].length > 0) {
+        // Remove active class from all contents
+        contents[type + 's'].forEach(content => content.classList.remove('active'));
+
+        // Set the current content as active
+        if (contents[type + 's'][currentIndex[type]]) { // Check if the index is valid
+            contents[type + 's'][currentIndex[type]].classList.add('active');
+            resetDisplayTime(type);
+        } else {
+            console.error("Invalid current content index.");
+        }
+    } else {
+        console.error("Cannot start carousel: No valid content available.");
+        // Optionally handle this scenario
+    }
+}
+
+// Function to display a message when no content is available
+const displayNoMessage = (type) => {
+    const { carouselContainer } = getContainerElements(type);
+    carouselContainer.innerHTML = `<p style="text-align: center; font-size: 1.2em; margin-top: auto;">No ${type} available</p>`; // Display no content message
+};
+
 // Function to fetch and update contents
 const fetchAndUpdateContents = (type) => {
+    const previousIndex = currentIndex[type]; // Save the current index
     contents[type + 's'] = [];
     const { carouselContainer, pageNumberContainer } = getContainerElements(type); // Get the containers dynamically
     carouselContainer.innerHTML = ''; // Clear the container
@@ -309,22 +334,26 @@ const fetchAndUpdateContents = (type) => {
             .then(response => response.json())
             .then(data => {
                 const tvName = data.tv_name;
-                fetch(`database/fetch_${type}s.php`)
+                fetch(`database/fetch_${type}.php`)
                     .then(response => response.json())
                     .then(data => {
                         const filteredData = data.filter(item =>
                             item.status !== 'Pending' &&
-                            item.tv_display === tvName &&
+                            item.tv_id === parseInt(tvId, 10) &&
                             item.isCancelled === 0
                         );
                         filteredData.forEach(item => updateUI(item, type));
                         if (contents[type + 's'].length > 0) {
                             // Set the current index to 0 to start from the first item
-                            currentIndex[type] = 0; // Ensure it starts at the first item
+                            currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Ensure it starts at the first item
+                            // currentAnnIndex = Math.min(currentAnnIndex, announcements.length - 1);
                             // Set the first item as active
-                            contents[type + 's'][currentIndex[type]].classList.add('active');
-                            updatePageNumber(type); // Update the page number to 1
-                            resetDisplayTime(type); // Start the display time countdown
+                            // contents[type + 's'][currentIndex[type]].classList.add('active');
+                            // updatePageNumber(type); // Update the page number to 1
+                            // resetDisplayTime(type); // Start the display time countdown
+                            startCarousel(type);
+                        } else {
+                            displayNoMessage(type); // Call displayNoMessage if no content
                         }
                     })
                     .catch(error => console.error(`Error fetching ${type}s:`, error));
@@ -339,7 +368,7 @@ Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
     if (data.action === 'delete' || data.action === 'archive') {
         const type = data.type;
-        const id = data[`${type}s_id`]; 
+        const id = data[`${type}_id`]; 
 
         const removeContent = (type, id) => {
             const contentDiv = document.querySelector(`[data-${type}-id="${id}"]`);
@@ -359,11 +388,29 @@ Ws.addEventListener('message', function (event) {
         }
         
     } else if (data.action === 'unarchive' || data.action === 'unarchive_and_update_expiration') {
-        
+        if (data.type === 'announcement') {
+            fetchAndUpdateContents('announcement');
+        } else if (data.type === 'event') {
+            fetchAndUpdateContents('event');
+        } else if (data.type === 'news') {
+            fetchAndUpdateContents('news');
+        }
     } else if (data.action === 'update') {
-        
+        if (data.type === 'announcement') {
+            fetchAndUpdateContents('announcement');
+        } else if (data.type === 'event') {
+            fetchAndUpdateContents('event');
+        } else if (data.type === 'news') {
+            fetchAndUpdateContents('news');
+        }
     } else if (data.action === 'post_content') {
-        
+        if (data.type === 'announcement') {
+            fetchAndUpdateContents('announcement');
+        } else if (data.type === 'event') {
+            fetchAndUpdateContents('event');
+        } else if (data.type === 'news') {
+            fetchAndUpdateContents('news');
+        }
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVName();
         location.reload();
@@ -452,6 +499,6 @@ Ws.addEventListener('message', function (event) {
 document.addEventListener('DOMContentLoaded', () => {
     fetchAndUpdateContents('announcement');
     fetchAndUpdateContents('event');
-    fetchAndUpdateContents('new');
+    fetchAndUpdateContents('news');
     fetchSmartTVName();
 });

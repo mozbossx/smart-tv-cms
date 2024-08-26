@@ -30,8 +30,6 @@ include 'get_session.php';
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <!-- <p class="display-info-form"><i class="fa fa-pencil-square" style="padding-right: 6px"></i>Create Post</p> -->
-                    <h1 class="content-title" style="color: black"><i class="fa fa-pencil-square" style="padding-right: 5px"></i>Create Post</h1>
                     <?php include('error_message.php'); ?>
                     <div class="button-flex">
                         <div class="button-container">

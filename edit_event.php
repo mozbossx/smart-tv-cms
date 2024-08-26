@@ -17,7 +17,7 @@ $reg_link = '';
 $expiration_date = '';
 $expiration_time = '';
 $display_time = '';
-$tv_display = '';
+$tv_id = '';
 $media_path = '';
 
 // Check if event_id is set in the URL
@@ -25,7 +25,7 @@ if (isset($_GET['event_id'])) {
     $event_id = $_GET['event_id'];
 
     // Fetch event data from the database
-    $query = "SELECT event_id, event_author, created_date, created_time, event_heading, event_location, reg_link, expiration_date, expiration_time, display_time, tv_display, media_path FROM events_tb WHERE event_id = ?";
+    $query = "SELECT event_id, event_author, created_date, created_time, event_heading, event_location, reg_link, expiration_date, expiration_time, display_time, tv_id, media_path FROM events_tb WHERE event_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $event_id);
     $stmt->execute();
@@ -44,13 +44,13 @@ if (isset($_GET['event_id'])) {
         $expiration_date = $expiration_datetime->format('Y-m-d');
         $expiration_time = $expiration_datetime->format('H:i');
         $display_time = $event['display_time'];
-        $tv_display = $event['tv_display'];
+        $tv_id = $event['tv_id'];
         $media_path = $event['media_path'];
     }
 }
 
 // Fetch TV data from the database
-$query_tv = "SELECT tv_name, device_id FROM smart_tvs_tb";
+$query_tv = "SELECT tv_name, device_id, tv_id FROM smart_tvs_tb"; // Ensure tv_id is selected
 $result_tv = $conn->query($query_tv);
 
 $options_tv = '';
@@ -60,9 +60,13 @@ if ($result_tv->num_rows > 0) {
     while ($row_tv = $result_tv->fetch_assoc()) {
         $tv_name = $row_tv['tv_name'];
         $device_id = $row_tv['device_id'];
+        $tv_id = $row_tv['tv_id']; // Get tv_id
+
         // Check if this option should be selected
-        $selected = ($tv_display == $tv_name) ? 'selected' : '';
-        $options_tv .= "<option value='$tv_name' data-device-id='$device_id' $selected>$tv_name</option>";
+        $selected = ($tv_id == $tv_id) ? 'selected' : ''; // Compare with tv_id
+
+        // Update the option value to be tv_id
+        $options_tv .= "<option value='$tv_id' data-device-id='$device_id' $selected>$tv_name</option>";
     }
 }
 
@@ -91,7 +95,6 @@ if ($result_tv->num_rows > 0) {
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-pencil-square" style="padding-right: 5px"></i>Edit Event</h1>
                     <div class="content-form">
                         <form id="editEventForm" enctype="multipart/form-data">
                             <div style="display: none; height: 0">
@@ -99,30 +102,17 @@ if ($result_tv->num_rows > 0) {
                                 <input type="hidden" id="event_author" name="event_author" style="display: none" value="<?php echo htmlspecialchars($event_author); ?>" readonly>
                                 <input type="hidden" id="created_date" name="created_date" style="display: none" value="<?php echo htmlspecialchars($created_date); ?>" readonly>
                                 <input type="hidden" id="created_time" name="created_time" style="display: none" value="<?php echo htmlspecialchars($created_time); ?>" readonly>
+                                <input type="hidden" name="type" value="event" readonly>
                             </div>
-                            <div class="button-flex-space-between">
-                                <div class="left-side-button">
-                                    <a href="javascript:history.back()" class="back-button"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</a>
-                                </div>
-                                <div class="right-side-button-preview">
-                                    <a href="#" id="schedulePostOption" class="schedule-button" onclick="displaySchedulePostInputs()">Schedule Post<i class="fa fa-clock-o" style="padding-left: 5px"></i></a>
-                                    <a href="#" id="cancelSchedulePostOption" style="display: none" class="schedule-button" onclick="cancelSchedulePostInputs()">Cancel Schedule Post<i class="fa fa-times" style="padding-left: 5px"></i></a>
-                                </div>
-                            </div>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
+                                    <li class="breadcrumb-item"><a href="javascript:history.back()" style="color: #264B2B">View Contents</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Edit Event</li>
+                                </ol>
+                            </nav>
                             <div class="line-separator"></div>
                             <?php include('error_message.php'); ?>
-                            <input type="hidden" name="type" value="event" readonly>
-                            <div id="schedulePostInputs" style="display: none;">
-                                <div class="rounded-container-column">
-                                    <p class="input-container-label">Schedule Post Date & Time (Optional)</p>
-                                    <div class="left-flex">
-                                        <input type="date" id="schedule_date" name="schedule_date" class="input-date">
-                                    </div>
-                                    <div class="right-flex">
-                                        <input type="time" id="schedule_time" name="schedule_time" class="input-time">
-                                    </div>
-                                </div>
-                            </div>
                             <div class="floating-label-container">
                                 <textarea name="event_heading" rows="2" required placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_heading"><?php echo htmlspecialchars($event_heading); ?></textarea>
                                 <label for="event_heading" class="floating-label-text-area">Event Heading</label>
@@ -138,6 +128,7 @@ if ($result_tv->num_rows > 0) {
                             <div class="right-flex">
                                 <div class="rounded-container-media">
                                     <p class="input-container-label">Upload Media (Optional)</p>
+                                    <br>
                                     <input type="file" name="media" id="media" accept="video/*, image/*" onchange="previewMedia()" hidden>
                                     <label for="media" class="choose-file-button">Choose File (.mp4, .jpg, .png)</label>
                                     <button type="button" id="cancelMediaButton" class="red-button" onclick="cancelMedia()" style="display: none;">Cancel</button>
@@ -171,12 +162,12 @@ if ($result_tv->num_rows > 0) {
                                         <label for="display_time" class="floating-label">Display Time (seconds)</label>
                                     </div>
                                     <div class="floating-label-container" style="flex: 1">
-                                        <select id="tv_account_select" name="tv_display" class="floating-label-input" style="background: #FFFF">
+                                        <select id="tv_account_select" name="tv_id" class="floating-label-input" style="background: #FFFF">
                                             <option value="">~</option>
                                             <?php echo $options_tv;?>
                                             <option value="All Smart TVs">All Smart TVs</option>
                                         </select>
-                                        <label for="tv_display" class="floating-label">TV Display</label>
+                                        <label for="tv_id" class="floating-label">TV Display</label>
                                     </div>
                                 </div>
                             </div>
@@ -300,11 +291,9 @@ if ($result_tv->num_rows > 0) {
             // var eventLocation = document.querySelector('[name="event_location"]').value;
             // var regLink = document.querySelector('[name="reg_link"]').value;
             var displayTime = document.querySelector('[name="display_time"]').value;
-            var tvDisplay = document.querySelector('[name="tv_display"]').value;
+            var tvDisplay = document.querySelector('[name="tv_id"]').value;
             var expirationDate = document.querySelector('[name="expiration_date"]').value;
             var expirationTime = document.querySelector('[name="expiration_time"]').value;
-            var scheduleDate = document.querySelector('[name="schedule_date"]').value;
-            var scheduleTime = document.querySelector('[name="schedule_time"]').value;
 
             // Check if any of the required fields is empty
             if (eventHeading.trim() === "" || displayTime === "" || tvDisplay === "" || expirationDate === "" || expirationTime === "") {
@@ -318,16 +307,6 @@ if ($result_tv->num_rows > 0) {
                 if (expirationDateTime < currentDateTime) {
                     errorModalMessage("Expiration date and time should not be behind the present time.");
                 } else {
-                    // Check if schedule date and time are in the past
-                    if (scheduleDate !== "" && scheduleTime !== "") {
-                        var scheduleDateTime = new Date(scheduleDate + ' ' + scheduleTime);
-
-                        if (scheduleDateTime < currentDateTime) {
-                            errorModalMessage("Schedule date and time should not be behind the present time.");
-                            return;
-                        }
-                    }
-
                     // If conditions are met, enable the button and open the preview modal
                     openPreviewModal();
                 }
@@ -452,7 +431,7 @@ if ($result_tv->num_rows > 0) {
             modal.style.display = 'flex';
 
             // Get the selected tv_name and device_id from the dropdown
-            var selectedOption = document.querySelector('[name="tv_display"]');
+            var selectedOption = document.querySelector('[name="tv_id"]');
             var selectedTvName = selectedOption.value;
             var selectedDeviceId = selectedOption.options[selectedOption.selectedIndex].getAttribute('data-device-id');
 
@@ -518,8 +497,6 @@ if ($result_tv->num_rows > 0) {
             var previewContent = '';
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
             previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_date"]').value, document.querySelector('[name="expiration_time"]').value) + '</p>';
-            previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + (document.querySelector('[name="schedule_date"]').value ? formatDateTime(document.querySelector('[name="schedule_date"]').value, document.querySelector('[name="schedule_time"]').value) : 'Not scheduled') + '</p>';
-            previewContent += '<p class="preview-input"><strong>TV Display: </strong><br>' + document.querySelector('[name="tv_display"]').value + '</p>';
             return previewContent;
         }
         
@@ -544,36 +521,6 @@ if ($result_tv->num_rows > 0) {
         // Update the clock every second
         setInterval(updateClock, 1000);
         updateClock(); // Initial update
-
-        // Function to display the Schedule Post inputs
-        function displaySchedulePostInputs() {
-            var schedulePostOption = document.getElementById("schedulePostOption");
-            schedulePostOption.style.display = "none";
-
-            var cancelSchedulePostOption = document.getElementById("cancelSchedulePostOption");
-            cancelSchedulePostOption.style.display = "block";
-
-            // Display the Schedule Post inputs
-            var schedulePostInputs = document.getElementById("schedulePostInputs");
-            schedulePostInputs.style.display = "block";
-        }
-
-        // Function to cancel the Schedule Post inputs
-        function cancelSchedulePostInputs() {
-            // Hide the dropdown
-            var schedulePostOption = document.getElementById("schedulePostOption");
-            schedulePostOption.style.display = "block";
-
-            var cancelSchedulePostOption = document.getElementById("cancelSchedulePostOption");
-            cancelSchedulePostOption.style.display = "none";
-
-            // Display the Schedule Post inputs
-            var schedulePostInputs = document.getElementById("schedulePostInputs");
-            schedulePostInputs.style.display = "none";
-
-            document.getElementById("schedule_date").value = null; 
-            document.getElementById("schedule_time").value = null; 
-        }
     </script>
 </body>
 </html>

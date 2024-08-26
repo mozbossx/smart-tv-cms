@@ -30,136 +30,153 @@ include 'get_session.php';
         <div class="main-container">
             <div class="column1">
                 <div class="content-grid-container">
-                    <div id="announcementList" class="content-container">
-                        <h1 class="content-title"><i class="fa fa-bullhorn" style="margin-right: 6px" aria-hidden="true"></i>Announcements</h1>
+                <?php
+                // Fetch data from smart_tvs_tb
+                $query = "SELECT * FROM smart_tvs_tb";
+                $result = mysqli_query($conn, $query);
+
+                if (mysqli_num_rows($result) > 0) {
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        $tvId = $row['tv_id'];
+                        $tvBrand = $row['tv_brand'];
+                        $tvHeight = $row['height_px'];
+                        $tvWidth = $row['width_px'];
+                        // Display each TV item
+                        echo '<div class="content-container">';
+                        echo '<h1 class="content-title" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($row['tv_name']) . '</h1>';
+                        echo '<div class="tv-frame-parent" style="width: auto; height: 350px; ">';
+                        echo '<div class="tv-frame" id="tv-frame" style="scale: 0.35">';
+                            echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
+                            echo '<p style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($row['tv_brand']) .'</p>';
+                        echo "</div>";
+                        echo '<div class="scale-buttons">';
+                        echo '<button id="scale-down"><i class="fa fa-search-minus"></i></button>';
+                        echo '<button id="scale-up"><i class="fa fa-search-plus"></i></button>';
+                        echo '</div>';
+                        echo "</div>";
+                        echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"tv_contents.php?tvId=$tvId&initialize=false\"'>View Contents</button>";
+                        echo '<p>Device ID: ' . htmlspecialchars($row['device_id']) . '</p>'; 
+                        echo '<p>TV Brand: ' . htmlspecialchars($row['tv_brand']) . '</p>'; 
+                        echo '</div>';
+                    }
+                } else {
+                    echo '<p>No TVs found.</p>';
+                }
+                ?>
+
+                    <!-- <div id="announcementList" class="content-container">
+                        <h1 class="content-title" style="text-align: center;"><i class="fa fa-bullhorn" style="margin-right: 6px" aria-hidden="true"></i>Announcements</h1>
                         <div class="scroll-div">
                             <div id="announcementCarouselContainer">
-                                <!-- Latest announcement will be displayed here -->
+
                             </div>
                         </div>
                     </div>
                     <div id="eventList" class="content-container">
-                        <h1 class="content-title"><i class="fa fa-calendar-check-o" style="margin-right: 6px" aria-hidden="true"></i>Upcoming Events</h1>
+                        <h1 class="content-title" style="text-align: center;"><i class="fa fa-calendar-check-o" style="margin-right: 6px" aria-hidden="true"></i>Upcoming Events</h1>
                         <div class="scroll-div">
                             <div id="eventCarouselContainer">
-                                <!-- Latest event  will be displayed here -->
+
                             </div>
                         </div>
                     </div>
                     <div id="newsList" class="content-container">
-                        <h1 class="content-title"><i class="fa fa-newspaper-o" style="margin-right: 6px" aria-hidden="true"></i>News</h1>
+                        <h1 class="content-title" style="text-align: center;"><i class="fa fa-newspaper-o" style="margin-right: 6px" aria-hidden="true"></i>News</h1>
                         <div class="scroll-div">
                             <div id="newsCarouselContainer">
-                                <!-- Latest news will be displayed here -->
+
                             </div>
                         </div>
                     </div>
                     <div id="promaterialList" class="content-container">
-                        <h1 class="content-title"><i class="fa fa-object-group" style="margin-right: 6px" aria-hidden="true"></i>Promotional Materials</h1>
+                        <h1 class="content-title" style="text-align: center;"><i class="fa fa-object-group" style="margin-right: 6px" aria-hidden="true"></i>Promotional Materials</h1>
                         <div class="scroll-div">
                             <div id="promaterialCarouselContainer">
-                                <!-- Latest promotional materials will be displayed here -->
+
                             </div>
                         </div>
                     </div>
                     <div id="peoList" class="content-container">
-                        <h1 class="content-title"><i class="fa fa-map" style="margin-right: 6px" aria-hidden="true"></i>Program Educational Objectives (PEO)</h1>
+                        <h1 class="content-title" style="text-align: center;"><i class="fa fa-map" style="margin-right: 6px" aria-hidden="true"></i>Program Educational Objectives (PEO)</h1>
                         <div class="scroll-div">
                             <div id="peoCarouselContainer">
-                                <!-- Latest program educational objectives will be displayed here -->
+
                             </div>
                         </div>
                     </div>
                     <div id="soList" class="content-container">
-                        <h1 class="content-title"><i class="fa fa-graduation-cap" style="margin-right: 6px" aria-hidden="true"></i>Student Outcomes (SO)</h1>
+                        <h1 class="content-title" style="text-align: center;"><i class="fa fa-graduation-cap" style="margin-right: 6px" aria-hidden="true"></i>Student Outcomes (SO)</h1>
                         <div class="scroll-div">
                             <div id="soCarouselContainer">
-                                <!-- Latest student outcomes will be displayed here -->
+
                             </div>
                         </div>
                     </div>
                     <div id="departmentOrganizationalChartList" class="content-container">
-                        <h1 class="content-title"><i class="fa fa-university" style="margin-right: 6px" aria-hidden="true"></i>Department Organizational Chart</h1>
+                        <h1 class="content-title" style="text-align: center;"><i class="fa fa-university" style="margin-right: 6px" aria-hidden="true"></i>Department Organizational Chart</h1>
                         <div class="scroll-div">
                             <div id="departmentOrganizationalChartCarouselContainer">
-                                <!-- Latest department organizational chart will be displayed here -->
+
                             </div>
                         </div>
                     </div>
                     <div id="facilitiesList" class="content-container">
-                        <h1 class="content-title"><i class="fa fa-building" style="margin-right: 6px" aria-hidden="true"></i>Facilities</h1>
+                        <h1 class="content-title" style="text-align: center;"><i class="fa fa-building" style="margin-right: 6px" aria-hidden="true"></i>Facilities</h1>
                         <div class="scroll-div">
                             <div id="facilitiesCarouselContainer">
-                                <!-- Latest facilities will be displayed here -->
+
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
     </div>
-    <!-- Archive Modals -->
-    <div id="confirmArchiveAnnouncementModal" class="modal">
-        <div id="archiveAnnouncementModalContent"></div>
-    </div>
-    <div id="confirmArchiveEventModal" class="modal">
-        <div id="archiveEventModalContent"></div>
-    </div>
-    <div id="confirmArchiveNewsModal" class="modal">
-        <div id="archiveNewsModalContent"></div>
-    </div>
-    <div id="confirmArchivePromaterialModal" class="modal">
-        <div id="archivePromaterialModalContent"></div>
-    </div>
-    <div id="confirmArchivePeoModal" class="modal">
-        <div id="archivePeoModalContent"></div>
-    </div>
-    <div id="confirmArchiveSoModal" class="modal">
-        <div id="archiveSoModalContent"></div>
-    </div>
-    
-    <!-- Delete Modals -->
-    <div id="confirmDeleteAnnouncementModal" class="modal">
-        <div id="deleteAnnouncementModalContent"></div>
-    </div>
-    <div id="confirmDeleteEventModal" class="modal">
-        <div id="deleteEventModalContent"></div>
-    </div>
-    <div id="confirmDeleteNewsModal" class="modal">
-        <div id="deleteNewsModalContent"></div>
-    </div>
-    <div id="confirmDeletePromaterialModal" class="modal">
-        <div id="deletePromaterialModalContent"></div>
-    </div>
-    <div id="confirmDeletePeoModal" class="modal">
-        <div id="deletePeoModalContent"></div>
-    </div>
-    <div id="confirmDeleteSoModal" class="modal">
-        <div id="deleteSoModalContent"></div>
-    </div>
-
-
-
-
-
-    <div id="confirmDeleteNewsModal" class="modal">
-        <div id="deleteModalContent"></div>
-    </div>
-    <div id="confirmDeletePromaterialModal" class="modal"></div>
-    <div id="confirmDeletePeoModal" class="modal"></div>
-    <div id="confirmDeleteSoModal" class="modal"></div>
-    <div id="confirmArchiveAnnouncementModal" class="modal"></div>
-    <div id="confirmArchiveEventModal" class="modal"></div>
-    <div id="confirmArchiveNewsModal" class="modal"></div>
-    <div id="confirmArchivePromaterialModal" class="modal"></div>
-    <div id="confirmArchivePeoModal" class="modal"></div>
-    <div id="confirmArchiveSoModal" class="modal"></div>
-
-    <!-- JavaScript to fetch all content using WebSocket-->
-    <script src="js/fetch_content2.js"></script>
     <script>
         const userType = '<?php echo $user_type; ?>';
         const full_name = '<?php echo $full_name; ?>';
+        const tvFrame = document.getElementById('tv-frame');
+        const scaleUpButton = document.getElementById('scale-up');
+        const scaleDownButton = document.getElementById('scale-down');
+        let scale = 1;
+        let isDragging = false;
+        let startX, startY, scrollLeft, scrollTop;
+
+        // Scale Up Button
+        scaleUpButton.addEventListener('click', () => {
+            scale += 0.1;
+            tvFrame.style.transform = `scale(${scale})`;
+        });
+
+        // Scale Down Button
+        scaleDownButton.addEventListener('click', () => {
+            if (scale > 0.2) {  // Prevent scaling too small
+                scale -= 0.1;
+                tvFrame.style.transform = `scale(${scale})`;
+            }
+        });
+
+        // Drag to Pan
+        tvFrame.parentElement.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - tvFrame.offsetLeft;
+            startY = e.clientY - tvFrame.offsetTop;
+            tvFrame.parentElement.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            tvFrame.parentElement.style.cursor = 'grab';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const x = e.clientX - startX;
+            const y = e.clientY - startY;
+            tvFrame.style.left = `${x}px`;
+            tvFrame.style.top = `${y}px`;
+        });
     </script>
 </body>
 </html>

@@ -87,7 +87,6 @@ if ($result_tv->num_rows > 0) {
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-pencil-square" style="padding-right: 5px"></i>Edit Promotional Material</h1>
                     <div class="content-form">
                         <form id="editPromaterialForm" enctype="multipart/form-data">
                             <div style="display: none; height: 0">
@@ -95,33 +94,21 @@ if ($result_tv->num_rows > 0) {
                                 <input type="hidden" id="promaterial_author" name="promaterial_author" style="display: none" value="<?php echo htmlspecialchars($promaterial_author); ?>" readonly>
                                 <input type="hidden" id="created_date" name="created_date" style="display: none" value="<?php echo htmlspecialchars($created_date); ?>" readonly>
                                 <input type="hidden" id="created_time" name="created_time" style="display: none" value="<?php echo htmlspecialchars($created_time); ?>" readonly>
+                                <input type="hidden" name="type" value="promaterial" readonly>
                             </div>
-                            <div class="button-flex-space-between">
-                                <div class="left-side-button">
-                                    <a href="javascript:history.back()" class="back-button"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</a>
-                                </div>
-                                <div class="right-side-button-preview">
-                                    <a href="#" id="schedulePostOption" class="schedule-button" onclick="displaySchedulePostInputs()">Schedule Post<i class="fa fa-clock-o" style="padding-left: 5px"></i></a>
-                                    <a href="#" id="cancelSchedulePostOption" style="display: none" class="schedule-button" onclick="cancelSchedulePostInputs()">Cancel Schedule Post<i class="fa fa-times" style="padding-left: 5px"></i></a>
-                                </div>
-                            </div>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
+                                    <li class="breadcrumb-item"><a href="javascript:history.back()" style="color: #264B2B">View Contents</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Edit Promotional Material</li>
+                                </ol>
+                            </nav>
                             <div class="line-separator"></div>
                             <?php include('error_message.php'); ?>
-                            <input type="hidden" name="type" value="promaterial" readonly>
-                            <div id="schedulePostInputs" style="display: none;">
-                                <div class="rounded-container-column">
-                                    <p class="input-container-label">Schedule Post Date & Time (Optional)</p>
-                                    <div class="left-flex">
-                                        <input type="date" id="schedule_date" name="schedule_date" class="input-date">
-                                    </div>
-                                    <div class="right-flex">
-                                        <input type="time" id="schedule_time" name="schedule_time" class="input-time">
-                                    </div>
-                                </div>
-                            </div>
                             <div class="right-flex">
                                 <div class="rounded-container-media">
                                     <p class="input-container-label">Upload Media (Optional)</p>
+                                    <br>
                                     <input type="file" name="media" id="media" accept="video/*, image/*" onchange="previewMedia()" hidden>
                                     <label for="media" class="choose-file-button">Choose File (.mp4, .jpg, .png)</label>
                                     <button type="button" id="cancelMediaButton" class="red-button" onclick="cancelMedia()" style="display: none;">Cancel</button>

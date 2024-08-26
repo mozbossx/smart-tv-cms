@@ -12,7 +12,6 @@ $tvHeight = '';
 $tvWidth = '';
 $backgroundColor = '';
 $topbarColor = '';
-$topbarPosition = '';
 
 $topbarTvNameColor = '';
 $topbarTvNameFontStyle = '';
@@ -58,7 +57,6 @@ if (isset($_GET['tvId'])) {
     if ($resultTopbarColorQuery->num_rows > 0) {
         $topbarColorData = $resultTopbarColorQuery->fetch_assoc();
         $topbarColor = $topbarColorData['topbar_hex_color'];
-        $topbarPosition = $topbarColorData['topbar_position'];
 
         $topbarTvNameColor = $topbarColorData['topbar_tvname_font_color'];
         $topbarTvNameFontStyle = $topbarColorData['topbar_tvname_font_style'];
@@ -144,7 +142,6 @@ $conn->close();
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Edit Template</title>
 </head>
@@ -187,7 +184,7 @@ $conn->close();
                             <div class="tv-frame-parent">
                                 <!-- Display iframe based on tvId -->
                                 <div class="tv-frame" id="tv-frame">
-                                    <iframe id="tv-iframe" src="tv2.php?tvId=<?php echo $tvId?>" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
+                                    <iframe id="tv-iframe" frameborder="0" src="tv2.php?tvId=<?php echo $tvId?>" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
                                 </div>
                                 <div class="scale-buttons">
                                     <button id="scale-down"><i class="fa fa-search-minus"></i></button>
@@ -210,13 +207,6 @@ $conn->close();
                 <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
                     <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
                     <label for="topbar_color" class="floating-label">Top Bar Color</label>
-                </div>
-                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                    <select id="topbar_position" name="topbar_position" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                        <option value="top" <?php echo $topbarPosition == 'top' ? 'selected' : ''; ?>>Top</option>
-                        <option value="bottom" <?php echo $topbarPosition == 'bottom' ? 'selected' : ''; ?>>Bottom</option>
-                    </select>
-                    <label for="topbar_position" class="floating-label">Top Bar Position</label>
                 </div>
                 <div class="line-separator" style="margin-top: 0"></div>
                 <div class="split-container" style="margin-bottom: 0">
@@ -354,7 +344,6 @@ $conn->close();
             </form>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
         let ws;
         var containers = <?php echo json_encode($containers); ?>;

@@ -567,8 +567,14 @@ nav a{
     background: #305e36;
     color: #fff;
     border: none;
+    background-color: #316038;
+    padding: 8px 16px;
     border-radius: 5px;
-    padding: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+    margin-right: 5px;
     text-align: left;
     align-items: left;
     text-decoration: none;
@@ -582,14 +588,18 @@ nav a{
 
 .preview-button{
     float: right;
-    width: 100px;
-    height: auto;
-    background: #15401d;
     color: white;
     cursor: pointer;
-    border-radius: 5px;
-    margin-top: 25px;
     padding: 5px;
+    background-color: #316038;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+    margin-right: 5px;
 }
 
 .more-options-button{
@@ -681,6 +691,13 @@ nav a{
     padding-right: 30px;
     outline:#264b2bf0;
     box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+
+textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, select:focus {
+    background: #F2F2F2;
+    border: 1px solid #264b2bf0;
+    border-radius: 15px;
+    transition: 0.6s ease;
 }
 
 .rounded-container-column {
@@ -839,7 +856,6 @@ nav a{
     padding-bottom: 12px;
     user-select: none;
     margin: 0; 
-    text-align: center;
 }
 
 .view-all-button {
@@ -963,15 +979,13 @@ nav a{
 
 }
 
-
-
 .active-header-content{
     background-color: #ffffff;
 }
 
 #menu {
 	background: #264B2B;
-	height: 60px;
+	height: 65px;
 	padding-left: 5px;
 	border-radius: 10px;
     margin: 0px 10px 0px 10px;
@@ -996,14 +1010,14 @@ nav a{
 	color: #FFFFFF;
 	font-size: 14px;
     border-radius: 6px;
+    margin-top: 5px;
 }
-#menu a.dropdown-arrow:after {
+#dropdown-arrow:after {
 	content: "\23F7";
-	margin-left: 5px;
 }
 #menu li a:hover {
-	color: #FFFFFF;
-	background: #18301C;
+	color: black;
+	background: #ffffff;
 }
 #menu input {
 	display: none;
@@ -1053,6 +1067,47 @@ nav a{
 #menu ul.sub-menus a:hover{
 	background: #5BB467;
 	color: #444444;
+}
+
+/* Breadcrumb Navigation Styles */
+.breadcrumb {
+    display: flex;
+    list-style: none; /* Remove default list styling */
+    padding: 10px; /* Add some padding */
+    margin: 0; /* Remove default margin */
+    background-color: #f8f9fa; /* Light background color */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 14px;
+}
+
+.breadcrumb-item {
+    margin-right: 0px; /* Space between items */
+}
+
+.breadcrumb-item a {
+    color: #007bff; /* Link color */
+    font-weight: bold; /* Bold text */
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+
+.breadcrumb-item.active {
+    color: #6c757d; /* Color for the active item */
+    font-weight: normal; /* Normal weight for active item */
+}
+
+/* Separator */
+.breadcrumb-item::after {
+    content: '/'; /* Separator character */
+    margin-left: 10px; /* Space after the separator */
+    margin-right: 10px; /* Space before the next item */
+    color: #6c757d; /* Color for the separator */
+}
+
+.breadcrumb-item:last-child::after {
+    content: ''; /* Remove separator after the last item */
 }
 
 .links {
@@ -1183,6 +1238,7 @@ nav a{
     border: none;
     flex-grow: 1;
     overflow-y: auto; /* Add vertical scroll if content overflows */
+    padding: 10px;
 }
 
 .content-container {
@@ -1316,7 +1372,7 @@ nav a{
     color: #fff;
     border-radius: 5px;
     overflow: hidden;
-    border: 1px solid #000;
+    box-shadow: 0px 6px 9px 0px rgba(0, 0, 0, 0.25);
     user-select: none;
     -moz-user-select: none;
     -webkit-user-drag: none;
@@ -1425,17 +1481,15 @@ nav a{
 }
 
 .red-button {
-    padding: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
+    color: #fff;
+    padding: 8px 16px;
     border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
     color: #ffffff;
     text-decoration: none;
     background-color: rgb(126, 11, 34);
-    border: none;
-    cursor: pointer;
-    margin-right: 10px;
-    margin-bottom: 5px;
     user-select: none;
     -moz-user-select: none;
     -webkit-user-drag: none;
@@ -1449,15 +1503,15 @@ nav a{
 }
 
 .green-button {
-    padding: 5px;
+    background-color: #316038;
+    color: #fff;
+    padding: 8px 16px;
     border-radius: 5px;
-    color: #ffffff;
-    text-decoration: none;
-    background-color: #334b35;
     border: none;
     cursor: pointer;
-    margin-right: 10px;
-    margin-bottom: 5px;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+    margin-right: 5px;
     user-select: none;
     -moz-user-select: none;
     -webkit-user-drag: none;
@@ -1800,6 +1854,10 @@ tr:nth-child(even) {
     transform-origin: center; 
     scale: 0.6;
     transition: transform 0.2s ease;
+    border: 2px solid black;
+    border-bottom: 25px solid black;
+    background-color: black;
+    border-radius: 5px;
 }
 
 .tv-screen {
@@ -2272,6 +2330,10 @@ input[type=range]:focus::-ms-fill-upper {
 
     .container-indicators {
         flex-direction: column;
+    }
+
+    .tv-frame {
+        scale: 0.1;
     }
 }
 

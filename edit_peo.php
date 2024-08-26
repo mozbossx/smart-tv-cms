@@ -102,8 +102,6 @@ if ($result_tv->num_rows > 0) {
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-pencil-square" style="padding-right: 5px"></i>Edit Program Education Objectives (PEO)</h1>
-                    <button type="button" class="back-button" onclick="javascript:history.back()"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</button>
                     <div class="content-form">
                         <form id="editPeoForm" enctype="multipart/form-data">
                             <div style="display: none; height: 0">
@@ -113,9 +111,15 @@ if ($result_tv->num_rows > 0) {
                                 <input type="hidden" id="created_time" name="created_time" style="display: none" value="<?php echo htmlspecialchars($created_time); ?>" readonly>
                                 <input type="hidden" name="type" value="peo">
                             </div>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
+                                    <li class="breadcrumb-item"><a href="javascript:history.back()" style="color: #264B2B">View Contents</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Edit PEO</li>
+                                </ol>
+                            </nav>
                             <div class="line-separator"></div>
                             <?php include('error_message.php'); ?>
-
                             <div class="floating-label-container">
                                 <textarea name="peo_title" rows="6" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_title"><?php echo htmlspecialchars($peo_title); ?></textarea>
                                 <label for="peo_title" style="background: #FFFF; width: auto; padding: 5px; border-radius: 0" class="floating-label-text-area">PEO Title</label>

@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.12:8081');
+const Ws = new WebSocket('ws://192.168.1.20:8081');
 const annArchivedContainer = document.getElementById('annArchivedContainer');
 const eveCarouselContainer = document.getElementById('eveCarouselContainer');
 const newsCarouselContainer = document.getElementById('newsCarouselContainer');
@@ -2171,7 +2171,7 @@ const displayNoSOMessage = () => {
 
 // Fetch and update functions for different content types
 const fetchAndUpdateArchivedAnnouncements = () => {
-    fetch('database/fetch_announcements.php')
+    fetch('database/fetch_announcement.php')
         .then(response => response.json())
         .then(data => {
             const filteredData = data.filter(announcement =>
@@ -2198,7 +2198,7 @@ const fetchAndUpdateArchivedAnnouncements = () => {
 };
 
 const fetchAndUpdateArchivedEvents = () => {
-    fetch('database/fetch_events.php')
+    fetch('database/fetch_event.php')
         .then(response => response.json())
         .then(data => {
             const filteredData = data.filter(event =>
@@ -2256,7 +2256,7 @@ const fetchAndUpdateArchivedNews = () => {
 };
 
 const fetchAndUpdateArchivedPromaterials = () => {
-    fetch('database/fetch_promaterials.php')
+    fetch('database/fetch_promaterial.php')
         .then(response => response.json())
         .then(data => {
             const filteredData = data.filter(promaterial =>

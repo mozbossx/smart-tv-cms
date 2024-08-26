@@ -28,7 +28,6 @@ if (!$resultTVQuery) {
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Manage Templates</title>
 </head>
@@ -50,34 +49,36 @@ if (!$resultTVQuery) {
                         </nav>
                         <div class="line-separator"></div>
                         <?php include('error_message.php'); ?>
-                        <div>
-                            <!-- Display each smart tvs -->
-                            <?php
-                                if ($resultTVQuery->num_rows > 0) {
-                                    // Output data of each row
-                                    while ($row = $resultTVQuery->fetch_assoc()) {
-                                        $tvId = $row['tv_id'];
-                                        $tvBrand = $row['tv_brand'];
-                                        $tvHeight = $row['height_px'];
-                                        $tvWidth = $row['width_px'];
-                                        echo "<div class='content-container' style='overflow: hidden'>";
-                                            echo "<h2>" . htmlspecialchars($row['tv_name']) . "</h2>";
-                                            echo "<p>Device ID: " . htmlspecialchars($row['device_id']) . "</p>";
-                                            echo "<p>Brand: " . htmlspecialchars($row['tv_brand']) . "</p>";
-                                            echo "<p>Screen Dimensions: " . htmlspecialchars($row['width_px']) . " x " . htmlspecialchars($row['height_px']) . "</p>";
-                                            echo "<div class='line-separator'></div>";
-                                            echo "<button class='green-button' onclick='window.location.href=\"edit_template.php?tvId=$tvId&initialize=false\"'>Edit Template</button>";
-                                            echo "<div style='width: auto; height: 100%; overflow: auto;'>";
-                                                echo "<div class='tv-frame' id='tv-frame' style='position: unset; scale: 1; padding: 0; margin: 0;'>";
-                                                    echo "<iframe src='tv2.php?tvId=$tvId' class='tv-screen' style='pointer-events: none; user-select: none; height: {$tvHeight}px; width: {$tvWidth}px'></iframe>";
-                                                echo "</div>";
-                                            echo "</div>";
-                                        echo "</div>";
-                                    }
-                                } else {
-                                    echo "<p>No smart TVs found.</p>";
-                                }
-                            ?>
+                        <div class="content-grid-container">
+                        <?php
+                        if (mysqli_num_rows($resultTVQuery) > 0) {
+                            while ($row = mysqli_fetch_assoc($resultTVQuery)) {
+                                $tvId = $row['tv_id'];
+                                $tvBrand = $row['tv_brand'];
+                                $tvHeight = $row['height_px'];
+                                $tvWidth = $row['width_px'];
+                                // Display each TV item
+                                echo '<div class="content-container">';
+                                echo '<h1 class="content-title" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($row['tv_name']) . '</h1>';
+                                echo '<div class="tv-frame-parent" style="width: auto; height: 350px; ">';
+                                echo '<div class="tv-frame" id="tv-frame" style="scale: 0.35">';
+                                    echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
+                                    echo '<p style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($row['tv_brand']) .'</p>';
+                                echo "</div>";
+                                echo '<div class="scale-buttons">';
+                                echo '<button id="scale-down"><i class="fa fa-search-minus"></i></button>';
+                                echo '<button id="scale-up"><i class="fa fa-search-plus"></i></button>';
+                                echo '</div>';
+                                echo "</div>";
+                                echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"edit_template.php?tvId=$tvId&initialize=false\"'><i class='fa fa-window-restore' style='margin-right: 6px' aria-hidden='true'></i>Edit Template</button>";
+                                echo '<p>Device ID: ' . htmlspecialchars($row['device_id']) . '</p>'; 
+                                echo '<p>TV Brand: ' . htmlspecialchars($row['tv_brand']) . '</p>'; 
+                                echo '</div>';
+                            }
+                        } else {
+                            echo '<p>No TVs found.</p>';
+                        }
+                        ?>
                         </div>
                     </div>
                 </div>

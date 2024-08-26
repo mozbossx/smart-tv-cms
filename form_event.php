@@ -123,12 +123,12 @@ include 'display_tv_select.php';
                                         <label for="display_time" class="floating-label">Display Time (seconds)</label>
                                     </div>
                                     <div class="floating-label-container" style="flex: 1">
-                                        <select id="tv_account_select" name="tv_display" class="floating-label-input" style="background: #FFFF">
+                                        <select id="tv_account_select" name="tv_id" class="floating-label-input" style="background: #FFFF">
                                             <option value="">~</option>
                                             <?php echo $options_tv;?>
                                             <option value="All Smart TVs">All Smart TVs</option>
                                         </select>
-                                        <label for="tv_display" class="floating-label">TV Display</label>
+                                        <label for="tv_id" class="floating-label">TV Display</label>
                                     </div>
                                 </div>
                             </div>
@@ -191,7 +191,9 @@ include 'display_tv_select.php';
                 e.preventDefault();
 
                 const formData = new FormData(form);
-                const data = {};
+                const data = { 
+                    action: 'post_content'
+                };
 
                 // Check for file input
                 const mediaInput = document.getElementById('media');
@@ -227,7 +229,7 @@ include 'display_tv_select.php';
                         window.location.href = "user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>";
                     } else {
                         // Display an error modal
-                        document.getElementById('errorText').textContent = "Error processing announcement. Try again later";
+                        document.getElementById('errorText').textContent = "Error processing event. Try again later";
                         document.getElementById('errorModal').style.display = 'flex';
                     }
                 };
@@ -250,7 +252,7 @@ include 'display_tv_select.php';
             // var eventLocation = document.querySelector('[name="event_location"]').value;
             // var regLink = document.querySelector('[name="reg_link"]').value;
             var displayTime = document.querySelector('[name="display_time"]').value;
-            var tvDisplay = document.querySelector('[name="tv_display"]').value;
+            var tvDisplay = document.querySelector('[name="tv_id"]').value;
             var expirationDate = document.querySelector('[name="expiration_date"]').value;
             var expirationTime = document.querySelector('[name="expiration_time"]').value;
             var scheduleDate = document.querySelector('[name="schedule_date"]').value;
@@ -364,7 +366,7 @@ include 'display_tv_select.php';
             modal.style.display = 'flex';
 
             // Get the selected tv_name and device_id from the dropdown
-            var selectedOption = document.querySelector('[name="tv_display"]');
+            var selectedOption = document.querySelector('[name="tv_id"]');
             var selectedTvName = selectedOption.value;
             var selectedDeviceId = selectedOption.options[selectedOption.selectedIndex].getAttribute('data-device-id');
 
@@ -431,7 +433,7 @@ include 'display_tv_select.php';
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
             previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_date"]').value, document.querySelector('[name="expiration_time"]').value) + '</p>';
             previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + (document.querySelector('[name="schedule_date"]').value ? formatDateTime(document.querySelector('[name="schedule_date"]').value, document.querySelector('[name="schedule_time"]').value) : 'Not scheduled') + '</p>';
-            previewContent += '<p class="preview-input"><strong>TV Display: </strong><br>' + document.querySelector('[name="tv_display"]').value + '</p>';
+            previewContent += '<p class="preview-input"><strong>TV Display: </strong><br>' + document.querySelector('[name="tv_id"]').value + '</p>';
             return previewContent;
         }
         

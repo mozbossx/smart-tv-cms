@@ -227,36 +227,36 @@ class ContentHandler implements MessageComponentInterface
                 'announcement' => [
                     'table' => 'announcements_tb',
                     'idField' => 'announcement_id',
-                    'fields' => ['ann_body', 'announcement_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
+                    'fields' => ['ann_body', 'announcement_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'announcements_media'
                 ],
                 'event' => [
                     'table' => 'events_tb',
                     'idField' => 'event_id',
-                    'fields' => ['event_heading', 'event_location', 'reg_link', 'event_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
+                    'fields' => ['event_heading', 'event_location', 'reg_link', 'event_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'events_media'
                 ],
                 'news' => [
                     'table' => 'news_tb',
                     'idField' => 'news_id',
-                    'fields' => ['news_heading', 'news_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
+                    'fields' => ['news_heading', 'news_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'news_media'
                 ],
                 'promaterial' => [
                     'table' => 'promaterials_tb',
                     'idField' => 'promaterial_id',
-                    'fields' => ['promaterial_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_display'],
+                    'fields' => ['promaterial_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'promaterials_media'
                 ],
                 'peo' => [
                     'table' => 'peo_tb',
                     'idField' => 'peo_id',
-                    'fields' => ['peo_title', 'peo_description', 'peo_1', 'peo_2', 'peo_3', 'peo_4', 'peo_5', 'peo_6', 'peo_7', 'peo_8', 'peo_9', 'peo_10', 'peo_author', 'created_date', 'created_time', 'display_time', 'tv_display']
+                    'fields' => ['peo_title', 'peo_description', 'peo_1', 'peo_2', 'peo_3', 'peo_4', 'peo_5', 'peo_6', 'peo_7', 'peo_8', 'peo_9', 'peo_10', 'peo_author', 'created_date', 'created_time', 'display_time', 'tv_id']
                 ],
                 'so' => [
                     'table' => 'so_tb',
                     'idField' => 'so_id',
-                    'fields' => ['so_title', 'so_description', 'so_1', 'so_2', 'so_3', 'so_4', 'so_5', 'so_6', 'so_7', 'so_8', 'so_9', 'so_10', 'so_author', 'created_date', 'created_time', 'display_time', 'tv_display']
+                    'fields' => ['so_title', 'so_description', 'so_1', 'so_2', 'so_3', 'so_4', 'so_5', 'so_6', 'so_7', 'so_8', 'so_9', 'so_10', 'so_author', 'created_date', 'created_time', 'display_time', 'tv_id']
                 ]
             ];
         
@@ -1071,11 +1071,11 @@ class ContentHandler implements MessageComponentInterface
         
             // Common fields for all types
             $fields = [
-                'department', 'user_type', $authorField, 'tv_display', 'display_time',
+                'department', 'user_type', $authorField, 'tv_id', 'display_time',
                 'category', 'created_date', 'created_time', 'isCancelled'
             ];
             $values = [
-                $department, $user_type, $full_name, $data['tv_display'], $data['display_time'],
+                $department, $user_type, $full_name, $data['tv_id'], $data['display_time'],
                 $category, $created_date, $created_time, $isCancelled
             ];
 
