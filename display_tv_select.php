@@ -1,15 +1,9 @@
 <?php
-
-// Use a prepared statement for fetching TV data
-$query_tvs = "SELECT tv_id, tv_name, device_id FROM smart_tvs_tb";
-$result_tv = $conn->query($query_tvs);
-
 $options_tv = '';
+$sql = "SELECT tv_id, tv_name FROM smart_tvs_tb";
+$result = mysqli_query($conn, $sql);
 
-// Check if data is found
-if ($result_tv && $result_tv->num_rows > 0) {
-    while ($row = $result_tv->fetch_assoc()) {
-        // Generate options for select based on TV names where tv_display is 'Classrooms'
-        $options_tv .= '<option value="' . htmlspecialchars($row['tv_id'], ENT_QUOTES, 'UTF-8') . '" data-device-id="' . htmlspecialchars($row['device_id'], ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($row['tv_name'], ENT_QUOTES, 'UTF-8') . '</option>';
-    }
+while ($row = mysqli_fetch_assoc($result)) {
+    $options_tv .= '<li><input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '"> ' . $row['tv_name'] . '</li>';
 }
+?>

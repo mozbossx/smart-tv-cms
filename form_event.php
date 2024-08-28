@@ -34,104 +34,31 @@ include 'display_tv_select.php';
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-calendar-check-o" style="padding-right: 5px"></i>Upcoming Event</h1>
                     <div class="content-form">
-                        <form id="eventForm" enctype="multipart/form-data">
-                            <div class="button-flex-space-between">
-                                <div class="left-side-button">
-                                    <button type="button" class="back-button" onclick="javascript:history.back()"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</button>
-                                </div>
-                                <div class="right-side-button-preview">
-                                    <a href="#" id="schedulePostOption" class="schedule-button" onclick="displaySchedulePostInputs()">Schedule Post<i class="fa fa-clock-o" style="padding-left: 5px"></i></a>
-                                    <a href="#" id="cancelSchedulePostOption" style="display: none" class="schedule-button" onclick="cancelSchedulePostInputs()">Cancel Schedule Post<i class="fa fa-times" style="padding-left: 5px"></i></a>
-                                </div>
-                            </div>
-                            <div class="line-separator"></div>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="javascript:history.back()" style="color: #264B2B">Create Post</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Event Form</li>
+                                </ol>
+                            </nav>
+                            <?php include('schedule_post.php')?>
                             <?php include('error_message.php'); ?>
                             <input type="hidden" name="type" value="event" readonly>
-                            <div id="schedulePostInputs" style="display: none;">
-                                <div class="rounded-container-column">
-                                    <p class="input-container-label">Schedule Post Date & Time (Optional)</p>
-                                    <div class="left-flex">
-                                        <input type="date" id="schedule_date" name="schedule_date" class="input-date">
-                                    </div>
-                                    <div class="right-flex">
-                                        <input type="time" id="schedule_time" name="schedule_time" class="input-time">
-                                    </div>
-                                </div>
-                            </div>
                             <div class="floating-label-container">
                                 <textarea name="event_heading" rows="2" required placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_heading"></textarea>
-                                <label for="event_heading" class="floating-label-text-area">Event Heading</label>
+                                <label for="event_heading" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Heading</label>
                             </div>
                             <div class="floating-label-container">
                                 <textarea name="event_location" rows="1" placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_location"></textarea>
-                                <label for="event_location" class="floating-label-text-area">Event Location</label>
+                                <label for="event_location" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Location</label>
                             </div>
                             <div class="floating-label-container">
                                 <textarea name="reg_link" rows="1" placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="reg_link"></textarea>
-                                <label for="reg_link" class="floating-label-text-area">Registration Link</label>
+                                <label for="reg_link" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Registration Link</label>
                             </div>
-                            <div class="right-flex">
-                                <div class="rounded-container-media">
-                                    <p class="input-container-label">Upload Media (Optional)</p>
-                                    <input type="file" name="media" id="media" accept="video/*, image/*" onchange="previewMedia()" hidden>
-                                    <label for="media" class="choose-file-button">Choose File (.mp4, .jpg, .png)</label>
-                                    <button type="button" id="cancelMediaButton" class="red-button" onclick="cancelMedia()" style="display: none;">Cancel</button>
-                                    <div class="preview-media" style="border: #000 1px solid; border-radius: 5px; background: white; text-align: center; width: 100%; height: 350px; display: none; justify-content: center; align-items: center; margin-top: 15px">
-                                        <video id="video-preview" width="100%" height="350px" controls style="display:none; border-radius: 5px; background: #000;"></video>
-                                        <img id="image-preview" style="display:none; max-width: 100%; max-height: 100%;">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="rounded-container-column" style="flex: 1">
-                                    <p class="input-container-label">Expiration Date & Time</p>
-                                    <div class="left-flex">
-                                        <input type="date" id="expiration_date" name="expiration_date" class="input-date">
-                                    </div>
-                                    <div class="right-flex">
-                                        <input type="time" id="expiration_time" name="expiration_time" class="input-time">
-                                    </div>
-                                </div>
-                                <div class="form-column" style="flex: 1">
-                                    <div class="floating-label-container" style="flex: 1">
-                                        <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF">
-                                            <option value="">~</option>
-                                            <option value="10">10 seconds</option>
-                                            <option value="11">11 seconds</option>
-                                            <option value="12">12 seconds</option>
-                                            <option value="13">13 seconds</option>
-                                            <option value="14">14 seconds</option>
-                                            <option value="15">15 seconds</option>
-                                            <option value="16">16 seconds</option>
-                                            <option value="17">17 seconds</option>
-                                            <option value="18">18 seconds</option>
-                                            <option value="19">19 seconds</option>
-                                            <option value="20">20 seconds</option>
-                                            <option value="21">21 seconds</option>
-                                            <option value="22">22 seconds</option>
-                                            <option value="23">23 seconds</option>
-                                            <option value="24">24 seconds</option>
-                                            <option value="25">25 seconds</option>
-                                            <option value="26">26 seconds</option>
-                                            <option value="27">27 seconds</option>
-                                            <option value="28">28 seconds</option>
-                                            <option value="29">29 seconds</option>
-                                            <option value="30">30 seconds</option>
-                                        </select>
-                                        <label for="display_time" class="floating-label">Display Time (seconds)</label>
-                                    </div>
-                                    <div class="floating-label-container" style="flex: 1">
-                                        <select id="tv_account_select" name="tv_id" class="floating-label-input" style="background: #FFFF">
-                                            <option value="">~</option>
-                                            <?php echo $options_tv;?>
-                                            <option value="All Smart TVs">All Smart TVs</option>
-                                        </select>
-                                        <label for="tv_id" class="floating-label">TV Display</label>
-                                    </div>
-                                </div>
-                            </div>
+                            <?php include('upload_preview_media.php')?>
+                            <?php include('expiration_date.php')?>
+                            <?php include('displaytime_tvdisplay.php')?>
                             <div style="text-align: right">
                                 <button type="button" name="preview" id="previewButton" class="preview-button" onclick="validateAndOpenPreviewModal()">
                                     <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
@@ -467,23 +394,27 @@ include 'display_tv_select.php';
             var cancelSchedulePostOption = document.getElementById("cancelSchedulePostOption");
             cancelSchedulePostOption.style.display = "block";
 
-            // Display the Schedule Post inputs
             var schedulePostInputs = document.getElementById("schedulePostInputs");
-            schedulePostInputs.style.display = "block";
+            schedulePostInputs.classList.remove('hide'); // Remove hide class if present
+            schedulePostInputs.style.display = "block"; // Ensure it's displayed before adding class
+            schedulePostInputs.classList.add('show'); // Trigger the slide-in animation
         }
 
-        // Function to cancel the Schedule Post inputs
         function cancelSchedulePostInputs() {
-            // Hide the dropdown
+            var schedulePostInputs = document.getElementById("schedulePostInputs");
+            schedulePostInputs.classList.remove('show'); // Remove show class to start slide-out animation
+            schedulePostInputs.classList.add('hide'); // Add hide class for slide-out effect
+
             var schedulePostOption = document.getElementById("schedulePostOption");
             schedulePostOption.style.display = "block";
 
             var cancelSchedulePostOption = document.getElementById("cancelSchedulePostOption");
             cancelSchedulePostOption.style.display = "none";
 
-            // Display the Schedule Post inputs
-            var schedulePostInputs = document.getElementById("schedulePostInputs");
-            schedulePostInputs.style.display = "none";
+            // Hide the element after the animation is done (500ms)
+            setTimeout(function() {
+                schedulePostInputs.style.display = "none"; 
+            }, 500);
 
             document.getElementById("schedule_date").value = null; 
             document.getElementById("schedule_time").value = null; 

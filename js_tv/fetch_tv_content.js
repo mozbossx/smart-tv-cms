@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.20:8081');
+const Ws = new WebSocket('ws://192.168.1.11:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {

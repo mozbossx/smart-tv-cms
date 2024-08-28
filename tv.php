@@ -118,7 +118,7 @@ include 'tv_initialize.php';
             });
 
             // Directly establish WebSocket connection and load layout from the server
-            const ws = new WebSocket('ws://192.168.1.20:8081');
+            const ws = new WebSocket('ws://192.168.1.11:8081');
 
             ws.onopen = () => {
                 console.log("WebSocket connection established.");

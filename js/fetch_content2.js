@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.20:8081');
+const Ws = new WebSocket('ws://192.168.1.11:8081');
 
 // Function to format date to "MM DD YYYY"
 const formatDate = (dateString) => {
@@ -116,17 +116,12 @@ const showArchiveModal = (id, type) => {
     insertArchiveModalContent(type); // Assuming you have a function to insert modal content
     const modal = document.getElementById(`confirmArchive${capitalizeFirstLetter(type)}Modal`);
     const archiveButton = document.getElementById(`archive${capitalizeFirstLetter(type)}Button`);
-    const cancelButton = document.getElementById(`cancelArchive${capitalizeFirstLetter(type)}Button`);
     const closeButton = document.getElementById(`closeArchive${capitalizeFirstLetter(type)}ModalButton`);
 
     modal.style.display = 'flex';
 
     archiveButton.onclick = () => {
         archiveItem(type, id); // Assuming you have a function to handle archiving
-        modal.style.display = 'none';
-    };
-
-    cancelButton.onclick = () => {
         modal.style.display = 'none';
     };
 
@@ -147,17 +142,12 @@ const showDeleteModal = (id, type) => {
     insertDeleteModalContent(type); // Assuming you have a function to insert modal content
     const modal = document.getElementById(`confirmDelete${capitalizeFirstLetter(type)}Modal`);
     const deleteButton = document.getElementById(`delete${capitalizeFirstLetter(type)}Button`);
-    const cancelButton = document.getElementById(`cancel${capitalizeFirstLetter(type)}Button`);
     const closeButton = document.getElementById(`close${capitalizeFirstLetter(type)}ModalButton`);
 
     modal.style.display = 'flex';
 
     deleteButton.onclick = () => {
         deleteItem(type, id); // Assuming you have a function to handle deletion
-        modal.style.display = 'none';
-    };
-
-    cancelButton.onclick = () => {
         modal.style.display = 'none';
     };
 
@@ -202,7 +192,6 @@ const insertArchiveModalContent = (type) => {
                     <p id="archiveMessage" style="text-align: center">${archiveMessage}</p>
                     <br>
                     <div style="text-align: right;">
-                        <button id="cancelArchive${capitalizeFirstLetter(type)}Button" class="cancel-button" type="button">Cancel</button>
                         <button id="archive${capitalizeFirstLetter(type)}Button" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, archive ${type}</b></button>
                     </div>
                 </div>
@@ -235,7 +224,6 @@ const insertDeleteModalContent = (type) => {
                     <p id="deleteMessage" style="text-align: center">${deleteMessage}?</p>
                     <br>
                     <div style="text-align: right;">
-                        <button id="cancel${capitalizeFirstLetter(type)}Button" class="cancel-button" type="button">Cancel</button>
                         <button id="delete${capitalizeFirstLetter(type)}Button" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, delete ${type}</b></button>
                     </div>
                 </div>

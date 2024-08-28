@@ -627,7 +627,7 @@ nav a{
     padding: 10px;
     border: none;
     box-sizing: border-box;
-    font-size: 12px;
+    font-size: 15px;
     background-color: rgb(238, 238, 238);
     border-radius: 5px;
     user-select: none;
@@ -637,7 +637,6 @@ nav a{
     -ms-user-select: none;
     margin-bottom: 8px;
     margin-left: 4px;
-    margin-right: 8px;
 }
 
 .error-msg {
@@ -772,7 +771,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 
 .floating-label-input-text-area{
     width: 100%;
-    padding-top: 20px;
+    padding-top: 25px;
     padding-left: 12px;
     padding-bottom: 12px;
     display: flex;
@@ -828,6 +827,45 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     border-radius: 5px;
     padding-top: 5px;
     border: white;
+}
+
+.schedule-post-inputs {
+    transform: translateY(-20px);
+    opacity: 0;
+    display: none; /* Initially hidden */
+}
+
+.schedule-post-inputs.show {
+    display: block; /* Make sure it's visible */
+    animation: slideIn 0.5s ease forwards; /* Use 'forwards' to retain the end state */
+}
+
+.schedule-post-inputs.hide {
+    animation: slideOut 0.5s ease forwards; /* Use 'forwards' to retain the end state */
+}
+
+@keyframes slideIn {
+	0% {
+		opacity: 0;
+		transform: translateY(-5px);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes slideOut {
+	0% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	100% {
+		opacity: 0;
+		transform: translateY(-5px);
+	}
 }
 
 .preview-video{
@@ -1067,6 +1105,66 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 #menu ul.sub-menus a:hover{
 	background: #5BB467;
 	color: #444444;
+}
+
+.dropdown-menu {
+    display: none;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+/* Style for the dropdown button */
+.dropdown-toggle {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #FFF;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.dropdown-toggle::after {
+    content: '▼'; /* Arrow symbol */
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+/* Style for the dropdown menu */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px; /* Control the height of the dropdown */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #FFF;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    display: none; /* Hidden by default */
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+}
+
+/* Style for dropdown items */
+.dropdown-menu li {
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+/* Hover effect for dropdown items */
+.dropdown-menu li:hover {
+    background-color: #f0f0f0;
 }
 
 /* Breadcrumb Navigation Styles */
@@ -1886,8 +1984,12 @@ tr:nth-child(even) {
 }
 
 /* Hide the default checkbox */
-input[type="checkbox"] {
+.option-div input[type="checkbox"] {
     display: none;
+}
+
+input[type="checkbox"]{
+    cursor: pointer;
 }
 
 .option-div {

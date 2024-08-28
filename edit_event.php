@@ -114,16 +114,16 @@ if ($result_tv->num_rows > 0) {
                             <div class="line-separator"></div>
                             <?php include('error_message.php'); ?>
                             <div class="floating-label-container">
-                                <textarea name="event_heading" rows="2" required placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_heading"><?php echo htmlspecialchars($event_heading); ?></textarea>
-                                <label for="event_heading" class="floating-label-text-area">Event Heading</label>
+                                <textarea name="event_heading" rows="4" required placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_heading"><?php echo htmlspecialchars($event_heading); ?></textarea>
+                                <label for="event_heading" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Heading</label>
                             </div>
                             <div class="floating-label-container">
                                 <textarea name="event_location" rows="1" placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_location"><?php echo htmlspecialchars($event_location); ?></textarea>
-                                <label for="event_location" class="floating-label-text-area">Event Location</label>
+                                <label for="event_location" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Location</label>
                             </div>
                             <div class="floating-label-container">
                                 <textarea name="reg_link" rows="1" placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="reg_link"><?php echo htmlspecialchars($reg_link); ?></textarea>
-                                <label for="reg_link" class="floating-label-text-area">Registration Link</label>
+                                <label for="reg_link" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Registration Link</label>
                             </div>
                             <div class="right-flex">
                                 <div class="rounded-container-media">

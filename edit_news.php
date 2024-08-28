@@ -111,7 +111,7 @@ if ($result_tv->num_rows > 0) {
                             <?php include('error_message.php'); ?>
                             <div class="floating-label-container">
                                 <textarea name="news_heading" rows="6" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="news_heading"><?php echo htmlspecialchars($news_heading); ?></textarea>
-                                <label for="news_heading" style="background: #FFFF; width: auto; padding: 5px; border-radius: 0" class="floating-label-text-area">News Heading</label>
+                                <label for="news_heading" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">News Heading</label>
                             </div>
                             <div class="right-flex">
                                 <div class="rounded-container-media">

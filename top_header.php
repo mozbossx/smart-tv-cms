@@ -62,13 +62,15 @@ $stmt->close();
                 </li>
                 <?php if ($user_type === 'Admin') { ?>
                 <li>
-                    <a class='dropdown-arrow' href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php'? 'class="active-header-content" style="color:black"' : ''; ?>>Admin Options</a>
+                    <a id="dropdown-arrow" href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                        <?php echo ($current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
+                        Admin Options
+                    </a>
                     <ul class='sub-menus'>
-                        <li><a href="manage_users.php">Manage Users</a></li>
-                        <li><a href="manage_smart_tvs.php">Manage Smart TVs</a></li>
-                        <li><a href="manage_templates.php">Manage Templates</a></li>
-                        <li><a href="manage_posts.php">Manage Posts</a></li>
+                        <li><a href="manage_users.php?pageid=ManageUsers?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Users</a></li>
+                        <li><a href="manage_smart_tvs.php?pageid=ManageSmartTVs?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Smart TVs</a></li>
+                        <li><a href="manage_templates.php?pageid=ManageTemplates?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Templates</a></li>
+                        <li><a href="manage_posts.php?pageid=ManagePosts?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Posts</a></li>
                     </ul>
                 </li>
                 <?php } ?>

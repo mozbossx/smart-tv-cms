@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.20:8081');
+const Ws = new WebSocket('ws://192.168.1.11:8081');
 const annArchivedContainer = document.getElementById('annArchivedContainer');
 const eveCarouselContainer = document.getElementById('eveCarouselContainer');
 const newsCarouselContainer = document.getElementById('newsCarouselContainer');
