@@ -12,7 +12,10 @@ $sql = "SELECT tv_id, tv_name FROM smart_tvs_tb";
 $result = mysqli_query($conn, $sql);
 
 while ($row = mysqli_fetch_assoc($result)) {
-    $options_tv .= '<li style="padding: 10px; border-radius: 5px; background: #f3f3f3; margin-bottom: 5px"><input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '"> ' . $row['tv_name'] . '</li>';
+    $options_tv .= '<label style="display: block; margin-bottom: 5px;">';
+    $options_tv .= '<input type="checkbox" style="padding: 10px; border-radius: 5px; background: #f3f3f3;" name="tv_id[]" value="' . $row['tv_id'] . '">';
+    $options_tv .= ' ' . $row['tv_name'];
+    $options_tv .= '</label>';
 }
 
 ?>
@@ -97,7 +100,17 @@ while ($row = mysqli_fetch_assoc($result)) {
                                     <label for="tv_id" class="floating-label">TV Display</label>
                                 </div>
                             </div>
-                            
+                            <!-- TV Modal -->
+                            <div id="tvModal" class="modal">
+                                <div class="modal-content">
+                                    <h1>Select TV Displays</h1>
+                                    <div id="tvCheckboxList">
+                                        <?php echo $options_tv; ?>
+                                    </div>
+                                    <button type="button" id="closeTvModal">Cancel</button>
+                                    <button type="button" id="saveTvSelection">Save</button>
+                                </div>
+                            </div>
                             <div style="text-align: right">
                                 <button type="button" name="preview" id="previewButton" class="preview-button" onclick="validateAndOpenPreviewModal()">
                                     <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
@@ -133,22 +146,7 @@ while ($row = mysqli_fetch_assoc($result)) {
             </div>
         </div>
     </div>
-    <!-- TV Modal -->
-    <div id="tvModal" class="modal">
-        <div class="modal-content" style="padding: 10px">
-            <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-tv" aria-hidden="true"></i></h1>
-            <p>Select TV Displays</p>
-            <br>
-            <ul id="tvCheckboxList" style="text-align: left; height: 150px; overflow: auto">
-                <?php echo $options_tv; ?>
-                <li style="padding: 10px; border-radius: 5px; background: #f3f3f3"><input type="checkbox" 192.168.1.11" value="All Smart TVs"> All Smart TVs</li>
-            </ul>
-            <div style="float: right">
-                <button type="button" id="closeTvModal" class="green-button" style="background: none; color: #000000">Cancel</button>
-                <button type="button" id="saveTvSelection" class="green-button">Save</button>
-            </div>
-        </div>
-    </div>
+    
     <div id="errorModal" class="modal">
         <div class="modal-content">
             <div class="red-bar-vertical">
@@ -186,7 +184,7 @@ while ($row = mysqli_fetch_assoc($result)) {
             saveTvSelection.addEventListener("click", function () {
                 const selectedTvs = [];
                 document.querySelectorAll('#tvCheckboxList input[type="checkbox"]:checked').forEach(function (checkedBox) {
-                    selectedTvs.push(checkedBox.nextSibling.textContent.trim());
+                    selectedTvs.push(checkedBox.value);
                 });
                 tvModalButton.textContent = selectedTvs.length > 0 ? selectedTvs.join(", ") : "Select TV Displays";
                 tvModal.style.display = "none";
@@ -201,7 +199,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         });
 
         function updatePreviewContent() {
-            const tvId = parseInt(document.querySelector('[name="tv_id[]"]').value, 10); // Convert selected tv_id to integer
+            const selectedTvs = Array.from(document.querySelectorAll('[name="tv_id[]"]:checked')).map(checkbox => parseInt(checkbox.value, 10));
             const selectedType = document.querySelector('[name="type"]').value;
             const annBody = document.querySelector('[name="ann_body"]').value;
             const previewContainer = document.getElementById('previewContainer');
@@ -209,34 +207,71 @@ while ($row = mysqli_fetch_assoc($result)) {
             // Clear previous content
             previewContainer.innerHTML = '';
 
-            // Find the matching container
-            const matchingContainer = containers.find(container => 
-                parseInt(container.tv_id, 10) === tvId && container.type === selectedType
+            // Find the matching container for each selected TV
+            const matchingContainers = containers.filter(container => 
+                selectedTvs.includes(parseInt(container.tv_id, 10)) && container.type === selectedType
             );
-            console.log("TV ID: ", tvId);
-            console.log("Selected Type: ", selectedType);
-            console.log("Matching Container:", matchingContainer); // Debugging output
 
-            if (matchingContainer) {
-                // Create HTML for the matching container
-                const containerHTML = `
-                    <div style="background-color: ${matchingContainer.parent_background_color}; padding: 10px; border-radius: 5px; height: 100%">
-                        <h1 style="color: ${matchingContainer.parent_font_color}; font-size: 2.0vh; margin-bottom: 5px">${matchingContainer.container_name}</h1>
-                        <div style="background-color: ${matchingContainer.child_background_color}; color: ${matchingContainer.child_font_color}; width: auto; height: calc(100% - 6.5vh); font-size: 1.5vh; padding: 10px; border-radius: 5px">
-                            <p style="font-style: ${matchingContainer.child_font_style}">${annBody}</p>
-                            <!-- Add more fields as necessary -->
+            if (matchingContainers.length > 0) {
+                // Create carousel structure
+                let carouselHTML = '<div class="carousel">';
+                matchingContainers.forEach((matchingContainer, index) => {
+                    carouselHTML += `
+                        <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;">
+                            <p>${matchingContainer.tv_id}</p>
+                            <div style="background-color: ${matchingContainer.parent_background_color}; padding: 10px; border-radius: 5px; height: 100%">
+                                <h1 style="color: ${matchingContainer.parent_font_color}; font-family: ${matchingContainer.parent_font_family}; font-style: ${matchingContainer.parent_font_style}; font-size: 2.0vh; margin-bottom: 5px">${matchingContainer.container_name}</h1>
+                                <div style="background-color: ${matchingContainer.child_background_color}; color: ${matchingContainer.child_font_color}; font-style: ${matchingContainer.child_font_style}; font-family: ${matchingContainer.child_font_family}; width: auto; height: calc(100% - 6.5vh); font-size: 1.5vh; padding: 10px; border-radius: 5px">
+                                    <p>${annBody}</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                `;
-                previewContainer.innerHTML = containerHTML; // Update preview content
+                    `;
+                });
+                carouselHTML += '</div>';
+
+                // Only show navigation buttons if more than one item
+                if (matchingContainers.length > 1) {
+                    carouselHTML += `
+                        <button type="button" class="carousel-control prev" onclick="moveCarousel(-1)">Previous</button>
+                        <button type="button" class="carousel-control next" onclick="moveCarousel(1)">Next</button>
+                    `;
+                }
+
+                previewContainer.innerHTML = carouselHTML;
+
+                // Show the first item
+                const items = document.querySelectorAll('.carousel-item');
+                items[0].style.display = 'block';
             } else {
-                previewContainer.innerHTML = '<p>No container found for the selected TV.</p>'; // Fallback message
-                console.log("No container found for the selected TV.");
+                previewContainer.innerHTML = '<p>No container found for the selected TVs.</p>'; // Fallback message
             }
         }
 
+        let currentIndex = 0;
+
+        function moveCarousel(direction) {
+            const items = document.querySelectorAll('.carousel-item');
+            items[currentIndex].style.display = 'none'; // Hide current item
+            currentIndex += direction;
+
+            // Loop around if at the ends
+            if (currentIndex < 0) {
+                currentIndex = items.length - 1;
+            } else if (currentIndex >= items.length) {
+                currentIndex = 0;
+            }
+
+            items[currentIndex].style.display = 'block'; // Show new item
+        }
+
         // Add event listener to tv_id select element
-        document.querySelector('[name="tv_id[]"]').addEventListener('change', updatePreviewContent);
+        document.addEventListener("DOMContentLoaded", function () {
+            const tvCheckboxes = document.querySelectorAll('[name="tv_id[]"]');
+            tvCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updatePreviewContent);
+            });
+        });
         
         // Fetch the WebSocket URL from the PHP file
         fetch('websocket_conn.php')
@@ -249,7 +284,8 @@ while ($row = mysqli_fetch_assoc($result)) {
 
                 const formData = new FormData(form);
                 const data = { 
-                    action: 'post_content'
+                    action: 'post_content',
+                    tv_ids: formData.getAll('tv_id[]') // Collect all tv_id[] values
                 };
 
                 // Check for file input
@@ -283,7 +319,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                     const message = JSON.parse(event.data);
                     if (message.success) {
                         // Redirect the user to user_home.php if success
-                        window.location.href = "user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>";
+                        // window.location.href = "user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>";
                     } else {
                         // Display an error modal
                         document.getElementById('errorText').textContent = "Error processing announcement. Try again later";
@@ -464,7 +500,8 @@ while ($row = mysqli_fetch_assoc($result)) {
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
             previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_date"]').value, document.querySelector('[name="expiration_time"]').value) + '</p>';
             previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + (document.querySelector('[name="schedule_date"]').value ? formatDateTime(document.querySelector('[name="schedule_date"]').value, document.querySelector('[name="schedule_time"]').value) : 'Not scheduled') + '</p>';
-            previewContent += '<p class="preview-input"><strong>TV Display: </strong><br>' + document.querySelector('[name="tv_id[]"]').value + '</p>';
+            const selectedTvs = Array.from(document.querySelectorAll('[name="tv_id[]"]:checked')).map(checkbox => checkbox.value);
+            previewContent += '<p class="preview-input"><strong>TV Display: </strong><br>' + (selectedTvs.length > 0 ? selectedTvs.join(", ") : 'None selected') + '</p>';
             return previewContent;
         }
     </script>

@@ -21,6 +21,46 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
         $defaultColor = '#ffffff';
         $sql_bg = "INSERT INTO background_tv_tb (tv_id, tv_name, background_hex_color) VALUES ($tv_id, '$tv_name', '$defaultColor')";
         mysqli_query($conn, $sql_bg);
+
+        $sql_topbar = "INSERT INTO topbar_tv_tb (tv_id, tv_name) VALUES ($tv_id, '$tv_name')";
+        mysqli_query($conn, $sql_topbar);
+
+        $containerNameAnnouncements = 'Announcements';
+        $containerNameEvents = 'Events';
+        $containerNameNews = 'News';
+        $containerNamePromaterials = 'Promotional Materials';
+        $containerNamePEO = 'Program Educational Objectives';
+        $containerNameSO = 'Student Outcomes';
+        $containerTypeAnnouncements = 'announcement';
+        $containerTypeEvents = 'event';
+        $containerTypeNews = 'news';
+        $containerTypePromaterials = 'promaterial';
+        $containerTypePEO = 'peo';
+        $containerTypeSO = 'so';
+        $containerPositionAnnouncements = 1;
+        $containerPositionEvents = 2;
+        $containerPositionNews = 3;
+        $containerPositionPromaterials = 4;
+        $containerPositionPEO = 5;
+        $containerPositionSO = 6;
+
+        $sql_announcement_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tv_id, '$containerNameAnnouncements', '$containerTypeAnnouncements', $containerPositionAnnouncements)";
+        mysqli_query($conn, $sql_announcement_container);
+        
+        $sql_event_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tv_id, '$containerNameEvents', '$containerTypeEvents', $containerPositionEvents)";
+        mysqli_query($conn, $sql_event_container);
+
+        $sql_news_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tv_id, '$containerNameNews', '$containerTypeNews', $containerPositionNews)";
+        mysqli_query($conn, $sql_news_container);
+
+        $sql_promaterials_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tv_id, '$containerNamePromaterials', '$containerTypePromaterials', $containerPositionPromaterials)";
+        mysqli_query($conn, $sql_promaterials_container);
+
+        $sql_peo_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tv_id, '$containerNamePEO', '$containerTypePEO', $containerPositionPEO)";
+        mysqli_query($conn, $sql_peo_container);
+
+        $sql_so_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tv_id, '$containerNameSO', '$containerTypeSO', $containerPositionSO)";
+        mysqli_query($conn, $sql_so_container);
     } else {
         // Handle SQL error here
         echo "Error: " . mysqli_error($conn);
@@ -101,7 +141,7 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
                 // Redirect to the same page with tvId as query parameter
                 if (!isset($tvId)) {
                     // $tvId = $row['tv_id'];
-                    header("Location: tv.php?tvId=$tvId?initialize=true");
+                    header("Location: tv2.php?tvId=$tvId?initialize=true");
                     exit();
                 }
     
@@ -184,7 +224,7 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
                 // Redirect to the same page with tvId as query parameter
                 if (!isset($tvId)) {
                     // $tvId = $row['tv_id'];
-                    header("Location: tv.php?tvId=$tvId");
+                    header("Location: tv2.php?tvId=$tvId");
                     exit();
                 }
     
@@ -265,7 +305,7 @@ if (!isset($_COOKIE['device_id']) && isset($_GET['initialize']) && $_GET['initia
                 // Redirect to the same page with tvId as query parameter
                 if (!isset($tvId)) {
                     // $tvId = $row['tv_id'];
-                    header("Location: tv.php?tvId=$tvId");
+                    header("Location: tv2.php?tvId=$tvId");
                     exit();
                 }
     
