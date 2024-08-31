@@ -228,13 +228,13 @@ class ContentHandler implements MessageComponentInterface
                     'table' => 'announcements_tb',
                     'idField' => 'announcement_id',
                     'fields' => ['ann_body', 'announcement_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
-                    'mediaFolder' => 'announcements_media'
+                    'mediaFolder' => 'announcement_media'
                 ],
                 'event' => [
                     'table' => 'events_tb',
                     'idField' => 'event_id',
                     'fields' => ['event_heading', 'event_location', 'reg_link', 'event_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
-                    'mediaFolder' => 'events_media'
+                    'mediaFolder' => 'event_media'
                 ],
                 'news' => [
                     'table' => 'news_tb',
@@ -246,7 +246,7 @@ class ContentHandler implements MessageComponentInterface
                     'table' => 'promaterials_tb',
                     'idField' => 'promaterial_id',
                     'fields' => ['promaterial_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
-                    'mediaFolder' => 'promaterials_media'
+                    'mediaFolder' => 'promaterial_media'
                 ],
                 'peo' => [
                     'table' => 'peo_tb',
@@ -1032,10 +1032,10 @@ class ContentHandler implements MessageComponentInterface
                 
                     // Determine media folder
                     $mediaFolder = match ($data['type']) {
-                        'event' => 'events_media',
-                        'announcement' => 'announcements_media',
+                        'event' => 'event_media',
+                        'announcement' => 'announcement_media',
                         'news' => 'news_media',
-                        'promaterial' => 'promaterials_media',
+                        'promaterial' => 'promaterial_media',
                         default => null
                     };
                 

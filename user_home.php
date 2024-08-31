@@ -45,13 +45,13 @@ include 'get_session.php';
                         echo '<div class="content-container">';
                         echo '<h1 class="content-title" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($row['tv_name']) . '</h1>';
                         echo '<div class="tv-frame-parent" style="width: auto; height: 350px; ">';
-                        echo '<div class="tv-frame" id="tv-frame" style="scale: 0.35">';
-                            echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
+                        echo '<div class="tv-frame" style="scale: 0.35">';
+                            echo "<iframe frameborder='0' src='tv2.php?tvId=$tvId' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
                             echo '<p style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($row['tv_brand']) .'</p>';
                         echo "</div>";
                         echo '<div class="scale-buttons">';
-                        echo '<button id="scale-down"><i class="fa fa-search-minus"></i></button>';
-                        echo '<button id="scale-up"><i class="fa fa-search-plus"></i></button>';
+                        echo '<button class="scale-down"><i class="fa fa-search-minus"></i></button>';
+                        echo '<button class="scale-up"><i class="fa fa-search-plus"></i></button>';
                         echo '</div>';
                         echo "</div>";
                         echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"tv_contents.php?tvId=$tvId&initialize=false\"'>View Contents</button>";
@@ -135,47 +135,50 @@ include 'get_session.php';
     <script>
         const userType = '<?php echo $user_type; ?>';
         const full_name = '<?php echo $full_name; ?>';
-        const tvFrame = document.getElementById('tv-frame');
-        const scaleUpButton = document.getElementById('scale-up');
-        const scaleDownButton = document.getElementById('scale-down');
-        let scale = 1;
-        let isDragging = false;
-        let startX, startY, scrollLeft, scrollTop;
+        const tvFrames = document.querySelectorAll('.tv-frame');
+        const scaleUpButtons = document.querySelectorAll('.scale-up');
+        const scaleDownButtons = document.querySelectorAll('.scale-down');
 
-        // Scale Up Button
-        scaleUpButton.addEventListener('click', () => {
-            scale += 0.1;
-            tvFrame.style.transform = `scale(${scale})`;
-        });
+        tvFrames.forEach((tvFrame, index) => {
+            let scale = 1;
+            let isDragging = false;
+            let startX, startY;
 
-        // Scale Down Button
-        scaleDownButton.addEventListener('click', () => {
-            if (scale > 0.2) {  // Prevent scaling too small
-                scale -= 0.1;
+            // Scale Up Button
+            scaleUpButtons[index].addEventListener('click', () => {
+                scale += 0.1;
                 tvFrame.style.transform = `scale(${scale})`;
-            }
-        });
+            });
 
-        // Drag to Pan
-        tvFrame.parentElement.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - tvFrame.offsetLeft;
-            startY = e.clientY - tvFrame.offsetTop;
-            tvFrame.parentElement.style.cursor = 'grabbing';
-        });
+            // Scale Down Button
+            scaleDownButtons[index].addEventListener('click', () => {
+                if (scale > 0.2) {  // Prevent scaling too small
+                    scale -= 0.1;
+                    tvFrame.style.transform = `scale(${scale})`;
+                }
+            });
 
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            tvFrame.parentElement.style.cursor = 'grab';
-        });
+            // Drag to Pan
+            tvFrame.parentElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX - tvFrame.offsetLeft;
+                startY = e.clientY - tvFrame.offsetTop;
+                tvFrame.parentElement.style.cursor = 'grabbing';
+            });
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            const x = e.clientX - startX;
-            const y = e.clientY - startY;
-            tvFrame.style.left = `${x}px`;
-            tvFrame.style.top = `${y}px`;
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                tvFrame.parentElement.style.cursor = 'grab';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const x = e.clientX - startX;
+                const y = e.clientY - startY;
+                tvFrame.style.left = `${x}px`;
+                tvFrame.style.top = `${y}px`;
+            });
         });
     </script>
 </body>

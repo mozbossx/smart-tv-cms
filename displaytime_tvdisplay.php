@@ -27,14 +27,64 @@ echo '<div class="form-column" style="flex: 1">';
         echo '</select>';
         echo '<label for="display_time" class="floating-label">Display Time (seconds)</label>';
     echo '</div>';
+    echo '<div class="form-column" style="flex: 1">';
     echo '<div class="floating-label-container" style="flex: 1">';
-        echo '<select id="tv_account_select" name="tv_id" class="floating-label-input" style="background: #FFFF">';
-            echo '<option value="">~</option>';
-            echo $options_tv;
-            echo '<option value="All Smart TVs">All Smart TVs</option>';
-        echo '</select>';
+        echo '<button type="button" id="tvModalButton" class="floating-label-input" style="background: #FFFF">
+            Select TV Displays';
+        echo '</button>';
         echo '<label for="tv_id" class="floating-label">TV Display</label>';
     echo '</div>';
 echo '</div>';
 echo '</div>';
+echo '</div>';
+// TV Modal
+echo '<div id="tvModal" class="modal">';
+    echo '<div class="modal-content" style="padding: 10px">';
+        echo '<h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-tv" aria-hidden="true"></i></h1>';
+        echo '<p>Select TV Displays</p>';
+        echo '<br>';
+        echo '<div id="tvCheckboxList" style="height: 150px; max-height: 200px; overflow: auto; text-align: left">';
+            echo $options_tv;
+        echo '</div>';
+        echo '<div style="display: flex; float: right">';
+            echo '<button type="button" id="closeTvModal" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B">Cancel</button>';
+            echo '<button type="button" id="saveTvSelection" class="green-button" style="border: 1px solid #264B2B; margin-right: 0">Save</button>';
+        echo '</div>';
+    echo '</div>';
+echo '</div>';
 ?>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tvModalButton = document.getElementById("tvModalButton");
+        const tvModal = document.getElementById("tvModal");
+        const closeTvModal = document.getElementById("closeTvModal");
+        const saveTvSelection = document.getElementById("saveTvSelection");
+
+        // Open the TV Modal
+        tvModalButton.addEventListener("click", function () {
+            tvModal.style.display = "flex";
+        });
+
+        // Close the TV Modal
+        closeTvModal.addEventListener("click", function () {
+            tvModal.style.display = "none";
+        });
+
+        // Save the selected TV displays
+        saveTvSelection.addEventListener("click", function () {
+            const selectedTvs = [];
+            document.querySelectorAll('#tvCheckboxList input[type="checkbox"]:checked').forEach(function (checkedBox) {
+                selectedTvs.push(checkedBox.value);
+            });
+            tvModalButton.textContent = selectedTvs.length > 0 ? selectedTvs.join(", ") : "Select TV Displays";
+            tvModal.style.display = "none";
+        });
+
+        // Close the modal if the user clicks outside of it
+        window.onclick = function (event) {
+            if (event.target == tvModal) {
+                tvModal.style.display = "none";
+            }
+        };
+    });
+</script>

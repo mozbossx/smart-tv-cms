@@ -1,53 +1,65 @@
 <?php
-echo '<div style="display: flex; flex-direction: row-reverse">';
-echo '<a href="#" id="schedulePostOption" class="green-button" style="text-decoration: none; width: 100px; margin-right: 0; margin-bottom: 5px" onclick="displaySchedulePostInputs()">Schedule Post<i class="fa fa-clock-o" style="padding-left: 5px"></i></a>';
-echo '<a href="#" id="cancelSchedulePostOption" style="display: none; text-decoration: none; width: 135px; margin-right: 0; margin-bottom: 5px" class="green-button" onclick="cancelSchedulePostInputs()">Cancel Schedule Post<i class="fa fa-times" style="padding-left: 5px"></i></a>';
-echo '</div>';
-echo '<div id="schedulePostInputs" class="schedule-post-inputs">';
-echo '<div class="rounded-container-column">';
-    echo '<p class="input-container-label">Schedule Post Date & Time (Optional)</p>';
-    echo '<div class="left-flex">';
-        echo '<input type="date" id="schedule_date" name="schedule_date" class="input-date">';
+// Schedule Post Modal
+echo '<div id="schedulePostModal" class="modal">';
+    echo '<div class="modal-content">';
+        echo '<div class="rounded-container-column">';
+            echo '<p class="input-container-label">Schedule Date & Time</p>';
+            echo '<div class="left-flex">';
+                echo '<input type="date" id="schedule_date" name="schedule_date" class="input-date" placeholder="Schedule Date">';
+            echo '</div>';
+            echo '<div class="right-flex">';
+                echo '<input type="time" id="schedule_time" name="schedule_time" class="input-time" placeholder="Schedule Time">';
+            echo '</div>';
+        echo '</div>';
+        echo '<div style="display: flex; float: right; margin-top: 5px">';
+            echo '<button type="button" id="clearSchedulePost" class="green-button" style="background: none; border: none; color: #264B2B">Clear</button>';
+            echo '<button type="button" id="closeSchedulePostModal" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B">Cancel</button>';
+            echo '<button type="button" id="saveSchedulePostSelection" class="green-button" style="border: 1px solid #264B2B; margin-right: 0">Save</button>';
+        echo '</div>';
     echo '</div>';
-    echo '<div class="right-flex">';
-        echo '<input type="time" id="schedule_time" name="schedule_time" class="input-time">';
-    echo '</div>';
-echo '</div>';
 echo '</div>';
 ?>
 
 <script>
-    // Function to display the Schedule Post inputs
-    function displaySchedulePostInputs() {
-        var schedulePostOption = document.getElementById("schedulePostOption");
-        schedulePostOption.style.display = "none";
+    document.addEventListener("DOMContentLoaded", function () {
+        const schedulePostButton = document.getElementById("schedulePostButton");
+        const schedulePostModal = document.getElementById("schedulePostModal");
+        const closeSchedulePostModal = document.getElementById("closeSchedulePostModal");
+        const saveSchedulePostSelection = document.getElementById("saveSchedulePostSelection");
+        const clearSchedulePost = document.getElementById("clearSchedulePost");
 
-        var cancelSchedulePostOption = document.getElementById("cancelSchedulePostOption");
-        cancelSchedulePostOption.style.display = "block";
+        schedulePostButton.addEventListener("click", function () {
+            schedulePostModal.style.display = "flex";
+        });
 
-        var schedulePostInputs = document.getElementById("schedulePostInputs");
-        schedulePostInputs.classList.remove('hide'); // Remove hide class if present
-        schedulePostInputs.style.display = "block"; // Ensure it's displayed before adding class
-        schedulePostInputs.classList.add('show'); // Trigger the slide-in animation
-    }
+        closeSchedulePostModal.addEventListener("click", function () {
+            schedulePostModal.style.display = "none";
+        });
 
-    function cancelSchedulePostInputs() {
-        var schedulePostInputs = document.getElementById("schedulePostInputs");
-        schedulePostInputs.classList.remove('show'); // Remove show class to start slide-out animation
-        schedulePostInputs.classList.add('hide'); // Add hide class for slide-out effect
+        saveSchedulePostSelection.addEventListener("click", function () {
+            const scheduleDate = document.getElementById('schedule_date').value;
+            const scheduleTime = document.getElementById('schedule_time').value;
 
-        var schedulePostOption = document.getElementById("schedulePostOption");
-        schedulePostOption.style.display = "block";
+            // Print the values inside the form or wherever needed
+            document.getElementById('schedulePostButton').style = `
+                border: 1px solid #264B2B;
+                background: #264B2B;
+                color: white;
+            `;
 
-        var cancelSchedulePostOption = document.getElementById("cancelSchedulePostOption");
-        cancelSchedulePostOption.style.display = "none";
+            schedulePostModal.style.display = "none";
+        });
 
-        // Hide the element after the animation is done (500ms)
-        setTimeout(function() {
-            schedulePostInputs.style.display = "none"; 
-        }, 500);
+        clearSchedulePost.addEventListener('click', function () {
+            document.getElementById('schedule_date').value = null;
+            document.getElementById('schedule_time').value = null;
+        });
 
-        document.getElementById("schedule_date").value = null; 
-        document.getElementById("schedule_time").value = null; 
-    }
+        // Close the modal if the user clicks outside of it
+        window.onclick = function (event) {
+            if (event.target == schedulePostModal) {
+                schedulePostModal.style.display = "none";
+            }
+        };
+    });
 </script>
