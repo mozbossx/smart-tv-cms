@@ -816,6 +816,19 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     transition: top 0.3s, font-size 0.3s;
 }
 
+.floating-label-input-text-area::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.floating-label-input-text-area::-webkit-scrollbar-thumb {
+    background-color: #264B2B; /* Color of the scrollbar thumb */
+    border-radius: 10px; /* Rounded corners for the scrollbar thumb */
+}
+
+.floating-label-input-text-area::-webkit-scrollbar-track {
+    background-color: #f1f1f1; /* Background color of the scrollbar track */
+}
+
 .floating-label-input:focus + .floating-label,
 .floating-label-input:not(:placeholder-shown) + .floating-label {
     top: 0px;
@@ -1765,16 +1778,13 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 .delete-peo-button, .delete-so-button {
     width: 80px;
     padding: 5px;
-    border-radius: 20px;
+    border-radius: 5px;
     color: white;
     text-decoration: none;
     background-color: #7E0B22;
     border: 1px solid black;
     cursor: pointer;
-    margin-right: 10px;
-    margin-bottom: 5px;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-left: 10px;
     user-select: none;
     -moz-user-select: none;
     -webkit-user-drag: none;

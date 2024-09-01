@@ -6,10 +6,10 @@ include 'config_connection.php';
 // fetch user data for the currently logged-in user
 include 'get_session.php';
 
-// fetch tv data
-include 'display_tv_select.php';
+// fetch tv data from the select options
+include 'misc/php/options_tv.php';
 
-// Student and Faculty do not have access to this page
+// Student or Faculty do not have access to this page
 if($user_type == 'Student'|| $user_type == 'Faculty'){
     header("location: user_home.php?pageid=UserHome&userId=$user_id''$full_name");
     exit;
@@ -40,244 +40,170 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-sitemap" style="padding-right: 5px"></i>Program Educational Objectives (PEO)</h1>
-                    <button type="button" class="back-button" onclick="javascript:history.back()"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</button>
                     <div class="content-form">
-                        <form id="peoForm" enctype="multipart/form-data">
-                            <div class="line-separator"></div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb" style="background: none">
+                                <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
+                                <li class="breadcrumb-item"><a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">General Information</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Program Educational Objectives (PEO)</li>
+                            </ol>
+                        </nav>
+                        <form id="peoForm" enctype="multipart/form-data" class="main-form">
                             <?php include('error_message.php'); ?>
                             <input type="hidden" name="type" value="peo" readonly>
                             <div class="floating-label-container">
-                                <textarea name="peo_title" rows="1" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_title"></textarea>
-                                <label for="peo_title" style="background: #FFFF; width: auto; padding: 5px; border-radius: 0" class="floating-label-text-area">PEO Title</label>
+                                <textarea name="peo_title" rows="2" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_title"></textarea>
+                                <label for="peo_title" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">PEO Title</label>
                             </div>
                             <div class="floating-label-container">
                                 <textarea name="peo_description" rows="4" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_description"></textarea>
-                                <label for="peo_description" style="background: #FFFF; width: auto; padding: 5px; border-radius: 0" class="floating-label-text-area">PEO Description</label>
+                                <label for="peo_description" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">PEO Description</label>
                             </div>
                             <div class="input-container">
-                                <div class="floating-label-container" style="display: none; flex-direction: row; align-items: center; margin-left: 25px;" id="peoSubDescription">
-                                    <i class="fa fa-caret-right" aria-hidden="true" style="margin-right: 5px; font-size: 20px"></i>
-                                    <textarea name="peo_subdescription" rows="2" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" style="margin-left: 5px" id="peo_subdescription"></textarea>
-                                    <label for="peo_subdescription" style="background: #FFFF; width: auto; padding: 5px; border-radius: 0" class="floating-label-text-area">PEO Sub-description</label>
+                                <div class="floating-label-container" style="display: none; flex-direction: row; align-items: center; background: #e4e4e4; margin-top: 5px; padding: 10px; border-radius: 5px; border: 1px solid black" id="peoSubDescription">
+                                    <textarea name="peo_subdescription" rows="3" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" style="margin-left: 5px"></textarea>
+                                    <label for="peo_subdescription" style="background: #FFFF; width: auto; padding: 5px; left: 20px; margin-top: 15px; border-radius: 0" class="floating-label-text-area">PEO Sub-description</label>
                                 </div>
                             </div>
                             <div id="subDescriptionContainerIncrement"></div> <!-- Container for dynamically added input fields -->
                             <div style="display: flex; flex-direction: row">
-                                <button class="plus-button" type="button" onclick="addPEOsubdescription()" id="add_peo_button"><i class="fa fa-plus-circle" aria-hidden="true"></i> New PEO Sub-description</button>
-                                <button class="delete-peo-button" type="button" onclick="deletePEOsubdescription()" style="display: none" id="deletePEOSubButton"><i class="fa fa-times" aria-hidden="true"></i> Cancel</button>
+                                <button class="plus-button" type="button" onclick="addPEOsubdescription()" style="display: block" id="add_peo_button"><i class="fa fa-plus-circle" aria-hidden="true"></i> New PEO Sub-description</button>
+                                <!-- <button class="delete-peo-button" type="button" onclick="deletePEOsubdescription()" style="display: none" id="deletePEOSubButton"><i class="fa fa-times" aria-hidden="true"></i> Cancel</button> -->
                             </div>
-                            <div class="form-column" style="flex: 1">
-                                    <div class="floating-label-container" style="flex: 1">
-                                        <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF">
-                                            <option value="">~</option>
-                                            <option value="10">10 seconds</option>
-                                            <option value="11">11 seconds</option>
-                                            <option value="12">12 seconds</option>
-                                            <option value="13">13 seconds</option>
-                                            <option value="14">14 seconds</option>
-                                            <option value="15">15 seconds</option>
-                                            <option value="16">16 seconds</option>
-                                            <option value="17">17 seconds</option>
-                                            <option value="18">18 seconds</option>
-                                            <option value="19">19 seconds</option>
-                                            <option value="20">20 seconds</option>
-                                            <option value="21">21 seconds</option>
-                                            <option value="22">22 seconds</option>
-                                            <option value="23">23 seconds</option>
-                                            <option value="24">24 seconds</option>
-                                            <option value="25">25 seconds</option>
-                                            <option value="26">26 seconds</option>
-                                            <option value="27">27 seconds</option>
-                                            <option value="28">28 seconds</option>
-                                            <option value="29">29 seconds</option>
-                                            <option value="30">30 seconds</option>
-                                        </select>
-                                        <label for="display_time" class="floating-label">Display Time (seconds)</label>
-                                    </div>
-                                    <div class="floating-label-container" style="flex: 1">
-                                        <select id="tv_account_select" name="tv_display" class="floating-label-input" style="background: #FFFF">
-                                            <option value="">~</option>
-                                            <?php echo $options_tv;?>
-                                            <option value="All Smart TVs">All Smart TVs</option>
-                                        </select>
-                                        <label for="tv_display" class="floating-label">TV Display</label>
-                                    </div>
+                            <?php include('misc/php/displaytime_tvdisplay.php')?>
+                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
+                                <div>
+                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
+                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
+                                    </button>
                                 </div>
                             </div>
-                            <div style="text-align: right">
-                                <button type="submit" name="post" class="preview-button"  onclick="validateAndOpenPreviewModal()">Submit</button>
-                            </div>
+                            <?php include('misc/php/preview_modal.php') ?>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div id="errorModal" class="modal">
+    <div id="confirmDeleteModal" class="modal">
         <div class="modal-content">
             <div class="red-bar-vertical">
-                <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
-                <p id="errorText"></p>
+                <span class="close" id="confirmDeleteNo" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+                <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+                <p>Proceed to delete this subdescription?</p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
-                    <button id="okayButton" class="red-button" style="margin: 0" onclick="closeErrorModal()">Okay</button>
+                    <button id="confirmDeleteYes" class="red-button" style="margin-right: 0"><b>Yes, delete sub-description</b></button>
                 </div>
             </div>
         </div>
     </div>
-
+    <?php include('misc/php/error_modal.php') ?>
+    <?php include('misc/php/success_modal.php') ?>    
+    <script src="misc/js/wsform_submission.js"></script>
     <script>
         let peoCounter = 1; // Initialize a counter for generating unique IDs
-        const maxPEOsubDescriptions = 10;
-        // Handle form submission via WebSocket
-        const form = document.getElementById('peoForm');
+        const maxPEOsubDescriptions = 11;
+        const containers = <?php echo json_encode($containers); ?>;
+        const tvNames = <?php echo json_encode($tv_names); ?>;
         
-        // Fetch the WebSocket URL from the PHP file
-        fetch('websocket_conn.php')
-        .then(response => response.text())
-        .then(url => {
-            const ws = new WebSocket(url);
+        // function validateAndOpenPreviewModal() {
+        //     var peo_title = document.querySelector('[name="peo_title"]').value;
+        //     var peo_description = document.querySelector('[name="peo_description"]').value;
 
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
+        //     // Collect all subdescription textareas
+        //     var peo_subdescriptions = document.querySelectorAll('#subDescriptionContainerIncrement textarea');
+        //     var allSubDescriptionsFilled = true;
 
-                const formData = new FormData(form);
-                const data = {};
+        //     // Check if any of the subdescription textareas is empty
+        //     peo_subdescriptions.forEach(function(textarea) {
+        //         if (textarea.value.trim() === "") {
+        //             allSubDescriptionsFilled = false;
+        //         }
+        //     });
 
-                formData.forEach((value, key) => {
-                    data[key] = value;
-                });
-
-                console.log('Form Data:', data);
-                ws.send(JSON.stringify(data));
-
-                // Listen for messages from the WebSocket server
-                ws.onmessage = function(event) {
-                    const message = JSON.parse(event.data);
-                    if (message.success) {
-                        // Redirect the user to user_home.php if success
-                        window.location.href = "user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>";
-                    } else {
-                        // Display an error modal
-                        document.getElementById('errorText').textContent = "Error processing PEO. Try again later";
-                        document.getElementById('errorModal').style.display = 'flex';
-                    }
-                };
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching WebSocket URL:', error);
-        });
-
-        document.getElementById('cancelButton').addEventListener('click', function() {
-            closePreviewModal();
-        });
-
-        document.getElementById('okayButton').addEventListener('click', function() {
-            closeErrorModal();
-        });
-        
-        function validateAndOpenPreviewModal() {
-            var peo_title = document.querySelector('[name="peo_title"]').value;
-            var peo_description = document.querySelector('[name="peo_description"]').value;
-
-            // Collect all subdescription textareas
-            var peo_subdescriptions = document.querySelectorAll('#subDescriptionContainerIncrement textarea');
-            var allSubDescriptionsFilled = true;
-
-            // Check if any of the subdescription textareas is empty
-            peo_subdescriptions.forEach(function(textarea) {
-                if (textarea.value.trim() === "") {
-                    allSubDescriptionsFilled = false;
-                }
-            });
-
-            // Check if any of the required fields is empty
-            if (peo_title.trim() === "" || peo_description === "" || !allSubDescriptionsFilled) {
-                // If conditions are not met, show error message
-                errorModalMessage("Please fill the necessary fields.");
-            }
-        }
-
-        function errorModalMessage(errorMessage) {
-            var modal = document.getElementById('errorModal');
-            modal.style.display = 'flex';
-
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
-                }
-            }
-
-            // Display error message
-            document.getElementById('errorText').textContent = errorMessage;
-
-            // Okay Button click event
-            document.getElementById('okayButton').addEventListener('click', function () {
-                modal.style.display = 'none';
-            });
-        }
-        
-        // Function to close the preview modal
-        function closePreviewModal() {
-            var modal = document.getElementById('previewModal');
-            modal.style.display = 'none';
-        }
-
-        // Function to close the preview modal
-        function closeErrorModal() {
-            var modal = document.getElementById('errorModal');
-            modal.style.display = 'none';
-        }
-
+        //     // Check if any of the required fields is empty
+        //     if (peo_title.trim() === "" || peo_description === "" || !allSubDescriptionsFilled) {
+        //         // If conditions are not met, show error message
+        //         errorModalMessage("Please fill the necessary fields.");
+        //     }
+        // }
         
         function generateUniqueId() {
             return 'peo_' + peoCounter++;
         }
 
         function addPEOsubdescription() {
-            if (peoCounter <= maxPEOsubDescriptions) {
+            if (peoCounter < maxPEOsubDescriptions) { // Change this condition
                 var peoSubDescription = document.getElementById("peoSubDescription");
-                var deletePEOSubButton =document.getElementById("deletePEOSubButton");
                 var clone = peoSubDescription.cloneNode(true); // Clone the element
 
-                deletePEOSubButton.style.display = "block";
+                // Create a new delete button for the cloned textarea
+                var deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.classList.add('delete-peo-button');
+                deleteButton.innerHTML = '<i class="fa fa-times" aria-hidden="true"></i> Delete';
+                deleteButton.onclick = function() {
+                    deletePEOsubdescription(clone, clone.querySelector('textarea')); // Pass the textarea
+                };
+                clone.appendChild(deleteButton); // Append the delete button to the cloned element
 
                 // Change the id of the cloned element to avoid duplicates
                 var newId = generateUniqueId();
                 clone.setAttribute("id", newId);
+                console.log(peoCounter);
 
                 // Set display to block for the cloned element
                 clone.style.display = "flex";
 
-                // Display the ID inside the textarea
-                // clone.querySelector('textarea').value = newId;
-
                 var textarea = clone.querySelector('textarea');
-                textarea.value = newId;
-                textarea.setAttribute("name", newId); // Set the name attribute to the unique ID
+                
 
                 // Append the cloned element to the container
                 document.getElementById("subDescriptionContainerIncrement").appendChild(clone);
+                
+                // Check if the maximum has been reached
+                if (peoCounter >= maxPEOsubDescriptions) {
+                    document.getElementById("add_peo_button").style.display = "none"; // Hide button
+                }
             } else {
                 alert("Maximum of 10 subdescriptions can be added.");
             }
         }
 
-        function deletePEOsubdescription() {
-            // Get the container of the cloned elements
-            var container = document.getElementById("subDescriptionContainerIncrement");
+        function deletePEOsubdescription(clone, textarea) {
+            // Check if the textarea is not empty
+            if (textarea.value.trim() !== "") {
+                // Show confirmation modal
+                document.getElementById("confirmDeleteModal").style.display = "flex";
 
-            // Remove the last child element (which is the latest cloned textarea)
-            container.removeChild(container.lastChild);
-            container.value = null;
+                // Handle confirmation
+                document.getElementById("confirmDeleteYes").onclick = function() {
+                    var container = document.getElementById("subDescriptionContainerIncrement");
+                    container.removeChild(clone); // Remove the specific cloned textarea
+                    --peoCounter;
 
-            --peoCounter;
+                    // Check if we need to show the button again
+                    if (peoCounter < maxPEOsubDescriptions) {
+                        document.getElementById("add_peo_button").style.display = "block"; // Show button
+                    }
 
-            // If there are no more cloned textareas, hide the Cancel button
-            if (container.childElementCount === 0) {
-                document.getElementById("deletePEOSubButton").style.display = "none";
+                    document.getElementById("confirmDeleteModal").style.display = "none"; // Hide modal
+                };
+
+                document.getElementById("confirmDeleteNo").onclick = function() {
+                    document.getElementById("confirmDeleteModal").style.display = "none"; // Hide modal
+                };
+            } else {
+                // Directly delete if textarea is empty
+                var container = document.getElementById("subDescriptionContainerIncrement");
+                container.removeChild(clone); // Remove the specific cloned textarea
+                --peoCounter;
+
+                // Check if we need to show the button again
+                if (peoCounter < maxPEOsubDescriptions) {
+                    document.getElementById("add_peo_button").style.display = "block"; // Show button
+                }
             }
         }
     </script>

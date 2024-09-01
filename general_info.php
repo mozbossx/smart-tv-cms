@@ -36,12 +36,14 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <!-- <p class="display-info-form"><i class="fa fa-pencil-square" style="padding-right: 6px"></i>Create Post</p> -->
-                    <h1 class="content-title" style="color: black"><i class="fa fa-sitemap" style="padding-right: 5px"></i>General Information</h1>
-                    <button type="button" class="back-button" onclick="javascript:history.back()"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</button>
-                    <div class="line-separator"></div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb" style="background: none">
+                            <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">General Information</li>
+                        </ol>
+                    </nav>
                     <?php include('error_message.php'); ?>
-                    <div class="button-flex">
+                    <div class="button-flex" style="margin-top: 10px">
                         <div class="button-container">
                             <a href="form_peo.php?pageid=PEOForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
                                 <div class="button-icon"><i class="fa fa-map"></i></div>

@@ -6,8 +6,8 @@ include 'config_connection.php';
 // fetch user data for the currently logged-in user
 include 'get_session.php';
 
-// fetch tv data
-include 'display_tv_select.php';
+// fetch tv data from the select options
+include 'misc/php/options_tv.php';
 
 ?>
 
@@ -35,390 +35,59 @@ include 'display_tv_select.php';
             <div class="column1">
                 <div class="content-inside-form">
                     <div class="content-form">
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb">
-                                    <li class="breadcrumb-item"><a href="javascript:history.back()" style="color: #264B2B">Create Post</a></li>
-                                    <li class="breadcrumb-item active" aria-current="page">Event Form</li>
-                                </ol>
-                            </nav>
-                            <?php include('schedule_post.php')?>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb" style="background: none">
+                                <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Event Form</li>
+                            </ol>
+                        </nav>
+                        <form id="eventForm" enctype="multipart/form-data" class="main-form">
                             <?php include('error_message.php'); ?>
-                            <input type="hidden" name="type" value="event" readonly>
+                            <input type="hidden" name="type" value="event">
+                            <h1 style="text-align: center">Event Form</h1>
                             <div class="floating-label-container">
-                                <textarea name="event_heading" rows="2" required placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_heading"></textarea>
+                                <textarea name="event_heading" rows="3" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="event_heading"></textarea>
                                 <label for="event_heading" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Heading</label>
                             </div>
                             <div class="floating-label-container">
-                                <textarea name="event_location" rows="1" placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_location"></textarea>
-                                <label for="event_location" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Location</label>
+                                <textarea name="event_location" rows="1" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="event_location"></textarea>
+                                <label for="event_location" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Location (Optional)</label>
                             </div>
                             <div class="floating-label-container">
-                                <textarea name="reg_link" rows="1" placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="reg_link"></textarea>
-                                <label for="reg_link" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Registration Link</label>
+                                <textarea name="reg_link" rows="1" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="reg_link"></textarea>
+                                <label for="reg_link" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Registration Link (Optional)</label>
                             </div>
-                            <?php include('upload_preview_media.php')?>
-                            <?php include('expiration_date.php')?>
-                            <?php include('displaytime_tvdisplay.php')?>
-                            <div style="text-align: right">
-                                <button type="button" name="preview" id="previewButton" class="preview-button" onclick="validateAndOpenPreviewModal()">
-                                    <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
-                                </button>
+                            <?php include('misc/php/upload_preview_media.php')?>
+                            <div class="form-row">
+                                <?php include('misc/php/expiration_date.php')?>
+                                <?php include('misc/php/displaytime_tvdisplay.php')?>
                             </div>
-                            <div id="previewModal" class="modal">
-                                <div class="modal-content-preview">
-                                    <div class="flex-preview-content">
-                                        <div class="preview-website" id="externalProjectPreview">
-                                            <div class="topbar">
-                                                <div class="device-id"></div>
-                                                <h1 class="tv-name"></h1>
-                                                <div class="date-time">
-                                                    <span id="live-clock"></span>
-                                                    <span id="live-date"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="preview-content" id="previewContent"></div>
-                                    </div>
-                                    <!-- Operation buttons inside the Preview modal -->
-                                    <div class="flex-button-modal" style="margin-top: 10px">
-                                        <button type="button" id="cancelButton" class="close-button" onclick="closePreviewModal()">Cancel</button>
-                                        <button type="submit" name="post" class="submit-button">Submit</button>
-                                    </div>
+                            <?php include('misc/php/schedule_post.php')?>
+                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
+                                <div>
+                                    <button type="button" id="schedulePostButton" class="preview-button" style="background: none; color: #316038; border: #316038 solid 1px">
+                                        <i class="fa fa-calendar" style="padding-right: 5px"></i> Schedule Post 
+                                    </button>
+                                </div>
+                                <div>
+                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
+                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
+                                    </button>
                                 </div>
                             </div>
+                            <?php include('misc/php/preview_modal.php') ?>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div id="errorModal" class="modal">
-        <div class="modal-content">
-            <div class="red-bar-vertical">
-                <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
-                <p id="errorText"></p>
-                <br>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button id="okayButton" class="red-button" style="margin: 0" onclick="closeErrorModal()">Okay</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <?php include('misc/php/error_modal.php') ?>
+    <?php include('misc/php/success_modal.php') ?>    
+    <script src="misc/js/wsform_submission.js"></script>
     <script>
-        // JavaScript to handle form submission via WebSocket
-        const form = document.getElementById('eventForm');
-        
-        // Fetch the WebSocket URL from the PHP file
-        fetch('websocket_conn.php')
-        .then(response => response.text())
-        .then(url => {
-            const ws = new WebSocket(url);
-
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                const formData = new FormData(form);
-                const data = { 
-                    action: 'post_content'
-                };
-
-                // Check for file input
-                const mediaInput = document.getElementById('media');
-                if (mediaInput.files.length > 0) {
-                    const mediaFile = mediaInput.files[0];
-                    const reader = new FileReader();
-
-                    reader.onload = function (e) {
-                        const base64Data = e.target.result;
-                        formData.set('media', base64Data);
-                        formData.forEach((value, key) => {
-                            data[key] = value;
-                        });
-
-                        ws.send(JSON.stringify(data));
-                    };
-
-                    reader.readAsDataURL(mediaFile);
-                } else {
-                    formData.forEach((value, key) => {
-                        data[key] = value;
-                    });
-
-                    console.log('Form Data:', data);
-                    ws.send(JSON.stringify(data));
-                }
-
-                // Listen for messages from the WebSocket server
-                ws.onmessage = function(event) {
-                    const message = JSON.parse(event.data);
-                    if (message.success) {
-                        // Redirect the user to user_home.php if success
-                        window.location.href = "user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>";
-                    } else {
-                        // Display an error modal
-                        document.getElementById('errorText').textContent = "Error processing event. Try again later";
-                        document.getElementById('errorModal').style.display = 'flex';
-                    }
-                };
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching WebSocket URL:', error);
-        });
-        
-        document.getElementById('cancelButton').addEventListener('click', function() {
-            closePreviewModal();
-        });
-
-        document.getElementById('okayButton').addEventListener('click', function() {
-            closeErrorModal();
-        });
-        
-        function validateAndOpenPreviewModal() {
-            var eventHeading = document.querySelector('[name="event_heading"]').value;
-            // var eventLocation = document.querySelector('[name="event_location"]').value;
-            // var regLink = document.querySelector('[name="reg_link"]').value;
-            var displayTime = document.querySelector('[name="display_time"]').value;
-            var tvDisplay = document.querySelector('[name="tv_id"]').value;
-            var expirationDate = document.querySelector('[name="expiration_date"]').value;
-            var expirationTime = document.querySelector('[name="expiration_time"]').value;
-            var scheduleDate = document.querySelector('[name="schedule_date"]').value;
-            var scheduleTime = document.querySelector('[name="schedule_time"]').value;
-
-            // Check if any of the required fields is empty
-            if (eventHeading.trim() === "" || displayTime === "" || tvDisplay === "" || expirationDate === "" || expirationTime === "") {
-                // If conditions are not met, show error message
-                errorModalMessage("Please fill the necessary fields.");
-            } else {
-                // Check if expiration date and time are in the past
-                var expirationDateTime = new Date(expirationDate + ' ' + expirationTime);
-                var currentDateTime = new Date();
-
-                if (expirationDateTime < currentDateTime) {
-                    errorModalMessage("Expiration date and time should not be behind the present time.");
-                } else {
-                    // Check if schedule date and time are in the past
-                    if (scheduleDate !== "" && scheduleTime !== "") {
-                        var scheduleDateTime = new Date(scheduleDate + ' ' + scheduleTime);
-
-                        if (scheduleDateTime < currentDateTime) {
-                            errorModalMessage("Schedule date and time should not be behind the present time.");
-                            return;
-                        }
-                    }
-
-                    // If conditions are met, enable the button and open the preview modal
-                    openPreviewModal();
-                }
-            }
-        }
-
-        function errorModalMessage(errorMessage) {
-            var modal = document.getElementById('errorModal');
-            modal.style.display = 'flex';
-
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
-                }
-            }
-
-            // Display error message
-            document.getElementById('errorText').textContent = errorMessage;
-
-            // Okay Button click event
-            document.getElementById('okayButton').addEventListener('click', function () {
-                modal.style.display = 'none';
-            });
-        }
-    
-        // Function to preview selected video or image
-        function previewMedia() {
-            var mediaInput = document.getElementById('media');
-            var videoPreview = document.getElementById('video-preview');
-            var imagePreview = document.getElementById('image-preview');
-            var previewMedia = document.querySelector('.preview-media'); 
-            var cancelMediaButton = document.getElementById('cancelMediaButton');
-
-            if (mediaInput.files && mediaInput.files[0]) {
-                var reader = new FileReader();
-
-                reader.onload = function (e) {
-                    var fileType = mediaInput.files[0].type;
-
-                    if (fileType.startsWith('video/')) {
-                        // Display video preview
-                        videoPreview.src = e.target.result;
-                        videoPreview.style.display = 'block';
-                        imagePreview.style.display = 'none';
-                    } else if (fileType.startsWith('image/')) {
-                        // Display image preview
-                        imagePreview.src = e.target.result;
-                        imagePreview.style.display = 'block';
-                        videoPreview.style.display = 'none';
-                    }
-
-                    // Show the preview-media container
-                    previewMedia.style.display = 'flex';
-                    cancelMediaButton.style.display = 'inline-block';
-                };
-
-                reader.readAsDataURL(mediaInput.files[0]);
-            }
-        }
-
-        // Function to cancel the media upload
-        function cancelMedia() {
-            var mediaInput = document.getElementById('media');
-            var videoPreview = document.getElementById('video-preview');
-            var imagePreview = document.getElementById('image-preview');
-            var previewMedia = document.querySelector('.preview-media'); // Selecting the preview-media element
-            var cancelMediaButton = document.getElementById('cancelMediaButton'); // Get the cancel button
-
-            // Reset the file input
-            mediaInput.value = '';
-
-            // Hide the previews and the preview-media container
-            videoPreview.style.display = 'none';
-            imagePreview.style.display = 'none';
-            previewMedia.style.display = 'none';
-            
-            // Hide the cancel button
-            cancelMediaButton.style.display = 'none';
-        }
-
-        // Function to open the preview modal
-        function openPreviewModal() {
-            var modal = document.getElementById('previewModal');
-            modal.style.display = 'flex';
-
-            // Get the selected tv_name and device_id from the dropdown
-            var selectedOption = document.querySelector('[name="tv_id"]');
-            var selectedTvName = selectedOption.value;
-            var selectedDeviceId = selectedOption.options[selectedOption.selectedIndex].getAttribute('data-device-id');
-
-            // Display the tv_name and device_id in the modal
-            document.querySelector('.tv-name').textContent = selectedTvName;
-
-            // Clear previous content and append the new content for Device ID
-            var deviceIdContainer = document.querySelector('.device-id');
-            deviceIdContainer.innerHTML = ''; // Clear previous content
-
-            // Add a new paragraph for "Device ID: "
-            var deviceLabelText = document.createElement('p');
-            deviceLabelText.textContent = 'Device ID: ';
-            deviceIdContainer.appendChild(deviceLabelText);
-
-            // Append the device_id after the text
-            var deviceIdParagraph = document.createElement('p');
-            deviceIdParagraph.textContent = selectedDeviceId;
-            deviceIdContainer.appendChild(deviceIdParagraph);
-
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
-                }
-            }
-
-            // Display the preview content in the modal
-            document.getElementById('previewContent').innerHTML = getPreviewContent();
-
-            // Start the clock when modal opens
-            updateClock();
-        }
-
-        // Function to close the preview modal
-        function closePreviewModal() {
-            var modal = document.getElementById('previewModal');
-            modal.style.display = 'none';
-        }
-
-        // Function to close the preview modal
-        function closeErrorModal() {
-            var modal = document.getElementById('errorModal');
-            modal.style.display = 'none';
-        }
-
-        // Function to get the preview content
-        function getPreviewContent() {
-            // Function to format date and time
-            function formatDateTime(dateString, timeString) {
-                const dateTime = new Date(dateString + ' ' + timeString);
-                const options = {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: 'numeric',
-                    hour12: true
-                };
-                return new Intl.DateTimeFormat('en-US', options).format(dateTime);
-            }
-
-            var previewContent = '';
-            previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
-            previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_date"]').value, document.querySelector('[name="expiration_time"]').value) + '</p>';
-            previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + (document.querySelector('[name="schedule_date"]').value ? formatDateTime(document.querySelector('[name="schedule_date"]').value, document.querySelector('[name="schedule_time"]').value) : 'Not scheduled') + '</p>';
-            previewContent += '<p class="preview-input"><strong>TV Display: </strong><br>' + document.querySelector('[name="tv_id"]').value + '</p>';
-            return previewContent;
-        }
-        
-        // Function to update the clock
-        function updateClock() {
-            const now = new Date();
-            const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
-            let hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12; // Convert to 12-hour format
-            const dayOfWeek = daysOfWeek[now.getDay()]; // Get day of the week
-            const month = months[now.getMonth()]; // Get full month name
-            const day = now.getDate().toString().padStart(2, '0');
-            const year = now.getFullYear();
-
-            document.getElementById('live-clock').textContent = hours + ':' + minutes + ' ' + ampm;
-            document.getElementById('live-date').textContent = dayOfWeek + ', ' + month + ' ' + day + ', ' + year;
-        }
-
-        // Update the clock every second
-        setInterval(updateClock, 1000);
-        updateClock(); // Initial update
-
-        // Function to display the Schedule Post inputs
-        function displaySchedulePostInputs() {
-            var schedulePostOption = document.getElementById("schedulePostOption");
-            schedulePostOption.style.display = "none";
-
-            var cancelSchedulePostOption = document.getElementById("cancelSchedulePostOption");
-            cancelSchedulePostOption.style.display = "block";
-
-            var schedulePostInputs = document.getElementById("schedulePostInputs");
-            schedulePostInputs.classList.remove('hide'); // Remove hide class if present
-            schedulePostInputs.style.display = "block"; // Ensure it's displayed before adding class
-            schedulePostInputs.classList.add('show'); // Trigger the slide-in animation
-        }
-
-        function cancelSchedulePostInputs() {
-            var schedulePostInputs = document.getElementById("schedulePostInputs");
-            schedulePostInputs.classList.remove('show'); // Remove show class to start slide-out animation
-            schedulePostInputs.classList.add('hide'); // Add hide class for slide-out effect
-
-            var schedulePostOption = document.getElementById("schedulePostOption");
-            schedulePostOption.style.display = "block";
-
-            var cancelSchedulePostOption = document.getElementById("cancelSchedulePostOption");
-            cancelSchedulePostOption.style.display = "none";
-
-            // Hide the element after the animation is done (500ms)
-            setTimeout(function() {
-                schedulePostInputs.style.display = "none"; 
-            }, 500);
-
-            document.getElementById("schedule_date").value = null; 
-            document.getElementById("schedule_time").value = null; 
-        }
+        const containers = <?php echo json_encode($containers); ?>;
+        const tvNames = <?php echo json_encode($tv_names); ?>;
     </script>
 </body>
 </html>
