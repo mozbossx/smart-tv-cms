@@ -251,7 +251,7 @@ class ContentHandler implements MessageComponentInterface
                 'peo' => [
                     'table' => 'peo_tb',
                     'idField' => 'peo_id',
-                    'fields' => ['peo_title', 'peo_description', 'peo_1', 'peo_2', 'peo_3', 'peo_4', 'peo_5', 'peo_6', 'peo_7', 'peo_8', 'peo_9', 'peo_10', 'peo_author', 'created_date', 'created_time', 'display_time', 'tv_id']
+                    'fields' => ['peo_title', 'peo_description', 'peo_subdescription', 'peo_author', 'created_date', 'created_time', 'display_time', 'tv_id']
                 ],
                 'so' => [
                     'table' => 'so_tb',
@@ -1132,13 +1132,10 @@ class ContentHandler implements MessageComponentInterface
                     } elseif ($data['type'] === 'peo') {
                         $fields[] = 'peo_title';
                         $fields[] = 'peo_description';
+                        $fields[] = 'peo_subdescription';                        
                         $values[] = $data['peo_title'] ?? null;
                         $values[] = $data['peo_description'] ?? null;
-                        // Ensure all PEO subdescription fields are set to an empty string if not provided
-                        for ($i = 1; $i <= 10; $i++) {
-                            $fields[] = 'peo_' . $i;
-                            $values[] = $data['peo_' . $i] ?? null;
-                        }
+                        $values[] = $data['peo_subdescription'] ?? null;                        
                     } elseif ($data['type'] === 'so') {
                         $fields[] = 'so_title';
                         $fields[] = 'so_description';
@@ -1192,7 +1189,7 @@ class ContentHandler implements MessageComponentInterface
                         $from->send(json_encode(['error' => 'Error saving draft for ' . $data['type'] . '. Try again later']));
                     }
                 }
-            } else {
+            } else if (empty($data['tv_ids'])) {
                 error_log("No TV IDs provided."); // Log for debugging
                 $status = 'Draft';
                 $category = match ($data['type']) {
@@ -1251,14 +1248,14 @@ class ContentHandler implements MessageComponentInterface
                     'so' => 'so_author',
                     default => 'No Author Found'
                 };
-
+                
                 // Common fields for all types
                 $fields = [
                     'department', 'user_type', $authorField, 'tv_id', 'display_time',
                     'category', 'created_date', 'created_time', 'isCancelled', 'status'
                 ];
                 $values = [
-                    $department, $user_type, $full_name, $data['tv_ids'] ?? null, $data['display_time'] ?? null,
+                    $department, $user_type, $full_name, null, $data['display_time'] ?? null,
                     $category, $created_date, $created_time, $isCancelled, $status
                 ];
 
@@ -1312,13 +1309,10 @@ class ContentHandler implements MessageComponentInterface
                 } elseif ($data['type'] === 'peo') {
                     $fields[] = 'peo_title';
                     $fields[] = 'peo_description';
+                    $fields[] = 'peo_subdescription';
                     $values[] = $data['peo_title'] ?? null;
                     $values[] = $data['peo_description'] ?? null;
-                    // Ensure all PEO subdescription fields are set to an empty string if not provided
-                    for ($i = 1; $i <= 10; $i++) {
-                        $fields[] = 'peo_' . $i;
-                        $values[] = $data['peo_' . $i] ?? null;
-                    }
+                    $values[] = $data['peo_subdescription'] ?? null;                    
                 } elseif ($data['type'] === 'so') {
                     $fields[] = 'so_title';
                     $fields[] = 'so_description';
@@ -1508,13 +1502,10 @@ class ContentHandler implements MessageComponentInterface
                     } elseif ($data['type'] === 'peo') {
                         $fields[] = 'peo_title';
                         $fields[] = 'peo_description';
+                        $fields[] = 'peo_subdescription';
                         $values[] = $data['peo_title'];
                         $values[] = $data['peo_description'];
-                        // Ensure all PEO subdescription fields are set to an empty string if not provided
-                        for ($i = 1; $i <= 10; $i++) {
-                            $fields[] = 'peo_' . $i;
-                            $values[] = $data['peo_' . $i] ?? '';
-                        }
+                        $values[] = $data['peo_subdescription'];
                     } elseif ($data['type'] === 'so') {
                         $fields[] = 'so_title';
                         $fields[] = 'so_description';

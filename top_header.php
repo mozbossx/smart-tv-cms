@@ -24,6 +24,32 @@ $result = $stmt->get_result();
 
 // Close the statement
 $stmt->close();
+
+// Fetch draft counts for each content type
+$draftCounts = [
+    'announcement' => 0,
+    'event' => 0,
+    'news' => 0,
+    'promaterial' => 0,
+];
+
+// Assuming you have a database connection in $conn
+$contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+foreach ($contentTypes as $type) {
+    if ($type !== 'news') {
+        $query = "SELECT COUNT(*) as count FROM {$type}s_tb WHERE status = 'Draft' AND {$type}_author = ?";
+    } else {
+        $query = "SELECT COUNT(*) as count FROM {$type}_tb WHERE status = 'Draft' AND {$type}_author = ?";
+    }
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $full_name);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $draftCounts[$type] = $result->fetch_assoc()['count'];  // Fetch the associative array without arguments
+}
+
+// Check if there are any drafts
+$hasDrafts = array_sum($draftCounts) > 0;
 ?>
 
 <div class="header">
@@ -79,6 +105,13 @@ $stmt->close();
                     <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
                     <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>My Profile</a>
                 </li>
+                <?php if ($hasDrafts) { ?>
+                <li>
+                    <!-- Display Drafts option if there are existing drafts in each content type (announcement, event, news, etc.) -->
+                    <a href="drafts.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                    <?php echo $current_page === 'drafts.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Drafts  <span style="background: crimson; padding: 2px; border: 1px solid white; border-radius: 3px; color: white;"><?php echo array_sum($draftCounts); ?></span></a>
+                </li>
+                <?php } ?>
             </ul>
         </nav>
         <div class="toggle">

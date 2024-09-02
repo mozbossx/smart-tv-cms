@@ -79,127 +79,14 @@ include 'misc/php/options_tv.php';
             </div>
         </div>
     </div>
-    <div id="unsavedChangesModal" class="modal">
-        <div class="modal-content">
-            <div class="green-bar-vertical">
-                <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-file" aria-hidden="true"></i></h1>
-                <p>There are unsaved changes. Proceed to save as draft?</p>
-                <br>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button type="button" id="cancelSaveDraftButton" class="green-button" style="background: none; color: #264B2B; border: 1px solid #264B2B">Cancel</button>
-                    <button type="submit" id="confirmSaveDraftButton" class="green-button" style="margin-right: 0">Yes, Save Draft</button>
-                </div>
-            </div>
-        </div>
-    </div>
     <?php include('misc/php/error_modal.php') ?>
-    <?php include('misc/php/success_modal.php') ?>    
+    <?php include('misc/php/success_modal.php') ?>
+    <?php include('misc/php/save_draft_modal.php') ?>
     <script src="misc/js/wsform_submission.js"></script>
+    <script src="misc/js/capitalize_first_letter.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo json_encode($tv_names); ?>; 
-        const ws = new WebSocket('ws://192.168.1.19:8081?full_name=<?php echo urlencode($full_name); ?>&user_type=<?php echo urlencode($user_type); ?>&department=<?php echo urlencode($department); ?>');
-
-        let isFormDirty = false;
-
-        // Mark the form as dirty when any input changes
-        document.querySelectorAll('.content-form input, .content-form textarea').forEach(input => {
-            input.addEventListener('input', () => {
-                isFormDirty = true;
-                document.getElementById('saveDraftButton').style.display = "block";
-            });
-        });
-
-        // Show confirmation dialog on page unload
-        window.addEventListener('beforeunload', (event) => {
-            if (isFormDirty) {
-                const message = "There are unsaved changes. Proceed to go to a different page?";
-                event.returnValue = message; // For most browsers
-                return message; // For some older browsers
-            }
-        });
-
-        function saveDraft() {
-            const contentType = document.querySelector('[name="type"]').value;
-            const form = document.getElementById(`${contentType}Form`);
-            console.log("saveDraft() called");
-
-            const formData = new FormData(form);
-            const data = { 
-                action: 'save_draft',
-                tv_ids: formData.getAll('tv_id[]') // Collect all tv_id[] values
-            };
-
-            // Check for file input
-            const mediaInput = document.getElementById('media');
-            if (mediaInput && mediaInput.files.length > 0) {
-                const mediaFile = mediaInput.files[0];
-                const reader = new FileReader();
-
-                reader.onload = function (e) {
-                    const base64Data = e.target.result;
-                    formData.set('media', base64Data);
-                    formData.forEach((value, key) => {
-                        data[key] = value;
-                    });
-
-                    ws.send(JSON.stringify(data));
-                };
-
-                reader.readAsDataURL(mediaFile);
-            } else {
-                formData.forEach((value, key) => {
-                    data[key] = value;
-                });
-
-                console.log('Form Data:', data);
-                ws.send(JSON.stringify(data));
-            }
-
-            // Listen for messages from the WebSocket server
-            ws.onmessage = function(event) {
-                const message = JSON.parse(event.data);
-                if (message.success) {
-                    document.getElementById('successMessage').textContent = contentType + " was drafted!";                        
-                    document.getElementById('successMessageModal').style.display = 'flex';
-                } else {
-                    document.getElementById('errorText').textContent = "Error processing " + contentType + ". Try again later";
-                    document.getElementById('errorModal').style.display = 'flex';
-                }
-            };
-
-            ws.onerror = function (event) {
-                console.error('WebSocket error:', event);
-                document.getElementById('errorText').textContent = "Error processing " + contentType + ". Please try again later.";
-                document.getElementById('errorModal').style.display = 'flex';
-            };
-        }
-
-        document.getElementById('saveDraftButton').addEventListener('click', (event) => {
-            if (isFormDirty) {
-                event.preventDefault(); // Prevent default action
-                const unsavedChangesModal = document.getElementById('unsavedChangesModal');
-                
-                // Show the modal
-                unsavedChangesModal.style.display = "flex";
-
-                // Add event listeners only once using one-time event handlers
-                const confirmSaveDraftButton = document.getElementById('confirmSaveDraftButton');
-                const cancelSaveDraftButton = document.getElementById('cancelSaveDraftButton');
-
-                confirmSaveDraftButton.onclick = function() {
-                    saveDraft();
-                    unsavedChangesModal.style.display = "none"; // Close the modal after saving
-                };
-
-                cancelSaveDraftButton.onclick = function() {
-                    unsavedChangesModal.style.display = "none";
-                };
-
-            } else {
-                saveDraft(); // Directly save if no unsaved changes
-            }
-        });
     </script>
 </body>
 </html>

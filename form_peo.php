@@ -56,19 +56,17 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                                 <label for="peo_title" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">PEO Title</label>
                             </div>
                             <div class="floating-label-container">
-                                <textarea name="peo_description" rows="4" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_description"></textarea>
+                                <textarea name="peo_description" rows="3" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_description"></textarea>
                                 <label for="peo_description" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">PEO Description</label>
                             </div>
-                            <div class="input-container">
-                                <div class="floating-label-container" style="display: none; flex-direction: row; align-items: center; background: #e4e4e4; margin-top: 5px; padding: 10px; border-radius: 5px; border: 1px solid black" id="peoSubDescription">
-                                    <textarea name="peo_subdescription" rows="3" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" style="margin-left: 5px"></textarea>
-                                    <label for="peo_subdescription" style="background: #FFFF; width: auto; padding: 5px; left: 20px; margin-top: 15px; border-radius: 0" class="floating-label-text-area">PEO Sub-description</label>
-                                </div>
+                            <div>
+                                <button type="button" id="changeBulletButton" class="preview-button" style="margin-left: 10px" onclick="openModal()">
+                                    Change Bullet Symbol
+                                </button>
                             </div>
-                            <div id="subDescriptionContainerIncrement"></div> <!-- Container for dynamically added input fields -->
-                            <div style="display: flex; flex-direction: row">
-                                <button class="plus-button" type="button" onclick="addPEOsubdescription()" style="display: block" id="add_peo_button"><i class="fa fa-plus-circle" aria-hidden="true"></i> New PEO Sub-description</button>
-                                <!-- <button class="delete-peo-button" type="button" onclick="deletePEOsubdescription()" style="display: none" id="deletePEOSubButton"><i class="fa fa-times" aria-hidden="true"></i> Cancel</button> -->
+                            <div class="floating-label-container">
+                                <textarea name="peo_subdescription" rows="5" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_subdescription"></textarea>
+                                <label for="peo_subdescription" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">PEO Sub-Description</label>
                             </div>
                             <?php include('misc/php/displaytime_tvdisplay.php')?>
                             <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
@@ -78,6 +76,15 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                                     </button>
                                 </div>
                             </div>
+                            <div class="modal" id="bulletSymbolModal" style="display:none;">
+                                <div class="modal-content">
+                                    <span class="close" onclick="closeModal()">&times;</span>
+                                    <h2>Select Bullet Symbol</h2>
+                                    <label><input type="checkbox" value="•" onchange="updateBulletSymbol(this)"> •</label><br>
+                                    <label><input type="checkbox" value=">" onchange="updateBulletSymbol(this)"> ></label><br>
+                                    <button onclick="closeModal()">Close</button>
+                                </div>
+                            </div>
                             <?php include('misc/php/preview_modal.php') ?>
                         </form>
                     </div>
@@ -85,127 +92,62 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
             </div>
         </div>
     </div>
-    <div id="confirmDeleteModal" class="modal">
-        <div class="modal-content">
-            <div class="red-bar-vertical">
-                <span class="close" id="confirmDeleteNo" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-                <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-                <p>Proceed to delete this subdescription?</p>
-                <br>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button id="confirmDeleteYes" class="red-button" style="margin-right: 0"><b>Yes, delete sub-description</b></button>
-                </div>
-            </div>
-        </div>
-    </div>
     <?php include('misc/php/error_modal.php') ?>
     <?php include('misc/php/success_modal.php') ?>    
     <script src="misc/js/wsform_submission.js"></script>
+    <script src="misc/js/capitalize_first_letter.js"></script>
     <script>
-        let peoCounter = 1; // Initialize a counter for generating unique IDs
-        const maxPEOsubDescriptions = 11;
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo json_encode($tv_names); ?>;
-        
-        // function validateAndOpenPreviewModal() {
-        //     var peo_title = document.querySelector('[name="peo_title"]').value;
-        //     var peo_description = document.querySelector('[name="peo_description"]').value;
+        // Add bullet point to the new textarea
+        var textarea = document.getElementById('peo_subdescription');
+        let bulletSymbol = '• '; // Default bullet symbol
+        textarea.value = bulletSymbol;
 
-        //     // Collect all subdescription textareas
-        //     var peo_subdescriptions = document.querySelectorAll('#subDescriptionContainerIncrement textarea');
-        //     var allSubDescriptionsFilled = true;
-
-        //     // Check if any of the subdescription textareas is empty
-        //     peo_subdescriptions.forEach(function(textarea) {
-        //         if (textarea.value.trim() === "") {
-        //             allSubDescriptionsFilled = false;
-        //         }
-        //     });
-
-        //     // Check if any of the required fields is empty
-        //     if (peo_title.trim() === "" || peo_description === "" || !allSubDescriptionsFilled) {
-        //         // If conditions are not met, show error message
-        //         errorModalMessage("Please fill the necessary fields.");
-        //     }
-        // }
-        
-        function generateUniqueId() {
-            return 'peo_' + peoCounter++;
+        function openModal() {
+            document.getElementById('bulletSymbolModal').style.display = 'flex';
         }
 
-        function addPEOsubdescription() {
-            if (peoCounter < maxPEOsubDescriptions) { // Change this condition
-                var peoSubDescription = document.getElementById("peoSubDescription");
-                var clone = peoSubDescription.cloneNode(true); // Clone the element
+        function closeModal() {
+            document.getElementById('bulletSymbolModal').style.display = 'none';
+        }
 
-                // Create a new delete button for the cloned textarea
-                var deleteButton = document.createElement("button");
-                deleteButton.type = "button";
-                deleteButton.classList.add('delete-peo-button');
-                deleteButton.innerHTML = '<i class="fa fa-times" aria-hidden="true"></i> Delete';
-                deleteButton.onclick = function() {
-                    deletePEOsubdescription(clone, clone.querySelector('textarea')); // Pass the textarea
-                };
-                clone.appendChild(deleteButton); // Append the delete button to the cloned element
-
-                // Change the id of the cloned element to avoid duplicates
-                var newId = generateUniqueId();
-                clone.setAttribute("id", newId);
-                console.log(peoCounter);
-
-                // Set display to block for the cloned element
-                clone.style.display = "flex";
-
-                var textarea = clone.querySelector('textarea');
-                
-
-                // Append the cloned element to the container
-                document.getElementById("subDescriptionContainerIncrement").appendChild(clone);
-                
-                // Check if the maximum has been reached
-                if (peoCounter >= maxPEOsubDescriptions) {
-                    document.getElementById("add_peo_button").style.display = "none"; // Hide button
-                }
-            } else {
-                alert("Maximum of 10 subdescriptions can be added.");
+        function updateBulletSymbol(checkbox) {
+            if (checkbox.checked) {
+                bulletSymbol = checkbox.value + ' '; // Update bullet symbol
+                textarea.value = textarea.value.replace(/^[• >]+/g, bulletSymbol); // Replace existing bullet
             }
         }
 
-        function deletePEOsubdescription(clone, textarea) {
-            // Check if the textarea is not empty
-            if (textarea.value.trim() !== "") {
-                // Show confirmation modal
-                document.getElementById("confirmDeleteModal").style.display = "flex";
-
-                // Handle confirmation
-                document.getElementById("confirmDeleteYes").onclick = function() {
-                    var container = document.getElementById("subDescriptionContainerIncrement");
-                    container.removeChild(clone); // Remove the specific cloned textarea
-                    --peoCounter;
-
-                    // Check if we need to show the button again
-                    if (peoCounter < maxPEOsubDescriptions) {
-                        document.getElementById("add_peo_button").style.display = "block"; // Show button
-                    }
-
-                    document.getElementById("confirmDeleteModal").style.display = "none"; // Hide modal
-                };
-
-                document.getElementById("confirmDeleteNo").onclick = function() {
-                    document.getElementById("confirmDeleteModal").style.display = "none"; // Hide modal
-                };
-            } else {
-                // Directly delete if textarea is empty
-                var container = document.getElementById("subDescriptionContainerIncrement");
-                container.removeChild(clone); // Remove the specific cloned textarea
-                --peoCounter;
-
-                // Check if we need to show the button again
-                if (peoCounter < maxPEOsubDescriptions) {
-                    document.getElementById("add_peo_button").style.display = "block"; // Show button
-                }
+        function changeBulletSymbol() {
+            const newSymbol = prompt("Enter new bullet symbol (e.g., -, >, abcd):", bulletSymbol.trim());
+            if (newSymbol) {
+                bulletSymbol = newSymbol + ' '; // Update bullet symbol
+                textarea.value = textarea.value.replace(/^[• ]+/g, bulletSymbol); // Replace existing bullet
             }
         }
+
+        // Update the event listener to use the new bullet symbol
+        textarea.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent the default newline
+                const currentText = textarea.value;
+                textarea.value = currentText + '\n' + bulletSymbol; // Add new bullet symbol on new line
+            }
+        });
+
+        // Prevent deletion of the bullet point
+        textarea.addEventListener('keydown', function(event) {
+            const currentText = textarea.value;
+            const cursorPosition = textarea.selectionStart;
+
+            // Prevent deletion if the cursor is at the start or right after the bullet
+            if (event.key === 'Backspace' || event.key === 'Delete') {
+                if (cursorPosition <= 2) { // Prevent deletion if at the start or right after the bullet
+                    event.preventDefault(); // Prevent deletion
+                }
+            }
+        });    
     </script>
 </body>
 </html>

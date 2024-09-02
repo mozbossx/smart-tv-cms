@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Redirect the user to user_home.php if success
                         // Display successMessageModal
                         // Set the success message
-                        document.getElementById('successMessage').textContent = contentType + " was successfully processed!";                        
+                        document.getElementById('successMessage').textContent = capitalizeFirstLetter(contentType) + " was successfully processed!";                        
                         document.getElementById('successMessageModal').style.display = 'flex';
                     } else {
                         // Display an error modal
