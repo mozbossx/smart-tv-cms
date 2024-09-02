@@ -1,7 +1,7 @@
 <div class="form-column" style="flex: 1">
     <div class="floating-label-container" style="flex: 1">
-        <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF">
-            <option value="">~</option>
+        <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
+            <option value="">Select Display Time</option>
             <option value="10">10 seconds</option>
             <option value="11">11 seconds</option>
             <option value="12">12 seconds</option>

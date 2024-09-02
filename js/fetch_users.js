@@ -1,4 +1,4 @@
-const ws = new WebSocket('ws://192.168.1.11:8081');
+const ws = new WebSocket('ws://192.168.1.19:8081');
 const userTableContainer = document.getElementById('userTableContainer');
 
 const loggedInUserId = document.getElementById('user-data').getAttribute('data-user-id');

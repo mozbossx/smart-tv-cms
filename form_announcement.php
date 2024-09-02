@@ -86,8 +86,8 @@ include 'misc/php/options_tv.php';
                 <p>There are unsaved changes. Proceed to save as draft?</p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
-                    <button id="cancelSaveDraftButton" class="green-button" style="background: none; color: #264B2B; border: 1px solid #264B2B">Cancel</button>
-                    <button id="confirmSaveDraftButton" class="green-button" style="margin-right: 0">Yes, Save Draft</button>
+                    <button type="button" id="cancelSaveDraftButton" class="green-button" style="background: none; color: #264B2B; border: 1px solid #264B2B">Cancel</button>
+                    <button type="submit" id="confirmSaveDraftButton" class="green-button" style="margin-right: 0">Yes, Save Draft</button>
                 </div>
             </div>
         </div>
@@ -97,12 +97,13 @@ include 'misc/php/options_tv.php';
     <script src="misc/js/wsform_submission.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
-        const tvNames = <?php echo json_encode($tv_names); ?>;
+        const tvNames = <?php echo json_encode($tv_names); ?>; 
+        const ws = new WebSocket('ws://192.168.1.19:8081?full_name=<?php echo urlencode($full_name); ?>&user_type=<?php echo urlencode($user_type); ?>&department=<?php echo urlencode($department); ?>');
 
         let isFormDirty = false;
 
         // Mark the form as dirty when any input changes
-        document.querySelectorAll('#announcementForm input, #announcementForm textarea').forEach(input => {
+        document.querySelectorAll('.content-form input, .content-form textarea').forEach(input => {
             input.addEventListener('input', () => {
                 isFormDirty = true;
                 document.getElementById('saveDraftButton').style.display = "block";
@@ -118,36 +119,83 @@ include 'misc/php/options_tv.php';
             }
         });
 
-        // Save Draft function
         function saveDraft() {
-            // Set isDraft flag to 1 (true)
-            const isDraft = 1; // or true, depending on your implementation
+            const contentType = document.querySelector('[name="type"]').value;
+            const form = document.getElementById(`${contentType}Form`);
+            console.log("saveDraft() called");
 
-            // Your logic to save the draft goes here
-            // For example, an AJAX call to save the draft
-            console.log("Draft saved with isDraft flag set to:", isDraft);
+            const formData = new FormData(form);
+            const data = { 
+                action: 'save_draft',
+                tv_ids: formData.getAll('tv_id[]') // Collect all tv_id[] values
+            };
 
-            // Reset the dirty flag after saving
-            isFormDirty = false;
+            // Check for file input
+            const mediaInput = document.getElementById('media');
+            if (mediaInput && mediaInput.files.length > 0) {
+                const mediaFile = mediaInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const base64Data = e.target.result;
+                    formData.set('media', base64Data);
+                    formData.forEach((value, key) => {
+                        data[key] = value;
+                    });
+
+                    ws.send(JSON.stringify(data));
+                };
+
+                reader.readAsDataURL(mediaFile);
+            } else {
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                console.log('Form Data:', data);
+                ws.send(JSON.stringify(data));
+            }
+
+            // Listen for messages from the WebSocket server
+            ws.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                if (message.success) {
+                    document.getElementById('successMessage').textContent = contentType + " was drafted!";                        
+                    document.getElementById('successMessageModal').style.display = 'flex';
+                } else {
+                    document.getElementById('errorText').textContent = "Error processing " + contentType + ". Try again later";
+                    document.getElementById('errorModal').style.display = 'flex';
+                }
+            };
+
+            ws.onerror = function (event) {
+                console.error('WebSocket error:', event);
+                document.getElementById('errorText').textContent = "Error processing " + contentType + ". Please try again later.";
+                document.getElementById('errorModal').style.display = 'flex';
+            };
         }
 
         document.getElementById('saveDraftButton').addEventListener('click', (event) => {
             if (isFormDirty) {
                 event.preventDefault(); // Prevent default action
                 const unsavedChangesModal = document.getElementById('unsavedChangesModal');
+                
+                // Show the modal
+                unsavedChangesModal.style.display = "flex";
+
+                // Add event listeners only once using one-time event handlers
                 const confirmSaveDraftButton = document.getElementById('confirmSaveDraftButton');
                 const cancelSaveDraftButton = document.getElementById('cancelSaveDraftButton');
 
-                unsavedChangesModal.style.display = "flex";
-
-                confirmSaveDraftButton.addEventListener('click', function() {
+                confirmSaveDraftButton.onclick = function() {
                     saveDraft();
-                    unsavedChangesModal.style.display = "none";
-                });
+                    unsavedChangesModal.style.display = "none"; // Close the modal after saving
+                };
 
-                cancelSaveDraftButton.addEventListener('click', function() {
+                cancelSaveDraftButton.onclick = function() {
                     unsavedChangesModal.style.display = "none";
-                });
+                };
+
             } else {
                 saveDraft(); // Directly save if no unsaved changes
             }

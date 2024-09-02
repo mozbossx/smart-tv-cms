@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.11:8081');
+const Ws = new WebSocket('ws://192.168.1.19:8081');
 const notificationsContainer = document.getElementById('notificationsContainer');
 
 const updateNotificationUI = (data) => {

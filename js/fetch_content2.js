@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.11:8081');
+const Ws = new WebSocket('ws://192.168.1.19:8081');
 
 // Function to format date to "MM DD YYYY"
 const formatDate = (dateString) => {
@@ -49,7 +49,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDate, formattedCre
 
 // Function to update UI for announcement, event, news, etc.
 const updateUI = (data, type) => {
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data[`${type}_id`]) return;
+    if (data.status === 'Pending' || data.status === 'Draft' || data.isCancelled === 1 || !data[`${type}_id`]) return;
 
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDate = formatDate(data.created_date);
@@ -297,7 +297,7 @@ const fetchAndUpdate = (type) => {
         .then(response => response.json())
         .then(data => {
             const filteredData = data.filter(item => 
-                item.status !== 'Pending' &&
+                item.status === 'Approved' &&
                 item.tv_id === parseInt(tvId, 10) &&
                 item.isCancelled === 0
             );

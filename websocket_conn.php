@@ -11,6 +11,6 @@ $full_name = urlencode($_SESSION['full_name']);
 $user_type = urlencode($_SESSION['user_type']);
 $department = urlencode($_SESSION['department']);
 
-$websocket_url = "ws://192.168.1.11:8081?full_name={$full_name}&user_type={$user_type}&department={$department}";
+$websocket_url = "ws://192.168.1.19:8081?full_name={$full_name}&user_type={$user_type}&department={$department}";
 echo $websocket_url;
 ?>

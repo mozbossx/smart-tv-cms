@@ -1005,6 +1005,375 @@ class ContentHandler implements MessageComponentInterface
             }
         }
 
+        else if (isset($data['action']) && $data['action'] === 'save_draft') {
+            // Access values from the connection object
+            $full_name = $from->full_name;
+            $user_type = $from->user_type;
+            $department = $from->department;
+            if (isset($data['tv_ids']) && is_array($data['tv_ids']) && !empty($data['tv_ids'])) { // Check for tv_id as an array
+                error_log("TV IDs are selected."); // Log for debugging
+                // $tv_ids = $data['tv_ids'];
+                foreach ($data['tv_ids'] as $tv_ids) { 
+                    $status = 'Draft';
+                    $category = match ($data['type']) {
+                        'event' => 'Event',
+                        'announcement' => 'Announcement',
+                        'news' => 'News',
+                        'promaterial' => 'Promotional Materials',
+                        'peo' => 'PEO',
+                        'so' => 'SO',
+                        default => 'Unknown'
+                    };
+
+                    $isCancelled = 0;
+                    $created_date = date('Y-m-d');
+                    $created_time = date('H:i:s');
+
+                    // Determine media folder
+                    $mediaFolder = match ($data['type']) {
+                        'event' => 'event_media',
+                        'announcement' => 'announcement_media',
+                        'news' => 'news_media',
+                        'promaterial' => 'promaterial_media',
+                        default => null
+                    };
+
+                    if ($mediaFolder && !file_exists($mediaFolder)) {
+                        mkdir($mediaFolder, 0777, true);
+                    }
+
+                    $table = match ($data['type']) {
+                        'announcement' => 'announcements_tb',
+                        'event' => 'events_tb',
+                        'news' => 'news_tb',
+                        'promaterial' => 'promaterials_tb',
+                        'peo' => 'peo_tb',
+                        'so' => 'so_tb',
+                        default => 'No Table Found'
+                    };
+
+                    $idField = match ($data['type']) {
+                        'announcement' => 'announcement_id',
+                        'event' => 'event_id',
+                        'news' => 'news_id',
+                        'promaterial' => 'promaterial_id',
+                        'peo' => 'peo_id',
+                        'so' => 'so_id',
+                        default => 'No Content ID Found'
+                    };
+
+                    $authorField = match ($data['type']) {
+                        'announcement' => 'announcement_author',
+                        'event' => 'event_author',
+                        'news' => 'news_author',
+                        'promaterial' => 'promaterial_author',
+                        'peo' => 'peo_author',
+                        'so' => 'so_author',
+                        default => 'No Author Found'
+                    };
+
+                    // Common fields for all types
+                    $fields = [
+                        'department', 'user_type', $authorField, 'tv_id', 'display_time',
+                        'category', 'created_date', 'created_time', 'isCancelled', 'status'
+                    ];
+                    $values = [
+                        $department, $user_type, $full_name, $tv_ids, $data['display_time'] ?? null,
+                        $category, $created_date, $created_time, $isCancelled, $status
+                    ];
+
+                    // Add type-specific fields
+                    if ($data['type'] === 'event') {
+                        $fields[] = 'event_heading';
+                        $fields[] = 'event_location';
+                        $fields[] = 'reg_link';
+                        $fields[] = 'expiration_date';
+                        $fields[] = 'expiration_time';
+                        $fields[] = 'schedule_date';
+                        $fields[] = 'schedule_time';
+                        $values[] = $data['event_heading'] ?? null;
+                        $values[] = $data['event_location'] ?? null;
+                        $values[] = $data['reg_link'] ?? null;
+                        $values[] = $data['expiration_date'] ?? null;
+                        $values[] = $data['expiration_time'] ?? null;
+                        $values[] = $data['schedule_date'] ?? null;
+                        $values[] = $data['schedule_time'] ?? null;
+                    } elseif ($data['type'] === 'news') {
+                        $fields[] = 'news_heading';
+                        $fields[] = 'expiration_date';
+                        $fields[] = 'expiration_time';
+                        $fields[] = 'schedule_date';
+                        $fields[] = 'schedule_time';
+                        $values[] = $data['news_heading'] ?? null;
+                        $values[] = $data['expiration_date'] ?? null;
+                        $values[] = $data['expiration_time'] ?? null;
+                        $values[] = $data['schedule_date'] ?? null;
+                        $values[] = $data['schedule_time'] ?? null;
+                    } elseif ($data['type'] === 'announcement') {
+                        $fields[] = 'ann_body';
+                        $fields[] = 'expiration_date';
+                        $fields[] = 'expiration_time';
+                        $fields[] = 'schedule_date';
+                        $fields[] = 'schedule_time';
+                        $values[] = $data['ann_body'] ?? null;
+                        $values[] = $data['expiration_date'] ?? null;
+                        $values[] = $data['expiration_time'] ?? null;
+                        $values[] = $data['schedule_date'] ?? null;
+                        $values[] = $data['schedule_time'] ?? null;
+                    } elseif ($data['type'] === 'promaterial') {
+                        $fields[] = 'expiration_date';
+                        $fields[] = 'expiration_time';
+                        $fields[] = 'schedule_date';
+                        $fields[] = 'schedule_time';
+                        $values[] = $data['expiration_date'] ?? null;
+                        $values[] = $data['expiration_time'] ?? null;
+                        $values[] = $data['schedule_date'] ?? null;
+                        $values[] = $data['schedule_time'] ?? null;
+                    } elseif ($data['type'] === 'peo') {
+                        $fields[] = 'peo_title';
+                        $fields[] = 'peo_description';
+                        $values[] = $data['peo_title'] ?? null;
+                        $values[] = $data['peo_description'] ?? null;
+                        // Ensure all PEO subdescription fields are set to an empty string if not provided
+                        for ($i = 1; $i <= 10; $i++) {
+                            $fields[] = 'peo_' . $i;
+                            $values[] = $data['peo_' . $i] ?? null;
+                        }
+                    } elseif ($data['type'] === 'so') {
+                        $fields[] = 'so_title';
+                        $fields[] = 'so_description';
+                        $values[] = $data['so_title'] ?? null;
+                        $values[] = $data['so_description'] ?? null;
+                        // Ensure all SO subdescription fields are set to an empty string if not provided
+                        for ($i = 1; $i <= 10; $i++) {
+                            $fields[] = 'so_' . $i;
+                            $values[] = $data['so_' . $i] ?? null;
+                        }
+                    }
+
+                    $fieldList = implode(', ', $fields);
+                    $placeholderList = implode(', ', array_fill(0, count($fields), '?'));
+
+                    $statement = $this->pdo->prepare(
+                        "INSERT INTO $table ($fieldList) VALUES ($placeholderList)"
+                    );
+
+                    $success = $statement->execute($values);
+
+                    if ($success) {
+                        $id = $this->pdo->lastInsertId();
+                        $data[$idField] = $id;
+                        $data[$authorField] = $full_name;
+                        $data['created_date'] = $created_date;
+                        $data['created_time'] = $created_time;
+                        $data['category'] = $category;
+                        $data['user_type'] = $user_type;
+                        $data['status'] = $status;
+
+                        if (!empty($data['media'])) {
+                            $base64Data = $data['media'];
+                            $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
+                            $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
+                            $filename = "{$id}.{$fileExtension}";
+                            $media_save = "{$mediaFolder}/{$filename}";
+
+                            file_put_contents($media_save, $mediaData);
+
+                            // Update the record with media_path
+                            $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                            $updateStatement->execute([$filename, $id]);
+
+                            $data['media_path'] = $filename;
+                        }
+
+                        $from->send(json_encode(['success' => true, 'data' => $data]));
+                        echo ucfirst($data['type']) . " draft saved " . (!empty($data['media']) ? 'with' : 'without') . " media!\n";
+                    } else {
+                        $from->send(json_encode(['error' => 'Error saving draft for ' . $data['type'] . '. Try again later']));
+                    }
+                }
+            } else {
+                error_log("No TV IDs provided."); // Log for debugging
+                $status = 'Draft';
+                $category = match ($data['type']) {
+                    'event' => 'Event',
+                    'announcement' => 'Announcement',
+                    'news' => 'News',
+                    'promaterial' => 'Promotional Materials',
+                    'peo' => 'PEO',
+                    'so' => 'SO',
+                    default => 'Unknown'
+                };
+
+                $isCancelled = 0;
+                $created_date = date('Y-m-d');
+                $created_time = date('H:i:s');
+
+                // Determine media folder
+                $mediaFolder = match ($data['type']) {
+                    'event' => 'event_media',
+                    'announcement' => 'announcement_media',
+                    'news' => 'news_media',
+                    'promaterial' => 'promaterial_media',
+                    default => null
+                };
+
+                if ($mediaFolder && !file_exists($mediaFolder)) {
+                    mkdir($mediaFolder, 0777, true);
+                }
+
+                $table = match ($data['type']) {
+                    'announcement' => 'announcements_tb',
+                    'event' => 'events_tb',
+                    'news' => 'news_tb',
+                    'promaterial' => 'promaterials_tb',
+                    'peo' => 'peo_tb',
+                    'so' => 'so_tb',
+                    default => 'No Table Found'
+                };
+
+                $idField = match ($data['type']) {
+                    'announcement' => 'announcement_id',
+                    'event' => 'event_id',
+                    'news' => 'news_id',
+                    'promaterial' => 'promaterial_id',
+                    'peo' => 'peo_id',
+                    'so' => 'so_id',
+                    default => 'No Content ID Found'
+                };
+
+                $authorField = match ($data['type']) {
+                    'announcement' => 'announcement_author',
+                    'event' => 'event_author',
+                    'news' => 'news_author',
+                    'promaterial' => 'promaterial_author',
+                    'peo' => 'peo_author',
+                    'so' => 'so_author',
+                    default => 'No Author Found'
+                };
+
+                // Common fields for all types
+                $fields = [
+                    'department', 'user_type', $authorField, 'tv_id', 'display_time',
+                    'category', 'created_date', 'created_time', 'isCancelled', 'status'
+                ];
+                $values = [
+                    $department, $user_type, $full_name, $data['tv_ids'] ?? null, $data['display_time'] ?? null,
+                    $category, $created_date, $created_time, $isCancelled, $status
+                ];
+
+                // Add type-specific fields
+                if ($data['type'] === 'event') {
+                    $fields[] = 'event_heading';
+                    $fields[] = 'event_location';
+                    $fields[] = 'reg_link';
+                    $fields[] = 'expiration_date';
+                    $fields[] = 'expiration_time';
+                    $fields[] = 'schedule_date';
+                    $fields[] = 'schedule_time';
+                    $values[] = $data['event_heading'] ?? null;
+                    $values[] = $data['event_location'] ?? null;
+                    $values[] = $data['reg_link'] ?? null;
+                    $values[] = $data['expiration_date'] ?? null;
+                    $values[] = $data['expiration_time'] ?? null;
+                    $values[] = $data['schedule_date'] ?? null;
+                    $values[] = $data['schedule_time'] ?? null;
+                } elseif ($data['type'] === 'news') {
+                    $fields[] = 'news_heading';
+                    $fields[] = 'expiration_date';
+                    $fields[] = 'expiration_time';
+                    $fields[] = 'schedule_date';
+                    $fields[] = 'schedule_time';
+                    $values[] = $data['news_heading'] ?? null;
+                    $values[] = $data['expiration_date'] ?? null;
+                    $values[] = $data['expiration_time'] ?? null;
+                    $values[] = $data['schedule_date'] ?? null;
+                    $values[] = $data['schedule_time'] ?? null;
+                } elseif ($data['type'] === 'announcement') {
+                    $fields[] = 'ann_body';
+                    $fields[] = 'expiration_date';
+                    $fields[] = 'expiration_time';
+                    $fields[] = 'schedule_date';
+                    $fields[] = 'schedule_time';
+                    $values[] = $data['ann_body'] ?? null;
+                    $values[] = $data['expiration_date'] ?? null;
+                    $values[] = $data['expiration_time'] ?? null;
+                    $values[] = $data['schedule_date'] ?? null;
+                    $values[] = $data['schedule_time'] ?? null;
+                } elseif ($data['type'] === 'promaterial') {
+                    $fields[] = 'expiration_date';
+                    $fields[] = 'expiration_time';
+                    $fields[] = 'schedule_date';
+                    $fields[] = 'schedule_time';
+                    $values[] = $data['expiration_date'] ?? null;
+                    $values[] = $data['expiration_time'] ?? null;
+                    $values[] = $data['schedule_date'] ?? null;
+                    $values[] = $data['schedule_time'] ?? null;
+                } elseif ($data['type'] === 'peo') {
+                    $fields[] = 'peo_title';
+                    $fields[] = 'peo_description';
+                    $values[] = $data['peo_title'] ?? null;
+                    $values[] = $data['peo_description'] ?? null;
+                    // Ensure all PEO subdescription fields are set to an empty string if not provided
+                    for ($i = 1; $i <= 10; $i++) {
+                        $fields[] = 'peo_' . $i;
+                        $values[] = $data['peo_' . $i] ?? null;
+                    }
+                } elseif ($data['type'] === 'so') {
+                    $fields[] = 'so_title';
+                    $fields[] = 'so_description';
+                    $values[] = $data['so_title'] ?? null;
+                    $values[] = $data['so_description'] ?? null;
+                    // Ensure all SO subdescription fields are set to an empty string if not provided
+                    for ($i = 1; $i <= 10; $i++) {
+                        $fields[] = 'so_' . $i;
+                        $values[] = $data['so_' . $i] ?? null;
+                    }
+                }
+
+                $fieldList = implode(', ', $fields);
+                $placeholderList = implode(', ', array_fill(0, count($fields), '?'));
+
+                $statement = $this->pdo->prepare(
+                    "INSERT INTO $table ($fieldList) VALUES ($placeholderList)"
+                );
+
+                $success = $statement->execute($values);
+
+                if ($success) {
+                    $id = $this->pdo->lastInsertId();
+                    $data[$idField] = $id;
+                    $data[$authorField] = $full_name;
+                    $data['created_date'] = $created_date;
+                    $data['created_time'] = $created_time;
+                    $data['category'] = $category;
+                    $data['user_type'] = $user_type;
+                    $data['status'] = $status;
+
+                    if (!empty($data['media'])) {
+                        $base64Data = $data['media'];
+                        $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
+                        $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
+                        $filename = "{$id}.{$fileExtension}";
+                        $media_save = "{$mediaFolder}/{$filename}";
+
+                        file_put_contents($media_save, $mediaData);
+
+                        // Update the record with media_path
+                        $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                        $updateStatement->execute([$filename, $id]);
+
+                        $data['media_path'] = $filename;
+                    }
+
+                    $from->send(json_encode(['success' => true, 'data' => $data]));
+                    echo ucfirst($data['type']) . " draft saved " . (!empty($data['media']) ? 'with' : 'without') . " media!\n";
+                } else {
+                    $from->send(json_encode(['error' => 'Error saving draft for ' . $data['type'] . '. Try again later']));
+                }
+            }
+        }
+
         else if (isset($data['action']) && $data['action'] === 'post_content') {
             // Access values from the connection object
             $full_name = $from->full_name;
@@ -1203,8 +1572,6 @@ class ContentHandler implements MessageComponentInterface
                 error_log("No TV IDs selected."); // Log for debugging
                 $tv_ids = $data['tv_ids'];
             }
-        
-            
         }
 
         // Broadcast the message to all connected clients

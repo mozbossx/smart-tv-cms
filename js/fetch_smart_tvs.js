@@ -1,4 +1,4 @@
-const ws = new WebSocket('ws://192.168.1.11:8081');
+const ws = new WebSocket('ws://192.168.1.19:8081');
 const smartTVTableContainer = document.getElementById('smartTVTableContainer');
 
 const displaySmartTVTable = (data) => {
