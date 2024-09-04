@@ -11,9 +11,7 @@ $event_id = '';
 $event_author = '';
 $created_date = '';
 $created_time = '';
-$event_heading = '';
-$event_location = '';
-$reg_link = '';
+$event_body = '';
 $expiration_date = '';
 $expiration_time = '';
 $display_time = '';
@@ -25,7 +23,7 @@ if (isset($_GET['event_id'])) {
     $event_id = $_GET['event_id'];
 
     // Fetch event data from the database
-    $query = "SELECT event_id, event_author, created_date, created_time, event_heading, event_location, reg_link, expiration_date, expiration_time, display_time, tv_id, media_path FROM events_tb WHERE event_id = ?";
+    $query = "SELECT event_id, event_author, created_date, created_time, event_body, expiration_date, expiration_time, display_time, tv_id, media_path FROM events_tb WHERE event_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $event_id);
     $stmt->execute();
@@ -37,9 +35,7 @@ if (isset($_GET['event_id'])) {
         $event_author = $event['event_author'];
         $created_date = $event['created_date'];
         $created_time = $event['created_time'];
-        $event_heading = $event['event_heading'];
-        $event_location = $event['event_location'];
-        $reg_link = $event['reg_link'];
+        $event_body = $event['event_body'];
         $expiration_datetime = new DateTime($event['expiration_date'] . ' ' . $event['expiration_time']);
         $expiration_date = $expiration_datetime->format('Y-m-d');
         $expiration_time = $expiration_datetime->format('H:i');
@@ -114,16 +110,8 @@ if ($result_tv->num_rows > 0) {
                             <div class="line-separator"></div>
                             <?php include('error_message.php'); ?>
                             <div class="floating-label-container">
-                                <textarea name="event_heading" rows="4" required placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_heading"><?php echo htmlspecialchars($event_heading); ?></textarea>
-                                <label for="event_heading" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Heading</label>
-                            </div>
-                            <div class="floating-label-container">
-                                <textarea name="event_location" rows="1" placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_location"><?php echo htmlspecialchars($event_location); ?></textarea>
-                                <label for="event_location" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Location</label>
-                            </div>
-                            <div class="floating-label-container">
-                                <textarea name="reg_link" rows="1" placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="reg_link"><?php echo htmlspecialchars($reg_link); ?></textarea>
-                                <label for="reg_link" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Registration Link</label>
+                                <textarea name="event_body" rows="4" required placeholder=" " style="background: #FFFF" class="floating-label-input-text-area" id="event_body"><?php echo htmlspecialchars($event_body); ?></textarea>
+                                <label for="event_body" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Heading</label>
                             </div>
                             <div class="right-flex">
                                 <div class="rounded-container-media">
@@ -287,9 +275,7 @@ if ($result_tv->num_rows > 0) {
         });
         
         function validateAndOpenPreviewModal() {
-            var eventHeading = document.querySelector('[name="event_heading"]').value;
-            // var eventLocation = document.querySelector('[name="event_location"]').value;
-            // var regLink = document.querySelector('[name="reg_link"]').value;
+            var eventHeading = document.querySelector('[name="event_body"]').value;
             var displayTime = document.querySelector('[name="display_time"]').value;
             var tvDisplay = document.querySelector('[name="tv_id"]').value;
             var expirationDate = document.querySelector('[name="expiration_date"]').value;

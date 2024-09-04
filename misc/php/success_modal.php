@@ -5,8 +5,8 @@
             <p id="successMessage"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">
-                <button id="createMoreButton" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B;" onclick="closeSuccessMessageModal()">Make more</button>
-                <button id="homeButton" class="green-button" style="margin-right: 0" onclick="resetFormAndGoHome()">Home</button>
+                <button type="button" id="createMoreButton" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B;" onclick="closeSuccessMessageModal()">Make more</button>
+                <button type="button" id="homeButton" class="green-button" style="margin-right: 0" onclick="resetFormAndGoHome()">Home</button>
             </div>
         </div>
     </div>

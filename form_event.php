@@ -24,6 +24,7 @@ include 'misc/php/options_tv.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <title>Create an Upcoming Event</title>
 </head>
@@ -45,17 +46,16 @@ include 'misc/php/options_tv.php';
                             <?php include('error_message.php'); ?>
                             <input type="hidden" name="type" value="event">
                             <h1 style="text-align: center">Event Form</h1>
+                            <!-- <div class="floating-label-container">
+                                <textarea name="event_body" rows="3" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="event_body"></textarea>
+                                <label for="event_body" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Heading</label>
+                            </div> -->
                             <div class="floating-label-container">
-                                <textarea name="event_heading" rows="3" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="event_heading"></textarea>
-                                <label for="event_heading" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Heading</label>
-                            </div>
-                            <div class="floating-label-container">
-                                <textarea name="event_location" rows="1" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="event_location"></textarea>
-                                <label for="event_location" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Location (Optional)</label>
-                            </div>
-                            <div class="floating-label-container">
-                                <textarea name="reg_link" rows="1" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="reg_link"></textarea>
-                                <label for="reg_link" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Registration Link (Optional)</label>
+                                <div id="quillEditorContainer">
+                                    <label for="quillEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">Event</label>
+                                    <div id="event_body" style="height: 150px;"></div>
+                                </div>
+                                <input type="hidden" name="event_body" id="eventBodyHiddenInput">
                             </div>
                             <?php include('misc/php/upload_preview_media.php')?>
                             <div class="form-row">
@@ -90,8 +90,10 @@ include 'misc/php/options_tv.php';
     <?php include('misc/php/error_modal.php') ?>
     <?php include('misc/php/success_modal.php') ?>    
     <?php include('misc/php/save_draft_modal.php') ?>
-    <script src="misc/js/wsform_submission.js"></script>
     <script src="misc/js/capitalize_first_letter.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script src="misc/js/quill_textarea_submission.js"></script>
+    <script src="misc/js/wsform_submission.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo json_encode($tv_names); ?>;

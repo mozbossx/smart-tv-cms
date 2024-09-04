@@ -38,7 +38,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDate, formattedCre
     return `
         <div class="content-container-con">
             ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-            <pre class="ann-body" style="word-break: break-word">${data.ann_body || data.event_heading || data.news_heading}</pre>
+            <pre class="ann-body" style="word-break: break-word">${data.announcement_body || data.event_body || data.news_body}</pre>
             <div class="line-separator"></div>
             <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcement_author || data.event_author || data.news_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
             <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>

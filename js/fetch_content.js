@@ -56,7 +56,7 @@ const updateAnnouncementUI = (data) => {
             contentDiv.innerHTML = `
                 <div class="content-container-con">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <pre class="ann-body" style="word-break: break-word">${data.ann_body}</pre>
+                    <pre class="ann-body" style="word-break: break-word">${data.announcement_body}</pre>
                     <div class="line-separator"></div>
                     <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcement_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                     <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
@@ -144,7 +144,7 @@ const updateAnnouncementUI = (data) => {
                 contentDiv.innerHTML = `
                     <div class="content-container-con">
                         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                        <pre class="ann-body" style="word-break: break-word">${data.ann_body}</pre>
+                        <pre class="ann-body" style="word-break: break-word">${data.announcement_body}</pre>
                         <div class="line-separator"></div>
                         <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcement_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
@@ -154,7 +154,7 @@ const updateAnnouncementUI = (data) => {
             } else {
                 contentDiv.innerHTML = `
                     <div class="content-container-con">
-                        <pre class="ann-body" style="word-break: break-word">${data.ann_body}</pre>
+                        <pre class="ann-body" style="word-break: break-word">${data.announcement_body}</pre>
                         <div class="line-separator"></div>
                         <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcement_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
@@ -358,9 +358,9 @@ const updateEventUI = (data) => {
             contentDiv.innerHTML = `
                 <div class="content-container-con">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <pre class="eve-body" style="word-break: break-word"><b>${data.event_heading}</b></pre>
+                    <pre class="eve-body" style="word-break: break-word"><b>${data.event_body}</b></pre>
                     <p class="field-title">Event Location</p>
-                    <pre class="eve-body" style="word-break: break-word"><small>${data.event_location}</small></pre>
+                    <pre class="eve-body" style="word-break: break-word"><small>${data.event_body}</small></pre>
                     <p class="field-title">Registration Link</p>
                     <pre class="eve-body" style="word-break: break-word"><small>${data.reg_link}</small></pre>
                     <div class="line-separator"></div>
@@ -450,9 +450,9 @@ const updateEventUI = (data) => {
                 contentDiv.innerHTML = `
                     <div class="content-container-con">
                         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                        <pre class="eve-body" style="word-break: break-word"><b>${data.event_heading}</b></pre>
+                        <pre class="eve-body" style="word-break: break-word"><b>${data.event_body}</b></pre>
                         <p class="field-title">Event Location</p>
-                        <pre class="eve-body" style="word-break: break-word"><small>${data.event_location}</small></pre>
+                        <pre class="eve-body" style="word-break: break-word"><small>${data.event_body}</small></pre>
                         <p class="field-title">Registration Link</p>
                         <pre class="eve-body" style="word-break: break-word"><small>${data.reg_link}</small></pre>
                         <div class="line-separator"></div>
@@ -464,9 +464,9 @@ const updateEventUI = (data) => {
             } else {
                 contentDiv.innerHTML = `
                     <div class="content-container-con">
-                        <pre class="eve-body" style="word-break: break-word"><b>${data.event_heading}</b></pre>
+                        <pre class="eve-body" style="word-break: break-word"><b>${data.event_body}</b></pre>
                         <p class="field-title">Event Location</p>
-                        <pre class="eve-body" style="word-break: break-word"><small>${data.event_location}</small></pre>
+                        <pre class="eve-body" style="word-break: break-word"><small>${data.event_body}</small></pre>
                         <p class="field-title">Registration Link</p>
                         <pre class="eve-body" style="word-break: break-word"><small>${data.reg_link}</small></pre>
                         <div class="line-separator"></div>
@@ -672,7 +672,7 @@ const updateNewsUI = (data) => {
             contentDiv.innerHTML = `
                 <div class="content-container-con">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <pre class="news-body" style="word-break: break-word">${data.news_heading}</pre>
+                    <pre class="news-body" style="word-break: break-word">${data.news_body}</pre>
                     <div class="line-separator"></div>
                     <p class="news-author" style="color: #6E6E6E"><small>Posted by ${data.news_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                     <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
@@ -760,7 +760,7 @@ const updateNewsUI = (data) => {
                 contentDiv.innerHTML = `
                     <div class="content-container-con">
                         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                        <pre class="news-body" style="word-break: break-word">${data.news_heading}</pre>
+                        <pre class="news-body" style="word-break: break-word">${data.news_body}</pre>
                         <div class="line-separator"></div>
                         <p class="news-author" style="color: #6E6E6E"><small>Posted by ${data.news_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
@@ -770,7 +770,7 @@ const updateNewsUI = (data) => {
             } else {
                 contentDiv.innerHTML = `
                     <div class="content-container-con">
-                        <pre class="news-body" style="word-break: break-word">${data.news_heading}</pre>
+                        <pre class="news-body" style="word-break: break-word">${data.news_body}</pre>
                         <div class="line-separator"></div>
                         <p class="news-author" style="color: #6E6E6E"><small>Posted by ${data.news_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>

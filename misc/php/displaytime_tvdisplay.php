@@ -72,7 +72,7 @@
         saveTvSelection.addEventListener("click", function () {
             const selectedTvs = [];
             document.querySelectorAll('#tvCheckboxList input[type="checkbox"]:checked').forEach(function (checkedBox) {
-                selectedTvs.push(checkedBox.value);
+                selectedTvs.push(checkedBox.getAttribute('data-tv-name')); // Change to get tv_name
             });
             tvModalButton.textContent = selectedTvs.length > 0 ? selectedTvs.join(", ") : "Select TV Displays";
             tvModal.style.display = "none";

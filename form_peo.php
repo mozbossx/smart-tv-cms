@@ -30,6 +30,7 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <title>Program Educational Objectives (PEO)</title>
 </head>
@@ -50,8 +51,9 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                         </nav>
                         <form id="peoForm" enctype="multipart/form-data" class="main-form">
                             <?php include('error_message.php'); ?>
+                            <h1 style="text-align: center">Program Educational Objectives (PEO) Form</h1>
                             <input type="hidden" name="type" value="peo" readonly>
-                            <div class="floating-label-container">
+                            <!-- <div class="floating-label-container">
                                 <textarea name="peo_title" rows="2" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_title"></textarea>
                                 <label for="peo_title" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">PEO Title</label>
                             </div>
@@ -59,14 +61,32 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                                 <textarea name="peo_description" rows="3" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_description"></textarea>
                                 <label for="peo_description" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">PEO Description</label>
                             </div>
-                            <div>
-                                <button type="button" id="changeBulletButton" class="preview-button" style="margin-left: 10px" onclick="openModal()">
-                                    Change Bullet Symbol
-                                </button>
+                            <div class="floating-label-container">
+                                <label for="peo_subdescription" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">PEO Sub-Description</label>
+                                <div id="quillEditorContainer">
+                                    <div id="peo_subdescription"></div>
+                                </div>
+                            </div> -->
+                            <div class="floating-label-container">
+                                <div id="quillPeoTitleEditorContainer">
+                                    <label for="quillPeoTitleEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">PEO Title</label>
+                                    <div id="peo_title"></div>
+                                </div>
+                                <input type="hidden" name="peo_title" id="peoTitleHiddenInput">
                             </div>
                             <div class="floating-label-container">
-                                <textarea name="peo_subdescription" rows="5" placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="peo_subdescription"></textarea>
-                                <label for="peo_subdescription" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">PEO Sub-Description</label>
+                                <div id="quillPeoDescriptionEditorContainer">
+                                    <label for="quillPeoDescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">PEO Description</label>
+                                    <div id="peo_description" style="height: 100px;"></div>
+                                </div>
+                                <input type="hidden" name="peo_description" id="peoDescriptionHiddenInput">
+                            </div>
+                            <div class="floating-label-container">
+                                <div id="quillPeoSubdescriptionEditorContainer">
+                                    <label for="quillPeoSubdescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">PEO Sub-Description (Optional)</label>
+                                    <div id="peo_subdescription" style="height: 150px;"></div>
+                                </div>
+                                <input type="hidden" name="peo_subdescription" id="peoSubdescriptionHiddenInput">
                             </div>
                             <?php include('misc/php/displaytime_tvdisplay.php')?>
                             <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
@@ -74,15 +94,6 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                                     <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
                                         <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
                                     </button>
-                                </div>
-                            </div>
-                            <div class="modal" id="bulletSymbolModal" style="display:none;">
-                                <div class="modal-content">
-                                    <span class="close" onclick="closeModal()">&times;</span>
-                                    <h2>Select Bullet Symbol</h2>
-                                    <label><input type="checkbox" value="•" onchange="updateBulletSymbol(this)"> •</label><br>
-                                    <label><input type="checkbox" value=">" onchange="updateBulletSymbol(this)"> ></label><br>
-                                    <button onclick="closeModal()">Close</button>
                                 </div>
                             </div>
                             <?php include('misc/php/preview_modal.php') ?>
@@ -93,61 +104,14 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
         </div>
     </div>
     <?php include('misc/php/error_modal.php') ?>
-    <?php include('misc/php/success_modal.php') ?>    
-    <script src="misc/js/wsform_submission.js"></script>
+    <?php include('misc/php/success_modal.php') ?>
     <script src="misc/js/capitalize_first_letter.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script src="misc/js/quill_textarea_submission.js"></script>
+    <script src="misc/js/wsform_submission.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo json_encode($tv_names); ?>;
-        // Add bullet point to the new textarea
-        var textarea = document.getElementById('peo_subdescription');
-        let bulletSymbol = '• '; // Default bullet symbol
-        textarea.value = bulletSymbol;
-
-        function openModal() {
-            document.getElementById('bulletSymbolModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('bulletSymbolModal').style.display = 'none';
-        }
-
-        function updateBulletSymbol(checkbox) {
-            if (checkbox.checked) {
-                bulletSymbol = checkbox.value + ' '; // Update bullet symbol
-                textarea.value = textarea.value.replace(/^[• >]+/g, bulletSymbol); // Replace existing bullet
-            }
-        }
-
-        function changeBulletSymbol() {
-            const newSymbol = prompt("Enter new bullet symbol (e.g., -, >, abcd):", bulletSymbol.trim());
-            if (newSymbol) {
-                bulletSymbol = newSymbol + ' '; // Update bullet symbol
-                textarea.value = textarea.value.replace(/^[• ]+/g, bulletSymbol); // Replace existing bullet
-            }
-        }
-
-        // Update the event listener to use the new bullet symbol
-        textarea.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent the default newline
-                const currentText = textarea.value;
-                textarea.value = currentText + '\n' + bulletSymbol; // Add new bullet symbol on new line
-            }
-        });
-
-        // Prevent deletion of the bullet point
-        textarea.addEventListener('keydown', function(event) {
-            const currentText = textarea.value;
-            const cursorPosition = textarea.selectionStart;
-
-            // Prevent deletion if the cursor is at the start or right after the bullet
-            if (event.key === 'Backspace' || event.key === 'Delete') {
-                if (cursorPosition <= 2) { // Prevent deletion if at the start or right after the bullet
-                    event.preventDefault(); // Prevent deletion
-                }
-            }
-        });    
     </script>
 </body>
 </html>

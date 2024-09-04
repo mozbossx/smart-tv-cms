@@ -11,7 +11,7 @@ $news_id = '';
 $news_author = '';
 $created_date = '';
 $created_time = '';
-$news_heading = '';
+$news_body = '';
 $expiration_date = '';
 $expiration_time = '';
 $display_time = '';
@@ -23,7 +23,7 @@ if (isset($_GET['news_id'])) {
     $news_id = $_GET['news_id'];
 
     // Fetch news data from the database
-    $query = "SELECT news_id, news_author, created_date, created_time, news_heading, expiration_date, expiration_time, display_time, tv_id, media_path FROM news_tb WHERE news_id = ?";
+    $query = "SELECT news_id, news_author, created_date, created_time, news_body, expiration_date, expiration_time, display_time, tv_id, media_path FROM news_tb WHERE news_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $news_id);
     $stmt->execute();
@@ -35,7 +35,7 @@ if (isset($_GET['news_id'])) {
         $news_author = $news['news_author'];
         $created_date = $news['created_date'];
         $created_time = $news['created_time'];
-        $news_heading = $news['news_heading'];
+        $news_body = $news['news_body'];
         $expiration_datetime = new DateTime($news['expiration_date'] . ' ' . $news['expiration_time']);
         $expiration_date = $expiration_datetime->format('Y-m-d');
         $expiration_time = $expiration_datetime->format('H:i');
@@ -110,8 +110,8 @@ if ($result_tv->num_rows > 0) {
                             <div class="line-separator"></div>
                             <?php include('error_message.php'); ?>
                             <div class="floating-label-container">
-                                <textarea name="news_heading" rows="6" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="news_heading"><?php echo htmlspecialchars($news_heading); ?></textarea>
-                                <label for="news_heading" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">News Heading</label>
+                                <textarea name="news_body" rows="6" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="news_body"><?php echo htmlspecialchars($news_body); ?></textarea>
+                                <label for="news_body" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">News Heading</label>
                             </div>
                             <div class="right-flex">
                                 <div class="rounded-container-media">
@@ -275,7 +275,7 @@ if ($result_tv->num_rows > 0) {
         });
         
         function validateAndOpenPreviewModal() {
-            var newsHeading = document.querySelector('[name="news_heading"]').value;
+            var newsHeading = document.querySelector('[name="news_body"]').value;
             var displayTime = document.querySelector('[name="display_time"]').value;
             var tvDisplay = document.querySelector('[name="tv_id"]').value;
             var expirationDate = document.querySelector('[name="expiration_date"]').value;

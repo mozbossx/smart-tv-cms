@@ -41,7 +41,7 @@ const showNotification = (data) => {
     if (userType == 'Admin') {
         notificationDiv.innerHTML = `
             <p style="margin-bottom: 5px"><strong>Pending Announcement</strong></p>
-            <pre class="ann-body">${data.ann_body}</pre>
+            <pre class="ann-body">${data.announcement_body}</pre>
             <p style="color: #6E6E6E"><small>${data.user_type}</small></p>
             <p style="color: #6E6E6E"><small>Posted by ${data.announcement_author} on ${formattedDate} at ${formattedTime}</small></p>
             <p style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
@@ -49,7 +49,7 @@ const showNotification = (data) => {
     } else {
         notificationDiv.innerHTML = `
             <p style="margin-bottom: 5px"><strong>You have a pending post</strong></p>
-            <pre class="ann-body" style="margin-bottom: 15px">${data.ann_body}</pre>
+            <pre class="ann-body" style="margin-bottom: 15px">${data.announcement_body}</pre>
             <p style="color: #6E6E6E"><small>Type: ${data.category}</p>
             <p style="color: #6E6E6E"><small>Posted on ${formattedDate} at ${formattedTime}</small></p>
             <p style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>

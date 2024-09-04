@@ -71,7 +71,7 @@ const updateUI = (data, type) => {
             <div class="content-container-con">
                 <div class="content-main">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <p class="main-message" style="word-break: break-word;">${data.ann_body}</p>
+                    <p class="main-message" style="word-break: break-word;">${data.announcement_body}</p>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -91,7 +91,7 @@ const updateUI = (data, type) => {
             <div class="content-container-con">
                 <div class="content-main">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <p class="main-message" style="word-break: break-word;">${data.event_heading}</p>
+                    <p class="main-message" style="word-break: break-word;">${data.event_body}</p>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -111,7 +111,7 @@ const updateUI = (data, type) => {
             <div class="content-container-con">
                 <div class="content-main">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <p class="main-message" style="word-break: break-word;">${data.news_heading}</p>
+                    <p class="main-message" style="word-break: break-word;">${data.news_body}</p>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">

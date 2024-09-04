@@ -1189,6 +1189,88 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     background-color: #f0f0f0;
 }
 
+#quillEditorContainer .ql-editor, 
+#quillPeoTitleEditorContainer .ql-editor, #quillPeoDescriptionEditorContainer .ql-editor, #quillPeoSubdescriptionEditorContainer .ql-editor, 
+#quillSoTitleEditorContainer .ql-editor, #quillSoDescriptionEditorContainer .ql-editor, #quillSoSubdescriptionEditorContainer .ql-editor{
+    background-color: #FFFF !important;
+    border-radius: 5px !important;
+    padding: 25px 15px;
+}
+
+#quillEditorContainer .ql-editor.ql-blank::before, 
+#quillPeoTitleEditorContainer .ql-editor.ql-blank::before, #quillPeoDescriptionEditorContainer .ql-editor.ql-blank::before, #quillPeoSubdescriptionEditorContainer .ql-editor.ql-blank::before,
+#quillSoTitleEditorContainer .ql-editor.ql-blank::before, #quillSoDescriptionEditorContainer .ql-editor.ql-blank::before, #quillSoSubdescriptionEditorContainer .ql-editor.ql-blank::before {
+    font-style: normal; /* Change to 'normal' or any other style you prefer */
+    opacity: 1;         /* Ensure the placeholder is fully visible */
+}
+
+/* Container styling */
+#chart-container {
+    border: 2px solid #333; /* Dark border around the chart */
+    background-color: #f9f9f9; /* Light background for the container */
+    border-radius: 10px; /* Rounded corners for the container */
+    padding: 20px; /* Padding around the chart */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for a 3D effect */
+}
+
+/* Node styling */
+.custom-node {
+    border: 2px solid #007bff; /* Blue border for nodes */
+    background-color: #fff; /* White background for nodes */
+    border-radius: 10px; /* Rounded corners for nodes */
+    padding: 10px; /* Padding inside nodes */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Shadow for nodes */
+    text-align: center; /* Center text inside nodes */
+}
+
+.custom-node img {
+    width: 60px; /* Set the width for images */
+    height: 60px; /* Set the height for images */
+    border-radius: 50%; /* Round images */
+    margin-bottom: 10px; /* Space between image and text */
+    object-fit: cover; /* Ensure images cover the element without distortion */
+}
+
+/* Node text styling */
+.custom-node .node-text {
+    font-family: 'Roboto', sans-serif; /* Font for the node text */
+    color: #333; /* Dark color for text */
+}
+
+.custom-node .node-title {
+    font-size: 14px; /* Smaller font size for titles */
+    color: #555; /* Slightly lighter color for titles */
+}
+
+/* Node image styling */
+.custom-node img {
+    width: 60px; /* Set the width for images */
+    height: 60px; /* Set the height for images */
+    border-radius: 50%; /* Round images */
+    margin-bottom: 10px; /* Space between image and text */
+}
+
+/* Connecting lines */
+.Treant .node {
+    border-color: #007bff; /* Blue color for connecting lines */
+}
+
+
+.ql-toolbar.ql-snow {
+    border-radius: 5px 5px 0 0 !important;
+}
+
+.ql-container {
+    border-bottom-left-radius: 5px !important;
+    border-bottom-right-radius: 5px !important;
+}
+
+
+
+.ql-editor {
+    font-size: 16px;
+}
+
 /* Breadcrumb Navigation Styles */
 .breadcrumb {
     display: flex;

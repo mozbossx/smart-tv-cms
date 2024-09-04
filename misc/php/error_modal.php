@@ -5,7 +5,7 @@
             <p id="errorText"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">
-                <button id="okayButton" class="red-button" style="margin: 0" onclick="closeErrorModal()">Okay</button>
+                <button type="button" id="okayButton" class="red-button" style="margin: 0" onclick="closeErrorModal()">Okay</button>
             </div>
         </div>
     </div>

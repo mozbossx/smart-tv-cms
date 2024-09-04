@@ -18,7 +18,7 @@
         <!-- Operation buttons inside the Preview modal -->
         <div class="flex-button-modal">
             <button type="button" class="green-button" id="closeButton" style="background: none; border: 1px solid #264B2B; color: #264B2B; margin-top: 0; margin-right: 5px" onclick="closePreviewModal()">Cancel</button>
-            <button type="submit" name="post" class="green-button" style="margin-top: 0; margin-right: 0">Submit</button>
+            <button type="button" name="post" class="green-button" style="margin-top: 0; margin-right: 0" onclick="submitFormViaWebSocket()">Submit</button>
         </div>
     </div>
 </div>
@@ -40,16 +40,20 @@
         
         // Get the content based on the type
         if (selectedType === 'announcement') {
-            contentBody = document.querySelector('[name="ann_body"]').value.trim();
+            contentBody = announcementBodyQuill.root.innerHTML.trim(); // Get content from Quill editor
         } else if (selectedType === 'event') {
-            contentBody = document.querySelector('[name="event_heading"]').value.trim();
+            contentBody = eventBodyQuill.root.innerHTML.trim(); // Get content from Quill editor
         } else if (selectedType === 'news') {
-            contentBody = document.querySelector('[name="news_heading"]').value.trim();
-        } else if (selectedType === 'promaterial') {
-            contentBody = document.querySelector('[name="media"]').value.trim();
+            contentBody = newsBodyQuill.root.innerHTML.trim(); // Get content from Quill editor
         } else if (selectedType === 'peo') {
-            contentBody = document.querySelector('[name="peo_title"]').value.trim();
-        }
+            peoTitle = peoTitleQuill.root.innerHTML.trim(); // Get content from Quill editor
+            peoDescription = peoDescriptionQuill.root.innerHTML.trim(); // Get content from Quill editor
+            peoSubdescription = peoSubdescriptionQuill.root.innerHTML.trim(); // Get content from Quill editor
+        } else if (selectedType === 'so') {
+            soTitle = soTitleQuill.root.innerHTML.trim(); // Get content from Quill editor
+            soDescription = soDescriptionQuill.root.innerHTML.trim(); // Get content from Quill editor
+            soSubdescription = soSubdescriptionQuill.root.innerHTML.trim(); // Get content from Quill editor
+        } 
 
         const displayTime = document.querySelector('[name="display_time"]').value;
         const tvDisplays = document.querySelectorAll('[name="tv_id[]"]:checked'); // Get all checked TV displays
@@ -58,14 +62,16 @@
         let expirationDateTime = null;
         let scheduleDateTime = null;
         
-        if (selectedType !== 'peo') {
+        if (selectedType !== 'peo' && selectedType !== 'so') {
             const expirationDate = document.querySelector('[name="expiration_date"]').value;
             const expirationTime = document.querySelector('[name="expiration_time"]').value;
             const scheduleDate = document.querySelector('[name="schedule_date"]').value;
             const scheduleTime = document.querySelector('[name="schedule_time"]').value;
-
+            
+            // <p><br></p>
             // Check if any of the required fields is empty
-            if (contentBody === "" || displayTime === "" || tvDisplays.length === 0 || expirationDate === "" || expirationTime === "") {
+            if (contentBody === "<p><br></p>" || contentBody === "" || displayTime === "" || tvDisplays.length === 0 || expirationDate === "" 
+                || expirationTime === "") {
                 // If conditions are not met, show error message and exit
                 errorModalMessage("Please fill the necessary fields and select at least one TV display.");
                 return;
@@ -95,9 +101,15 @@
                     return;
                 }
             }
-        } else {
+        } else if (contentType === 'peo') {
             // For PEO, only check the basic fields
-            if (contentBody === "" || displayTime === "" || tvDisplays.length === 0) {
+            if (peoTitle === "<p><br></p>" || peoDescription === "<p><br></p>" || displayTime === "" || tvDisplays.length === 0) {
+                errorModalMessage("Please fill the necessary fields and select at least one TV display.");
+                return;
+            }
+        } else if (contentType === 'so') {
+            // For SO, only check the basic fields
+            if (soTitle === "<p><br></p>" || soDescription === "<p><br></p>" || displayTime === "" || tvDisplays.length === 0) {
                 errorModalMessage("Please fill the necessary fields and select at least one TV display.");
                 return;
             }
@@ -126,7 +138,8 @@
         }
 
         var previewContent = '';
-        if (selectedType !== 'peo') {
+
+        if (selectedType !== 'peo' && selectedType !== 'so') {
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
             previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_date"]').value, document.querySelector('[name="expiration_time"]').value) + '</p>';
             previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + (document.querySelector('[name="schedule_date"]').value ? formatDateTime(document.querySelector('[name="schedule_date"]').value, document.querySelector('[name="schedule_time"]').value) : 'Not scheduled') + '</p>';
@@ -167,19 +180,13 @@
         // Determine the content based on the selected type
         switch (selectedType) {
             case 'announcement':
-                content = document.querySelector('[name="ann_body"]').value;
+                content = announcementBodyQuill.root.innerHTML;
                 break;
             case 'event':
-                content = document.querySelector('[name="event_heading"]').value;
+                content = eventBodyQuill.root.innerHTML;
                 break;
             case 'news':
-                content = document.querySelector('[name="news_heading"]').value;
-                break;
-            case 'promaterial':
-                content = document.querySelector('[name="media"]').value;
-                break;
-            case 'peo':
-                content = document.querySelector('[name="peo_title"]').value;
+                content = newsBodyQuill.root.innerHTML;
                 break;
             default:
                 content = 'Unknown content type';
@@ -205,7 +212,7 @@
                         <div style="background-color: ${matchingContainer.parent_background_color}; padding: 10px; border-radius: 5px; height: ${matchingContainer.height_px}px; width: ${matchingContainer.width_px}px;">
                             <h1 style="color: ${matchingContainer.parent_font_color}; font-family: ${matchingContainer.parent_font_family}; font-style: ${matchingContainer.parent_font_style}; font-size: 2.0vh; margin-bottom: 5px">${matchingContainer.container_name}</h1>
                             <div style="background-color: ${matchingContainer.child_background_color}; color: ${matchingContainer.child_font_color}; font-style: ${matchingContainer.child_font_style}; font-family: ${matchingContainer.child_font_family}; width: auto; height: calc(100% - 6.5vh); font-size: 1.5vh; padding: 10px; border-radius: 5px">
-                                <p>${content}</p>
+                                <p style="white-space: pre-wrap">${content}</p>
                             </div>
                         </div>
                     </div>
@@ -213,6 +220,7 @@
             });
             carouselHTML += '</div>';
 
+            // Left and Right Navigation buttons
             if (matchingContainers.length > 1) {
                 const initialTvName = tvNames[matchingContainers[0].tv_id] || 'Unknown TV';
                 carouselHTML += `

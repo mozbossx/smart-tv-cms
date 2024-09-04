@@ -227,19 +227,19 @@ class ContentHandler implements MessageComponentInterface
                 'announcement' => [
                     'table' => 'announcements_tb',
                     'idField' => 'announcement_id',
-                    'fields' => ['ann_body', 'announcement_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['announcement_body', 'announcement_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'announcement_media'
                 ],
                 'event' => [
                     'table' => 'events_tb',
                     'idField' => 'event_id',
-                    'fields' => ['event_heading', 'event_location', 'reg_link', 'event_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['event_body', 'event_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'event_media'
                 ],
                 'news' => [
                     'table' => 'news_tb',
                     'idField' => 'news_id',
-                    'fields' => ['news_heading', 'news_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['news_body', 'news_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'news_media'
                 ],
                 'promaterial' => [
@@ -256,7 +256,7 @@ class ContentHandler implements MessageComponentInterface
                 'so' => [
                     'table' => 'so_tb',
                     'idField' => 'so_id',
-                    'fields' => ['so_title', 'so_description', 'so_1', 'so_2', 'so_3', 'so_4', 'so_5', 'so_6', 'so_7', 'so_8', 'so_9', 'so_10', 'so_author', 'created_date', 'created_time', 'display_time', 'tv_id']
+                    'fields' => ['so_title', 'so_description', 'so_subdescription', 'so_author', 'created_date', 'created_time', 'display_time', 'tv_id']
                 ]
             ];
         
@@ -1084,38 +1084,34 @@ class ContentHandler implements MessageComponentInterface
 
                     // Add type-specific fields
                     if ($data['type'] === 'event') {
-                        $fields[] = 'event_heading';
-                        $fields[] = 'event_location';
-                        $fields[] = 'reg_link';
+                        $fields[] = 'event_body';
                         $fields[] = 'expiration_date';
                         $fields[] = 'expiration_time';
                         $fields[] = 'schedule_date';
                         $fields[] = 'schedule_time';
-                        $values[] = $data['event_heading'] ?? null;
-                        $values[] = $data['event_location'] ?? null;
-                        $values[] = $data['reg_link'] ?? null;
+                        $values[] = $data['event_body'] ?? null;
                         $values[] = $data['expiration_date'] ?? null;
                         $values[] = $data['expiration_time'] ?? null;
                         $values[] = $data['schedule_date'] ?? null;
                         $values[] = $data['schedule_time'] ?? null;
                     } elseif ($data['type'] === 'news') {
-                        $fields[] = 'news_heading';
+                        $fields[] = 'news_body';
                         $fields[] = 'expiration_date';
                         $fields[] = 'expiration_time';
                         $fields[] = 'schedule_date';
                         $fields[] = 'schedule_time';
-                        $values[] = $data['news_heading'] ?? null;
+                        $values[] = $data['news_body'] ?? null;
                         $values[] = $data['expiration_date'] ?? null;
                         $values[] = $data['expiration_time'] ?? null;
                         $values[] = $data['schedule_date'] ?? null;
                         $values[] = $data['schedule_time'] ?? null;
                     } elseif ($data['type'] === 'announcement') {
-                        $fields[] = 'ann_body';
+                        $fields[] = 'announcement_body';
                         $fields[] = 'expiration_date';
                         $fields[] = 'expiration_time';
                         $fields[] = 'schedule_date';
                         $fields[] = 'schedule_time';
-                        $values[] = $data['ann_body'] ?? null;
+                        $values[] = $data['announcement_body'] ?? null;
                         $values[] = $data['expiration_date'] ?? null;
                         $values[] = $data['expiration_time'] ?? null;
                         $values[] = $data['schedule_date'] ?? null;
@@ -1139,13 +1135,10 @@ class ContentHandler implements MessageComponentInterface
                     } elseif ($data['type'] === 'so') {
                         $fields[] = 'so_title';
                         $fields[] = 'so_description';
+                        $fields[] = 'so_subdescription';
                         $values[] = $data['so_title'] ?? null;
                         $values[] = $data['so_description'] ?? null;
-                        // Ensure all SO subdescription fields are set to an empty string if not provided
-                        for ($i = 1; $i <= 10; $i++) {
-                            $fields[] = 'so_' . $i;
-                            $values[] = $data['so_' . $i] ?? null;
-                        }
+                        $values[] = $data['so_subdescription'] ?? null;
                     }
 
                     $fieldList = implode(', ', $fields);
@@ -1261,38 +1254,34 @@ class ContentHandler implements MessageComponentInterface
 
                 // Add type-specific fields
                 if ($data['type'] === 'event') {
-                    $fields[] = 'event_heading';
-                    $fields[] = 'event_location';
-                    $fields[] = 'reg_link';
+                    $fields[] = 'event_body';
                     $fields[] = 'expiration_date';
                     $fields[] = 'expiration_time';
                     $fields[] = 'schedule_date';
                     $fields[] = 'schedule_time';
-                    $values[] = $data['event_heading'] ?? null;
-                    $values[] = $data['event_location'] ?? null;
-                    $values[] = $data['reg_link'] ?? null;
+                    $values[] = $data['event_body'] ?? null;
                     $values[] = $data['expiration_date'] ?? null;
                     $values[] = $data['expiration_time'] ?? null;
                     $values[] = $data['schedule_date'] ?? null;
                     $values[] = $data['schedule_time'] ?? null;
                 } elseif ($data['type'] === 'news') {
-                    $fields[] = 'news_heading';
+                    $fields[] = 'news_body';
                     $fields[] = 'expiration_date';
                     $fields[] = 'expiration_time';
                     $fields[] = 'schedule_date';
                     $fields[] = 'schedule_time';
-                    $values[] = $data['news_heading'] ?? null;
+                    $values[] = $data['news_body'] ?? null;
                     $values[] = $data['expiration_date'] ?? null;
                     $values[] = $data['expiration_time'] ?? null;
                     $values[] = $data['schedule_date'] ?? null;
                     $values[] = $data['schedule_time'] ?? null;
                 } elseif ($data['type'] === 'announcement') {
-                    $fields[] = 'ann_body';
+                    $fields[] = 'announcement_body';
                     $fields[] = 'expiration_date';
                     $fields[] = 'expiration_time';
                     $fields[] = 'schedule_date';
                     $fields[] = 'schedule_time';
-                    $values[] = $data['ann_body'] ?? null;
+                    $values[] = $data['announcement_body'] ?? null;
                     $values[] = $data['expiration_date'] ?? null;
                     $values[] = $data['expiration_time'] ?? null;
                     $values[] = $data['schedule_date'] ?? null;
@@ -1316,13 +1305,10 @@ class ContentHandler implements MessageComponentInterface
                 } elseif ($data['type'] === 'so') {
                     $fields[] = 'so_title';
                     $fields[] = 'so_description';
+                    $fields[] = 'so_subdescription';
                     $values[] = $data['so_title'] ?? null;
                     $values[] = $data['so_description'] ?? null;
-                    // Ensure all SO subdescription fields are set to an empty string if not provided
-                    for ($i = 1; $i <= 10; $i++) {
-                        $fields[] = 'so_' . $i;
-                        $values[] = $data['so_' . $i] ?? null;
-                    }
+                    $values[] = $data['so_subdescription'] ?? null;
                 }
 
                 $fieldList = implode(', ', $fields);
@@ -1453,38 +1439,34 @@ class ContentHandler implements MessageComponentInterface
                 
                     // Add type-specific fields
                     if ($data['type'] === 'event') {
-                        $fields[] = 'event_heading';
-                        $fields[] = 'event_location';
-                        $fields[] = 'reg_link';
+                        $fields[] = 'event_body';
                         $fields[] = 'expiration_date';
                         $fields[] = 'expiration_time';
                         $fields[] = 'schedule_date';
                         $fields[] = 'schedule_time';
-                        $values[] = $data['event_heading'];
-                        $values[] = $data['event_location'];
-                        $values[] = $data['reg_link'];
+                        $values[] = $data['event_body'];
                         $values[] = $data['expiration_date'];
                         $values[] = $data['expiration_time'];
                         $values[] = $data['schedule_date'];
                         $values[] = $data['schedule_time'];
                     } elseif ($data['type'] === 'news') {
-                        $fields[] = 'news_heading';
+                        $fields[] = 'news_body';
                         $fields[] = 'expiration_date';
                         $fields[] = 'expiration_time';
                         $fields[] = 'schedule_date';
                         $fields[] = 'schedule_time';
-                        $values[] = $data['news_heading'];
+                        $values[] = $data['news_body'];
                         $values[] = $data['expiration_date'];
                         $values[] = $data['expiration_time'];
                         $values[] = $data['schedule_date'];
                         $values[] = $data['schedule_time'];
                     } elseif ($data['type'] === 'announcement') {
-                        $fields[] = 'ann_body';
+                        $fields[] = 'announcement_body';
                         $fields[] = 'expiration_date';
                         $fields[] = 'expiration_time';
                         $fields[] = 'schedule_date';
                         $fields[] = 'schedule_time';
-                        $values[] = $data['ann_body'];
+                        $values[] = $data['announcement_body'];
                         $values[] = $data['expiration_date'];
                         $values[] = $data['expiration_time'];
                         $values[] = $data['schedule_date'];
@@ -1509,13 +1491,10 @@ class ContentHandler implements MessageComponentInterface
                     } elseif ($data['type'] === 'so') {
                         $fields[] = 'so_title';
                         $fields[] = 'so_description';
+                        $fields[] = 'so_subdescription';
                         $values[] = $data['so_title'];
                         $values[] = $data['so_description'];
-                        // Ensure all SO subdescription fields are set to an empty string if not provided
-                        for ($i = 1; $i <= 10; $i++) {
-                            $fields[] = 'so_' . $i;
-                            $values[] = $data['so_' . $i] ?? '';
-                        }
+                        $values[] = $data['so_subdescription'];
                     }
                 
                     $fieldList = implode(', ', $fields);

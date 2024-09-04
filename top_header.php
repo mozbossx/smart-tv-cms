@@ -33,7 +33,6 @@ $draftCounts = [
     'promaterial' => 0,
 ];
 
-// Assuming you have a database connection in $conn
 $contentTypes = ['announcement', 'event', 'news', 'promaterial'];
 foreach ($contentTypes as $type) {
     if ($type !== 'news') {

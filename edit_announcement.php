@@ -11,7 +11,7 @@ $announcement_id = '';
 $announcement_author = '';
 $created_date = '';
 $created_time = '';
-$ann_body = '';
+$announcement_body = '';
 $expiration_date = '';
 $expiration_time = '';
 $display_time = '';
@@ -23,7 +23,7 @@ if (isset($_GET['announcement_id'])) {
     $announcement_id = $_GET['announcement_id'];
 
     // Fetch announcement data from the database
-    $query = "SELECT announcement_id, announcement_author, created_date, created_time, ann_body, expiration_date, expiration_time, display_time, tv_id, media_path FROM announcements_tb WHERE announcement_id = ?";
+    $query = "SELECT announcement_id, announcement_author, created_date, created_time, announcement_body, expiration_date, expiration_time, display_time, tv_id, media_path FROM announcements_tb WHERE announcement_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $announcement_id);
     $stmt->execute();
@@ -35,7 +35,7 @@ if (isset($_GET['announcement_id'])) {
         $announcement_author = $announcement['announcement_author'];
         $created_date = $announcement['created_date'];
         $created_time = $announcement['created_time'];
-        $ann_body = $announcement['ann_body'];
+        $announcement_body = $announcement['announcement_body'];
         $expiration_datetime = new DateTime($announcement['expiration_date'] . ' ' . $announcement['expiration_time']);
         $expiration_date = $expiration_datetime->format('Y-m-d');
         $expiration_time = $expiration_datetime->format('H:i');
@@ -112,8 +112,8 @@ if ($result_tv->num_rows > 0) {
                             <div class="line-separator"></div>
                             <?php include('error_message.php'); ?>
                             <div class="floating-label-container" style="margin-top: 0px">
-                                <textarea name="ann_body" rows="6" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="ann_body"><?php echo htmlspecialchars($ann_body); ?></textarea>
-                                <label for="ann_body" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Announcement Body</label>
+                                <textarea name="announcement_body" rows="6" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="announcement_body"><?php echo htmlspecialchars($announcement_body); ?></textarea>
+                                <label for="announcement_body" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Announcement Body</label>
                             </div>
                             <div class="right-flex">
                                 <div class="rounded-container-media">
@@ -277,7 +277,7 @@ if ($result_tv->num_rows > 0) {
         });
         
         function validateAndOpenPreviewModal() {
-            var annBody = document.querySelector('[name="ann_body"]').value;
+            var annBody = document.querySelector('[name="announcement_body"]').value;
             var displayTime = document.querySelector('[name="display_time"]').value;
             var tvDisplay = document.querySelector('[name="tv_id"]').value;
             var expirationDate = document.querySelector('[name="expiration_date"]').value;
