@@ -595,7 +595,7 @@ nav a{
     color: #fff;
     padding: 8px 16px;
     border-radius: 5px;
-    border: none;
+    border: 1px solid #264B2B;
     cursor: pointer;
     transition: background-color 0.3s;
     margin-top: 10px;
@@ -1206,55 +1206,60 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 
 /* Container styling */
 #chart-container {
-    border: 2px solid #333; /* Dark border around the chart */
+    border: 2px solid black; /* Dark border around the chart */
     background-color: #f9f9f9; /* Light background for the container */
-    border-radius: 10px; /* Rounded corners for the container */
     padding: 20px; /* Padding around the chart */
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for a 3D effect */
+    border-radius: 5px;
+    margin-top: 7px;
 }
 
-/* Node styling */
+#chart-container::-webkit-scrollbar-thumb {
+    background: gray;
+}
+
+#chart-container::-webkit-scrollbar-track {
+    border-radius: 0px;
+}
+
 .custom-node {
-    border: 2px solid #007bff; /* Blue border for nodes */
-    background-color: #fff; /* White background for nodes */
-    border-radius: 10px; /* Rounded corners for nodes */
-    padding: 10px; /* Padding inside nodes */
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Shadow for nodes */
-    text-align: center; /* Center text inside nodes */
+    border: 2px solid black; /* Border around the node */
+    border-radius: 10px; /* Slight rounding of corners */
+    padding: 10px; /* Padding around the contents */
+    display: flex; /* Flexbox layout for easy alignment */
+    align-items: center; /* Vertically center the items */
+    background-color: rgb(237, 237, 237); /* Background color */
+    width: 200px; /* Fixed width */
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2); /* Shadow effect */
 }
 
 .custom-node img {
-    width: 60px; /* Set the width for images */
-    height: 60px; /* Set the height for images */
-    border-radius: 50%; /* Round images */
-    margin-bottom: 10px; /* Space between image and text */
-    object-fit: cover; /* Ensure images cover the element without distortion */
+    border-radius: 50%; /* Circular image */
+    border: 2px solid #000000; /* Light border around the image */
+    width: 60px; /* Fixed width for image */
+    height: 60px; /* Fixed height for image */
+    margin-right: 15px; /* Space between the image and text */
 }
 
-/* Node text styling */
-.custom-node .node-text {
-    font-family: 'Roboto', sans-serif; /* Font for the node text */
-    color: #333; /* Dark color for text */
+.custom-node .details {
+    font-size: 14px; /* Text size */
+    line-height: 1.5; /* Line height for better readability */
+}
+
+.custom-node .node-name {
+    font-weight: bold; /* Bold name */
+    font-size: 16px; /* Larger font size for name */
 }
 
 .custom-node .node-title {
-    font-size: 14px; /* Smaller font size for titles */
-    color: #555; /* Slightly lighter color for titles */
-}
-
-/* Node image styling */
-.custom-node img {
-    width: 60px; /* Set the width for images */
-    height: 60px; /* Set the height for images */
-    border-radius: 50%; /* Round images */
-    margin-bottom: 10px; /* Space between image and text */
+    font-style: italic; /* Italic title */
+    margin-bottom: 5px; /* Space below the title */
 }
 
 /* Connecting lines */
 .Treant .node {
-    border-color: #007bff; /* Blue color for connecting lines */
+    border-color: #000000; /* Blue color for connecting lines */
 }
-
 
 .ql-toolbar.ql-snow {
     border-radius: 5px 5px 0 0 !important;
@@ -1732,7 +1737,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     color: #fff;
     padding: 8px 16px;
     border-radius: 5px;
-    border: none;
+    border: 1px solid #264B2B;
     cursor: pointer;
     transition: background-color 0.3s;
     margin-top: 10px;
