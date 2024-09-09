@@ -87,7 +87,7 @@ body {
 .carousel-container {
     /* height: 84.5%; */
     align-content: center;
-    height: calc(100% - 8.0vh);
+    height: calc(100% - 6.0vh);
     border: black 1px solid;
     border-radius: 5px;
 }
@@ -183,6 +183,45 @@ body {
 
 .carousel-item.active {
     display: block;
+}
+
+.custom-node {
+    border: 2px solid black; /* Border around the node */
+    border-radius: 10px; /* Slight rounding of corners */
+    padding: 10px; /* Padding around the contents */
+    display: flex; /* Flexbox layout for easy alignment */
+    align-items: center; /* Vertically center the items */
+    background-color: rgb(237, 237, 237); /* Background color */
+    width: 200px; /* Fixed width */
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2); /* Shadow effect */
+}
+
+.custom-node img {
+    border-radius: 50%; /* Circular image */
+    border: 2px solid #000000; /* Light border around the image */
+    width: 60px; /* Fixed width for image */
+    height: 60px; /* Fixed height for image */
+    margin-right: 15px; /* Space between the image and text */
+}
+
+.custom-node .details {
+    font-size: 14px; /* Text size */
+    line-height: 1.5; /* Line height for better readability */
+}
+
+.custom-node .node-name {
+    font-weight: bold; /* Bold name */
+    font-size: 16px; /* Larger font size for name */
+}
+
+.custom-node .node-title {
+    font-style: italic; /* Italic title */
+    margin-bottom: 5px; /* Space below the title */
+}
+
+/* Connecting lines */
+.Treant .node {
+    border-color: #000000; /* Blue color for connecting lines */
 }
 
 /* Small TVs (Under 32 inches) */

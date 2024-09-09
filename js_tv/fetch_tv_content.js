@@ -25,7 +25,8 @@ let currentIndex = {
     news: 0, 
     promaterial: 0,
     peo: 0, 
-    so: 0
+    so: 0,
+    orgchart: 0
 };
 
 let contents = { 
@@ -34,7 +35,8 @@ let contents = {
     news: [], 
     promaterial: [],
     peo: [],
-    so: []
+    so: [],
+    orgchart: []
 };
 
 let displayTimeIntervals = { 
@@ -43,7 +45,8 @@ let displayTimeIntervals = {
     news: null,
     promaterial: null,
     peo: null,
-    so: null
+    so: null,
+    orgchart: null
 };
 
 // Function to format date to "MM DD YYYY"
@@ -210,6 +213,12 @@ const updateUI = (data, type) => {
                 </div>
             </div>
         `;
+    } else if (type === 'orgchart') {
+        contentHTML = `
+            <div class="content-container-con">
+                <div id="orgChartContainer" style="width: 100%; height: 100%;"></div>
+            </div>
+        `;
     }
 
     if (existingDiv) {
@@ -258,7 +267,104 @@ const updateUI = (data, type) => {
         } else {
             updatePageNumber(currentIndexKey);
         }
+        if (type === 'orgchart') {
+            createOrgChart(data.orgChartData);
+        }
     }
+};
+
+// Function to fetch org chart data
+const fetchOrgChartData = () => {
+    return fetch('database/fetch_orgchart.php')
+        .then(response => response.json())
+        .catch(error => {
+            console.error('Error fetching org chart data:', error);
+            return {};
+        });
+};
+
+// Function to create org chart
+const createOrgChart = (orgChartData, containerId) => {
+    const chartConfig = {
+        chart: {
+            container: `#${containerId}`,
+            nodeAlign: "BOTTOM",
+            levelSeparation: 50,
+            siblingSeparation: 40,
+            subTeeSeparation: 40
+        },
+        nodeStructure: buildOrgChartNodeStructure(orgChartData)
+    };
+
+    new Treant(chartConfig);
+};
+
+// Function to build org chart node structure
+const buildOrgChartNodeStructure = (data) => {
+    const nodes = {};
+    const rootNodes = [];
+
+    // Create a map of all nodes by their ID
+    data.forEach(member => {
+        nodes[member.parent_node_id] = {
+            text: {
+                name: member.name,
+                title: member.title,
+            },
+            image: member.picture,
+            innerHTML: `
+                ${member.picture ? `<img src="${member.picture}" style="width: 50px; height: 50px; border-radius: 50%;">` : '<img src="images/profile_picture.png">'}
+                <div class="details">
+                    <div class="node-name">${member.name}</div>
+                    <div class="node-title">${member.title}</div>
+                    <div class="node-title">${member.id}</div>                    
+                </div>
+            `,
+            HTMLclass: "custom-node",
+            children: []
+        };
+    });
+
+    // Link children to their parents
+    data.forEach(member => {
+        if (member.parent_id) {
+            if (nodes[member.parent_id]) {
+                nodes[member.parent_id].children.push(nodes[member.parent_node_id]);
+            } else {
+                console.error(`Parent ID ${member.parent_id} not found for member ID ${member.parent_node_id}`);
+            }
+        } else {
+            rootNodes.push(nodes[member.parent_node_id]); // Collect root nodes
+        }
+    });
+
+    // Return the root node (assuming a single root node)
+    if (rootNodes.length === 1) {
+        return rootNodes[0];
+    } else {
+        // Handle multiple root nodes if necessary
+        return {
+            text: { name: "Root" },
+            children: rootNodes
+        };
+    }
+};
+
+// Function to initialize org charts
+const initializeOrgCharts = () => {
+    fetchOrgChartData().then(groupedData => {
+        Object.keys(groupedData).forEach(orgchartId => {
+            const containerId = `orgChartContainer_${orgchartId}`;
+            console.log(`Creating org chart with containerId: ${containerId}`); // Debugging line
+            const containerDiv = document.createElement('div');
+            containerDiv.id = containerId;
+            containerDiv.style.width = '100%';
+            containerDiv.style.height = '100%';
+            document.getElementById('orgchartCarouselContainer').appendChild(containerDiv);
+
+            createOrgChart(groupedData[orgchartId], containerId);
+        });
+    });
 };
 
 // Function to reset countdown for each content
@@ -605,6 +711,8 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndUpdateContents('promaterial');
     fetchAndUpdateContents('peo');
     fetchAndUpdateContents('so');
+    // fetchAndUpdateContents('orgchart');
+    initializeOrgCharts();
     
     fetchSmartTVName();
 });

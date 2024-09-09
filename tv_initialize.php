@@ -35,18 +35,21 @@ if ($tvId === null) {
         $containerNamePromaterials = 'Promotional Materials';
         $containerNamePEO = 'Program Educational Objectives';
         $containerNameSO = 'Student Outcomes';
+        $containerNameOrgChart = 'Department Organizational Chart';
         $containerTypeAnnouncements = 'announcement';
         $containerTypeEvents = 'event';
         $containerTypeNews = 'news';
         $containerTypePromaterials = 'promaterial';
         $containerTypePEO = 'peo';
         $containerTypeSO = 'so';
+        $containerTypeOrgChart = 'orgchart';
         $containerPositionAnnouncements = 1;
         $containerPositionEvents = 2;
         $containerPositionNews = 3;
         $containerPositionPromaterials = 4;
         $containerPositionPEO = 5;
         $containerPositionSO = 6;
+        $containerPositionOrgChart = 7;
 
         $sql_announcement_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNameAnnouncements', '$containerTypeAnnouncements', $containerPositionAnnouncements)";
         mysqli_query($conn, $sql_announcement_container);
@@ -65,6 +68,9 @@ if ($tvId === null) {
 
         $sql_so_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNameSO', '$containerTypeSO', $containerPositionSO)";
         mysqli_query($conn, $sql_so_container);
+
+        $sql_orgchart_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNameOrgChart', '$containerTypeOrgChart', $containerPositionOrgChart)";
+        mysqli_query($conn, $sql_orgchart_container);
 
         // Redirect to the same page with tvId as query parameter
         header("Location: tv2.php?tvId=$tvId");

@@ -170,7 +170,7 @@ include 'misc/php/options_tv.php';
             };
 
             ws.send(JSON.stringify(data));
-            console.log(data);
+            console.log("Chart Data: ", data);
 
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
@@ -403,7 +403,7 @@ include 'misc/php/options_tv.php';
 
         function fetchOrgChartData() {
             return $.ajax({
-                url: 'fetch_org_chart.php',
+                url: 'database/fetch_orgchart.php',
                 dataType: 'json'
             }).done(function(data) {
                 console.log("Fetched data:", data);  // Log data to check its structure
@@ -554,6 +554,9 @@ include 'misc/php/options_tv.php';
                 createOrgChart(orgChartData);
                 closeAddMemberModal();
             }
+
+            console.log("Org Chart Data:", orgChartData);
+
         }
     </script>
 </body>

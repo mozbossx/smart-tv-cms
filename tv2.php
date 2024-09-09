@@ -29,6 +29,10 @@ include 'tv_initialize.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style_tv.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="misc/js/treant-js-master/vendor/jquery.min.js"></script>
+    <script src="misc/js/treant-js-master/vendor/raphael.js"></script>
+    <script src="misc/js/treant-js-master/Treant.js"></script>
+    <link rel="stylesheet" href="misc/js/treant-js-master/Treant.css" />
     <title><?php echo $_SESSION['tv_name'] ?></title>
 </head>
 <p id="screen" style="color: white; position: fixed"></p>
@@ -37,23 +41,23 @@ include 'tv_initialize.php';
     <div style="background: <?php echo $backgroundColor ?>; cursor: pointer; width: 100%; height: calc(100% - 7vh); overflow: hidden; display: flex; flex-direction: column; /* Arrange containers vertically */ height: 100vh; overflow: hidden; /* Prevent any overflow */" id="tvBackgroundColor">
         <div class="main-container" id="main-container">
         <?php foreach ($containers as $container): ?>
-                <?php $containerNameLower = strtolower($container['type']); ?>
-                <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
-                    style="background: <?php echo $container['parent_background_color']; ?>;
-                            display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
-                            height: <?php echo $container['height_px']; ?>px;
-                            width: <?php echo $container['width_px']; ?>px;"
-                    onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
-                    <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>"><?php echo $container['container_name']; ?></h1>
-                    <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
-                        style="background: <?php echo $container['child_background_color']; ?>;
-                               color: <?php echo $container['child_font_color']; ?>;
-                               font-style: <?php echo $container['child_font_style'];?>;
-                               font-family: <?php echo $container['child_font_family']; ?>">
-                        <!-- Content for carousel-container will be displayed here -->
-                    </div>
-                    <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="<?php echo $containerNameLower; ?>PageNumberContainer" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
+            <?php $containerNameLower = strtolower($container['type']); ?>
+            <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
+                style="background: <?php echo $container['parent_background_color']; ?>;
+                        display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
+                        height: <?php echo $container['height_px']; ?>px;
+                        width: <?php echo $container['width_px']; ?>px;"
+                onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
+                <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>"><?php echo $container['container_name']; ?></h1>
+                <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
+                    style="background: <?php echo $container['child_background_color']; ?>;
+                            color: <?php echo $container['child_font_color']; ?>;
+                            font-style: <?php echo $container['child_font_style'];?>;
+                            font-family: <?php echo $container['child_font_family']; ?>">
+                    <!-- Content for carousel-container will be displayed here -->
                 </div>
+                <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="<?php echo $containerNameLower; ?>PageNumberContainer" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
+            </div>
             <?php endforeach; ?>
         </div>
     </div>

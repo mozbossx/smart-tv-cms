@@ -29,14 +29,6 @@ class ContentHandler implements MessageComponentInterface
         $department = isset($queryParameters['department']) ? urldecode($queryParameters['department']) : 'Unknown';
         $email = isset($queryParameters['email']) ? urldecode($queryParameters['email']) : 'Unknown';
        
-        // Debugging: Log the user_id
-        error_log("onOpen:");
-        error_log("User ID: " . $user_id);
-        error_log("Full Name: " . $full_name);
-        error_log("User Type: " . $user_type);
-        error_log("Department: " . $department);
-        error_log("Email: " . $email . "\n");
-
         // Store the values in the connection object for later use
         $conn->user_id = $user_id;
         $conn->full_name = $full_name;
@@ -1377,14 +1369,16 @@ class ContentHandler implements MessageComponentInterface
                     foreach ($data['tv_ids'] as $tv_ids) {
                         $orgChartData = $data['orgChartData'];
                         $display_time = $data['display_time'];
-        
+                        $orgchart_id = uniqid(); // Generate a unique ID for this orgchart
                         foreach ($orgChartData as $member) {
                             $stmt = $this->pdo->prepare("
-                                INSERT INTO org_chart_members (parent_id, name, title, type, display_time, tv_id, picture)
-                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                                INSERT INTO org_chart_members (parent_node_id, parent_id, orgchart_id, name, title, type, display_time, tv_id, picture)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                             ");
                             $stmt->execute([
+                                $member['id'],
                                 $member['parent_id'],
+                                $orgchart_id,
                                 $member['name'],
                                 $member['title'],
                                 'orgchart',
@@ -1394,7 +1388,7 @@ class ContentHandler implements MessageComponentInterface
                             ]);
                         }
         
-                        $from->send(json_encode(['action' => 'post_content', 'success' => true]));
+                        $from->send(json_encode(['action' => 'post_content', 'success' => true, 'type' => 'orgchart', 'orgchart_id' => $orgchart_id]));
                         echo "A member is being added! \n";
                     }
                 } else {
@@ -1629,11 +1623,11 @@ class ContentHandler implements MessageComponentInterface
         }
     
         // Debug: Check if the layout is populated correctly
-        if (empty($layout)) {
-            error_log("No layout data found for TV ID: " . $tv_id);
-        } else {
-            error_log("Layout data found for TV ID: " . $tv_id . ": " . json_encode($layout));
-        }
+        // if (empty($layout)) {
+        //     error_log("No layout data found for TV ID: " . $tv_id);
+        // } else {
+        //     error_log("Layout data found for TV ID: " . $tv_id . ": " . json_encode($layout));
+        // }
     
         return $layout;
     }    
