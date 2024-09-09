@@ -15,9 +15,9 @@ if (!isset($_SESSION['full_name']) || !isset($_SESSION['email'])) {
 
 $current_page = basename($_SERVER['PHP_SELF']);
 
-$sql = "SELECT full_name, password, department, email, user_type FROM users_tb WHERE full_name = ?";
+$sql = "SELECT user_id, full_name, password, department, email, user_type FROM users_tb WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $full_name);
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 

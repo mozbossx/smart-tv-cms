@@ -53,8 +53,10 @@ include 'misc/php/options_tv.php';
                             <input type="hidden" name="type" value="orgchart">
                             <h1 style="text-align: center">Department Organizational Chart Form</h1>
                             <div style="position: relative">
-                                <div id="chart-container" style="width: auto; height: 600px;"></div>
-                                <div style="position: absolute; z-index: 100; bottom: 5px; right: 5px">
+                                <div class="chart-parent-container">
+                                    <div id="chart-container" style="width: auto; height: auto; max-height: 540px"></div>
+                                </div>
+                                <div style="position: absolute; z-index: 100; bottom: 15px; right: 15px">
                                     <button type="button" name="addMemberButton" id="addMemberButton" class="preview-button" style="background: none; border: 1px solid #316038; color: #316038; margin-right: 0" onclick="openAddMemberModal()">
                                         <i class="fa fa-user-plus" style="padding-right: 5px"></i> Add a Member
                                     </button>
@@ -415,6 +417,7 @@ include 'misc/php/options_tv.php';
             // Create a map of all nodes by their ID
             const nodes = {};
             data.forEach(member => {
+                const hasChildren = data.some(child => child.parent_id == member.id);
                 nodes[member.id] = {
                     text: {
                         name: member.name,
@@ -422,13 +425,11 @@ include 'misc/php/options_tv.php';
                     }, 
                     image: member.picture,
                     innerHTML: `
-                        <button onclick="deleteMember(${member.id})" style="position: absolute; top: 0; right: 0; background: none; border: none; color: crimson; cursor: pointer;"><i class="fa fa-times-circle" style="font-size: 15px"></i></button>
+                        ${!hasChildren ? `<button onclick="deleteMember(${member.id})" style="position: absolute; top: 0; right: 0; background: none; border: none; color: crimson; cursor: pointer;"><i class="fa fa-times-circle" style="font-size: 15px"></i></button>` : ''}
                         ${member.picture ? `<img src="${member.picture}" style="width: 50px; height: 50px; border-radius: 50%;">` : '<img src="images/profile_picture.png">'}
                         <div class="details">
                             <div class="node-name">${member.name}</div>
                             <div class="node-title">${member.title}</div>
-                            <p>${member.id}</p>
-                            <p>${member.parent_id}</p>
                         </div>
                     `,
                     HTMLclass: "custom-node",
@@ -462,7 +463,7 @@ include 'misc/php/options_tv.php';
                     nodeStructure: rootNode
                 });
             } else {
-                chartContainer.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em;">No members in the organizational chart. Please add at least one member.</p>';
+                chartContainer.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">No members in the organizational chart. Please <a href="#" onclick="openAddMemberModal()">add</a> at least one member.</p>';
             }
         }
 
@@ -474,11 +475,11 @@ include 'misc/php/options_tv.php';
             if (hasChildren) {
                 alert('Cannot delete a parent node unless all its child nodes are deleted first.');
                 return;
-            } else {
-                // Remove the member from orgChartData
-                orgChartData = orgChartData.filter(member => member.id !== memberId);
-                createOrgChart(orgChartData); // Re-render the org chart
-            }
+            } 
+
+            // Remove the member from orgChartData
+            orgChartData = orgChartData.filter(member => member.id !== memberId);
+            createOrgChart(orgChartData); // Re-render the org chart
         }
 
         $(document).ready(function() {

@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.19:8081');
+const Ws = new WebSocket('ws://192.168.1.20:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -19,9 +19,32 @@ const getContainerElements = (type) => {
     };
 };
 
-let currentIndex = { announcement: 0, event: 0, news: 0 };
-let contents = { announcements: [], events: [], news: [] };
-let displayTimeIntervals = { announcement: null, event: null, news: null };
+let currentIndex = { 
+    announcement: 0, 
+    event: 0, 
+    news: 0, 
+    promaterial: 0,
+    peo: 0, 
+    so: 0
+};
+
+let contents = { 
+    announcements: [], 
+    events: [], 
+    news: [], 
+    promaterial: [],
+    peo: [],
+    so: []
+};
+
+let displayTimeIntervals = { 
+    announcement: null, 
+    event: null, 
+    news: null,
+    promaterial: null,
+    peo: null,
+    so: null
+};
 
 // Function to format date to "MM DD YYYY"
 const formatDate = (dateString) => {
@@ -37,7 +60,7 @@ const formatTime = (timeString) => {
     return time.toLocaleTimeString('en-US', options).replace(/(:\d{2})$/, '').toLowerCase();
 };
 
-// Unified function to update UI for announcements and events
+// Unified function to update UI
 const updateUI = (data, type) => {
     const { carouselContainer, pageNumberContainer } = getContainerElements(type);
     const currentIndexKey = type;
@@ -126,6 +149,67 @@ const updateUI = (data, type) => {
                 </div>
             </div>
         `;
+    } else if (type === 'promaterial') {
+        contentHTML = `
+            <div class="content-container-con">
+                <div class="content-main">
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                </div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div>
+                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                        </div>
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (type === 'peo') {
+        contentHTML = `
+            <div class="content-container-con">
+                <div class="content-main">
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                    <p class="main-message" style="word-break: break-word;"><b>${data.peo_title}</b></p>
+                    <p class="main-message" style="word-break: break-word;">${data.peo_description}</p>
+                    <p class="main-message" style="word-break: break-word;">${data.peo_subdescription}</p>
+                </div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div>
+                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        </div>
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (type === 'so') {
+        contentHTML = `
+            <div class="content-container-con">
+                <div class="content-main">
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                    <p class="main-message" style="word-break: break-word;"><b>${data.so_title}</b></p>
+                    <p class="main-message" style="word-break: break-word;">${data.so_description}</p>
+                    <p class="main-message" style="word-break: break-word;">${data.so_subdescription}</p>
+                </div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div>
+                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                        </div>
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     if (existingDiv) {
@@ -177,7 +261,7 @@ const updateUI = (data, type) => {
     }
 };
 
-// Function to reset countdown for announcements and events
+// Function to reset countdown for each content
 const resetCountdown = (div, newDisplayTime, type) => {
     const timeLeftElement = div.querySelector('.time-left');
     if (timeLeftElement) {
@@ -315,7 +399,7 @@ const startCarousel = (type) => {
 // Function to display a message when no content is available
 const displayNoMessage = (type) => {
     const { carouselContainer } = getContainerElements(type);
-    carouselContainer.innerHTML = `<p style="text-align: center; font-size: 1.2em; margin-top: auto;">No ${type} available</p>`; // Display no content message
+    carouselContainer.innerHTML = `<p style="text-align: center; font-size: 1.2em; margin-top: auto;">No content available</p>`; // Display no content message
 };
 
 // Function to fetch and update contents
@@ -394,6 +478,12 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('event');
         } else if (data.type === 'news') {
             fetchAndUpdateContents('news');
+        } else if (data.type === 'promaterial') {
+            fetchAndUpdateContents('promaterial');
+        } else if (data.type === 'peo') {
+            fetchAndUpdateContents('peo');
+        } else if (data.type === 'so') {
+            fetchAndUpdateContents('so');
         }
     } else if (data.action === 'update') {
         if (data.type === 'announcement') {
@@ -402,6 +492,12 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('event');
         } else if (data.type === 'news') {
             fetchAndUpdateContents('news');
+        } else if (data.type === 'promaterial') {
+            fetchAndUpdateContents('promaterial');
+        } else if (data.type === 'peo') {
+            fetchAndUpdateContents('peo');
+        } else if (data.type === 'so') {
+            fetchAndUpdateContents('so');
         }
     } else if (data.action === 'post_content') {
         if (data.type === 'announcement') {
@@ -410,6 +506,12 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('event');
         } else if (data.type === 'news') {
             fetchAndUpdateContents('news');
+        } else if (data.type === 'promaterial') {
+            fetchAndUpdateContents('promaterial');
+        } else if (data.type === 'peo') {
+            fetchAndUpdateContents('peo');
+        } else if (data.type === 'so') {
+            fetchAndUpdateContents('so');
         }
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVName();
@@ -500,5 +602,9 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndUpdateContents('announcement');
     fetchAndUpdateContents('event');
     fetchAndUpdateContents('news');
+    fetchAndUpdateContents('promaterial');
+    fetchAndUpdateContents('peo');
+    fetchAndUpdateContents('so');
+    
     fetchSmartTVName();
 });

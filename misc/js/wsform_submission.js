@@ -135,6 +135,8 @@ function submitFormViaWebSocket() {
                 document.getElementById('successMessage').textContent = "Program Educational Objective was successfully processed!";                        
             } else if (contentType === 'so') {
                 document.getElementById('successMessage').textContent = "Student Outcome was successfully processed!";                        
+            } else if (userType === 'Student' || userType === 'Faculty') {
+                document.getElementById('successMessage').textContent = "Your post will still be in pending mode until an admin approves it.";
             } else {
                 document.getElementById('successMessage').textContent = capitalizeFirstLetter(contentType) + " was successfully processed!";                        
             }
@@ -158,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.text())
         .then(url => {
             const ws = new WebSocket(url);
-
+            console.log(url);
             // Attach the WebSocket to the window object for global access
             window.ws = ws;
 

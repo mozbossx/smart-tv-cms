@@ -36,12 +36,12 @@ $draftCounts = [
 $contentTypes = ['announcement', 'event', 'news', 'promaterial'];
 foreach ($contentTypes as $type) {
     if ($type !== 'news') {
-        $query = "SELECT COUNT(*) as count FROM {$type}s_tb WHERE status = 'Draft' AND {$type}_author = ?";
+        $query = "SELECT COUNT(*) as count FROM {$type}s_tb WHERE status = 'Draft' AND {$type}_author_id = ?";
     } else {
-        $query = "SELECT COUNT(*) as count FROM {$type}_tb WHERE status = 'Draft' AND {$type}_author = ?";
+        $query = "SELECT COUNT(*) as count FROM {$type}_tb WHERE status = 'Draft' AND {$type}_author_id = ?";
     }
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("s", $full_name);
+    $stmt->bind_param("s", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
     $draftCounts[$type] = $result->fetch_assoc()['count'];  // Fetch the associative array without arguments
@@ -65,7 +65,7 @@ $hasDrafts = array_sum($draftCounts) > 0;
                 </li>
                 <li>
                     <a id="dropdown-arrow" href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                        <?php echo ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
+                        <?php echo ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
                         Create Post
                     </a>
                     <ul class='sub-menus'>

@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.19:8081');
+const Ws = new WebSocket('ws://192.168.1.20:8081');
 
 // Function to format date to "MM DD YYYY"
 const formatDate = (dateString) => {
@@ -34,17 +34,30 @@ const createButton = (text, iconClass, onClick) => {
 };
 
 // Function to create content div
-const createContentDiv = (data, mediaContent, formattedCreatedDate, formattedCreatedTime, formattedExpirationDate, formattedExpirationTime) => {
-    return `
-        <div class="content-container-con">
-            ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-            <pre class="ann-body" style="word-break: break-word">${data.announcement_body || data.event_body || data.news_body}</pre>
-            <div class="line-separator"></div>
-            <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.announcement_author || data.event_author || data.news_author} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
-            <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
-            <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
-        </div>
-    `;
+const createContentDiv = (data, mediaContent, formattedCreatedDate, formattedCreatedTime, formattedExpirationDate, formattedExpirationTime, type) => {
+    if (type === 'peo' || type === 'so') {
+        return `
+            <div class="content-container-con">
+                ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                <pre class="ann-body" style="word-break: break-word">${data[`${type}_body`]}</pre>
+                <div class="line-separator"></div>
+                <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data[`${type}_author_id`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
+            </div>
+        `;
+    } else {
+        return `
+            <div class="content-container-con">
+                ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                <pre class="ann-body" style="word-break: break-word">${data[`${type}_body`]}</pre>
+                <div class="line-separator"></div>
+                <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data[`${type}_author_id`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
+                </div>
+            `;
+    }
 };
 
 // Function to update UI for announcement, event, news, etc.
@@ -65,7 +78,7 @@ const updateUI = (data, type) => {
             isVideo ? `<video width="100%" height="100%" controls style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
-    const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDate, formattedCreatedTime, formattedExpirationDate, formattedExpirationTime);
+    const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDate, formattedCreatedTime, formattedExpirationDate, formattedExpirationTime, type);
     
     if (existingDiv) {
         existingDiv.querySelector('.content-container-con').innerHTML = contentDiv;
@@ -98,9 +111,9 @@ const updateUI = (data, type) => {
 
         const deleteButton = createButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
         const archiveButton = createButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
-        const editButton = createButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author`]}`);
+        const editButton = createButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
-        if (userType !== 'Student' && userType !== 'Faculty' || data[`${type}_author`] === full_name) {
+        if (userType !== 'Student' && userType !== 'Faculty' || data[`${type}_author_id`] === userId) {
             containerDiv.appendChild(deleteButton);
             containerDiv.appendChild(archiveButton);
             containerDiv.appendChild(editButton);

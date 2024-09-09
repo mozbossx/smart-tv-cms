@@ -103,6 +103,7 @@ if (isset($_GET['tvId'])) {
 
         $tvHeight = $tvSizeData['height_px'];
         $tvWidth = $tvSizeData['width_px'];
+        $tvBrand = $tvSizeData['tv_brand'];
     }
 
     $stmtTvSize->close();
@@ -161,30 +162,28 @@ $conn->close();
                                 <li class="breadcrumb-item active" aria-current="page">Edit Template</li>
                             </ol>
                         </nav>
-                        <div class="line-separator"></div>
                         <?php include('error_message.php'); ?>
                         <div class="container-indicators">
                             <!-- Sidebar -->
-                            <div style="height: 100vh; flex: 1">
-                                <div class="space-y-4" style="margin-top: 0;">
-                                    <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;">Show/Hide Content Containers</p>
+                            <div style="height: 100vh; flex: 1; text-align: left; ">
+                                <div class="content-container" style="margin-top: 0;">
+                                    <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Show/Hide Content Containers</b></p>
                                     <form id="visibilitySettingsForm" style="padding: 8px;">
                                         <?php foreach ($containers as $container): ?>
-                                            <div class="option-div">
-                                                <input type="checkbox" id="container_<?php echo $container['container_id']; ?>" name="container_<?php echo $container['container_id']; ?>" <?php echo $container['visible'] ? 'checked' : ''; ?>>
-                                                <label for="container_<?php echo $container['container_id']; ?>"> Show <?php echo htmlspecialchars($container['container_name']); ?></label>
-                                            </div>
+                                            <label class="option-div">
+                                                <input type="checkbox" id="container_<?php echo $container['container_id']; ?>" name="container_<?php echo $container['container_id']; ?>" <?php echo $container['visible'] ? 'checked' : ''; ?> style="margin-right: 10px;">
+                                                <label for="container_<?php echo $container['container_id']; ?>"><?php echo htmlspecialchars($container['container_name']); ?></label>
+                                            </label>
                                         <?php endforeach; ?>
                                     </form>
                                 </div>
-                            </div>
-<!-- Scale buttons -->
-                            
+                            </div>                            
                             <!-- Content Area -->
                             <div class="tv-frame-parent">
                                 <!-- Display iframe based on tvId -->
                                 <div class="tv-frame" id="tv-frame">
                                     <iframe id="tv-iframe" frameborder="0" src="tv2.php?tvId=<?php echo $tvId?>" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
+                                    <p style="text-align: center; font-size: 25px; margin-top: auto; color: white;"><?php echo $tvBrand?></p>
                                 </div>
                                 <div class="scale-buttons">
                                     <button id="scale-down"><i class="fa fa-search-minus"></i></button>
@@ -654,16 +653,15 @@ $conn->close();
             // Attach event listeners to all relevant fields
             topbarFields.forEach(id => {
                 const element = topBarColorForm.querySelector(`#${id}`);
-                element.addEventListener('input', sendTopbarUpdate);
-                element.addEventListener('change', sendTopbarUpdate);
+                if (element) {  // Check if the element exists
+                    element.addEventListener('input', sendTopbarUpdate);
+                    element.addEventListener('change', sendTopbarUpdate);
+                } 
             });
 
             // Automatically submit the visibility form when changes are made
             visibilityForm.querySelectorAll('input[type="checkbox"]').forEach(input => {
                 input.addEventListener('change', () => {
-                    const formData = new FormData(visibilityForm);
-
-                    // Loop through the checkboxes to gather their states
                     const containersData = {};
                     visibilityForm.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                         const containerId = checkbox.id.split('_')[1];
@@ -673,7 +671,7 @@ $conn->close();
                     const data = {
                         action: 'show_hide_content',
                         tv_id: <?php echo $tvId; ?>,
-                        containers: containersData // Change key from "visible" to "containers"
+                        containers: containersData
                     };
 
                     ws.send(JSON.stringify(data));

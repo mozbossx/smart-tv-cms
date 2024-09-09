@@ -23,11 +23,22 @@ class ContentHandler implements MessageComponentInterface
         $queryString = $conn->httpRequest->getUri()->getQuery();
         parse_str($queryString, $queryParameters);
 
+        $user_id = isset($queryParameters['user_id']) ? urldecode($queryParameters['user_id']) : null;
         $full_name = isset($queryParameters['full_name']) ? urldecode($queryParameters['full_name']) : 'Unknown';
         $user_type = isset($queryParameters['user_type']) ? urldecode($queryParameters['user_type']) : 'Unknown';
         $department = isset($queryParameters['department']) ? urldecode($queryParameters['department']) : 'Unknown';
         $email = isset($queryParameters['email']) ? urldecode($queryParameters['email']) : 'Unknown';
+       
+        // Debugging: Log the user_id
+        error_log("onOpen:");
+        error_log("User ID: " . $user_id);
+        error_log("Full Name: " . $full_name);
+        error_log("User Type: " . $user_type);
+        error_log("Department: " . $department);
+        error_log("Email: " . $email . "\n");
+
         // Store the values in the connection object for later use
+        $conn->user_id = $user_id;
         $conn->full_name = $full_name;
         $conn->user_type = $user_type;
         $conn->department = $department;
@@ -39,7 +50,7 @@ class ContentHandler implements MessageComponentInterface
 
     public function onMessage(ConnectionInterface $from, $msg) {
         $data = json_decode($msg, true);
-
+        
         // Handle delete actions
         if (isset($data['action']) && $data['action'] === 'delete') {
             $validTypes = [
@@ -227,36 +238,36 @@ class ContentHandler implements MessageComponentInterface
                 'announcement' => [
                     'table' => 'announcements_tb',
                     'idField' => 'announcement_id',
-                    'fields' => ['announcement_body', 'announcement_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['announcement_body', 'announcement_author_id', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'announcement_media'
                 ],
                 'event' => [
                     'table' => 'events_tb',
                     'idField' => 'event_id',
-                    'fields' => ['event_body', 'event_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['event_body', 'event_author_id', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'event_media'
                 ],
                 'news' => [
                     'table' => 'news_tb',
                     'idField' => 'news_id',
-                    'fields' => ['news_body', 'news_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['news_body', 'news_author_id', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'news_media'
                 ],
                 'promaterial' => [
                     'table' => 'promaterials_tb',
                     'idField' => 'promaterial_id',
-                    'fields' => ['promaterial_author', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['promaterial_author_id', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
                     'mediaFolder' => 'promaterial_media'
                 ],
                 'peo' => [
                     'table' => 'peo_tb',
                     'idField' => 'peo_id',
-                    'fields' => ['peo_title', 'peo_description', 'peo_subdescription', 'peo_author', 'created_date', 'created_time', 'display_time', 'tv_id']
+                    'fields' => ['peo_title', 'peo_description', 'peo_subdescription', 'peo_author_id', 'created_date', 'created_time', 'display_time', 'tv_id']
                 ],
                 'so' => [
                     'table' => 'so_tb',
                     'idField' => 'so_id',
-                    'fields' => ['so_title', 'so_description', 'so_subdescription', 'so_author', 'created_date', 'created_time', 'display_time', 'tv_id']
+                    'fields' => ['so_title', 'so_description', 'so_subdescription', 'so_author_id', 'created_date', 'created_time', 'display_time', 'tv_id']
                 ]
             ];
         
@@ -700,7 +711,7 @@ class ContentHandler implements MessageComponentInterface
             }
         
             $from->send(json_encode($response));
-        }        
+        }         
 
         else if (isset($data['otp_code']) && isset($data['session_data'])) {
             $otp = $data['session_data']['otp'];
@@ -918,9 +929,6 @@ class ContentHandler implements MessageComponentInterface
             $stmtDeleteSmartTV = $this->pdo->prepare("DELETE FROM smart_tvs_tb WHERE tv_id = ?");
             $stmtDeleteSmartTV->execute([$tvId]);
 
-            $stmtDeleteBackground = $this->pdo->prepare("DELETE FROM background_tv_tb WHERE tv_id = ?");
-            $stmtDeleteBackground->execute([$tvId]);
-
             $smart_tv = $stmtDeleteSmartTV->rowCount() > 0;
 
             if ($smart_tv) {
@@ -1007,6 +1015,7 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'save_draft') {
             // Access values from the connection object
+            $user_id = $from->user_id;
             $full_name = $from->full_name;
             $user_type = $from->user_type;
             $department = $from->department;
@@ -1063,12 +1072,12 @@ class ContentHandler implements MessageComponentInterface
                     };
 
                     $authorField = match ($data['type']) {
-                        'announcement' => 'announcement_author',
-                        'event' => 'event_author',
-                        'news' => 'news_author',
-                        'promaterial' => 'promaterial_author',
-                        'peo' => 'peo_author',
-                        'so' => 'so_author',
+                        'announcement' => 'announcement_author_id',
+                        'event' => 'event_author_id',
+                        'news' => 'news_author_id',
+                        'promaterial' => 'promaterial_author_id',
+                        'peo' => 'peo_author_id',
+                        'so' => 'so_author_id',
                         default => 'No Author Found'
                     };
 
@@ -1078,7 +1087,7 @@ class ContentHandler implements MessageComponentInterface
                         'category', 'created_date', 'created_time', 'isCancelled', 'status'
                     ];
                     $values = [
-                        $department, $user_type, $full_name, $tv_ids, $data['display_time'] ?? null,
+                        $department, $user_type, $user_id, $tv_ids, $data['display_time'] ?? null,
                         $category, $created_date, $created_time, $isCancelled, $status
                     ];
 
@@ -1153,7 +1162,7 @@ class ContentHandler implements MessageComponentInterface
                     if ($success) {
                         $id = $this->pdo->lastInsertId();
                         $data[$idField] = $id;
-                        $data[$authorField] = $full_name;
+                        $data[$authorField] = $user_id;
                         $data['created_date'] = $created_date;
                         $data['created_time'] = $created_time;
                         $data['category'] = $category;
@@ -1233,12 +1242,12 @@ class ContentHandler implements MessageComponentInterface
                 };
 
                 $authorField = match ($data['type']) {
-                    'announcement' => 'announcement_author',
-                    'event' => 'event_author',
-                    'news' => 'news_author',
-                    'promaterial' => 'promaterial_author',
-                    'peo' => 'peo_author',
-                    'so' => 'so_author',
+                    'announcement' => 'announcement_author_id',
+                    'event' => 'event_author_id',
+                    'news' => 'news_author_id',
+                    'promaterial' => 'promaterial_author_id',
+                    'peo' => 'peo_author_id',
+                    'so' => 'so_author_id',
                     default => 'No Author Found'
                 };
                 
@@ -1248,7 +1257,7 @@ class ContentHandler implements MessageComponentInterface
                     'category', 'created_date', 'created_time', 'isCancelled', 'status'
                 ];
                 $values = [
-                    $department, $user_type, $full_name, null, $data['display_time'] ?? null,
+                    $department, $user_type, $user_id, null, $data['display_time'] ?? null,
                     $category, $created_date, $created_time, $isCancelled, $status
                 ];
 
@@ -1323,7 +1332,7 @@ class ContentHandler implements MessageComponentInterface
                 if ($success) {
                     $id = $this->pdo->lastInsertId();
                     $data[$idField] = $id;
-                    $data[$authorField] = $full_name;
+                    $data[$authorField] = $user_id;
                     $data['created_date'] = $created_date;
                     $data['created_time'] = $created_time;
                     $data['category'] = $category;
@@ -1356,6 +1365,7 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'post_content') {
             // Access values from the connection object
+            $user_id = $from->user_id;
             $full_name = $from->full_name;
             $user_type = $from->user_type;
             $department = $from->department;
@@ -1438,12 +1448,12 @@ class ContentHandler implements MessageComponentInterface
                         };
     
                         $authorField = match ($data['type']) {
-                            'announcement' => 'announcement_author',
-                            'event' => 'event_author',
-                            'news' => 'news_author',
-                            'promaterial' => 'promaterial_author',
-                            'peo' => 'peo_author',
-                            'so' => 'so_author',
+                            'announcement' => 'announcement_author_id',
+                            'event' => 'event_author_id',
+                            'news' => 'news_author_id',
+                            'promaterial' => 'promaterial_author_id',
+                            'peo' => 'peo_author_id',
+                            'so' => 'so_author_id',
                             default => 'No Author Found'
                         };
                     
@@ -1453,7 +1463,7 @@ class ContentHandler implements MessageComponentInterface
                             'category', 'created_date', 'created_time', 'isCancelled'
                         ];
                         $values = [
-                            $department, $user_type, $full_name, $tv_ids, $data['display_time'],
+                            $department, $user_type, $user_id, $tv_ids, $data['display_time'],
                             $category, $created_date, $created_time, $isCancelled
                         ];
     
@@ -1534,7 +1544,7 @@ class ContentHandler implements MessageComponentInterface
                         if ($success) {
                             $id = $this->pdo->lastInsertId();
                             $data[$idField] = $id;
-                            $data[$authorField] = $full_name;
+                            $data[$authorField] = $user_id;
                             $data['created_date'] = $created_date;
                             $data['created_time'] = $created_time;
                             $data['category'] = $category;

@@ -43,24 +43,24 @@ $stmt->close();
 // Fetch the number of posts created by the user in each category
 $queries = [
     'announcements' => [
-        'approved' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcement_author = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcement_author = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcement_author = ? AND status = 'Rejected'"
+        'approved' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcement_author_id = ? AND status = 'Approved'",
+        'pending' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcement_author_id = ? AND status = 'Pending'",
+        'rejected' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcement_author_id = ? AND status = 'Rejected'"
     ],
     'events' => [
-        'approved' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author = ? AND status = 'Rejected'"
+        'approved' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author_id = ? AND status = 'Approved'",
+        'pending' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author_id = ? AND status = 'Pending'",
+        'rejected' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author_id = ? AND status = 'Rejected'"
     ],
     'news' => [
-        'approved' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author = ? AND status = 'Rejected'"
+        'approved' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author_id = ? AND status = 'Approved'",
+        'pending' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author_id = ? AND status = 'Pending'",
+        'rejected' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author_id = ? AND status = 'Rejected'"
     ],
     'promotions' => [
-        'approved' => "SELECT COUNT(*) as count FROM promaterials_tb WHERE promaterial_author = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM promaterials_tb WHERE promaterial_author = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM promaterials_tb WHERE promaterial_author = ? AND status = 'Rejected'"
+        'approved' => "SELECT COUNT(*) as count FROM promaterials_tb WHERE promaterial_author_id = ? AND status = 'Approved'",
+        'pending' => "SELECT COUNT(*) as count FROM promaterials_tb WHERE promaterial_author_id = ? AND status = 'Pending'",
+        'rejected' => "SELECT COUNT(*) as count FROM promaterials_tb WHERE promaterial_author_id = ? AND status = 'Rejected'"
     ]
 ];
 
@@ -75,7 +75,7 @@ foreach ($queries as $category => $status_queries) {
 
     foreach ($status_queries as $status => $query) {
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $full_name);
+        $stmt->bind_param("s", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
         

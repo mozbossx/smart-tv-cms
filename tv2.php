@@ -31,7 +31,7 @@ include 'tv_initialize.php';
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <title><?php echo $_SESSION['tv_name'] ?></title>
 </head>
-<!-- <p id="screen" style="color: white; position: fixed"></p> -->
+<p id="screen" style="color: white; position: fixed"></p>
 <body>
     <?php include('tv_topbar.php'); ?>
     <div style="background: <?php echo $backgroundColor ?>; cursor: pointer; width: 100%; height: calc(100% - 7vh); overflow: hidden; display: flex; flex-direction: column; /* Arrange containers vertically */ height: 100vh; overflow: hidden; /* Prevent any overflow */" id="tvBackgroundColor">
@@ -62,6 +62,41 @@ include 'tv_initialize.php';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/muuri/0.5.3/muuri.min.js"></script>
     <script src="js_tv/fetch_tv_content.js"></script>
     <script>
+        function sendScreenDimensions() {
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+
+            // Send dimensions to the server
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "save_screen_dimensions.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send("width=" + w + "&height=" + h + "&tvId=" + <?php echo $_GET['tvId']; ?>);
+        }
+
+        window.onload = function() {
+            sendScreenDimensions();
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            console.log("Width: ", w);
+            console.log("Height: ", h);
+
+            // Update the <p> tag with the screen dimensions
+            var screenHeightElement = document.getElementById("screen");
+            screenHeightElement.innerText = w + " x " + h;
+        };
+
+        window.addEventListener('resize', function() {
+            sendScreenDimensions();
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            console.log("Width: ", w);
+            console.log("Height: ", h);
+
+            // Update the <p> tag with the screen dimensions
+            var screenHeightElement = document.getElementById("screen");
+            screenHeightElement.innerText = w + " x " + h;
+        });
+        
         initGrid();
 
         function initGrid() {
@@ -77,7 +112,7 @@ include 'tv_initialize.php';
             });
 
             // Directly establish WebSocket connection and load layout from the server
-            const ws = new WebSocket('ws://192.168.1.19:8081');
+            const ws = new WebSocket('ws://192.168.1.20:8081');
 
             ws.onopen = () => {
                 console.log("WebSocket connection established.");
