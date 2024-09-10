@@ -92,6 +92,20 @@ body {
     border-radius: 5px;
 }
 
+.orgchart-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.orgchart-content {
+    transform-origin: center;
+    transition: transform 0.3s ease;
+}
+
 .resize-handle {
     position: absolute;
     width: 6px;
@@ -192,7 +206,8 @@ body {
     display: flex; /* Flexbox layout for easy alignment */
     align-items: center; /* Vertically center the items */
     background-color: rgb(237, 237, 237); /* Background color */
-    width: 200px; /* Fixed width */
+    min-width: auto; /* Fixed width */
+    max-width: 200px; /* Fixed width */
     box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2); /* Shadow effect */
 }
 

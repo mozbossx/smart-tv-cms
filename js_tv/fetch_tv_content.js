@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.20:8081');
+const Ws = new WebSocket('ws://192.168.1.10:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -283,6 +283,15 @@ const updateUI = (data, type) => {
             createOrgChart(data.orgchart_id, data.chartData);
         }
     }
+    // Ensure the orgchart is scaled after it's added to the DOM
+    if (type === 'orgchart') {
+        setTimeout(() => {
+            const container = document.getElementById(`orgChartContainer-${data.orgchart_id}`);
+            if (container) {
+                scaleOrgChart(container);
+            }
+        }, 0);
+    }
 };
 
 // Function to fetch org chart data
@@ -297,8 +306,7 @@ const fetchOrgChartData = () => {
 
 // Function to create org chart
 const createOrgChart = (orgchartId, chartData) => {
-    console.log("Chart Data: ", chartData);
-    console.log("Orgchart ID: ", orgchartId);
+    console.log("Creating org chart:", orgchartId, chartData); // Debug log
     const containerId = `orgChartContainer-${orgchartId}`;
     const container = document.getElementById(containerId);
     if (!container) {
@@ -306,29 +314,70 @@ const createOrgChart = (orgchartId, chartData) => {
         return;
     }
 
+    // Clear any existing chart
+    container.innerHTML = '<div class="orgchart-content"></div>';
+    const contentDiv = container.querySelector('.orgchart-content');
+
     const chartConfig = {
         chart: {
             container: `#${containerId}`,
             nodeAlign: "BOTTOM",
-            levelSeparation: 50,
-            siblingSeparation: 40,
-            subTeeSeparation: 40
+            connectors: {
+                type: 'step'
+            },
+            node: {
+                HTMLclass: 'nodeExample1'
+            }
         },
-        nodeStructure: buildOrgChartNodeStructure(chartData)
+        nodeStructure: buildOrgChartNodeStructure(chartData.members)
     };
 
-    new Treant(chartConfig);
+    // new Treant(chartConfig);
+    container.chartConfig = chartConfig;
+    // After the chart is created, scale it to fit
+    scaleOrgChart(container);
+};
+
+const scaleOrgChart = (container) => {
+    const content = container.querySelector('.orgchart-content');
+    if (!content) return;
+
+    const chart = content.firstChild;
+    if (!chart) return;
+
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+    const chartWidth = chart.offsetWidth;
+    const chartHeight = chart.offsetHeight;
+
+    const scaleX = containerWidth / chartWidth;
+    const scaleY = containerHeight / chartHeight;
+    const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+
+    content.style.transform = `scale(${scale})`;
+};
+
+const renderVisibleOrgChart = () => {
+    const activeItem = document.querySelector('.carousel-item.active');
+    if (activeItem) {
+        const orgChartContainer = activeItem.querySelector('.orgchart-container');
+        if (orgChartContainer && orgChartContainer.chartConfig) {
+            new Treant(orgChartContainer.chartConfig);
+            // Remove the config after rendering to avoid re-rendering
+            delete orgChartContainer.chartConfig;
+        }
+    }
 };
 
 // Function to build org chart node structure
-const buildOrgChartNodeStructure = (data) => {
-    const nodes = {};
+const buildOrgChartNodeStructure = (members) => {
+    const nodeMap = new Map();
     const rootNodes = [];
 
-    // Create a map of all nodes by their ID
-    data.forEach(member => {
-        nodes[member.parent_node_id] = {
-            text: {
+    // First pass: create all nodes
+    members.forEach(member => {
+        nodeMap.set(member.parent_node_id, {
+            text: { 
                 name: member.name,
                 title: member.title,
             },
@@ -338,37 +387,41 @@ const buildOrgChartNodeStructure = (data) => {
                 <div class="details">
                     <div class="node-name">${member.name}</div>
                     <div class="node-title">${member.title}</div>
-                    <div class="node-title">${member.id}</div>                    
+                    <div class="node-id">${member.parent_node_id}</div>                    
                 </div>
             `,
             HTMLclass: "custom-node",
             children: []
-        };
+        });
     });
 
-    // Link children to their parents
-    data.forEach(member => {
-        if (member.parent_id) {
-            if (nodes[member.parent_id]) {
-                nodes[member.parent_id].children.push(nodes[member.parent_node_id]);
+    // Second pass: build hierarchy
+    members.forEach(member => {
+        const node = nodeMap.get(member.parent_node_id);
+        if (member.parent_id && member.parent_id !== 'NULL') {
+            const parentNode = nodeMap.get(member.parent_id);
+            if (parentNode) {
+                parentNode.children.push(node);
             } else {
-                console.error(`Parent ID ${member.parent_id} not found for member ID ${member.parent_node_id}`);
+                console.warn(`Parent node ${member.parent_id} not found for member ${member.parent_node_id}`);
+                rootNodes.push(node);
             }
         } else {
-            rootNodes.push(nodes[member.parent_node_id]); // Collect root nodes
+            rootNodes.push(node);
         }
     });
 
-    // Return the root node (assuming a single root node)
+    // If there's only one root node, return it
     if (rootNodes.length === 1) {
         return rootNodes[0];
-    } else {
-        // Handle multiple root nodes if necessary
-        return {
-            text: { name: "Root" },
-            children: rootNodes
-        };
     }
+
+    // If there are multiple root nodes, create a dummy root
+    return {
+        text: { name: "Department" },
+        HTMLclass: "hidden-node",
+        children: rootNodes
+    };
 };
 
 // Function to initialize org charts
@@ -429,6 +482,11 @@ const showNextContent = (type) => {
             contentsArray[currentIndex[currentIndexKey]].classList.add('active');
             updatePageNumber(currentIndexKey);
             resetDisplayTime(type);
+
+            // Render the org chart if it's an orgchart type
+            if (type === 'orgchart') {
+                setTimeout(renderVisibleOrgChart, 100); // Small delay to ensure DOM update
+            }
         }
     } else {
         clearInterval(displayTimeIntervals[currentIndexKey]);
@@ -514,6 +572,11 @@ const startCarousel = (type) => {
         if (contents[type + 's'][currentIndex[type]]) { // Check if the index is valid
             contents[type + 's'][currentIndex[type]].classList.add('active');
             resetDisplayTime(type);
+
+            // Render the org chart if it's an orgchart type
+            if (type === 'orgchart') {
+                renderVisibleOrgChart();
+            }
         } else {
             console.error("Invalid current content index.");
         }
@@ -550,12 +613,12 @@ const fetchAndUpdateContents = (type) => {
                     .then(data => {
                         if (type === 'orgchart') {
                             console.log("Fetched orgchart data:", data); // Debug log
-                            Object.entries(data).forEach(([orgchartId, chartData]) => {
-                                console.log(`Processing orgchart ${orgchartId}:`, chartData); // Debug log
+                            Object.entries(data).forEach(([orgchartId, orgchartData]) => {
+                                console.log(`Processing orgchart ${orgchartId}:`, orgchartData); // Debug log
                                 updateUI({
                                     orgchart_id: orgchartId,
-                                    chartData: chartData.members,
-                                    display_time: chartData.display_time // Use provided display_time or default to 30
+                                    chartData: orgchartData,
+                                    display_time: orgchartData.display_time
                                 }, 'orgchart');
                             });
                             if (Object.keys(data).length > 0) {
@@ -655,6 +718,7 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
         } else if (data.type === 'orgchart') {
+            console.log("Received new orgchart data:", data);
             fetchAndUpdateContents('orgchart');
         }
     } else if (data.action === 'edit_smart_tv') {

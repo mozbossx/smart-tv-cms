@@ -80,12 +80,12 @@ if ($tvId === null) {
         echo "Error: " . mysqli_error($conn);
         exit();
     }
-} else {
-    // Check if the tvId from the URL is in the cookies
-    if (!isset($_COOKIE['tv_id']) || $_COOKIE['tv_id'] != $tvId && !$isIframe) {
-        echo "<h1 style='color: red;'>You have no permission to access this TV</h1>";
-        exit();
-    }
+} 
+
+if ($_COOKIE['tv_id'] != $tvId && !$isIframe) {
+    echo "<h1 style='color: red;'>You have no permission to access this TV</h1>";
+    echo "<h1 style='color: red;'>$isIframe</h1>";
+    exit();
 }
 
 // If tvId is set but not in the URL, redirect to include it

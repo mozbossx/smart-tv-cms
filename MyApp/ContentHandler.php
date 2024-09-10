@@ -1369,7 +1369,7 @@ class ContentHandler implements MessageComponentInterface
                     foreach ($data['tv_ids'] as $tv_ids) {
                         $orgChartData = $data['orgChartData'];
                         $display_time = $data['display_time'];
-                        $orgchart_id = uniqid(); // Generate a unique ID for this orgchart
+                        $orgchart_id = rand(100, 999); // Generate a unique ID for this orgchart
                         foreach ($orgChartData as $member) {
                             $stmt = $this->pdo->prepare("
                                 INSERT INTO org_chart_members (parent_node_id, parent_id, orgchart_id, name, title, type, display_time, tv_id, picture)
