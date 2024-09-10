@@ -171,6 +171,7 @@ include 'misc/php/options_tv.php';
 
             ws.send(JSON.stringify(data));
             console.log("Chart Data: ", data);
+            console.log("OrgChartData: ", orgChartData)
 
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);

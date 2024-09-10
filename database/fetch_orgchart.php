@@ -9,9 +9,17 @@ $chartData = $statement->fetchAll(PDO::FETCH_ASSOC);
 // Group data by orgchart_id
 $groupedData = [];
 foreach ($chartData as $member) {
-    $groupedData[$member['orgchart_id']][] = $member;
+    $orgchartId = $member['orgchart_id'];
+    if (!isset($groupedData[$orgchartId])) {
+        $groupedData[$orgchartId] = [
+            'members' => [],
+            'display_time' => $member['display_time'] // Add display_time to the orgchart data
+        ];
+    }
+    $groupedData[$orgchartId]['members'][] = $member;
 }
 
 // Return JSON response
 header('Content-Type: application/json');
 echo json_encode($groupedData);
+?>

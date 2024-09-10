@@ -1387,8 +1387,8 @@ class ContentHandler implements MessageComponentInterface
                                 $member['picture']
                             ]);
                         }
-        
-                        $from->send(json_encode(['action' => 'post_content', 'success' => true, 'type' => 'orgchart', 'orgchart_id' => $orgchart_id]));
+                        $from->send(json_encode(['success' => true, 'data' => $data, 'orgchart_id' => $orgchart_id]));
+                        // $from->send(json_encode(['action' => 'post_content', 'success' => true, 'type' => 'orgchart', 'orgchart_id' => $orgchart_id, 'orgChartData' => $orgChartData]));
                         echo "A member is being added! \n";
                     }
                 } else {

@@ -216,9 +216,18 @@ const updateUI = (data, type) => {
     } else if (type === 'orgchart') {
         contentHTML = `
             <div class="content-container-con">
-                <div id="orgChartContainer" style="width: 100%; height: 100%;"></div>
+                <div id="orgChartContainer-${data.orgchart_id}" class="orgchart-container" style="width: 100%; height: 100%;"></div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
+        console.log("Data: ", data);
+        console.log("Display Time: ", data.display_time);
     }
 
     if (existingDiv) {
@@ -228,6 +237,9 @@ const updateUI = (data, type) => {
         }
         resetCountdown(existingDiv, data.display_time, currentIndexKey);
         updatePageNumber(currentIndexKey);
+        if (type === 'orgchart') {
+            createOrgChart(data.orgchart_id, data.chartData);
+        }
     } else {
         const containerDiv = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
@@ -268,7 +280,7 @@ const updateUI = (data, type) => {
             updatePageNumber(currentIndexKey);
         }
         if (type === 'orgchart') {
-            createOrgChart(data.orgChartData);
+            createOrgChart(data.orgchart_id, data.chartData);
         }
     }
 };
@@ -284,7 +296,16 @@ const fetchOrgChartData = () => {
 };
 
 // Function to create org chart
-const createOrgChart = (orgChartData, containerId) => {
+const createOrgChart = (orgchartId, chartData) => {
+    console.log("Chart Data: ", chartData);
+    console.log("Orgchart ID: ", orgchartId);
+    const containerId = `orgChartContainer-${orgchartId}`;
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error(`Container not found for orgchart ${orgchartId}`);
+        return;
+    }
+
     const chartConfig = {
         chart: {
             container: `#${containerId}`,
@@ -293,7 +314,7 @@ const createOrgChart = (orgChartData, containerId) => {
             siblingSeparation: 40,
             subTeeSeparation: 40
         },
-        nodeStructure: buildOrgChartNodeStructure(orgChartData)
+        nodeStructure: buildOrgChartNodeStructure(chartData)
     };
 
     new Treant(chartConfig);
@@ -527,24 +548,39 @@ const fetchAndUpdateContents = (type) => {
                 fetch(`database/fetch_${type}.php`)
                     .then(response => response.json())
                     .then(data => {
-                        const filteredData = data.filter(item =>
-                            item.status === 'Approved' &&
-                            item.tv_id === parseInt(tvId, 10) &&
-                            item.isCancelled === 0
-                        );
-                        filteredData.forEach(item => updateUI(item, type));
-                        if (contents[type + 's'].length > 0) {
-                            // Set the current index to 0 to start from the first item
-                            currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Ensure it starts at the first item
-                            // currentAnnIndex = Math.min(currentAnnIndex, announcements.length - 1);
-                            // Set the first item as active
-                            // contents[type + 's'][currentIndex[type]].classList.add('active');
-                            // updatePageNumber(type); // Update the page number to 1
-                            // resetDisplayTime(type); // Start the display time countdown
-                            startCarousel(type);
+                        if (type === 'orgchart') {
+                            console.log("Fetched orgchart data:", data); // Debug log
+                            Object.entries(data).forEach(([orgchartId, chartData]) => {
+                                console.log(`Processing orgchart ${orgchartId}:`, chartData); // Debug log
+                                updateUI({
+                                    orgchart_id: orgchartId,
+                                    chartData: chartData.members,
+                                    display_time: chartData.display_time // Use provided display_time or default to 30
+                                }, 'orgchart');
+                            });
+                            if (Object.keys(data).length > 0) {
+                                currentIndex['orgchart'] = 0;
+                                startCarousel('orgchart');
+                            } else {
+                                displayNoMessage('orgchart');
+                            }
                         } else {
-                            displayNoMessage(type); // Call displayNoMessage if no content
+                            const filteredData = data.filter(item =>
+                                item.status === 'Approved' &&
+                                item.tv_id === parseInt(tvId, 10) &&
+                                item.isCancelled === 0
+                            );
+                            filteredData.forEach(item => updateUI(item, type));
+                            if (contents[type + 's'].length > 0) {
+                                // Set the current index to 0 to start from the first item
+                                currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
+                                startCarousel(type);
+                            } else {
+                                displayNoMessage(type); // Call displayNoMessage if no content
+                            }
                         }
+                        
+                        
                     })
                     .catch(error => console.error(`Error fetching ${type}s:`, error));
             })
@@ -618,6 +654,8 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('peo');
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
+        } else if (data.type === 'orgchart') {
+            fetchAndUpdateContents('orgchart');
         }
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVName();
@@ -711,8 +749,8 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndUpdateContents('promaterial');
     fetchAndUpdateContents('peo');
     fetchAndUpdateContents('so');
-    // fetchAndUpdateContents('orgchart');
-    initializeOrgCharts();
+    fetchAndUpdateContents('orgchart');
+    // initializeOrgCharts();
     
     fetchSmartTVName();
 });
