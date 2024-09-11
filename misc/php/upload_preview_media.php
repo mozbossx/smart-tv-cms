@@ -53,15 +53,23 @@
         var mediaInput = document.getElementById('media');
         var videoPreview = document.getElementById('video-preview');
         var imagePreview = document.getElementById('image-preview');
-        var previewMedia = document.querySelector('.preview-media'); // Selecting the preview-media element
-        var cancelMediaButton = document.getElementById('cancelMediaButton'); // Get the cancel button
+        var previewMedia = document.querySelector('.preview-media');
+        var cancelMediaButton = document.getElementById('cancelMediaButton');
 
         // Reset the file input
         mediaInput.value = '';
 
+        // Clear the file input
+        if (mediaInput.value) {
+            mediaInput.type = 'text';
+            mediaInput.type = 'file';
+        }
+
         // Hide the previews and the preview-media container
         videoPreview.style.display = 'none';
+        videoPreview.src = '';
         imagePreview.style.display = 'none';
+        imagePreview.src = '';
         previewMedia.style.display = 'none';
         
         // Hide the cancel button

@@ -48,7 +48,9 @@ include 'tv_initialize.php';
                         height: <?php echo $container['height_px']; ?>px;
                         width: <?php echo $container['width_px']; ?>px;"
                 onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
-                <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>"><?php echo $container['container_name']; ?></h1>
+                <div style="">
+                    <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo $container['container_name']; ?></h1>
+                </div>
                 <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
                     style="background: <?php echo $container['child_background_color']; ?>;
                             color: <?php echo $container['child_font_color']; ?>;

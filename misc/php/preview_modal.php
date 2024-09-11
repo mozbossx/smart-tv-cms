@@ -45,6 +45,8 @@
             contentBody = eventBodyQuill.root.innerHTML.trim(); // Get content from Quill editor
         } else if (selectedType === 'news') {
             contentBody = newsBodyQuill.root.innerHTML.trim(); // Get content from Quill editor
+        } else if (selectedType === 'promaterial') {
+            media = document.querySelector('[name="media"]').files[0];
         } else if (selectedType === 'peo') {
             peoTitle = peoTitleQuill.root.innerHTML.trim(); // Get content from Quill editor
             peoDescription = peoDescriptionQuill.root.innerHTML.trim(); // Get content from Quill editor
@@ -62,7 +64,7 @@
         let expirationDateTime = null;
         let scheduleDateTime = null;
         
-        if (selectedType !== 'peo' && selectedType !== 'so') {
+        if (selectedType !== 'peo' && selectedType !== 'so' && selectedType !== 'promaterial') {
             const expirationDate = document.querySelector('[name="expiration_date"]').value;
             const expirationTime = document.querySelector('[name="expiration_time"]').value;
             const scheduleDate = document.querySelector('[name="schedule_date"]').value;
@@ -70,9 +72,43 @@
             
             // <p><br></p>
             // Check if any of the required fields is empty
-            if (contentBody === "<p><br></p>" || contentBody === "" || displayTime === "" || tvDisplays.length === 0 || expirationDate === "" 
-                || expirationTime === "") {
+            if (contentBody === "<p><br></p>" || contentBody === "" || displayTime === "" || tvDisplays.length === 0 || expirationDate === "" || expirationTime === "") {
                 // If conditions are not met, show error message and exit
+                errorModalMessage("Please fill the necessary fields and select at least one TV display.");
+                return;
+            }
+
+            // Convert expiration date and time to Date object
+            expirationDateTime = new Date(expirationDate + ' ' + expirationTime);
+            const currentDateTime = new Date();
+
+            if (expirationDateTime < currentDateTime) {
+                errorModalMessage("Expiration date and time should not be in the past.");
+                return;
+            }
+
+            // If schedule date and time are provided, validate them
+            if (scheduleDate !== "" && scheduleTime !== "") {
+                scheduleDateTime = new Date(scheduleDate + ' ' + scheduleTime);
+
+                if (scheduleDateTime < currentDateTime) {
+                    errorModalMessage("Schedule date and time should not be in the past.");
+                    return;
+                } else if (expirationDateTime < scheduleDateTime) {
+                    errorModalMessage("Expiration date and time should not be before the schedule date and time.");
+                    return;
+                } else if (scheduleDateTime > expirationDateTime) {
+                    errorModalMessage("Schedule date and time should not be after the expiration date and time.");
+                    return;
+                }
+            }
+        } else if (selectedType === 'promaterial') {
+            const expirationDate = document.querySelector('[name="expiration_date"]').value;
+            const expirationTime = document.querySelector('[name="expiration_time"]').value;
+            const scheduleDate = document.querySelector('[name="schedule_date"]').value;
+            const scheduleTime = document.querySelector('[name="schedule_time"]').value;
+            
+            if (!media || displayTime === "" || tvDisplays.length === 0 || expirationDate === "" || expirationTime === "") {
                 errorModalMessage("Please fill the necessary fields and select at least one TV display.");
                 return;
             }

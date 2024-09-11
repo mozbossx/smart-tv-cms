@@ -175,7 +175,6 @@ const updateUI = (data, type) => {
         contentHTML = `
             <div class="content-container-con">
                 <div class="content-main">
-                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <p class="main-message" style="word-break: break-word;"><b>${data.peo_title}</b></p>
                     <p class="main-message" style="word-break: break-word;">${data.peo_description}</p>
                     <p class="main-message" style="word-break: break-word;">${data.peo_subdescription}</p>
@@ -226,7 +225,7 @@ const updateUI = (data, type) => {
                 </div>
             </div>
         `;
-        console.log("Data: ", data);
+        console.log("Orgchart Data: ", data);
         console.log("Display Time: ", data.display_time);
     }
 
@@ -627,6 +626,19 @@ const fetchAndUpdateContents = (type) => {
                             } else {
                                 displayNoMessage('orgchart');
                             }
+                        } else if (type === 'peo' || type === 'so') {
+                            const filteredData = data.filter(item =>
+                                item.tv_id === parseInt(tvId, 10) &&
+                                item.isCancelled === 0
+                            );
+                            filteredData.forEach(item => updateUI(item, type));
+                            if (contents[type + 's'].length > 0) {
+                                // Set the current index to 0 to start from the first item
+                                currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
+                                startCarousel(type);
+                            } else {
+                                displayNoMessage(type); // Call displayNoMessage if no content
+                            }
                         } else {
                             const filteredData = data.filter(item =>
                                 item.status === 'Approved' &&
@@ -642,8 +654,6 @@ const fetchAndUpdateContents = (type) => {
                                 displayNoMessage(type); // Call displayNoMessage if no content
                             }
                         }
-                        
-                        
                     })
                     .catch(error => console.error(`Error fetching ${type}s:`, error));
             })
