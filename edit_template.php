@@ -186,8 +186,9 @@ $conn->close();
                                     <p style="text-align: center; font-size: 25px; margin-top: auto; color: white;"><?php echo $tvBrand?></p>
                                 </div>
                                 <div class="scale-buttons">
-                                    <button id="scale-down"><i class="fa fa-search-minus"></i></button>
-                                    <button id="scale-up"><i class="fa fa-search-plus"></i></button>
+                                    <button type="button" id="scale-down"><i class="fa fa-search-minus"></i></button>
+                                    <button type="button" id="scale-up"><i class="fa fa-search-plus"></i></button>
+                                    <button type="button" id="updateTemplateButton" style="display: none;"><i class="fa fa-floppy-o" style="margin-right: 5px;"></i> Save</button>
                                 </div>
                             </div>
                         </div>
@@ -382,6 +383,68 @@ $conn->close();
         }
             
         initializeWebSocket();
+
+        document.getElementById('updateTemplateButton').addEventListener('click', function() {
+            const iframe = document.getElementById('tv-iframe');
+            iframe.contentWindow.postMessage({action: 'updateTemplate'}, '*');
+        });
+
+        // Add an event listener for messages from the iframe
+        window.addEventListener('message', function(event) {
+            if (event.data.action === 'containerPositionsUpdated') {
+                const positions = event.data.positions;
+                updateContainerPositionsOnServer(positions);
+            }
+        });
+
+        let templateChanged = false;
+        const updateTemplateButton = document.getElementById('updateTemplateButton');
+
+        function showUpdateButton() {
+            updateTemplateButton.style.display = 'inline-block';
+            templateChanged = true;
+        }
+
+        // Add event listener for messages from tv2.php iframe
+        window.addEventListener('message', function(event) {
+            if (event.data.action === 'containerMoved') {
+                showUpdateButton();
+            } else if (event.data.action === 'containerPositionsUpdated') {
+                updateContainerPositionsOnServer(event.data.positions);
+            }
+        });
+
+        // Add event listener for the Update Template button
+        updateTemplateButton.addEventListener('click', function() {
+            const iframe = document.getElementById('tv-iframe');
+            iframe.contentWindow.postMessage({action: 'updateTemplate'}, '*');
+            templateChanged = false;
+            updateTemplateButton.style.display = 'none';
+        });
+
+        // Add beforeunload event listener
+        window.addEventListener('beforeunload', function (e) {
+            if (templateChanged) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        });
+
+        function updateContainerPositionsOnServer(positions) {
+            // Assuming you have a WebSocket connection established
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    action: 'update_container_positions',
+                    tv_id: <?php echo $tvId; ?>,
+                    positions: positions
+                }));
+                templateChanged = false;
+                updateTemplateButton.style.display = 'none';
+            } else {
+                console.error('WebSocket is not open');
+            }
+        }
 
         function openContentContainerLeftSidePanel(containerId) {
             closeTopbarLeftSidePanel();  // Close the top bar panel if it's open

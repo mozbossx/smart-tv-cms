@@ -43,12 +43,15 @@ include 'tv_initialize.php';
         <?php foreach ($containers as $container): ?>
             <?php $containerNameLower = strtolower($container['type']); ?>
             <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
+                data-x="<?php echo $container['xaxis']; ?>"
+                data-y="<?php echo $container['yaxis']; ?>"
                 style="background: <?php echo $container['parent_background_color']; ?>;
                         display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
                         height: <?php echo $container['height_px']; ?>px;
-                        width: <?php echo $container['width_px']; ?>px;"
+                        width: <?php echo $container['width_px']; ?>px;
+                        transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);"
                 onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
-                <div style="">
+                <div>
                     <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo $container['container_name']; ?></h1>
                 </div>
                 <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
@@ -66,8 +69,41 @@ include 'tv_initialize.php';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web-animations/2.3.1/web-animations.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/muuri/0.5.3/muuri.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <script src="js_tv/fetch_tv_content.js"></script>
     <script>
+        function initializeFontSizeAdjustment() {
+            const containers = document.querySelectorAll('.content-container');
+            
+            containers.forEach(container => {
+                const content = container.querySelector('.content-main');
+                if (!content){
+                    return;
+                } 
+
+                function adjustFontSize() {
+                    let fontSize = 12;
+                    content.style.fontSize = fontSize + 'px';
+
+                    while (content.scrollHeight > container.clientHeight || content.scrollWidth > container.clientWidth) {
+                        fontSize--;
+                        if (fontSize <= 8) break; // Minimum font size
+                        content.style.fontSize = fontSize + 'px';
+                    }
+                }
+
+                // Initial adjustment
+                adjustFontSize();
+
+                // Adjust on resize
+                const resizeObserver = new ResizeObserver(adjustFontSize);
+                resizeObserver.observe(container);
+            });
+        }
+
+        // Call this function after the DOM is loaded
+        document.addEventListener('DOMContentLoaded', initializeFontSizeAdjustment);
+
         function sendScreenDimensions() {
             var w = window.innerWidth;
             var h = window.innerHeight;
@@ -83,8 +119,6 @@ include 'tv_initialize.php';
             sendScreenDimensions();
             var w = window.innerWidth;
             var h = window.innerHeight;
-            console.log("Width: ", w);
-            console.log("Height: ", h);
 
             // Update the <p> tag with the screen dimensions
             var screenHeightElement = document.getElementById("screen");
@@ -95,9 +129,6 @@ include 'tv_initialize.php';
             sendScreenDimensions();
             var w = window.innerWidth;
             var h = window.innerHeight;
-            console.log("Width: ", w);
-            console.log("Height: ", h);
-
             // Update the <p> tag with the screen dimensions
             var screenHeightElement = document.getElementById("screen");
             screenHeightElement.innerText = w + " x " + h;
@@ -106,105 +137,139 @@ include 'tv_initialize.php';
         initGrid();
 
         function initGrid() {
-            const grid = new Muuri('.main-container', {
-                dragEnabled: true,
-                dragSortPredicate: {
-                    threshold: 50,
-                    action: 'move'
-                },
-                dragReleaseDuration: 400,
-                dragContainer: document.body,
-                layoutOnInit: true, // Layout should initialize
-            });
+            interact('.content-container')
+                .draggable({
+                    // Enable dragging
+                    listeners: {
+                        start(event) {
+                            const target = event.target;
+                            const x = parseFloat(target.getAttribute('data-x')) || 0;
+                            const y = parseFloat(target.getAttribute('data-y')) || 0;
+                            
+                            // Set initial position if not already set
+                            if (!target.hasAttribute('data-x')) {
+                                target.setAttribute('data-x', x);
+                            }
+                            if (!target.hasAttribute('data-y')) {
+                                target.setAttribute('data-y', y);
+                            }
+                        },
+                        move(event) {
+                            const target = event.target;
+                            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                            target.style.transform = `translate(${x}px, ${y}px)`;
+                            target.setAttribute('data-x', x);
+                            target.setAttribute('data-y', y);
+
+                            // Notify parent window that a container was moved
+                            window.parent.postMessage({action: 'containerMoved'}, '*');
+                        }
+                    },
+                    modifiers: [
+                        interact.modifiers.restrictRect({
+                            restriction: 'parent', // Constrain within parent
+                            endOnly: true
+                        })
+                    ]
+                })
+                .resizable({
+                    // Enable resizing
+                    edges: { left: true, right: true, bottom: true, top: true },
+                    listeners: {
+                        start(event) {
+                            const target = event.target;
+                            const x = parseFloat(target.getAttribute('data-x')) || 0;
+                            const y = parseFloat(target.getAttribute('data-y')) || 0;
+                            
+                            // Set initial position if not already set
+                            if (!target.hasAttribute('data-x')) {
+                                target.setAttribute('data-x', x);
+                            }
+                            if (!target.hasAttribute('data-y')) {
+                                target.setAttribute('data-y', y);
+                            }
+                        },
+                        move(event) {
+                            const target = event.target;
+                            let x = parseFloat(target.getAttribute('data-x')) || 0;
+                            let y = parseFloat(target.getAttribute('data-y')) || 0;
+
+                            target.style.width = `${event.rect.width}px`;
+                            target.style.height = `${event.rect.height}px`;
+
+                            // Adjust position if resizing from top or left edges
+                            x += event.deltaRect.left;
+                            y += event.deltaRect.top;
+
+                            target.style.transform = `translate(${x}px, ${y}px)`;
+                            target.setAttribute('data-x', x);
+                            target.setAttribute('data-y', y);
+
+                            // Notify parent window that a container was resized
+                            window.parent.postMessage({action: 'containerMoved'}, '*');
+                        }
+                    },
+                    modifiers: [
+                        interact.modifiers.restrictSize({
+                            min: { width: 0, height: 0 } // Minimum size
+                            // max: { width: 400, height: 400 } // Maximum size
+                        }),
+                        interact.modifiers.restrictEdges({
+                            outer: 'parent' // Restrict resizing within parent
+                        })
+                    ]
+                });
 
             // Directly establish WebSocket connection and load layout from the server
             const ws = new WebSocket('ws://192.168.1.10:8081');
 
             ws.onopen = () => {
                 console.log("WebSocket connection established.");
-                // Request the layout from the server once the connection is open
-                ws.send(JSON.stringify({
-                    action: 'load_layout',
-                    tv_id: <?php echo $_GET['tvId']; ?>
-                }));
             };
 
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
                 console.log('Received WebSocket message:', message);
 
-                if (message.action === 'save_layout') {
-                    ws.send(JSON.stringify({
-                        action: 'load_layout',
-                        tv_id: <?php echo $_GET['tvId']; ?>
-                    }));
-                } else if (message.action === 'load_layout') {
-                    if (message.success && message.layout) {
-                        loadLayout(grid, message.layout);
-                    } else {
-                        grid.layout(true); // Default layout if no saved layout
-                    }
+                if (message.action === 'update_template') {
+                   
                 } 
             };
 
             ws.onerror = function(error) {
                 console.error('WebSocket Error:', error);
-                grid.layout(true); // Default layout in case of error
             };
 
-            // Save layout whenever items are moved
-            grid.on('move', function () {
-                saveLayoutToServer(grid, ws);
-            });
         }
 
-        function serializeLayout(grid) {
-            return grid.getItems().map(item => {
-                const el = item.getElement();
+        function updateContainerPositions() {
+            const containers = document.querySelectorAll('.content-container');
+            const positions = Array.from(containers).map(container => {
+                const style = window.getComputedStyle(container);
+                const transform = new DOMMatrix(style.transform);
                 return {
-                    id: el.getAttribute('data-container-id'),
-                    x: item.getPosition().left,
-                    y: item.getPosition().top,
-                    width: el.offsetWidth,
-                    height: el.offsetHeight
+                    id: container.dataset.containerId,
+                    x: transform.m41,
+                    y: transform.m42,
+                    width: container.offsetWidth,
+                    height: container.offsetHeight
                 };
             });
+            return positions;
         }
 
-        function saveLayoutToServer(grid, ws) {
-            const layout = serializeLayout(grid);
-            const message = JSON.stringify({
-                action: 'save_layout',
-                tv_id: <?php echo $_GET['tvId']; ?>,
-                layout: layout
-            });
-
-            ws.send(message); // Send the updated layout to the server
-        }
-
-        function loadLayout(grid, serializedLayout) {
-            const layout = serializedLayout;
-            const currentItems = grid.getItems();
-            const itemMap = {};
-
-            // Map the current items by their container ID
-            currentItems.forEach(item => {
-                const id = item.getElement().getAttribute('data-container-id');
-                itemMap[id] = item;
-            });
-
-            // Apply the layout from the server
-            layout.forEach((item, index) => {
-                if (itemMap[item.id]) {
-                    const element = itemMap[item.id].getElement();
-                    element.style.transform = `translate(${item.x}px, ${item.y}px)`;
-                    grid.move(itemMap[item.id], index);
-                }
-            });
-
-            // Refresh the grid layout
-            grid.layout();
-        }
+        // Add an event listener for messages from the parent window
+        window.addEventListener('message', function(event) {
+            if (event.data.action === 'updateTemplate') {
+                const positions = updateContainerPositions();
+                window.parent.postMessage({
+                    action: 'containerPositionsUpdated',
+                    positions: positions
+                }, '*');
+            }
+        });
 
         function openContentContainerRightSidePanel(containerId) {
             window.parent.postMessage({

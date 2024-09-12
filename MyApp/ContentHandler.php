@@ -546,123 +546,50 @@ class ContentHandler implements MessageComponentInterface
             $from->send(json_encode($response));
         }
 
-        else if (isset($data['action']) && $data['action'] === 'update_container_dimensions') {
-            // Define the table and fields to update
-            $table = 'containers_tb';
-            $idField = 'tv_id';
-            $fields = ['height_px', 'width_px'];
-            $containerIdField = 'container_id';
-            
-            // Extract the tv_id and dimensions from the incoming data
-            $tvId = $data['tv_id'] ?? null;
-            $containerHeight = $data['height'] ?? null;
-            $containerWidth = $data['width'] ?? null;
-            $containerId = $data['container_id'] ?? null;
-            
-            if ($tvId !== null && $containerHeight !== null && $containerWidth !== null || $containerId !== null) {
-                // Prepare the parameters for the update statement
-                $params = [$containerHeight, $containerWidth, $tvId, $containerId];
-                $fieldAssignments = implode(', ', array_map(fn($field) => "$field = ?", $fields));
-                $stmt = $this->pdo->prepare("UPDATE {$table} SET {$fieldAssignments} WHERE {$idField} = ? AND {$containerIdField} = ?");
-                
-                if (!$stmt->execute($params)) {
-                    error_log("Failed to execute update query: " . implode(", ", $stmt->errorInfo()));
-                    $from->send(json_encode(['action' => 'update_container_dimensions', 'success' => false, 'message' => 'Failed to execute update query']));
-                    return;
-                }
-        
-                $success = $stmt->rowCount() > 0;
-                $response = ['action' => 'update_container_dimensions', 'success' => $success, $idField => $tvId];
-                echo $success ? "Container dimensions updated!\n" : "Container dimensions not updated!\n";
-                
-                // Notify other clients about the update
-                foreach ($this->clients as $client) {
-                    if ($client !== $from) {
-                        $client->send(json_encode($response));
-                    }
-                }
-            } else {
-                $response = ['action' => 'update_container_dimensions', 'success' => false, 'message' => 'Invalid input'];
-                echo "Invalid input for container dimensions\n";
-            }
-            
-            $from->send(json_encode($response));
-        }
-
         else if (isset($data['action']) && $data['action'] === 'update_container_positions') {
-            // Define the table and fields to update
-            $table = 'containers_tb';
-            $idField = 'tv_id';
-            $containerIdField = 'container_id';
-        
-            // Extract the tv_id and layout data from the incoming request
             $tvId = $data['tv_id'] ?? null;
-            $layout = $data['layout'] ?? null;
+            $positions = $data['positions'] ?? [];
         
-            if ($tvId !== null && $layout !== null) {
-                // Prepare the update statement for each container
-                $stmt = $this->pdo->prepare("UPDATE {$table} SET xaxis = ?, yaxis = ? WHERE {$idField} = ? AND {$containerIdField} = ?");
+            if ($tvId !== null && !empty($positions)) {
+                $stmt = $this->pdo->prepare("UPDATE containers_tb SET xaxis = ?, yaxis = ?, width_px = ?, height_px = ? WHERE tv_id = ? AND container_id = ?");
         
-                foreach ($layout as $item) {
-                    $xaxis = $item['x'];
-                    $yaxis = $item['y'];
-                    $containerId = $item['id'];
+                foreach ($positions as $position) {
+                    $params = [
+                        $position['x'],
+                        $position['y'],
+                        $position['width'],
+                        $position['height'],
+                        $tvId,
+                        $position['id']
+                    ];
         
-                    // Execute the update for each container position
-                    if (!$stmt->execute([$xaxis, $yaxis, $tvId, $containerId])) {
-                        error_log("Failed to execute update query: " . implode(", ", $stmt->errorInfo()));
-                        $from->send(json_encode(['action' => 'update_container_positions', 'success' => false, 'message' => 'Failed to execute update query']));
-                        return;
+                    if (!$stmt->execute($params)) {
+                        error_log("Failed to update position for container_id {$position['id']}: " . implode(", ", $stmt->errorInfo()));
                     }
                 }
         
-                $success = $stmt->rowCount() > 0;
-                $response = ['action' => 'update_container_positions', 'success' => $success, $idField => $tvId];
-                echo $success ? "Container positions updated!\n" : "Container positions not updated!\n";
-                
-                // Notify other clients about the update
-                foreach ($this->clients as $client) {
-                    if ($client !== $from) {
-                        $client->send(json_encode($response));
-                    }
-                }
-            } else {
-                $response = ['action' => 'update_container_positions', 'success' => false, 'message' => 'Invalid input'];
-                echo "Invalid input for container positions\n";
-            }
-            
-            $from->send(json_encode($response));
-        }
-
-        else if ($data['action'] === 'save_layout') {
-            $this->saveLayoutToDatabase($data['tv_id'], $data['layout']);
-            $response = [
-                'action' => 'save_layout',
-                'success' => true,
-            ];
-            $from->send(json_encode($response));
-    
-        } 
-        
-        else if ($data['action'] === 'load_layout') {
-            $layout = $this->loadLayoutFromDatabase($data['tv_id']);
-            
-            if (!empty($layout)) {
                 $response = [
-                    'action' => 'load_layout',
+                    'action' => 'update_container_positions',
                     'success' => true,
-                    'layout' => $layout,
+                    'tv_id' => $tvId
                 ];
+        
+                // Notify all clients about the update
+                foreach ($this->clients as $client) {
+                    $client->send(json_encode($response));
+                }
+        
+                echo "Container positions updated for TV ID: $tvId\n";
             } else {
                 $response = [
-                    'action' => 'load_layout',
+                    'action' => 'update_container_positions',
                     'success' => false,
-                    'message' => 'No layout data found for TV ID: ' . $data['tv_id'],
+                    'message' => 'Invalid input'
                 ];
+                $from->send(json_encode($response));
+                echo "Invalid input for updating container positions\n";
             }
-        
-            $from->send(json_encode($response));
-        }       
+        }
 
         else if (isset($data['action']) && $data['action'] === 'show_hide_content') {
             // Define the table and fields to update

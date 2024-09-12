@@ -1,3 +1,4 @@
+// fetch_tv_content.js
 const Ws = new WebSocket('ws://192.168.1.10:8081');
 
 // Function to get the containers based on type
@@ -102,8 +103,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
-                            <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -122,8 +122,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
-                            <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -142,8 +141,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
-                            <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -161,8 +159,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
-                            <p class="expiration-date"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -182,7 +179,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -203,7 +200,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted by ${data[`${type}_author`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -225,8 +222,6 @@ const updateUI = (data, type) => {
                 </div>
             </div>
         `;
-        console.log("Orgchart Data: ", data);
-        console.log("Display Time: ", data.display_time);
     }
 
     if (existingDiv) {
@@ -305,7 +300,6 @@ const fetchOrgChartData = () => {
 
 // Function to create org chart
 const createOrgChart = (orgchartId, chartData) => {
-    console.log("Creating org chart:", orgchartId, chartData); // Debug log
     const containerId = `orgChartContainer-${orgchartId}`;
     const container = document.getElementById(containerId);
     if (!container) {
@@ -428,7 +422,6 @@ const initializeOrgCharts = () => {
     fetchOrgChartData().then(groupedData => {
         Object.keys(groupedData).forEach(orgchartId => {
             const containerId = `orgChartContainer_${orgchartId}`;
-            console.log(`Creating org chart with containerId: ${containerId}`); // Debugging line
             const containerDiv = document.createElement('div');
             containerDiv.id = containerId;
             containerDiv.style.width = '100%';
@@ -734,7 +727,7 @@ Ws.addEventListener('message', function (event) {
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVName();
         location.reload();
-    } else if (data.action === 'update_container_dimensions' || data.action === 'show_hide_content') {
+    } else if (data.action === 'update_container_positions' || data.action === 'show_hide_content') {
         const urlParams = new URLSearchParams(window.location.search);
         const tvId = urlParams.get('tvId');
         if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {

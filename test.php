@@ -3,104 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Responsive Announcements</title>
+    <title>Improved Resizable Text Container</title>
     <style>
-        /* Container for announcements */
-        .announcement-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 2px solid black;
-            padding: 20px;
-            width: 50%;
-            margin: 20px auto;
-            border-radius: 10px;
-            background-color: #a5f2e7; /* Light cyan background color */
-            box-sizing: border-box;
-            transition: all 0.3s ease-in-out;
+        .resize-container {
+            background-color: #a7f3d0;
+            border: 2px solid #34d399;
+            padding: 16px;
+            overflow: hidden;
+            width: 400px;
+            height: 200px;
+            min-width: 200px;
+            min-height: 100px;
             resize: both;
-        }
-
-        /* Flex column layout for the content */
-        .announcement-content {
-            display: flex;
-            flex-direction: column;
+            position: relative;
             text-align: justify;
+        }
+        .text-container {
             width: 100%;
+            height: 100%;
+            overflow: hidden;
         }
-
-        /* Heading */
-        .announcement-header {
-            font-size: 2vw; /* Responsive heading size */
-            margin-bottom: 15px;
+        h2 {
             font-weight: bold;
+            margin-top: 0;
+            margin-bottom: 8px;
         }
-
-        /* Paragraph content */
-        .announcement-text {
-            font-size: 1vw; /* Responsive text size */
-            flex-grow: 1; /* Fills up space between header and footer */
-        }
-
-        /* Footer */
-        .announcement-footer {
-            font-size: 0.9vw; /* Slightly smaller footer text */
-            margin-top: 15px;
-            text-align: left;
-            color: #333;
-            font-style: italic;
-        }
-
-        /* Adjustments for medium-sized screens */
-        @media (max-width: 768px) {
-            .announcement-container {
-                width: 80%;
-            }
-
-            .announcement-header {
-                font-size: 3vw;
-            }
-
-            .announcement-text {
-                font-size: 2vw;
-            }
-
-            .announcement-footer {
-                font-size: 1.5vw;
-            }
-        }
-
-        /* Adjustments for small screens */
-        @media (max-width: 480px) {
-            .announcement-container {
-                width: 100%;
-            }
-
-            .announcement-header {
-                font-size: 4vw;
-            }
-
-            .announcement-text {
-                font-size: 3vw;
-            }
-
-            .announcement-footer {
-                font-size: 2vw;
-            }
+        .posted-by {
+            margin-top: 8px;
+            font-size: 0.875rem;
         }
     </style>
 </head>
 <body>
-
-<div class="announcement-container">
-    <div class="announcement-content">
-        <div class="announcement-header">Announcements</div>
-        <div class="announcement-text">
-            It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy.
+    <div class="resize-container">
+        <div class="text-container">
+            <h2>Announcements</h2>
+            <p id="content1">
+                HELLO WORLD
+            </p>
+            <p class="posted-by">Posted By Carlo</p>
         </div>
-        <div class="announcement-footer">Posted By Carlo</div>
     </div>
-</div>
+    <div class="resize-container">
+        <div class="text-container">
+            <h2>Events</h2>
+            <p id="content2">
+            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
+            </p>
+            <p class="posted-by">Posted By Carlo</p>
+        </div>
+    </div>
 
+    <script>
+        const containers = document.querySelectorAll('.resize-container');
+
+        function adjustFontSize(container) {
+            const textContainer = container.querySelector('.text-container');
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+
+            let fontSize = 10;
+            textContainer.style.fontSize = `${fontSize}px`;
+
+            while (
+                textContainer.scrollWidth <= containerWidth &&
+                textContainer.scrollHeight <= containerHeight &&
+                fontSize < 100
+            ) {
+                fontSize++;
+                textContainer.style.fontSize = `${fontSize}px`;
+            }
+
+            fontSize -= 2; // Reduce by 2 to ensure text fits within container
+            textContainer.style.fontSize = `${fontSize}px`;
+        }
+
+        // Initial adjustment for all containers
+        containers.forEach(container => adjustFontSize(container));
+
+        // Use ResizeObserver for dynamic resizing
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                adjustFontSize(entry.target);
+            }
+        });
+
+        containers.forEach(container => resizeObserver.observe(container));
+    </script>
 </body>
 </html>
