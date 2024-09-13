@@ -67,6 +67,8 @@ body {
     position: absolute;
     width: 300px;
     height: 200px;
+    min-width: 200px;
+    min-height: 250px;
     padding: 5px;
     box-sizing: border-box;
     overflow: hidden;
@@ -85,7 +87,7 @@ body {
 .carousel-container {
     /* height: 84.5%; */
     align-content: center;
-    height: calc(100% - 6.0vh);
+    height: calc(100% - 6.5vh);
     border: black 1px solid;
     border-radius: 5px;
 }

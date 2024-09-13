@@ -54,7 +54,7 @@ if (mysqli_num_rows($result) > 0) {
                 echo '<h1 class="content-title" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($tvName) . '</h1>';
                 echo '<div class="tv-frame-parent" style="width: auto; height: 450px; ">';
                 echo '<div class="tv-frame" id="tv-frame" style="scale: 0.5; user-select: none">';
-                    echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
+                    echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
                     echo '<p style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($tvBrand) .'</p>';
                 echo "</div>";
                 echo '<div class="scale-buttons">';

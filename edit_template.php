@@ -146,7 +146,7 @@ $conn->close();
     <link rel="stylesheet" href="style.css">
     <title>Edit Template</title>
 </head>
-<body>
+<body style="overflow: hidden;">
     <div class="main-section" id="all-content">
         <?php include('top_header.php'); ?>
         <?php include('sidebar.php'); ?>
@@ -163,12 +163,18 @@ $conn->close();
                             </ol>
                         </nav>
                         <?php include('error_message.php'); ?>
-                        <div class="container-indicators">
+                        <!-- Content Area -->
+                        <div class="tv-frame-parent" style="height: 70vh; user-select: none; -moz-user-select: none; -webkit-user-drag: none; -webkit-user-select: none; -ms-user-select: none;">
+                            <!-- Display iframe based on tvId -->
+                            <div class="tv-frame" id="tv-frame">
+                                <iframe id="tv-iframe" frameborder="0" src="tv2.php?tvId=<?php echo $tvId?>&isIframe=true" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
+                                <p style="text-align: center; font-size: 25px; margin-top: auto; color: white;"><?php echo $tvBrand?></p>
+                            </div>
                             <!-- Sidebar -->
-                            <div style="height: 100vh; flex: 1; text-align: left; ">
-                                <div class="content-container" style="margin-top: 0;">
+                            <div class="left-sidebar" id="leftSidebar">
+                                <div class="content-container" style="margin-top: 0; position: fixed; width: 245px">
                                     <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Show/Hide Content Containers</b></p>
-                                    <form id="visibilitySettingsForm" style="padding: 8px;">
+                                    <form id="visibilitySettingsForm" style="padding: 8px; height: 58vh; overflow-y: auto;">
                                         <?php foreach ($containers as $container): ?>
                                             <label class="option-div">
                                                 <input type="checkbox" id="container_<?php echo $container['container_id']; ?>" name="container_<?php echo $container['container_id']; ?>" <?php echo $container['visible'] ? 'checked' : ''; ?> style="margin-right: 10px;">
@@ -177,171 +183,172 @@ $conn->close();
                                         <?php endforeach; ?>
                                     </form>
                                 </div>
-                            </div>                            
-                            <!-- Content Area -->
-                            <div class="tv-frame-parent">
-                                <!-- Display iframe based on tvId -->
-                                <div class="tv-frame" id="tv-frame">
-                                    <iframe id="tv-iframe" frameborder="0" src="tv2.php?tvId=<?php echo $tvId?>" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
-                                    <p style="text-align: center; font-size: 25px; margin-top: auto; color: white;"><?php echo $tvBrand?></p>
+                            </div>
+                            <div class="scale-buttons-2">
+                                <button type="button" id="openSidebarButton" class="open-sidebar-button open" onclick="openSidebar()"><i class="fa fa-angle-right"></i></button>
+                                <button type="button" id="closeSidebarButton" class="close-sidebar-button" onclick="closeSidebar()"><i class="fa fa-angle-left"></i></button>
+                                <button type="button" id="scale-down"><i class="fa fa-search-minus"></i></button>
+                                <button type="button" id="scale-up"><i class="fa fa-search-plus"></i></button>
+                                <button type="button" id="updateTemplateButton" style="display: none;"><i class="fa fa-floppy-o"></i></button>
+                            </div>
+                            <!-- Top Bar Customization Left-side panel -->
+                            <div id="topbarLeftSidePanel" class="left-side-panel" >
+                                <div class="content-container" style="background: #f9fffa; position: fixed; width: 245px">
+                                    <div class="panel-close-btn">
+                                        <button onclick="closeTopbarLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
+                                    </div>
+                                    <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Customize Top Bar</b></p>
+                                    <form id="editTopBarColorForm" enctype="multipart/form-data" style="height: 57vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">
+                                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                            <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 60px; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
+                                            <label for="topbar_color" class="floating-label">Top Bar Color</label>
+                                        </div>
+                                        <div class="line-separator" style="margin: 0px;"></div>
+                                        <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>TV Name</b></p>
+                                        <div class="split-container" style="margin-bottom: 0">
+                                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                                <input type="color" id="topbar_tvname_color" name="topbar_tvname_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarTvNameColor); ?>">
+                                                <label for="topbar_tvname_color" class="floating-label">Font Color</label>
+                                            </div>
+                                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                                                <select id="topbar_tvname_font_style" name="topbar_tvname_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                    <option value="normal" <?php echo $topbarTvNameFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                                                    <option value="italic" <?php echo $topbarTvNameFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                                                </select>
+                                                <label for="topbar_tvname_font_style" class="floating-label">Font Style</label>
+                                            </div>
+                                        </div>
+                                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                                            <select id="topbar_tvname_font_family" name="topbar_tvname_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                <option value="Questrial" <?php echo $topbarTvNameFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                                                <option value="Arial" <?php echo $topbarTvNameFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                                                <option value="Helvetica" <?php echo $topbarTvNameFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
+                                                <option value="Verdana" <?php echo $topbarTvNameFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                                                <option value="Times New Roman" <?php echo $topbarTvNameFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                                                <option value="Georgia" <?php echo $topbarTvNameFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                                                <option value="Courier New" <?php echo $topbarTvNameFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                                                <option value="Libre Baskerville" <?php echo $topbarTvNameFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                                            </select>
+                                            <label for="topbar_tvname_font_family" class="floating-label">Font Family</label>
+                                        </div>
+                                        <div class="line-separator" style="margin: 0px;"></div>
+                                        <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Device ID</b></p>
+                                        <div class="split-container" style="margin-bottom: 0">
+                                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                                <input type="color" id="topbar_deviceid_color" name="topbar_deviceid_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarDeviceIdColor); ?>">
+                                                <label for="topbar_deviceid_color" class="floating-label">Font Color</label>
+                                            </div>
+                                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                                                <select id="topbar_deviceid_font_style" name="topbar_deviceid_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                    <option value="normal" <?php echo $topbarDeviceIdFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                                                    <option value="italic" <?php echo $topbarDeviceIdFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                                                </select>
+                                                <label for="topbar_deviceid_font_style" class="floating-label">Font Style</label>
+                                            </div>
+                                        </div>
+                                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                                            <select id="topbar_deviceid_font_family" name="topbar_deviceid_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                <option value="Questrial" <?php echo $topbarDeviceIdFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                                                <option value="Arial" <?php echo $topbarDeviceIdFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                                                <option value="Helvetica" <?php echo $topbarDeviceIdFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
+                                                <option value="Verdana" <?php echo $topbarDeviceIdFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                                                <option value="Times New Roman" <?php echo $topbarDeviceIdFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                                                <option value="Georgia" <?php echo $topbarDeviceIdFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                                                <option value="Courier New" <?php echo $topbarDeviceIdFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                                                <option value="Libre Baskerville" <?php echo $topbarDeviceIdFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                                            </select>
+                                            <label for="topbar_deviceid_font_family" class="floating-label">Device ID Font Family</label>
+                                        </div>
+                                        <div class="line-separator" style="margin: 0px;"></div>
+                                        <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Time</b></p>
+                                        <div class="split-container" style="margin-bottom: 0">
+                                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                                <input type="color" id="topbar_time_color" name="topbar_time_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarTimeColor); ?>">
+                                                <label for="topbar_time_color" class="floating-label">Font Color</label>
+                                            </div>
+                                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                                                <select id="topbar_time_font_style" name="topbar_time_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                    <option value="normal" <?php echo $topbarTimeFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                                                    <option value="italic" <?php echo $topbarTimeFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                                                </select>
+                                                <label for="topbar_time_font_style" class="floating-label">Font Style</label>
+                                            </div>
+                                        </div>
+                                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                                            <select id="topbar_time_font_family" name="topbar_time_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                <option value="Questrial" <?php echo $topbarTimeFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                                                <option value="Arial" <?php echo $topbarTimeFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                                                <option value="Helvetica" <?php echo $topbarTimeFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
+                                                <option value="Verdana" <?php echo $topbarTimeFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                                                <option value="Times New Roman" <?php echo $topbarTimeFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                                                <option value="Georgia" <?php echo $topbarTimeFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                                                <option value="Courier New" <?php echo $topbarTimeFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                                                <option value="Libre Baskerville" <?php echo $topbarTimeFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                                            </select>
+                                            <label for="topbar_time_font_family" class="floating-label">Time Font Family</label>
+                                        </div>
+                                        <div class="line-separator" style="margin: 0px;"></div>
+                                        <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Date</b></p>
+                                        <div class="split-container" style="margin-bottom: 0">
+                                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                                <input type="color" id="topbar_date_color" name="topbar_date_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarDateColor); ?>">
+                                                <label for="topbar_date_color" class="floating-label">Font Color</label>
+                                            </div>
+                                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                                                <select id="topbar_date_font_style" name="topbar_date_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                    <option value="normal" <?php echo $topbarDateFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                                                    <option value="italic" <?php echo $topbarDateFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                                                </select>
+                                                <label for="topbar_date_font_style" class="floating-label">Font Style</label>
+                                            </div>
+                                        </div>
+                                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                                            <select id="topbar_date_font_family" name="topbar_date_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                <option value="Questrial" <?php echo $topbarDateFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                                                <option value="Arial" <?php echo $topbarDateFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                                                <option value="Helvetica" <?php echo $topbarDateFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
+                                                <option value="Verdana" <?php echo $topbarDateFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                                                <option value="Times New Roman" <?php echo $topbarDateFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                                                <option value="Georgia" <?php echo $topbarDateFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                                                <option value="Courier New" <?php echo $topbarDateFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                                                <option value="Libre Baskerville" <?php echo $topbarDateFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                                            </select>
+                                            <label for="topbar_date_font_family" class="floating-label">Date Font Family</label>
+                                        </div>
+                                    </form>
                                 </div>
-                                <div class="scale-buttons">
-                                    <button type="button" id="scale-down"><i class="fa fa-search-minus"></i></button>
-                                    <button type="button" id="scale-up"><i class="fa fa-search-plus"></i></button>
-                                    <button type="button" id="updateTemplateButton" style="display: none;"><i class="fa fa-floppy-o" style="margin-right: 5px;"></i> Save</button>
+                            </div>
+                            <!-- Background Customization Left-side panel -->
+                            <div id="backgroundLeftSidePanel" class="left-side-panel">
+                                <div class="content-container" style="background: #f9fffa; position: fixed; width: 245px">
+                                    <div class="panel-close-btn">
+                                        <button onclick="closeBackgroundLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
+                                    </div>
+                                    <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Customize Background</b></p>
+                                    <form id="editBackgroundColorForm" enctype="multipart/form-data" style="height: 57vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">                                        
+                                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                            <input type="color" id="background_color" name="background_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($backgroundColor); ?>">
+                                            <label for="background_color" class="floating-label">TV Background Color</label>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- Containers Customization Left-side panel -->
+                            <div id="contentContainerLeftSidePanel" class="left-side-panel">
+                                <div class="content-container" style="background: #f9fffa; overflow: hidden; position: fixed; width: 245px">
+                                    <div class="panel-close-btn">
+                                        <button onclick="closeContainerLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
+                                    </div>
+                                    <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Customize Containers</b></p>
+                                    <form id="editContentContainerForm" enctype="multipart/form-data" style="height: 57vh; overflow: hidden;">
+                                        <!-- Dynamic content will be added here -->
+                                    </form>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- Top Bar Customization Left-side panel -->
-        <div id="topbarLeftSidePanel" class="left-side-panel">
-            <div class="panel-close-btn">
-                <button onclick="closeTopbarLeftSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
-            </div>
-            <h3>Customize Top Bar</h3>
-            <br>
-            <form id="editTopBarColorForm" enctype="multipart/form-data" style="padding-bottom: 45px">
-                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                    <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
-                    <label for="topbar_color" class="floating-label">Top Bar Color</label>
-                </div>
-                <div class="line-separator" style="margin-top: 0"></div>
-                <div class="split-container" style="margin-bottom: 0">
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                        <input type="color" id="topbar_tvname_color" name="topbar_tvname_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarTvNameColor); ?>">
-                        <label for="topbar_tvname_color" class="floating-label">TV Name Font Color</label>
-                    </div>
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                        <select id="topbar_tvname_font_style" name="topbar_tvname_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                            <option value="normal" <?php echo $topbarTvNameFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
-                            <option value="italic" <?php echo $topbarTvNameFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
-                        </select>
-                        <label for="topbar_tvname_font_style" class="floating-label">TV Name Font Style</label>
-                    </div>
-                </div>
-                <div class="split-container" style="margin-bottom: 0">
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                        <input type="color" id="topbar_deviceid_color" name="topbar_deviceid_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarDeviceIdColor); ?>">
-                        <label for="topbar_deviceid_color" class="floating-label">Device ID Font Color</label>
-                    </div>
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                        <select id="topbar_deviceid_font_style" name="topbar_deviceid_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                            <option value="normal" <?php echo $topbarDeviceIdFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
-                            <option value="italic" <?php echo $topbarDeviceIdFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
-                        </select>
-                        <label for="topbar_deviceid_font_style" class="floating-label">Device ID Font Style</label>
-                    </div>
-                </div>
-                <div class="split-container" style="margin-bottom: 0">
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                        <input type="color" id="topbar_time_color" name="topbar_time_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarTimeColor); ?>">
-                        <label for="topbar_time_color" class="floating-label">Time Font Color</label>
-                    </div>
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                        <select id="topbar_time_font_style" name="topbar_time_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                            <option value="normal" <?php echo $topbarTimeFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
-                            <option value="italic" <?php echo $topbarTimeFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
-                        </select>
-                        <label for="topbar_time_font_style" class="floating-label">Time Font Style</label>
-                    </div>
-                </div>
-                <div class="split-container" style="margin-bottom: 0">
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                        <input type="color" id="topbar_date_color" name="topbar_date_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarDateColor); ?>">
-                        <label for="topbar_date_color" class="floating-label">Date Font Color</label>
-                    </div>
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                        <select id="topbar_date_font_style" name="topbar_date_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                            <option value="normal" <?php echo $topbarDateFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
-                            <option value="italic" <?php echo $topbarDateFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
-                        </select>
-                        <label for="topbar_date_font_style" class="floating-label">Date Font Style</label>
-                    </div>
-                </div>
-                <div class="line-separator" style="margin-top: 0"></div>
-                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                    <select id="topbar_tvname_font_family" name="topbar_tvname_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                        <option value="Questrial" <?php echo $topbarTvNameFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
-                        <option value="Arial" <?php echo $topbarTvNameFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
-                        <option value="Helvetica" <?php echo $topbarTvNameFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
-                        <option value="Verdana" <?php echo $topbarTvNameFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
-                        <option value="Times New Roman" <?php echo $topbarTvNameFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
-                        <option value="Georgia" <?php echo $topbarTvNameFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
-                        <option value="Courier New" <?php echo $topbarTvNameFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
-                        <option value="Libre Baskerville" <?php echo $topbarTvNameFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
-                    </select>
-                    <label for="topbar_tvname_font_family" class="floating-label">TV Name Font Family</label>
-                </div>
-                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                    <select id="topbar_deviceid_font_family" name="topbar_deviceid_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                        <option value="Questrial" <?php echo $topbarDeviceIdFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
-                        <option value="Arial" <?php echo $topbarDeviceIdFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
-                        <option value="Helvetica" <?php echo $topbarDeviceIdFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
-                        <option value="Verdana" <?php echo $topbarDeviceIdFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
-                        <option value="Times New Roman" <?php echo $topbarDeviceIdFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
-                        <option value="Georgia" <?php echo $topbarDeviceIdFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
-                        <option value="Courier New" <?php echo $topbarDeviceIdFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
-                        <option value="Libre Baskerville" <?php echo $topbarDeviceIdFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
-                    </select>
-                    <label for="topbar_deviceid_font_family" class="floating-label">Device ID Font Family</label>
-                </div>
-                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                    <select id="topbar_time_font_family" name="topbar_time_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                        <option value="Questrial" <?php echo $topbarTimeFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
-                        <option value="Arial" <?php echo $topbarTimeFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
-                        <option value="Helvetica" <?php echo $topbarTimeFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
-                        <option value="Verdana" <?php echo $topbarTimeFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
-                        <option value="Times New Roman" <?php echo $topbarTimeFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
-                        <option value="Georgia" <?php echo $topbarTimeFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
-                        <option value="Courier New" <?php echo $topbarTimeFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
-                        <option value="Libre Baskerville" <?php echo $topbarTimeFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
-                    </select>
-                    <label for="topbar_time_font_family" class="floating-label">Time Font Family</label>
-                </div>
-                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                    <select id="topbar_date_font_family" name="topbar_date_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                        <option value="Questrial" <?php echo $topbarDateFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
-                        <option value="Arial" <?php echo $topbarDateFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
-                        <option value="Helvetica" <?php echo $topbarDateFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
-                        <option value="Verdana" <?php echo $topbarDateFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
-                        <option value="Times New Roman" <?php echo $topbarDateFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
-                        <option value="Georgia" <?php echo $topbarDateFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
-                        <option value="Courier New" <?php echo $topbarDateFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
-                        <option value="Libre Baskerville" <?php echo $topbarDateFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
-                    </select>
-                    <label for="topbar_date_font_family" class="floating-label">Date Font Family</label>
-                </div>
-            </form>
-        </div>
-        <!-- Background Customization Left-side panel -->
-        <div id="backgroundLeftSidePanel" class="left-side-panel">
-            <div class="panel-close-btn">
-                <button onclick="closeBackgroundLeftSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
-            </div>
-            <br>
-            <h3>Customize Background</h3>
-            <br>
-            <form id="editBackgroundColorForm" enctype="multipart/form-data" style="padding: 8px;">                                        
-                <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                    <input type="color" id="background_color" name="background_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($backgroundColor); ?>">
-                    <label for="background_color" class="floating-label">TV Background Color</label>
-                </div>
-            </form>
-        </div>
-        <!-- Containers Customization Left-side panel -->
-        <div id="contentContainerLeftSidePanel" class="left-side-panel">
-            <div class="panel-close-btn">
-                <button onclick="closeContainerLeftSidePanel()"><i class="fa fa-times-circle-o" aria-hidden="true"></i></button>
-            </div>
-            <br>
-            <h3>Customize Container</h3>
-            <br>
-            <form id="editContentContainerForm" enctype="multipart/form-data">
-                <!-- Dynamic content will be added here -->
-            </form>
         </div>
     </div>
     <script>
@@ -351,14 +358,56 @@ $conn->close();
 
         function closeTopbarLeftSidePanel() {
             topbarLeftSidePanel.classList.remove('open');
+            const scaleButtons = document.querySelector('.scale-buttons-2');
+            scaleButtons.classList.remove('open');
+            const openSidebarButton = document.querySelector('.open-sidebar-button');
+            openSidebarButton.classList.add('open');
+            const closeSidebarButton = document.querySelector('.close-sidebar-button');
+            closeSidebarButton.classList.remove('open');
         }
 
         function closeBackgroundLeftSidePanel() {
             backgroundLeftSidePanel.classList.remove('open');
+            const scaleButtons = document.querySelector('.scale-buttons-2');
+            scaleButtons.classList.remove('open');
+            const openSidebarButton = document.querySelector('.open-sidebar-button');
+            openSidebarButton.classList.add('open');
+            const closeSidebarButton = document.querySelector('.close-sidebar-button');
+            closeSidebarButton.classList.remove('open');
         }
 
         function closeContainerLeftSidePanel() {
             contentContainerLeftSidePanel.classList.remove('open');
+            const scaleButtons = document.querySelector('.scale-buttons-2');
+            scaleButtons.classList.remove('open');
+            const openSidebarButton = document.querySelector('.open-sidebar-button');
+            openSidebarButton.classList.add('open');
+            const closeSidebarButton = document.querySelector('.close-sidebar-button');
+            closeSidebarButton.classList.remove('open');
+        }
+
+        function openSidebar() {
+            const leftSidebar = document.getElementById('leftSidebar');
+            const scaleButtons = document.querySelector('.scale-buttons-2');
+            const openSidebarButton = document.getElementById('openSidebarButton');
+            const closeSidebarButton = document.getElementById('closeSidebarButton');
+
+            leftSidebar.classList.add('open');
+            scaleButtons.classList.add('open');
+            openSidebarButton.classList.remove('open');
+            closeSidebarButton.classList.add('open');
+        }
+
+        function closeSidebar() {
+            const leftSidebar = document.getElementById('leftSidebar');
+            const scaleButtons = document.querySelector('.scale-buttons-2');
+            const openSidebarButton = document.getElementById('openSidebarButton');
+            const closeSidebarButton = document.getElementById('closeSidebarButton');
+
+            leftSidebar.classList.remove('open');
+            scaleButtons.classList.remove('open');
+            openSidebarButton.classList.add('open');
+            closeSidebarButton.classList.remove('open');
         }
         // Function to initialize WebSocket connection
         function initializeWebSocket() {
@@ -450,6 +499,11 @@ $conn->close();
             closeTopbarLeftSidePanel();  // Close the top bar panel if it's open
             closeBackgroundLeftSidePanel();  // Close the background panel if it's open
             contentContainerLeftSidePanel.classList.add('open');
+            closeSidebar();
+            const scaleButtons = document.querySelector('.scale-buttons-2');
+            scaleButtons.classList.add('open');
+            const openSidebarButton = document.getElementById('openSidebarButton');
+            openSidebarButton.classList.remove('open');
 
             editContentContainerForm.innerHTML = '';
 
@@ -458,72 +512,72 @@ $conn->close();
             if (container) {
                 // Create and append the container details dynamically
                 const containerDiv = document.createElement('div');
-                containerDiv.className = 'option-div-container-color';
                 containerDiv.innerHTML = `
-                    <p style="background: #264B2B; color: white; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;">${container.container_name}</p>
-                    <div style="padding: 8px;">
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
-                        <input type="color" id="container_${container.container_id}_bg_color" name="container_${container.container_id}_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.parent_background_color}">
-                        <label for="container_${container.container_id}_bg_color" class="floating-label">Background Color</label>
-                    </div>
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
-                        <input type="color" id="container_${container.container_id}_card_bg_color" name="container_${container.container_id}_card_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.child_background_color}">
-                        <label for="container_${container.container_id}_card_bg_color" class="floating-label">Card Background Color</label>
-                    </div>
-                    <div class="line-separator" style="margin-top: 0; margin-left: 12px; margin-right: 12px"></div>
-                    <div class="split-container" style="margin-bottom: 0">
+                    <p style="text-align: center; color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>${container.container_name}</b></p>
+                    <div style="overflow-y: auto; overflow-x: hidden; height: 54vh; padding-right: 10px">
+                        <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Parent Container</b></p>
                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
-                            <input type="color" id="container_${container.container_id}_font_color" name="container_${container.container_id}_font_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.parent_font_color}">
-                            <label for="container_${container.container_id}_font_color" class="floating-label">Font Color</label>
+                            <input type="color" id="container_${container.container_id}_bg_color" name="container_${container.container_id}_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.parent_background_color}">
+                            <label for="container_${container.container_id}_bg_color" class="floating-label">Background Color</label>
                         </div>
-                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
-                            <select id="container_${container.container_id}_fontstyle" name="container_${container.container_id}_fontstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                                <option value="normal" ${container.parent_font_style == 'normal' ? 'selected' : ''}>Normal</option>
-                                <option value="italic" ${container.parent_font_style == 'italic' ? 'selected' : ''} style="font-style: italic">Italic</option>
+                        <div class="split-container" style="margin-bottom: 0">
+                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                                <input type="color" id="container_${container.container_id}_font_color" name="container_${container.container_id}_font_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.parent_font_color}">
+                                <label for="container_${container.container_id}_font_color" class="floating-label">Font Color</label>
+                            </div>
+                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                                <select id="container_${container.container_id}_fontstyle" name="container_${container.container_id}_fontstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                    <option value="normal" ${container.parent_font_style == 'normal' ? 'selected' : ''}>Normal</option>
+                                    <option value="italic" ${container.parent_font_style == 'italic' ? 'selected' : ''} style="font-style: italic">Italic</option>
+                                </select>
+                                <label for="container_${container.container_id}_fontstyle" class="floating-label">Font Style</label>
+                            </div>
+                        </div>
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                            <select id="container_${container.container_id}_fontfamily" name="container_${container.container_id}_fontfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                <option value="Questrial" ${container.parent_font_family == 'Questrial' ? 'selected' : ''} style="font-family: Questrial">Questrial</option>
+                                <option value="Arial" ${container.parent_font_family == 'Arial' ? 'selected' : ''} style="font-family: Arial">Arial</option>
+                                <option value="Helvetica" ${container.parent_font_family == 'Helvetica' ? 'selected' : ''} style="font-family: Helvetica">Helvetica</option>
+                                <option value="Verdana" ${container.parent_font_family == 'Verdana' ? 'selected' : ''} style="font-family: Verdana">Verdana</option>
+                                <option value="Times New Roman" ${container.parent_font_family == 'Times New Roman' ? 'selected' : ''} style="font-family: Times New Roman">Times New Roman</option>
+                                <option value="Georgia" ${container.parent_font_family == 'Georgia' ? 'selected' : ''} style="font-family: Georgia">Georgia</option>
+                                <option value="Courier New" ${container.parent_font_family == 'Courier New' ? 'selected' : ''} style="font-family: Courier New">Courier New</option>
+                                <option value="Libre Baskerville" ${container.parent_font_family == 'Libre Baskerville' ? 'selected' : ''} style="font-family: Libre Baskerville">Libre Baskerville</option>
                             </select>
-                            <label for="container_${container.container_id}_fontstyle" class="floating-label">Font Style</label>
+                            <label for="container_${container.container_id}_fontfamily" class="floating-label">Font Family</label>
                         </div>
-                    </div>
-                    <div class="split-container" style="margin-bottom: 0">
+                        <div class="line-separator" style="margin: 0px"></div>
+                        <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Card Container</b></p>
                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
-                            <input type="color" id="container_${container.container_id}_fcard_color" name="container_${container.container_id}_fcard_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.child_font_color}">
-                            <label for="container_${container.container_id}_fcard_color" class="floating-label">Card Font Color</label>
-                        </div>
-                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
-                            <select id="container_${container.container_id}_fcardstyle" name="container_${container.container_id}_fcardstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                                <option value="normal" ${container.child_font_style == 'normal' ? 'selected' : ''}>Normal</option>
-                                <option value="italic" ${container.child_font_style == 'italic' ? 'selected' : ''} style="font-style: italic">Italic</option>
+                            <input type="color" id="container_${container.container_id}_card_bg_color" name="container_${container.container_id}_card_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.child_background_color}">
+                            <label for="container_${container.container_id}_card_bg_color" class="floating-label">Card Background Color</label>
+                        </div>                        
+                        <div class="split-container" style="margin-bottom: 0">
+                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                                <input type="color" id="container_${container.container_id}_fcard_color" name="container_${container.container_id}_fcard_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.child_font_color}">
+                                <label for="container_${container.container_id}_fcard_color" class="floating-label">Card Font Color</label>
+                            </div>
+                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
+                                <select id="container_${container.container_id}_fcardstyle" name="container_${container.container_id}_fcardstyle" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                    <option value="normal" ${container.child_font_style == 'normal' ? 'selected' : ''}>Normal</option>
+                                    <option value="italic" ${container.child_font_style == 'italic' ? 'selected' : ''} style="font-style: italic">Italic</option>
+                                </select>
+                                <label for="container_${container.container_id}_fcardstyle" class="floating-label">Card Font Style</label>
+                            </div>
+                        </div>                        
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                            <select id="container_${container.container_id}_fcardfamily" name="container_${container.container_id}_fcardfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                <option value="Questrial" ${container.child_font_family == 'Questrial' ? 'selected' : ''} style="font-family: Questrial">Questrial</option>
+                                <option value="Arial" ${container.child_font_family == 'Arial' ? 'selected' : ''} style="font-family: Arial">Arial</option>
+                                <option value="Helvetica" ${container.child_font_family == 'Helvetica' ? 'selected' : ''} style="font-family: Helvetica">Helvetica</option>
+                                <option value="Verdana" ${container.child_font_family == 'Verdana' ? 'selected' : ''} style="font-family: Verdana">Verdana</option>
+                                <option value="Times New Roman" ${container.child_font_family == 'Times New Roman' ? 'selected' : ''} style="font-family: Times New Roman">Times New Roman</option>
+                                <option value="Georgia" ${container.child_font_family == 'Georgia' ? 'selected' : ''} style="font-family: Georgia">Georgia</option>
+                                <option value="Courier New" ${container.child_font_family == 'Courier New' ? 'selected' : ''} style="font-family: Courier New">Courier New</option>
+                                <option value="Libre Baskerville" ${container.child_font_family == 'Libre Baskerville' ? 'selected' : ''} style="font-family: Libre Baskerville">Libre Baskerville</option>
                             </select>
-                            <label for="container_${container.container_id}_fcardstyle" class="floating-label">Card Font Style</label>
+                            <label for="container_${container.container_id}_fcardfamily" class="floating-label">Card Font Family</label>
                         </div>
-                    </div>
-                    <div class="line-separator" style="margin-top: 0; margin-left: 12px; margin-right: 12px"></div>
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                        <select id="container_${container.container_id}_fontfamily" name="container_${container.container_id}_fontfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                            <option value="Questrial" ${container.parent_font_family == 'Questrial' ? 'selected' : ''} style="font-family: Questrial">Questrial</option>
-                            <option value="Arial" ${container.parent_font_family == 'Arial' ? 'selected' : ''} style="font-family: Arial">Arial</option>
-                            <option value="Helvetica" ${container.parent_font_family == 'Helvetica' ? 'selected' : ''} style="font-family: Helvetica">Helvetica</option>
-                            <option value="Verdana" ${container.parent_font_family == 'Verdana' ? 'selected' : ''} style="font-family: Verdana">Verdana</option>
-                            <option value="Times New Roman" ${container.parent_font_family == 'Times New Roman' ? 'selected' : ''} style="font-family: Times New Roman">Times New Roman</option>
-                            <option value="Georgia" ${container.parent_font_family == 'Georgia' ? 'selected' : ''} style="font-family: Georgia">Georgia</option>
-                            <option value="Courier New" ${container.parent_font_family == 'Courier New' ? 'selected' : ''} style="font-family: Courier New">Courier New</option>
-                            <option value="Libre Baskerville" ${container.parent_font_family == 'Libre Baskerville' ? 'selected' : ''} style="font-family: Libre Baskerville">Libre Baskerville</option>
-                        </select>
-                        <label for="container_${container.container_id}_fontfamily" class="floating-label">Font Family</label>
-                    </div>
-                    <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                        <select id="container_${container.container_id}_fcardfamily" name="container_${container.container_id}_fcardfamily" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                            <option value="Questrial" ${container.child_font_family == 'Questrial' ? 'selected' : ''} style="font-family: Questrial">Questrial</option>
-                            <option value="Arial" ${container.child_font_family == 'Arial' ? 'selected' : ''} style="font-family: Arial">Arial</option>
-                            <option value="Helvetica" ${container.child_font_family == 'Helvetica' ? 'selected' : ''} style="font-family: Helvetica">Helvetica</option>
-                            <option value="Verdana" ${container.child_font_family == 'Verdana' ? 'selected' : ''} style="font-family: Verdana">Verdana</option>
-                            <option value="Times New Roman" ${container.child_font_family == 'Times New Roman' ? 'selected' : ''} style="font-family: Times New Roman">Times New Roman</option>
-                            <option value="Georgia" ${container.child_font_family == 'Georgia' ? 'selected' : ''} style="font-family: Georgia">Georgia</option>
-                            <option value="Courier New" ${container.child_font_family == 'Courier New' ? 'selected' : ''} style="font-family: Courier New">Courier New</option>
-                            <option value="Libre Baskerville" ${container.child_font_family == 'Libre Baskerville' ? 'selected' : ''} style="font-family: Libre Baskerville">Libre Baskerville</option>
-                        </select>
-                        <label for="container_${container.container_id}_fcardfamily" class="floating-label">Card Font Family</label>
-                    </div>
                     </div>
                 `;
                 contentContainerForm.appendChild(containerDiv);
@@ -630,13 +684,27 @@ $conn->close();
             function openTopbarLeftSidePanel() {
                 closeBackgroundLeftSidePanel();  // Close the background panel if it's open
                 closeContainerLeftSidePanel();  // Close the container panel if it's open
+                closeSidebar();
                 topbarLeftSidePanel.classList.add('open');
+                const scaleButtons = document.querySelector('.scale-buttons-2');
+                scaleButtons.classList.add('open');
+                const openSidebarButton = document.querySelector('.open-sidebar-button');
+                openSidebarButton.classList.remove('open');
+                const closeSidebarButton = document.querySelector('.close-sidebar-button');
+                closeSidebarButton.classList.remove('open');
             }
 
             function openBackgroundLeftSidePanel() {
                 closeTopbarLeftSidePanel();  // Close the top bar panel if it's open
                 closeContainerLeftSidePanel();  // Close the container panel if it's open
+                closeSidebar();
                 backgroundLeftSidePanel.classList.add('open');
+                const scaleButtons = document.querySelector('.scale-buttons-2');
+                scaleButtons.classList.add('open');
+                const openSidebarButton = document.querySelector('.open-sidebar-button');
+                openSidebarButton.classList.remove('open');
+                const closeSidebarButton = document.querySelector('.close-sidebar-button');
+                closeSidebarButton.classList.remove('open');
             }
 
             // Add event listeners to the iframe content
@@ -644,12 +712,12 @@ $conn->close();
                 const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
 
                 // Click event for the top bar
-                iframeDocument.getElementById('topbar').addEventListener('click', function () {
+                iframeDocument.getElementById('topbar').addEventListener('dblclick', function () {
                     openTopbarLeftSidePanel();
                 });
 
                 // Click event for the background
-                iframeDocument.getElementById('tvBackgroundColor').addEventListener('click', function () {
+                iframeDocument.getElementById('tvBackgroundColor').addEventListener('dblclick', function () {
                     openBackgroundLeftSidePanel();
                 });
 

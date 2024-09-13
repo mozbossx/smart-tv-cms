@@ -72,38 +72,6 @@ include 'tv_initialize.php';
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <script src="js_tv/fetch_tv_content.js"></script>
     <script>
-        function initializeFontSizeAdjustment() {
-            const containers = document.querySelectorAll('.content-container');
-            
-            containers.forEach(container => {
-                const content = container.querySelector('.content-main');
-                if (!content){
-                    return;
-                } 
-
-                function adjustFontSize() {
-                    let fontSize = 12;
-                    content.style.fontSize = fontSize + 'px';
-
-                    while (content.scrollHeight > container.clientHeight || content.scrollWidth > container.clientWidth) {
-                        fontSize--;
-                        if (fontSize <= 8) break; // Minimum font size
-                        content.style.fontSize = fontSize + 'px';
-                    }
-                }
-
-                // Initial adjustment
-                adjustFontSize();
-
-                // Adjust on resize
-                const resizeObserver = new ResizeObserver(adjustFontSize);
-                resizeObserver.observe(container);
-            });
-        }
-
-        // Call this function after the DOM is loaded
-        document.addEventListener('DOMContentLoaded', initializeFontSizeAdjustment);
-
         function sendScreenDimensions() {
             var w = window.innerWidth;
             var h = window.innerHeight;

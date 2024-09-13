@@ -286,7 +286,52 @@ const updateUI = (data, type) => {
             }
         }, 0);
     }
+    adjustFontSize(type);
 };
+
+function adjustFontSize(type) {
+    const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+    if (carouselContainer) {       
+        const textContainers = carouselContainer.querySelectorAll('.content-main');
+        textContainers.forEach((textContainer, index) => {           
+            const containerWidth = carouselContainer.offsetWidth;
+            const containerHeight = carouselContainer.offsetHeight;
+
+            let fontSize = 1;
+            textContainer.style.fontSize = `${fontSize}px`;
+
+            while (
+                textContainer.scrollWidth <= containerWidth &&
+                textContainer.scrollHeight <= containerHeight &&
+                fontSize < 100
+            ) {
+                fontSize++;
+                textContainer.style.fontSize = `${fontSize}px`;
+            }
+
+            fontSize -= 2; // Reduce by 2 to ensure text fits within container
+            textContainer.style.fontSize = `${fontSize}px`;
+        });
+    } else {
+        console.log(`${type}CarouselContainer not found`);
+    }
+}
+
+// Set up a MutationObserver to watch for changes in a specific carousel container
+function setupFontSizeObserver(type) {
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                adjustFontSize(type);
+            }
+        });
+    });
+
+    const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+    if (carouselContainer) {
+        observer.observe(carouselContainer, { childList: true, subtree: true, characterData: true });
+    }
+}
 
 // Function to fetch org chart data
 const fetchOrgChartData = () => {
@@ -647,6 +692,7 @@ const fetchAndUpdateContents = (type) => {
                                 displayNoMessage(type); // Call displayNoMessage if no content
                             }
                         }
+                        adjustFontSize(type);
                     })
                     .catch(error => console.error(`Error fetching ${type}s:`, error));
             })
@@ -818,6 +864,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndUpdateContents('so');
     fetchAndUpdateContents('orgchart');
     // initializeOrgCharts();
-    
+    const types = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so', 'orgchart'];
+    types.forEach(type => {
+        adjustFontSize(type);
+        setupFontSizeObserver(type);
+    });
     fetchSmartTVName();
 });

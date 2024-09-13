@@ -934,8 +934,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 
 .line-separator {
     display: block;
-    height: 0.5px;
-    background-color: #222C2F; /* Color of the line */
+    border: 0.5px solid #c0c0c0;
     margin: 10px 0; /* Adjust the margin to position the line */
     /* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.8), 0 6px 50px 0 rgba(0, 0, 0, 0.10); */
 }
@@ -2083,7 +2082,7 @@ tr:nth-child(even) {
     /* overflow: auto; */
     margin: auto;
     transform-origin: center; 
-    scale: 0.6;
+    scale: 0.5;
     transition: transform 0.2s ease;
     border: 2px solid black;
     background-color: black;
@@ -2099,12 +2098,22 @@ tr:nth-child(even) {
     -webkit-user-select: none;
 }
 
+.toolbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background: black;
+}
+
 .scale-buttons {
     position: absolute;
     padding-top: 5px;
     padding-bottom: 5px;
-    left: 0;
+    right: 0;
     top: 0;
+    z-index: 9999;
 }
 
 .scale-buttons button {
@@ -2114,6 +2123,44 @@ tr:nth-child(even) {
     margin-left: 5px;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.scale-buttons-2 {
+    position: fixed;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    z-index: 9999;
+    top: 185px;
+    left: 290px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px;
+    transition: left 0.4s ease;
+}
+
+.scale-buttons-2 button {
+    background-color: #264B2B;
+    color: white;
+    padding: 5px 10px;
+    margin-left: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.close-sidebar-button {
+    display: none;
+}
+
+.close-sidebar-button.open{
+    display: block;
+}
+
+.open-sidebar-button {
+    display: none;
+}
+
+.open-sidebar-button.open{
+    display: none;
 }
 
 input[type="checkbox"]{
@@ -2133,8 +2180,6 @@ input[type="checkbox"]{
 .option-div-container-color {
     display: flex; 
     flex-direction: column; 
-    border: 1px solid gray;
-    background: #f3f3f3;
     border-radius: 5px; 
     /* box-shadow: -2px 0 5px rgba(0,0,0,0.5); */
 }
@@ -2158,21 +2203,7 @@ input[type="checkbox"]:checked + label::before {
     border-color: #007bff;
 }
 
-/* Style the checkmark inside the custom checkbox */
-label::after {
-    content: "";
-    position: absolute;
-    left: 9px;
-    top: 13%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 12px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
+
 
 /* Show the checkmark/indicator when checked */
 input[type="checkbox"]:checked + label::after {
@@ -2294,29 +2325,34 @@ input[type=range]:focus::-ms-fill-upper {
 
 /* left-side panel styling */
 .left-side-panel {
-    position: fixed;
-    left: -500px; /* Hidden initially */
+    position: absolute;
+    left: -400px; /* Hidden initially */
     top: 0;
-    width: 300px;
+    width: 360px;
     height: 100%;
-    background: #e1e1e1;
+    background: none;
     border-left: 1px solid #ccc;
-    box-shadow: -2px 0 5px rgba(0,0,0,0.5);
-    overflow-y: auto;
     transition: left 0.4s ease;
-    z-index: 1000;
-    padding: 10px;
-    padding-bottom: 30px;
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    padding-left: 10px;
+    padding-top: 10px;
 }
 
 .left-side-panel.open {
     left: 0; /* Show the panel */
 }
 
-.left-side-panel ::-webkit-scrollbar{
-    display: none;
+.left-sidebar {
+    position: absolute;
+    /* left: -400px;  */
+    left: 0;
+    top: 0;
+    width: 360px;
+    height: 100%;
+    background: none;
+    border-left: 1px solid #ccc;
+    transition: left 0.4s ease;
+    padding-left: 10px;
+    padding-top: 10px;
 }
 
 .panel-close-btn {
@@ -2328,7 +2364,6 @@ input[type=range]:focus::-ms-fill-upper {
 .panel-close-btn button {
     background: none;
     border: none;
-    font-size: 20px;
     cursor: pointer;
 }
 
@@ -2538,14 +2573,42 @@ input[type=range]:focus::-ms-fill-upper {
     }
 
     .tv-frame {
-        scale: 0.5;
+        scale: 0.4;
     }
 
     .option-div {
         width: auto;
     }
-}
 
+    .left-sidebar {
+        left: -400px;
+    }
+
+    .left-sidebar.open {
+        left: 0;
+    }
+
+    .scale-buttons-2 {
+        left: 35px;
+        top: 150px;
+    }
+
+    .scale-buttons-2.open {
+        left: 290px;
+    }
+
+    .open-sidebar-button {
+        display: none;
+    }
+
+    .open-sidebar-button.open{
+        display: block;
+    }
+
+    .close-sidebar-button.open{
+        display: block;
+    }
+}
 
 /* CSS FOR THE TV  */
 .topbar {
