@@ -1502,6 +1502,97 @@ class ContentHandler implements MessageComponentInterface
             }
         }
 
+        else if (isset($data['action']) && $data['action'] === 'post_new_feature') {
+            try {
+                $featureName = $data['name_of_feature'];
+                $tableName = strtolower(str_replace(' ', '_', $featureName)) . '_tb';
+                $featureId = strtolower(str_replace(' ', '_', $featureName));
+                $contentType = strtolower(str_replace(' ', '', $featureName));
+                
+                // Create the new table
+                $sql = "CREATE TABLE IF NOT EXISTS $tableName (
+                    {$featureId}_id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                    {$featureId}_author_id INT(11) NOT NULL,
+                    department VARCHAR(255) NOT NULL,
+                    type VARCHAR(255) NOT NULL,
+                    user_type VARCHAR(255) NOT NULL,
+                    display_time INT(11) NOT NULL,
+                    tv_id VARCHAR(255) NOT NULL,
+                    isCancelled TINYINT(1) DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )";
+                $this->pdo->exec($sql);
+            
+                // Add columns based on inputs
+                foreach ($data['inputs'] as $input) {
+                    $columnName = strtolower(str_replace(' ', '_', $input['name']));
+                    $columnType = ($input['type'] == 'text') ? 'TEXT' : 'VARCHAR(255)';
+                    $nullableString = ($input['required'] == 'yes') ? 'NOT NULL' : 'NULL';
+                    $sql = "ALTER TABLE $tableName ADD COLUMN $columnName $columnType $nullableString";
+                    $this->pdo->exec($sql);
+                }
+            
+                // Add other necessary columns
+                $sql = "ALTER TABLE $tableName 
+                        ADD COLUMN status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending'";
+                
+                if ($data['content_has_expiration_date'] == 'yes') {
+                    $sql .= ", ADD COLUMN expiration_date DATE,
+                            ADD COLUMN expiration_time TIME";
+                }
+                
+                if ($data['require_content_approval'] == 'yes') {
+                    $sql .= ", ADD COLUMN evaluated_by INT(11),
+                            ADD COLUMN evaluated_message TEXT";
+                }
+                
+                $this->pdo->exec($sql);
+            
+                // Insert the feature details into a features_tb
+                $fileName = $this->createFeaturePhpFile($featureName, $data['inputs'], $data['selectedIcon']);
+                $stmt = $this->pdo->prepare("INSERT INTO features_tb (feature_name, file_name, type, department, icon, require_approval, has_expiration) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $featureName,
+                    $fileName,
+                    $contentType,
+                    $data['department'],
+                    $data['selectedIcon'],
+                    $data['require_content_approval'],
+                    $data['content_has_expiration_date']
+                ]);
+            
+                // Insert user types that can access this feature
+                $featureId = $this->pdo->lastInsertId();
+                foreach ($data['user_types'] as $userType) {
+                    $stmt = $this->pdo->prepare("INSERT INTO feature_user_types (feature_id, user_type_id) VALUES (?, ?)");
+                    $stmt->execute([$featureId, $userType]);
+                }
+            
+                $response = ['success' => true, 'message' => 'New feature added successfully', 'fileName' => $fileName];
+                echo "New feature '{$featureName}' added successfully with file name: {$fileName}!\n";
+            } catch (PDOException $e) {
+                $errorCode = $e->getCode();
+                $errorMessage = $e->getMessage();
+
+                if ($errorCode == '42S01') {
+                    $response = ['success' => false, 'message' => 'A feature with this name already exists. Please choose a different name.'];
+                } elseif ($errorCode == '42000') {
+                    $response = ['success' => false, 'message' => 'Invalid feature name. Please avoid using special characters.'];
+                } else {
+                    $response = ['success' => false, 'message' => 'An error occurred while creating the feature. Please try again.'];
+                }
+                
+                error_log("SQL Error: " . $errorMessage);
+                echo "Error creating new feature: {$errorMessage}\n";
+            } catch (Exception $e) {
+                $response = ['success' => false, 'message' => 'An unexpected error occurred. Please try again.'];
+                error_log("Unexpected Error: " . $e->getMessage());
+                echo "Unexpected error creating new feature: {$e->getMessage()}\n";
+            }
+            
+            $from->send(json_encode($response));
+        }
+
         // Broadcast the message to all connected clients
         foreach ($this->clients as $client) {
             if ($client !== $from) {
@@ -1518,6 +1609,132 @@ class ContentHandler implements MessageComponentInterface
     public function onError(ConnectionInterface $conn, \Exception $e) {
         echo "An error has occurred: {$e->getMessage()}\n";
         $conn->close();
+    }
+
+    private function createFeaturePhpFile($featureName, $inputs, $icon) {
+        $fileName = 'form_' . strtolower(str_replace(' ', '_', $featureName)) . '.php';
+        $filePath = __DIR__ . '/../../' . $fileName; // Adjust this path as needed
+        $content = $this->generateFeaturePhpContent($featureName, $inputs, $icon);
+        $result = file_put_contents($filePath, $content);
+        
+        if ($result === false) {
+            error_log("Failed to create file: " . $filePath);
+        } else {
+            error_log("Successfully created file: " . $filePath);
+        }
+        
+        return $fileName;
+    }
+
+    private function generateFeaturePhpContent($featureName, $inputs, $icon) {
+        // Generate the PHP content here. This is a basic template, you'll need to adjust it based on your specific requirements.
+        $content = "<?php
+                    // Start the session and include the configuration
+                    session_start();
+                    include 'config_connection.php';
+                    
+                    // fetch user data for the currently logged-in user
+                    include 'get_session.php';
+                    
+                    // fetch tv data from the select options
+                    include 'misc/php/options_tv.php';
+                    ?>
+                    
+                    <!DOCTYPE html>
+                    <html lang=\"en\">
+                    <head>
+                        <!-- Include your standard head content here -->
+                    </head>
+                    <body>
+                        <div class=\"main-section\" id=\"all-content\">
+                            <?php include('top_header.php'); ?>
+                            <?php include('sidebar.php'); ?>
+                            <div class=\"main-container\">
+                                <div class=\"column1\">
+                                    <div class=\"content-inside-form\">
+                                        <div class=\"content-form\">
+                                            <nav aria-label=\"breadcrumb\">
+                                                <ol class=\"breadcrumb\" style=\"background: none\">
+                                                    <li class=\"breadcrumb-item\"><a href=\"create_post.php?pageid=CreatePost?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\" style=\"color: #264B2B\">Create Post</a></li>
+                                                    <li class=\"breadcrumb-item active\" aria-current=\"page\">$featureName Form</li>
+                                                </ol>
+                                            </nav>
+                                            <form id=\"{$featureName}Form\" enctype=\"multipart/form-data\" class=\"main-form\">
+                                                <?php include('error_message.php'); ?>
+                                                <input type=\"hidden\" name=\"type\" value=\"" . strtolower(str_replace(' ', '_', $featureName)) . "\">
+                                                <h1 style=\"text-align: center\">$featureName Form</h1>
+                                                ";
+                    
+                                                // Add input fields based on the feature's inputs
+                                                foreach ($inputs as $input) {
+                                                    $content .= $this->generateInputField($input);
+                                                }
+                                            
+                                                $content .= "
+                                                <?php include('misc/php/upload_preview_media.php')?>
+                                                <div class=\"form-row\">
+                                                    <?php include('misc/php/expiration_date.php')?>
+                                                    <?php include('misc/php/displaytime_tvdisplay.php')?>
+                                                </div>
+                                                <?php include('misc/php/schedule_post.php')?>
+                                                <div style=\"display: flex; flex-direction: row; margin-left: auto; margin-top: 10px\">
+                                                    <div>
+                                                        <button type=\"button\" id=\"schedulePostButton\" class=\"preview-button\" style=\"background: none; color: #316038; border: #316038 solid 1px\">
+                                                            <i class=\"fa fa-calendar\" style=\"padding-right: 5px\"></i> Schedule Post 
+                                                        </button>
+                                                    </div>
+                                                    <div>
+                                                        <button type=\"button\" name=\"preview\" id=\"previewButton\" class=\"preview-button\" style=\"margin-right: 0\" onclick=\"validateAndOpenPreviewModal()\">
+                                                            <i class=\"fa fa-eye\" style=\"padding-right: 5px\"></i> Preview 
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <?php include('misc/php/preview_modal.php') ?>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php include('misc/php/error_modal.php') ?>
+                        <?php include('misc/php/success_modal.php') ?>
+                        <?php include('misc/php/save_draft_modal.php') ?>
+                        <script src=\"misc/js/capitalize_first_letter.js\"></script>
+                        <script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js\"></script>
+                        <script src=\"misc/js/quill_textarea_submission.js\"></script>
+                        <script src=\"misc/js/wsform_submission.js\"></script>
+                        <script>
+                            const containers = <?php echo json_encode(\$containers); ?>;
+                            const tvNames = <?php echo json_encode(\$tv_names); ?>; 
+                            const userType = '<?php echo \$user_type; ?>';
+                        </script>
+                    </body>
+                    </html>";
+    
+        return $content;
+    }
+
+    private function generateInputField($input) {
+        $name = strtolower(str_replace(' ', '_', $input['name']));
+        $label = ucfirst($input['name']);
+        $required = $input['required'] == 'yes' ? 'required' : '';
+    
+        if ($input['type'] == 'text') {
+            return "
+                <div class=\"floating-label-container\">
+                    <div id=\"quillEditorContainer_{$name}\">
+                        <label for=\"quillEditorContainer_{$name}\" style=\"position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold\">{$label}</label>
+                        <div id=\"{$name}\" style=\"height: 150px;\"></div>
+                    </div>
+                    <input type=\"hidden\" name=\"{$name}\" id=\"{$name}HiddenInput\">
+                </div>";
+        } else {
+            return "
+                <div class=\"floating-label-container\">
+                    <input type=\"{$input['type']}\" name=\"{$name}\" id=\"{$name}\" {$required} placeholder=\" \" style=\"background: #FFFF; width: 100%\" class=\"floating-label-input\">
+                    <label for=\"{$name}\" class=\"floating-label\">{$label}</label>
+                </div>";
+        }
     }
 
     private function saveLayoutToDatabase($tv_id, $layout) {

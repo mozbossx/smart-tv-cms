@@ -1203,6 +1203,17 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     opacity: 1;         /* Ensure the placeholder is fully visible */
 }
 
+.quill-editor-container-newfeature .ql-editor {
+    background-color: #FFFF !important;
+    border-radius: 5px !important;
+    padding: 25px 15px !important;
+}
+
+.quill-editor-container-newfeature .ql-editor.ql-blank::before {
+    font-style: normal; 
+    opacity: 1;  
+}
+
 .chart-parent-container {
     border: 2px solid black; /* Dark border around the chart */
     background-color: #f9f9f9; /* Light background for the container */
@@ -1400,6 +1411,21 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
         max-width: 250px;
     }
 } */
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+.icon-grid i {
+    font-size: 24px;
+    cursor: pointer;
+    background: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    padding: 5px;
+}
 
 .display-email {
     color: #171717; 

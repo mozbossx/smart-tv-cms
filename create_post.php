@@ -64,7 +64,7 @@ include 'get_session.php';
                                 </a>
                             </div>
                             <div class="button-container">
-                                <a href="add_new_feature.php?pageid=AddNewFeatureForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
+                                <a href="form_add_new_feature.php?pageid=AddNewFeatureForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
                                     <div class="button-icon"><i class="fa fa-plus"></i></div>
                                     <div class="button-text">Add New Feature</div>
                                 </a>
