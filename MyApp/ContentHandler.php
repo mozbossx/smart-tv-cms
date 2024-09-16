@@ -54,22 +54,38 @@ class ContentHandler implements MessageComponentInterface
                 'so' => ['table' => 'so_tb', 'idField' => 'so_id']
             ];
             $type = $data['type'] ?? null;
-            
-            if (isset($validTypes[$type])) {
-                $table = $validTypes[$type]['table'];
-                $idField = $validTypes[$type]['idField'];
-                $id = $data[$idField];
-                $stmt = $this->pdo->prepare("DELETE FROM {$table} WHERE {$idField} = ?");
-                $stmt->execute([$id]);
-                
-                $deleted = $stmt->rowCount() > 0;
-                $response = ['action' => 'delete', 'success' => $deleted, 'type' => $type, $idField => $id];
-                echo "{$type} deleted!\n";
-            } else {
-                $response = ['action' => 'delete', 'success' => false, 'message' => 'Invalid type specified'];
-                echo "Invalid type specified\n";
+
+            if (!isset($validTypes[$type])) {
+                // If it's not a default type, check if it's a new feature
+                $stmt = $this->pdo->prepare("SELECT * FROM features_tb WHERE type = ?");
+                $stmt->execute([strtolower($type)]);
+                $feature = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+                if ($feature) {
+                    // It's a new feature, so we need to determine its table and id field
+                    $validTypes[$type] = [
+                        'table' => strtolower($feature['type']) . '_tb',
+                        'idField' => strtolower($feature['type']) . '_id'
+                    ];
+                } else {
+                    // If it's neither a default type nor a new feature, it's invalid
+                    $response = [$action => 'delete', 'success' => false, 'message' => 'Invalid type specified'];
+                    echo "Invalid type specified\n";
+                    $from->send(json_encode($response));
+                    return;
+                }
             }
-            
+
+            $table = $validTypes[$type]['table'];
+            $idField = $validTypes[$type]['idField'];
+            $id = $data[$idField];
+            $stmt = $this->pdo->prepare("DELETE FROM {$table} WHERE {$idField} = ?");
+            $stmt->execute([$id]);
+                
+            $deleted = $stmt->rowCount() > 0;
+            $response = ['action' => 'delete', 'success' => $deleted, 'type' => $type, $idField => $id];
+            echo "{$type} deleted!\n";
+
             // Notify the client who sent the request and all connected clients
             $from->send(json_encode($response));
             foreach ($this->clients as $client) {
@@ -89,33 +105,39 @@ class ContentHandler implements MessageComponentInterface
                 'so' => ['table' => 'so_tb', 'idField' => 'so_id']
             ];
             $type = $data['type'] ?? null;
-            
-            if (isset($validTypes[$type])) {
-                $table = $validTypes[$type]['table'];
-                $idField = $validTypes[$type]['idField'];
-                $id = $data[$idField];
-                
-                // Update isCancelled to 1
-                $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = 1 WHERE {$idField} = ?");
-                $stmt->execute([$id]);
-                
-                // Fetch updated data
-                $stmt = $this->pdo->prepare("SELECT * FROM {$table} WHERE {$idField} = ?");
-                $stmt->execute([$id]);
-                $postData = $stmt->fetch(PDO::FETCH_ASSOC);
-                
-                if ($postData) {
-                    // $response = ['action' => 'approve_post', 'success' => true, 'announcement' => $announcementData];
-                    $response = ['action' => 'archive', 'success' => true, 'type' => $type, 'data' => $postData,  $idField => $id] + $postData;
-                    echo "{$type} archived for {$idField}: {$id}!\n";
+
+            if (!isset($validTypes[$type])) {
+                // If it's not a default type, check if it's a new feature
+                $stmt = $this->pdo->prepare("SELECT * FROM features_tb WHERE type = ?");
+                $stmt->execute([strtolower($type)]);
+                $feature = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+                if ($feature) {
+                    // It's a new feature, so we need to determine its table and id field
+                    $validTypes[$type] = [
+                        'table' => strtolower($feature['type']) . '_tb',
+                        'idField' => strtolower($feature['type']) . '_id'
+                    ];
                 } else {
-                    $response = ['action' => 'archive', 'success' => false, 'message' => 'Failed to fetch updated data'];
-                    echo "Failed to fetch updated data. Archive failed.\n";
+                    // If it's neither a default type nor a new feature, it's invalid
+                    $response = [$action => 'delete', 'success' => false, 'message' => 'Invalid type specified'];
+                    echo "Invalid type specified\n";
+                    $from->send(json_encode($response));
+                    return;
                 }
-            } else {
-                $response = ['action' => 'archive', 'success' => false, 'message' => 'Invalid type specified'];
-                echo "Invalid type specified. Archive failed\n";
             }
+            
+            $table = $validTypes[$type]['table'];
+            $idField = $validTypes[$type]['idField'];
+            $id = $data[$idField];
+                
+            // Update isCancelled to 1
+            $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = 1 WHERE {$idField} = ?");
+            $stmt->execute([$id]);
+
+            $archived = $stmt->rowCount() > 0;
+            $response = ['action' => 'archive', 'success' => $archived, 'type' => $type, $idField => $id];
+            echo "{$type} archived!\n";
             
             // Notify the client who sent the request and all connected clients
             $from->send(json_encode($response));
@@ -1522,13 +1544,13 @@ class ContentHandler implements MessageComponentInterface
                         $fields = [
                             'department', 'user_type', $authorField, 'tv_id', 'display_time',
                             'category', 'created_date', 'created_time', 'isCancelled', 'status',
-                            'expiration_date', 'expiration_time'
+                            'expiration_date', 'expiration_time', 'type'
                         ];
 
                         $values = [
                             $department, $user_type, $user_id, $tv_ids, $data['display_time'],
                             $category, $created_date, $created_time, $isCancelled, $status,
-                            $expiration_date, $expiration_time
+                            $expiration_date, $expiration_time, $type
                         ];
 
                         // Add other fields specific to the content type
@@ -1621,10 +1643,12 @@ class ContentHandler implements MessageComponentInterface
                     department VARCHAR(255) NOT NULL,
                     type VARCHAR(255) NOT NULL,
                     user_type VARCHAR(255) NOT NULL,
-                    display_time INT(11) NOT NULL,
-                    tv_id VARCHAR(255) NOT NULL,
+                    display_time INT(100) NOT NULL,
+                    tv_id INT(100) NOT NULL,
+                    category VARCHAR(255) NOT NULL,
                     isCancelled TINYINT(1) DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_date DATE DEFAULT CURRENT_TIMESTAMP,
+                    created_time TIME DEFAULT CURRENT_TIMESTAMP
                 )";
                 $this->pdo->exec($sql);
             
@@ -1639,7 +1663,7 @@ class ContentHandler implements MessageComponentInterface
             
                 // Add other necessary columns
                 $sql = "ALTER TABLE $tableName 
-                        ADD COLUMN status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending'";
+                        ADD COLUMN status VARCHAR(255) NOT NULL";
                 
                 if ($data['content_has_expiration_date'] == 'yes') {
                     $sql .= ", ADD COLUMN expiration_date DATE,
@@ -1669,18 +1693,31 @@ class ContentHandler implements MessageComponentInterface
                 // Insert user types that can access this feature
                 $featureId = $this->pdo->lastInsertId();
                 foreach ($data['user_types'] as $userType) {
-                    $stmt = $this->pdo->prepare("INSERT INTO feature_user_types (feature_id, user_type_id) VALUES (?, ?)");
+                    $stmt = $this->pdo->prepare("INSERT INTO feature_user_types (feature_id, user_type) VALUES (?, ?)");
                     $stmt->execute([$featureId, $userType]);
                 }
 
                 // Create fetch file
                 $fetchFileName = 'fetch_' . $contentType . '.php';
                 $fetchFilePath = dirname(__DIR__, 1) . '/database/' . $fetchFileName;
-                $fetchFileContent = $this->generateFetchFileContent($tableName);
+                $fetchFileContent = $this->generateFetchFileContent($tableName, $contentType);
                 file_put_contents($fetchFilePath, $fetchFileContent);
-            
-                $response = ['success' => true, 'message' => 'New feature added successfully', 'fileName' => $fileName, 'fetchFileName' => $fetchFileName];
-                echo "New feature '{$featureName}' added successfully with file name: {$fileName} and fetch file: {$fetchFileName}!\n";
+
+                // Fetch all tv_ids from smart_tvs_tb
+                $stmtFetchTVs = $this->pdo->query("SELECT tv_id FROM smart_tvs_tb");
+                $tvIds = $stmtFetchTVs->fetchAll(PDO::FETCH_COLUMN);
+
+                // Insert new container into containers_tb for each TV
+                $containerName = ucfirst($featureName);
+                $visible = 0;
+                $stmtInsertContainer = $this->pdo->prepare("INSERT INTO containers_tb (container_name, type, tv_id, visible) VALUES (?, ?, ?, ?)");
+                
+                foreach ($tvIds as $tvId) {
+                    $stmtInsertContainer->execute([$containerName, $contentType, $tvId, $visible]);
+                }
+
+                $response = ['success' => true, 'message' => 'New feature added successfully', 'fileName' => $fileName, 'fetchFileName' => $fetchFileName, 'containerName' => $containerName];
+                echo "New feature '{$featureName}' added successfully with file name: {$fileName} and fetch file: {$fetchFileName} and container name: {$containerName}!\n";
             } catch (PDOException $e) {
                 $errorCode = $e->getCode();
                 $errorMessage = $e->getMessage();
@@ -1720,6 +1757,22 @@ class ContentHandler implements MessageComponentInterface
     public function onError(ConnectionInterface $conn, \Exception $e) {
         echo "An error has occurred: {$e->getMessage()}\n";
         $conn->close();
+    }
+
+    private function generateFetchFileContent($tableName, $contentType) {
+        return "<?php
+// fetch_{$contentType}.php
+// Database Connection
+\$pdo = new PDO(\"mysql:host=localhost;dbname=smart_tv_cms_db\", \"root\", \"\");
+
+// Fetch {$tableName} from the database
+\$statement = \$pdo->query(\"SELECT * FROM {$tableName}\");
+\${$contentType} = \$statement->fetchAll(PDO::FETCH_ASSOC);
+
+// Return JSON response
+header('Content-Type: application/json');
+echo json_encode(\${$contentType});
+";
     }
 
     private function createFeaturePhpFile($featureName, $inputs, $icon, $hasExpiration) {
@@ -1801,7 +1854,7 @@ include 'misc/php/options_tv.php';
                                     $quillInitialization .= "
                                         var {$inputName}Quill = new Quill('#{$inputName}', {
                                             theme: 'snow',
-                                            placeholder: 'Enter Announcement',
+                                            placeholder: 'Enter {$input['name']}',
                                             modules: {
                                                 toolbar: [
                                                     ['bold', 'italic', 'underline'],
@@ -1834,13 +1887,7 @@ include 'misc/php/options_tv.php';
                             $content .= "
                                 <?php include('misc/php/displaytime_tvdisplay.php')?>
                             </div>
-                            <?php include('misc/php/schedule_post.php')?>
                             <div style=\"display: flex; flex-direction: row; margin-left: auto; margin-top: 10px\">
-                                <div>
-                                    <button type=\"button\" id=\"schedulePostButton\" class=\"preview-button\" style=\"background: none; color: #316038; border: #316038 solid 1px\">
-                                        <i class=\"fa fa-calendar\" style=\"padding-right: 5px\"></i> Schedule Post 
-                                    </button>
-                                </div>
                                 <div>
                                     <button type=\"button\" name=\"preview\" id=\"previewButton\" class=\"preview-button\" style=\"margin-right: 0\" onclick=\"validateAndOpenNewFeaturePreviewModal()\">
                                         <i class=\"fa fa-eye\" style=\"padding-right: 5px\"></i> Preview 

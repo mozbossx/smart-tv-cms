@@ -21,6 +21,11 @@ if (mysqli_num_rows($result) > 0) {
     }
 }
 
+// Fetch all features from the database
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$stmtNewFeatures = $pdo->query("SELECT * FROM features_tb");
+$featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -72,6 +77,11 @@ if (mysqli_num_rows($result) > 0) {
                 $contentTypes = ['announcement', 'event',  'news', 'promaterial', 'peo', 'so'];
                 // echo '<p>'; print_r($contentTypes); echo '</p>';
 
+                // Add new features to the content types array
+                foreach ($featuresNewFeatures as $feature) {
+                    $contentTypes[] = strtolower(str_replace(' ', '_', $feature['feature_name']));
+                }
+
                 // Loop through each content type
                 foreach ($contentTypes as $type) {
                     echo "<div id='{$type}List' class='content-container'>";
@@ -88,7 +98,16 @@ if (mysqli_num_rows($result) > 0) {
                     } else if ($type == 'so') {
                         echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO)</h1>";
                     } else {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst($type) . "</h1>";
+                        // For new features
+                        $feature = array_filter($featuresNewFeatures, function($f) use ($type) {
+                            return strtolower(str_replace(' ', '_', $f['feature_name'])) === $type;
+                        });
+                        $feature = reset($feature);
+                        if ($feature) {
+                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']}</h1>";
+                        } else {
+                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . "</h1>";
+                        }
                     }
                     echo "<div class='scroll-div'>";
                     echo "<div id='{$type}CarouselContainer'>";
@@ -102,48 +121,7 @@ if (mysqli_num_rows($result) > 0) {
             </div>
         </div>
     </div>
-    <!-- Archive Modals -->
-    <div id="confirmArchiveAnnouncementModal" class="modal">
-        <div id="archiveAnnouncementModalContent"></div>
-    </div>
-    <div id="confirmArchiveEventModal" class="modal">
-        <div id="archiveEventModalContent"></div>
-    </div>
-    <div id="confirmArchiveNewsModal" class="modal">
-        <div id="archiveNewsModalContent"></div>
-    </div>
-    <div id="confirmArchivePromaterialModal" class="modal">
-        <div id="archivePromaterialModalContent"></div>
-    </div>
-    <div id="confirmArchivePeoModal" class="modal">
-        <div id="archivePeoModalContent"></div>
-    </div>
-    <div id="confirmArchiveSoModal" class="modal">
-        <div id="archiveSoModalContent"></div>
-    </div>
     
-    <!-- Delete Modals -->
-    <div id="confirmDeleteAnnouncementModal" class="modal">
-        <div id="deleteAnnouncementModalContent"></div>
-    </div>
-    <div id="confirmDeleteEventModal" class="modal">
-        <div id="deleteEventModalContent"></div>
-    </div>
-    <div id="confirmDeleteNewsModal" class="modal">
-        <div id="deleteNewsModalContent"></div>
-    </div>
-    <div id="confirmDeletePromaterialModal" class="modal">
-        <div id="deletePromaterialModalContent"></div>
-    </div>
-    <div id="confirmDeletePeoModal" class="modal">
-        <div id="deletePeoModalContent"></div>
-    </div>
-    <div id="confirmDeleteSoModal" class="modal">
-        <div id="deleteSoModalContent"></div>
-    </div>
-    <div id="confirmDeleteNewsModal" class="modal">
-        <div id="deleteModalContent"></div>
-    </div>
     
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_content2.js"></script>

@@ -35,29 +35,47 @@ const createButton = (text, iconClass, onClick) => {
 
 // Function to create content div
 const createContentDiv = (data, mediaContent, formattedCreatedDate, formattedCreatedTime, formattedExpirationDate, formattedExpirationTime, type) => {
-    if (type === 'peo' || type === 'so') {
-        return `
-            <div class="content-container-con">
-                ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                <pre class="ann-body" style="word-break: break-word">${data[`${type}_body`]}</pre>
-                <div class="line-separator"></div>
-                <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data[`${type}_author_id`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
-                <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
-                <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
-            </div>
-        `;
-    } else {
-        return `
-            <div class="content-container-con">
-                ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                <pre class="ann-body" style="word-break: break-word">${data[`${type}_body`]}</pre>
-                <div class="line-separator"></div>
-                <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data[`${type}_author_id`]} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
-                <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
-                <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
-                </div>
-            `;
+    let contentHtml = `
+        <div class="content-container-con">
+            ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+    `;
+
+    // Add type-specific content
+    switch(type) {
+        case 'announcement':
+        case 'event':
+        case 'news':
+            contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[`${type}_body`]}</pre>`;
+            break;
+        case 'promaterial':
+            break;
+        case 'peo':
+        case 'so':
+            contentHtml += `<pre class="ann-body" style="word-break: break-word"><b>${data[`${type}_title`]}</b></pre>
+                            <pre class="ann-body" style="word-break: break-word">${data[`${type}_description`]}</pre>
+                            <pre class="ann-body" style="word-break: break-word">${data[`${type}_subdescription`]}</pre>`;
+            break;
+        default:
+            // For new features, dynamically add all fields
+            for (let key in data) {
+                if (key !== `${type}_id` && key !== 'created_date' && key !== 'created_time' && key !== 'expiration_date' 
+                    && key !== 'expiration_time' && key !== 'display_time' && key !== 'status' && key !== 'isCancelled' 
+                    && key !== 'tv_id' && key !== `${type}_author_id` && key !== 'type' && key !== 'department' 
+                    && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name') {
+                        contentHtml += `<p>${data[key]}</p>`;
+                }
+            }
     }
+
+    contentHtml += `
+            <div class="line-separator"></div>
+            <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+            <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+            <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
+        </div>
+    `;
+
+    return contentHtml;
 };
 
 // Function to update UI for announcement, event, news, etc.
@@ -123,58 +141,6 @@ const updateUI = (data, type) => {
     }
 };
 
-// Function to show the archive modal
-const showArchiveModal = (id, type) => {
-    // Implement the logic to show the archive modal
-    insertArchiveModalContent(type); // Assuming you have a function to insert modal content
-    const modal = document.getElementById(`confirmArchive${capitalizeFirstLetter(type)}Modal`);
-    const archiveButton = document.getElementById(`archive${capitalizeFirstLetter(type)}Button`);
-    const closeButton = document.getElementById(`closeArchive${capitalizeFirstLetter(type)}ModalButton`);
-
-    modal.style.display = 'flex';
-
-    archiveButton.onclick = () => {
-        archiveItem(type, id); // Assuming you have a function to handle archiving
-        modal.style.display = 'none';
-    };
-
-    closeButton.onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    };
-};
-
-// Function to show the delete modal
-const showDeleteModal = (id, type) => {
-    // Implement the logic to show the delete modal
-    insertDeleteModalContent(type); // Assuming you have a function to insert modal content
-    const modal = document.getElementById(`confirmDelete${capitalizeFirstLetter(type)}Modal`);
-    const deleteButton = document.getElementById(`delete${capitalizeFirstLetter(type)}Button`);
-    const closeButton = document.getElementById(`close${capitalizeFirstLetter(type)}ModalButton`);
-
-    modal.style.display = 'flex';
-
-    deleteButton.onclick = () => {
-        deleteItem(type, id); // Assuming you have a function to handle deletion
-        modal.style.display = 'none';
-    };
-
-    closeButton.onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    };
-};
-
 // Helper function to capitalize the first letter of a string
 const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -213,56 +179,30 @@ const insertArchiveModalContent = (type) => {
     }
 };
 
-// Function to insert content into the delete modal
-const insertDeleteModalContent = (type) => {
-    const modalContent = document.getElementById(`delete${capitalizeFirstLetter(type)}ModalContent`);
-    if (modalContent) {
-        let deleteMessage = '';
-
-        if (type === 'peo') {
-            deleteMessage = 'Proceed to delete this Program Education Objective (PEO)?';
-        } else if (type === 'so') {
-            deleteMessage = 'Proceed to delete this Student Outcome (SO)?';
-        } else if (type === 'promaterial') {
-            deleteMessage = 'Proceed to delete this promotional material?';
-        } else {
-            deleteMessage = `Proceed to delete this ${type}?`;
-        }
-        modalContent.innerHTML = `
-            <div class="modal-content">
-                <div class="red-bar-vertical">
-                    <span class="close" id="close${capitalizeFirstLetter(type)}ModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-                    <br>
-                    <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-                    <p id="deleteMessage" style="text-align: center">${deleteMessage}?</p>
-                    <br>
-                    <div style="text-align: right;">
-                        <button id="delete${capitalizeFirstLetter(type)}Button" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, delete ${type}</b></button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-};
-
 // Function to archive an item
 const archiveItem = (type, id) => {
+    const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+    const modal = document.getElementById(`confirmArchive${capitalizedType}Modal`);
     const data = {
         action: 'archive',
         type: type,
         [`${type}_id`]: id // Dynamically set the ID based on the type
     };
     console.log(data);
+    modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
 // Function to delete an item
 const deleteItem = (type, id) => {
+    const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+    const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
     const data = {
         action: 'delete',
         type: type,
         [`${type}_id`]: id // Dynamically set the ID based on the type
     };
+    modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
@@ -294,47 +234,137 @@ const displayNoMessage = (type) => {
     }
 };
 
-const updateAnnouncementUI = (data) => updateUI(data, 'announcement');
-const updateEventUI = (data) => updateUI(data, 'event');
-const updateNewsUI = (data) => updateUI(data, 'news');
-const updatePromaterialUI = (data) => updateUI(data, 'promaterial');
-const updatePEOUI = (data) => updateUI(data, 'peo');
-const updateSOUI = (data) => updateUI(data, 'so');
+// Array of default content types
+const defaultContentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
 
-// Fetch and update functions for different content types
-const fetchAndUpdate = (type) => {
+// Function to create modals dynamically
+const createModals = (contentTypes) => {
+    const modalContainer = document.createElement('div');
+    modalContainer.id = 'dynamicModals';
+
+    contentTypes.forEach(type => {
+        const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+        
+        // Archive Modal
+        const archiveModal = document.createElement('div');
+        archiveModal.id = `confirmArchive${capitalizedType}Modal`;
+        archiveModal.className = 'modal';
+        archiveModal.innerHTML = `<div id="archive${capitalizedType}ModalContent"></div>`;
+        modalContainer.appendChild(archiveModal);
+
+        // Delete Modal
+        const deleteModal = document.createElement('div');
+        deleteModal.id = `confirmDelete${capitalizedType}Modal`;
+        deleteModal.className = 'modal';
+        deleteModal.innerHTML = `<div id="delete${capitalizedType}ModalContent"></div>`;
+        modalContainer.appendChild(deleteModal);
+    });
+
+    document.body.appendChild(modalContainer);
+};
+
+// Function to show archive modal
+const showArchiveModal = (id, type) => {
+    const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+    const modal = document.getElementById(`confirmArchive${capitalizedType}Modal`);
+    const modalContent = document.getElementById(`archive${capitalizedType}ModalContent`);
+    modalContent.className = 'modal-content';
+    
+    modalContent.innerHTML = `
+        <div class="red-bar-vertical">
+            <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
+            <p id="deleteMessage" style="text-align: center">Proceed to archive this ${capitalizedType}?</p>
+            <br>
+            <div style="text-align: right;">
+                <button type="button" class="red-button" style="background: #334b353b; color: black" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
+                <button type="button" class="red-button" onclick="archiveItem('${type}', '${id}')">Yes, Archive</button>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+};
+
+// Function to show delete modal
+const showDeleteModal = (id, type) => {
+    const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+    const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
+    const modalContent = document.getElementById(`delete${capitalizedType}ModalContent`);
+    modalContent.className = 'modal-content';
+    
+    modalContent.innerHTML = `        
+        <div class="red-bar-vertical">
+            <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+            <p id="deleteMessage" style="text-align: center">Proceed to delete this ${capitalizedType}?</p>
+            <br>
+            <div style="text-align: right;">
+                <button type="button" class="red-button" style="background: #334b353b; color: black" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
+                <button type="button" class="red-button" onclick="deleteItem('${type}', '${id}')">Yes, Delete</button>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+};
+
+// Function to fetch feature information
+const getFeatureInfo = async (type) => {
+    try {
+        const response = await fetch(`database/fetch_feature_info.php?type=${type}`);
+        const featureInfo = await response.json();
+        return featureInfo;
+    } catch (error) {
+        console.error(`Error fetching feature info for ${type}:`, error);
+        return null;
+    }
+};
+
+// Function to fetch and update content for all types
+const fetchAndUpdate = async (type) => {
     const urlParams = new URLSearchParams(window.location.search);
-    const tvId = urlParams.get('tvId'); // Get the tvId from the URL
+    const tvId = urlParams.get('tvId');
 
-    fetch(`database/fetch_${type}.php`)
-        .then(response => response.json())
-        .then(data => {
-            const filteredData = data.filter(item => 
-                item.status === 'Approved' &&
-                item.tv_id === parseInt(tvId, 10) &&
-                item.isCancelled === 0
-            );
-            const carouselContainer = document.getElementById(`${type}CarouselContainer`);
-            if (carouselContainer) {
-                carouselContainer.innerHTML = ''; // Only set innerHTML if the element exists
-            } else {
-                console.error(`Element with ID ${type}CarouselContainer not found.`);
+    try {
+        let requireApproval = true; // Default to requiring approval
+
+        // Only check for require_approval if it's not a default content type
+        if (!defaultContentTypes.includes(type)) {
+            const featureInfo = await getFeatureInfo(type);
+            if (featureInfo) {
+                requireApproval = featureInfo.require_approval === 'yes';
             }
+        }
 
+        const response = await fetch(`database/fetch_content.php?type=${type}`);
+        const data = await response.json();
+
+        const filteredData = data.filter(item => {
+            const baseConditions = item.tv_id === parseInt(tvId, 10) && item.isCancelled === 0;
+            if (type === 'peo' || type === 'so') {
+                return baseConditions;
+            } else {
+                return requireApproval ? (baseConditions && item.status === 'Approved') : baseConditions;
+            }
+        });
+
+        const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+        if (carouselContainer) {
+            carouselContainer.innerHTML = '';
             if (filteredData.length === 0) {
                 displayNoMessage(type);
             } else {
-                filteredData.forEach(item => {
-                    if (type === 'announcement') updateAnnouncementUI(item);
-                    else if (type === 'event') updateEventUI(item);
-                    else if (type === 'news') updateNewsUI(item);
-                    else if (type === 'promaterial') updatePromaterialUI(item);
-                    else if (type === 'peo') updatePEOUI(item);
-                    else if (type === 'so') updateSOUI(item);
-                });
+                filteredData.forEach(item => updateUI(item, type));
             }
-        })
-        .catch(error => console.error(`Error fetching ${type}:`, error));
+        } else {
+            console.error(`Element with ID ${type}CarouselContainer not found.`);
+        }
+    } catch (error) {
+        console.error(`Error fetching ${type}:`, error);
+    }
 };
 
 /* Web-Socket Server Connection */
@@ -402,5 +432,13 @@ Ws.addEventListener('message', function(event) {
 
 // Call fetchAndUpdate for each type
 document.addEventListener('DOMContentLoaded', () => {
-    ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'].forEach(type => fetchAndUpdate(type));
+    // Get all content types from the DOM
+    const contentTypes = Array.from(document.querySelectorAll('.content-container'))
+        .map(container => container.id.replace('List', ''));
+    
+    // Create modals for all content types
+    createModals(contentTypes);
+
+    // Fetch and update content for each type
+    contentTypes.forEach(type => fetchAndUpdate(type));
 });

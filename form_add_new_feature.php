@@ -88,7 +88,7 @@ include 'misc/php/options_tv.php';
                                             echo '
                                             <div id="accessFields" style="user-select: none">
                                                 <label style="display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px">
-                                                    <input type="checkbox" name="user_type[]" class="userCheckbox" value="' . $rowUserType['user_type_id'] . '">
+                                                    <input type="checkbox" name="user_type[]" class="userCheckbox" value="' . $rowUserType['user_type'] . '">
                                                     ' . $rowUserType['user_type'] . ' 
                                                 </label>
                                             </div>';

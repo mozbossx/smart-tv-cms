@@ -8,7 +8,14 @@ include 'get_session.php';
 
 // Fetch all features from the database
 $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
-$stmtNewFeatures = $pdo->query("SELECT * FROM features_tb");
+$stmtNewFeatures = $pdo->prepare("
+    SELECT DISTINCT f.* 
+    FROM features_tb f
+    JOIN feature_user_types fut ON f.feature_id = fut.feature_id
+    WHERE (f.department = :department AND fut.user_type = :user_type)
+       OR :user_type IN ('Admin', 'Super Admin')
+");
+$stmtNewFeatures->execute([':department' => $department, ':user_type' => $user_type]);
 $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
