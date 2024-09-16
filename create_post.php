@@ -6,6 +6,11 @@ include 'config_connection.php';
 // fetch user data for the currently logged-in user
 include 'get_session.php';
 
+// Fetch all features from the database
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$stmtNewFeatures = $pdo->query("SELECT * FROM features_tb");
+$featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -56,6 +61,14 @@ include 'get_session.php';
                                 <div class="button-text">Promotional Material</div>
                             </a>
                         </div>
+                        <?php foreach ($featuresNewFeatures as $feature): ?>
+                            <div class="button-container">
+                                <a href="<?php echo $feature['file_name']; ?>?pageid=<?php echo ucfirst($feature['feature_name']); ?>Form?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
+                                    <div class="button-icon"><i class="fa <?php echo $feature['icon']; ?>"></i></div>
+                                    <div class="button-text"><?php echo $feature['feature_name']; ?></div>
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
                         <?php if ($user_type === 'Admin'){ ?>
                             <div class="button-container">
                                 <a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">

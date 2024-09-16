@@ -13,7 +13,7 @@
 </div>
 
 <script>
-    const ws = new WebSocket('ws://192.168.1.10:8081?user_id=<?php echo urlencode($user_id)?>&full_name=<?php echo urlencode($full_name); ?>&user_type=<?php echo urlencode($user_type); ?>&department=<?php echo urlencode($department); ?>&email=<?php echo urlencode($email)?>');
+    const ws = new WebSocket('ws://192.168.1.13:8081?user_id=<?php echo urlencode($user_id)?>&full_name=<?php echo urlencode($full_name); ?>&user_type=<?php echo urlencode($user_type); ?>&department=<?php echo urlencode($department); ?>&email=<?php echo urlencode($email)?>');
 
     let isFormDirty = false;
 

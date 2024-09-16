@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.10:8081');
+const Ws = new WebSocket('ws://192.168.1.13:8081');
 
 // Function to format date to "MM DD YYYY"
 const formatDate = (dateString) => {

@@ -1318,7 +1318,7 @@ class ContentHandler implements MessageComponentInterface
                         // $from->send(json_encode(['action' => 'post_content', 'success' => true, 'type' => 'orgchart', 'orgchart_id' => $orgchart_id, 'orgChartData' => $orgChartData]));
                         echo "A member is being added! \n";
                     }
-                } else {
+                } else if ($data['type'] === 'event' || $data['type'] === 'announcement' || $data['type'] === 'news' || $data['type'] === 'promaterial' || $data['type'] === 'peo' || $data['type'] === 'so') {
                     foreach ($data['tv_ids'] as $tv_ids) {
                         $status = ($user_type == 'Admin') ? 'Approved' : 'Pending';
                         $category = match ($data['type']) {
@@ -1494,8 +1494,113 @@ class ContentHandler implements MessageComponentInterface
                             $from->send(json_encode(['error' => 'Error processing ' . $data['type'] . '. Try again later']));
                         }
                     }
+                } else {
+                    foreach ($data['tv_ids'] as $tv_ids) { 
+                        $type = $data['type'] ?? null;
+                        $expiration_date = $data['expiration_date'] ?? null;
+                        $expiration_time = $data['expiration_time'] ?? null;
+                        
+                        echo "Type: $type\n";
+                        $status = ($user_type == 'Admin') ? 'Approved' : 'Pending';
+                        $category = ucfirst($type); // Capitalize the first letter of the type
+            
+                        $isCancelled = 0;
+                        $created_date = date('Y-m-d');
+                        $created_time = date('H:i:s');
+            
+                        // Determine media folder
+                        $mediaFolder = $type . '_media';
+                        if (!file_exists($mediaFolder)) {
+                            mkdir($mediaFolder, 0777, true);
+                        }
+            
+                        $table = $type . '_tb';
+                        $idField = $type . '_id';
+                        $authorField = $type . '_author_id';
+            
+                        // Common fields for all types
+                        $fields = [
+                            'department', 'user_type', $authorField, 'tv_id', 'display_time',
+                            'category', 'created_date', 'created_time', 'isCancelled', 'status',
+                            'expiration_date', 'expiration_time'
+                        ];
+
+                        $values = [
+                            $department, $user_type, $user_id, $tv_ids, $data['display_time'],
+                            $category, $created_date, $created_time, $isCancelled, $status,
+                            $expiration_date, $expiration_time
+                        ];
+
+                        // Add other fields specific to the content type
+                        // if ($contentType === 'bulletin_board') {
+                        //     $fields[] = 'president_name';
+                        //     $values[] = $data['president_name'];
+                        // }
+
+                        // Add all other fields from the form data
+                        // foreach ($data as $key => $value) {
+                        //     if (!in_array($key, ['action', 'type', 'tv_ids', 'display_time', 'media']) && $key !== $authorField) {
+                        //         $fields[] = $key;
+                        //         $values[] = $value;
+                        //     }
+                        // }
+            
+                        // Add type-specific fields
+                        foreach ($data as $key => $value) {
+                            if (!in_array($key, ['action', 'type', 'tv_id[]', 'tv_ids', 'expiration_date', 'expiration_time', 'display_time', 'media'])) {
+                                $fields[] = $key;
+                                $values[] = is_array($value) ? json_encode($value) : $value;
+                            }
+                        }
+            
+                        $fieldList = implode(', ', $fields);
+                        $placeholderList = implode(', ', array_fill(0, count($fields), '?'));
+
+                        echo "Field List: " . $fieldList . "\n";
+                        echo "Placeholder List: " . $placeholderList . "\n";
+                        echo "Values: " . implode(', ', $values) . "\n";
+
+                        $statement = $this->pdo->prepare(
+                            "INSERT INTO $table ($fieldList) VALUES ($placeholderList)"
+                        );
+            
+                        $success = $statement->execute($values);
+            
+                        if ($success) {
+                            echo "Success: " . $success . "\n";
+                            $id = $this->pdo->lastInsertId();
+                            $data[$idField] = $id;
+                            $data[$authorField] = $user_id;
+                            $data['created_date'] = $created_date;
+                            $data['created_time'] = $created_time;
+                            $data['category'] = $category;
+                            $data['user_type'] = $user_type;
+                            $data['status'] = $status;
+            
+                            if (!empty($data['media'])) {
+                                $base64Data = $data['media'];
+                                $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
+                                $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
+                                $filename = "{$id}.{$fileExtension}";
+                                $media_save = "{$mediaFolder}/{$filename}";
+            
+                                file_put_contents($media_save, $mediaData);
+            
+                                // Update the record with media_path
+                                $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                                $updateStatement->execute([$filename, $id]);
+            
+                                $data['media_path'] = $filename;
+                            }
+            
+                            $from->send(json_encode(['success' => true, 'data' => $data]));
+                            echo ucfirst($type) . " " . (!empty($data['media']) ? 'with' : 'without') . " media uploaded!\n";
+                        } else {
+                            echo "Error: " . $success . "\n";
+                            $from->send(json_encode(['error' => 'Error processing ' . $type . '. Try again later']));
+                        }
+                    }
                 }
-                
             } else {
                 error_log("No TV IDs selected."); // Log for debugging
                 $tv_ids = $data['tv_ids'];
@@ -1507,7 +1612,7 @@ class ContentHandler implements MessageComponentInterface
                 $featureName = $data['name_of_feature'];
                 $tableName = strtolower(str_replace(' ', '_', $featureName)) . '_tb';
                 $featureId = strtolower(str_replace(' ', '_', $featureName));
-                $contentType = strtolower(str_replace(' ', '', $featureName));
+                $contentType = strtolower(str_replace(' ', '_', $featureName));
                 
                 // Create the new table
                 $sql = "CREATE TABLE IF NOT EXISTS $tableName (
@@ -1549,7 +1654,7 @@ class ContentHandler implements MessageComponentInterface
                 $this->pdo->exec($sql);
             
                 // Insert the feature details into a features_tb
-                $fileName = $this->createFeaturePhpFile($featureName, $data['inputs'], $data['selectedIcon']);
+                $fileName = $this->createFeaturePhpFile($featureName, $data['inputs'], $data['selectedIcon'], $data['content_has_expiration_date']);
                 $stmt = $this->pdo->prepare("INSERT INTO features_tb (feature_name, file_name, type, department, icon, require_approval, has_expiration) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $featureName,
@@ -1567,9 +1672,15 @@ class ContentHandler implements MessageComponentInterface
                     $stmt = $this->pdo->prepare("INSERT INTO feature_user_types (feature_id, user_type_id) VALUES (?, ?)");
                     $stmt->execute([$featureId, $userType]);
                 }
+
+                // Create fetch file
+                $fetchFileName = 'fetch_' . $contentType . '.php';
+                $fetchFilePath = dirname(__DIR__, 1) . '/database/' . $fetchFileName;
+                $fetchFileContent = $this->generateFetchFileContent($tableName);
+                file_put_contents($fetchFilePath, $fetchFileContent);
             
-                $response = ['success' => true, 'message' => 'New feature added successfully', 'fileName' => $fileName];
-                echo "New feature '{$featureName}' added successfully with file name: {$fileName}!\n";
+                $response = ['success' => true, 'message' => 'New feature added successfully', 'fileName' => $fileName, 'fetchFileName' => $fetchFileName];
+                echo "New feature '{$featureName}' added successfully with file name: {$fileName} and fetch file: {$fetchFileName}!\n";
             } catch (PDOException $e) {
                 $errorCode = $e->getCode();
                 $errorMessage = $e->getMessage();
@@ -1611,10 +1722,10 @@ class ContentHandler implements MessageComponentInterface
         $conn->close();
     }
 
-    private function createFeaturePhpFile($featureName, $inputs, $icon) {
+    private function createFeaturePhpFile($featureName, $inputs, $icon, $hasExpiration) {
         $fileName = 'form_' . strtolower(str_replace(' ', '_', $featureName)) . '.php';
-        $filePath = __DIR__ . '/../../' . $fileName; // Adjust this path as needed
-        $content = $this->generateFeaturePhpContent($featureName, $inputs, $icon);
+        $filePath = dirname(__DIR__, 1) . '/' . $fileName; // This goes up two levels from MyApp
+        $content = $this->generateFeaturePhpContent($featureName, $inputs, $icon, $hasExpiration);
         $result = file_put_contents($filePath, $content);
         
         if ($result === false) {
@@ -1626,90 +1737,146 @@ class ContentHandler implements MessageComponentInterface
         return $fileName;
     }
 
-    private function generateFeaturePhpContent($featureName, $inputs, $icon) {
+    private function generateFeaturePhpContent($featureName, $inputs, $icon, $hasExpiration) {
         // Generate the PHP content here. This is a basic template, you'll need to adjust it based on your specific requirements.
-        $content = "<?php
-                    // Start the session and include the configuration
-                    session_start();
-                    include 'config_connection.php';
-                    
-                    // fetch user data for the currently logged-in user
-                    include 'get_session.php';
-                    
-                    // fetch tv data from the select options
-                    include 'misc/php/options_tv.php';
-                    ?>
-                    
-                    <!DOCTYPE html>
-                    <html lang=\"en\">
-                    <head>
-                        <!-- Include your standard head content here -->
-                    </head>
-                    <body>
-                        <div class=\"main-section\" id=\"all-content\">
-                            <?php include('top_header.php'); ?>
-                            <?php include('sidebar.php'); ?>
-                            <div class=\"main-container\">
-                                <div class=\"column1\">
-                                    <div class=\"content-inside-form\">
-                                        <div class=\"content-form\">
-                                            <nav aria-label=\"breadcrumb\">
-                                                <ol class=\"breadcrumb\" style=\"background: none\">
-                                                    <li class=\"breadcrumb-item\"><a href=\"create_post.php?pageid=CreatePost?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\" style=\"color: #264B2B\">Create Post</a></li>
-                                                    <li class=\"breadcrumb-item active\" aria-current=\"page\">$featureName Form</li>
-                                                </ol>
-                                            </nav>
-                                            <form id=\"{$featureName}Form\" enctype=\"multipart/form-data\" class=\"main-form\">
-                                                <?php include('error_message.php'); ?>
-                                                <input type=\"hidden\" name=\"type\" value=\"" . strtolower(str_replace(' ', '_', $featureName)) . "\">
-                                                <h1 style=\"text-align: center\">$featureName Form</h1>
-                                                ";
-                    
-                                                // Add input fields based on the feature's inputs
-                                                foreach ($inputs as $input) {
-                                                    $content .= $this->generateInputField($input);
-                                                }
-                                            
-                                                $content .= "
-                                                <?php include('misc/php/upload_preview_media.php')?>
-                                                <div class=\"form-row\">
-                                                    <?php include('misc/php/expiration_date.php')?>
-                                                    <?php include('misc/php/displaytime_tvdisplay.php')?>
-                                                </div>
-                                                <?php include('misc/php/schedule_post.php')?>
-                                                <div style=\"display: flex; flex-direction: row; margin-left: auto; margin-top: 10px\">
-                                                    <div>
-                                                        <button type=\"button\" id=\"schedulePostButton\" class=\"preview-button\" style=\"background: none; color: #316038; border: #316038 solid 1px\">
-                                                            <i class=\"fa fa-calendar\" style=\"padding-right: 5px\"></i> Schedule Post 
-                                                        </button>
-                                                    </div>
-                                                    <div>
-                                                        <button type=\"button\" name=\"preview\" id=\"previewButton\" class=\"preview-button\" style=\"margin-right: 0\" onclick=\"validateAndOpenPreviewModal()\">
-                                                            <i class=\"fa fa-eye\" style=\"padding-right: 5px\"></i> Preview 
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <?php include('misc/php/preview_modal.php') ?>
-                                            </form>
-                                        </div>
-                                    </div>
+        $content = 
+"<?php
+// Start the session and include the configuration
+session_start();
+include 'config_connection.php';
+
+// fetch user data for the currently logged-in user
+include 'get_session.php';
+
+// fetch tv data from the select options
+include 'misc/php/options_tv.php';
+?>
+
+<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css\" />
+    <link rel=\"icon\" type=\"image/png\" href=\"images/usc_icon.png\">
+    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">
+    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>
+    <link href=\"https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap\" rel=\"stylesheet\">
+    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\">
+    <link href=\"https://fonts.googleapis.com/css2?family=Questrial&display=swap\" rel=\"stylesheet\">
+    <link rel=\"stylesheet\" href=\"style.css\">
+    <link href=\"https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css\" rel=\"stylesheet\" />
+    <script src=\"https://code.jquery.com/jquery-3.2.1.min.js\"></script>
+    <title>Create an $featureName</title>
+</head>
+<body>
+    <div class=\"main-section\" id=\"all-content\">
+        <?php include('top_header.php'); ?>
+        <?php include('sidebar.php'); ?>
+        <div class=\"main-container\">
+            <div class=\"column1\">
+                <div class=\"content-inside-form\">
+                    <div class=\"content-form\">
+                        <nav aria-label=\"breadcrumb\">
+                            <ol class=\"breadcrumb\" style=\"background: none\">
+                                <li class=\"breadcrumb-item\"><a href=\"create_post.php?pageid=CreatePost?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\" style=\"color: #264B2B\">Create Post</a></li>
+                                <li class=\"breadcrumb-item active\" aria-current=\"page\">$featureName Form</li>
+                            </ol>
+                        </nav>
+                        <form id=\"" . strtolower(str_replace(' ', '_', $featureName)) . "Form\" enctype=\"multipart/form-data\" class=\"main-form\">
+                            <?php include('error_message.php'); ?>
+                            <input type=\"hidden\" name=\"type\" value=\"" . strtolower(str_replace(' ', '_', $featureName)) . "\">
+                            <h1 style=\"text-align: center\">$featureName Form</h1>
+                            ";
+
+                            $quillInitialization = "";
+                            $quillContentAssignment = "";
+                            $hasImageInput = false;
+
+                            // Add input fields based on the feature's inputs
+                            foreach ($inputs as $input) {
+                                $content .= $this->generateInputField($input);
+                                if ($input['type'] == 'text') {
+                                    $inputName = strtolower(str_replace(' ', '_', $input['name']));
+                                    $quillInitialization .= "
+                                        var {$inputName}Quill = new Quill('#{$inputName}', {
+                                            theme: 'snow',
+                                            placeholder: 'Enter Announcement',
+                                            modules: {
+                                                toolbar: [
+                                                    ['bold', 'italic', 'underline'],
+                                                    ['link'],
+                                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }]
+                                                ]
+                                            }
+                                        });
+                                    ";
+                                    $quillContentAssignment .= "
+                                        document.getElementById('{$inputName}HiddenInput').value = {$inputName}Quill.root.innerHTML;
+                                    ";
+                                } elseif ($input['type'] == 'image') {
+                                    $hasImageInput = true;
+                                }
+                            }
+                        
+                            if ($hasImageInput) {
+                                $content .= "<?php include('misc/php/upload_preview_media.php')?>\n";
+                            }
+                        
+                            $content .= "
+                            <div class=\"form-row\">
+                            ";
+
+                            if ($hasExpiration === 'yes') {
+                                $content .= "<?php include('misc/php/expiration_date.php')?>\n";
+                            }
+
+                            $content .= "
+                                <?php include('misc/php/displaytime_tvdisplay.php')?>
+                            </div>
+                            <?php include('misc/php/schedule_post.php')?>
+                            <div style=\"display: flex; flex-direction: row; margin-left: auto; margin-top: 10px\">
+                                <div>
+                                    <button type=\"button\" id=\"schedulePostButton\" class=\"preview-button\" style=\"background: none; color: #316038; border: #316038 solid 1px\">
+                                        <i class=\"fa fa-calendar\" style=\"padding-right: 5px\"></i> Schedule Post 
+                                    </button>
+                                </div>
+                                <div>
+                                    <button type=\"button\" name=\"preview\" id=\"previewButton\" class=\"preview-button\" style=\"margin-right: 0\" onclick=\"validateAndOpenNewFeaturePreviewModal()\">
+                                        <i class=\"fa fa-eye\" style=\"padding-right: 5px\"></i> Preview 
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                        <?php include('misc/php/error_modal.php') ?>
-                        <?php include('misc/php/success_modal.php') ?>
-                        <?php include('misc/php/save_draft_modal.php') ?>
-                        <script src=\"misc/js/capitalize_first_letter.js\"></script>
-                        <script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js\"></script>
-                        <script src=\"misc/js/quill_textarea_submission.js\"></script>
-                        <script src=\"misc/js/wsform_submission.js\"></script>
-                        <script>
-                            const containers = <?php echo json_encode(\$containers); ?>;
-                            const tvNames = <?php echo json_encode(\$tv_names); ?>; 
-                            const userType = '<?php echo \$user_type; ?>';
-                        </script>
-                    </body>
-                    </html>";
+                            <?php include('new_features/newfeature_preview_modal.php') ?>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php include('misc/php/error_modal.php') ?>
+    <?php include('misc/php/success_modal.php') ?>
+    <script src=\"misc/js/capitalize_first_letter.js\"></script>
+    <script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js\"></script>
+    <script src=\"misc/js/quill_textarea_submission.js\"></script>
+    <script src=\"new_features/newfeature_wsform_submission.js\"></script>
+    <script>
+        const containers = <?php echo json_encode(\$containers); ?>;
+        const tvNames = <?php echo json_encode(\$tv_names); ?>; 
+        const userType = '<?php echo \$user_type; ?>';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            $quillInitialization
+
+            const form = document.getElementById('" . strtolower(str_replace(' ', '_', $featureName)) . "Form');
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                submitFormViaWebSocket();
+            };
+        });
+    </script>
+</body>
+</html>";
     
         return $content;
     }
@@ -1722,7 +1889,7 @@ class ContentHandler implements MessageComponentInterface
         if ($input['type'] == 'text') {
             return "
                 <div class=\"floating-label-container\">
-                    <div id=\"quillEditorContainer_{$name}\">
+                    <div id=\"quillEditorContainer_{$name}\" class=\"quill-editor-container-newfeature\">
                         <label for=\"quillEditorContainer_{$name}\" style=\"position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold\">{$label}</label>
                         <div id=\"{$name}\" style=\"height: 150px;\"></div>
                     </div>
