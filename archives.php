@@ -1,34 +1,15 @@
 <?php
-// Start the session and include the configuration
+// start the session
 session_start();
 include 'config_connection.php';
 
-// Fetch announcements and events content and assign it to $result
-// header("Cache-Control: no-cache");
-header("Connection: keep-alive");
+// fetch user data for the currently logged-in user
+include 'get_session.php';
 
-// Add cache control headers to prevent caching
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache");
-
-// Check if the user is not logged in, redirect to the login page
-if (!isset($_SESSION['full_name'])) {
-    header('location: index.php');
-    exit;
-}
-
-$current_page = basename($_SERVER['PHP_SELF']);
-// After successfully logging out
-$_SESSION['logged_out'] = true;
-
-// Get the user's department from the session
-$department = $_SESSION['department'];
-
-// Fetch user data for the currently logged-in user
-$full_name = $_SESSION['full_name'];
-$sql = "SELECT full_name AS full_name, password, department, email, user_type FROM users_tb WHERE full_name = '$full_name'";
-$result = mysqli_query($conn, $sql);
+// Fetch all features from the database
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$stmtNewFeatures = $pdo->query("SELECT * FROM features_tb");
+$featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -45,7 +26,7 @@ $result = mysqli_query($conn, $sql);
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
-    <title>Archives</title>
+    <title>Arhives</title>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -53,97 +34,63 @@ $result = mysqli_query($conn, $sql);
         <?php include('sidebar.php'); ?>
         <div class="main-container">
             <div class="column1">
-                <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-file-archive-o" style="padding-right: 5px"></i>Archives</h1>
-                    <div class="content-grid-container">
-                        <div id="announcementList" class="content-container">
-                            <h1 class="content-title"><i class="fa fa-bullhorn" style="margin-right: 6px" aria-hidden="true"></i>Announcements</h1>
-                            <div class="scroll-div">
-                                <div id="annArchivedContainer">
-                                    <!-- Latest announcement will be displayed here -->
-                                </div>
-                            </div>
-                        </div>
-                        <div id="eventList" class="content-container">
-                            <h1 class="content-title"><i class="fa fa-calendar-check-o" style="margin-right: 6px" aria-hidden="true"></i>Upcoming Events</h1>
-                            <div class="scroll-div">
-                                <div id="eveCarouselContainer">
-                                    <!-- Latest events  will be displayed here -->
-                                </div>
-                            </div>
-                        </div>
-                        <div id="newsList" class="content-container">
-                            <h1 class="content-title"><i class="fa fa-newspaper-o" style="margin-right: 6px" aria-hidden="true"></i>News</h1>
-                            <div class="scroll-div">
-                                <div id="newsCarouselContainer">
-                                    <!-- Latest news will be displayed here -->
-                                </div>
-                            </div>
-                        </div>
-                        <div id="promaterialList" class="content-container">
-                            <h1 class="content-title"><i class="fa fa-object-group" style="margin-right: 6px" aria-hidden="true"></i>Promotional Materials</h1>
-                            <div class="scroll-div">
-                                <div id="promaterialsCarouselContainer">
-                                    <!-- Latest promotional materials will be displayed here -->
-                                </div>
-                            </div>
-                        </div>
-                        <div id="peoList" class="content-container">
-                            <h1 class="content-title"><i class="fa fa-map" style="margin-right: 6px" aria-hidden="true"></i>Program Educational Objectives (PEO)</h1>
-                            <div class="scroll-div">
-                                <div id="peoCarouselContainer">
-                                    <!-- Latest program educational objectives will be displayed here -->
-                                </div>
-                            </div>
-                        </div>
-                        <div id="soList" class="content-container">
-                            <h1 class="content-title"><i class="fa fa-graduation-cap" style="margin-right: 6px" aria-hidden="true"></i>Student Outcomes (SO)</h1>
-                            <div class="scroll-div">
-                                <div id="soCarouselContainer">
-                                    <!-- Latest student outcomes will be displayed here -->
-                                </div>
-                            </div>
-                        </div>
-                        <div id="departmentOrganizationalChartList" class="content-container">
-                            <h1 class="content-title"><i class="fa fa-university" style="margin-right: 6px" aria-hidden="true"></i>Department Organizational Chart</h1>
-                            <div class="scroll-div">
-                                <div id="departmentOrganizationalChartCarouselContainer">
-                                    <!-- Latest department organizational chart will be displayed here -->
-                                </div>
-                            </div>
-                        </div>
-                        <div id="facilitiesList" class="content-container">
-                            <h1 class="content-title"><i class="fa fa-building" style="margin-right: 6px" aria-hidden="true"></i>Facilities</h1>
-                            <div class="scroll-div">
-                                <div id="facilitiesCarouselContainer">
-                                    <!-- Latest facilities will be displayed here -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="content-grid-container">
+                <?php
+                // Array of content types
+                $contentTypes = ['announcement', 'event',  'news', 'promaterial', 'peo', 'so'];
+                // echo '<p>'; print_r($contentTypes); echo '</p>';
+
+                // Add new features to the content types array
+                foreach ($featuresNewFeatures as $feature) {
+                    $contentTypes[] = strtolower(str_replace(' ', '_', $feature['feature_name']));
+                }
+
+                // Loop through each content type
+                foreach ($contentTypes as $type) {
+                    echo "<div id='{$type}List' class='content-container'>";
+                    if ($type == 'announcement') {
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements</h1>";
+                    } else if ($type == 'event') {
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-calendar-check-o' style='margin-right: 6px' aria-hidden='true'></i>Events</h1>";
+                    } else if ($type == 'news') {
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-newspaper-o' style='margin-right: 6px' aria-hidden='true'></i>News</h1>";
+                    } else if ($type == 'promaterial') {
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-object-group' style='margin-right: 6px' aria-hidden='true'></i>Promotional Materials</h1>";
+                    } else if ($type == 'peo') {
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO)</h1>";
+                    } else if ($type == 'so') {
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO)</h1>";
+                    } else {
+                        // For new features
+                        $feature = array_filter($featuresNewFeatures, function($f) use ($type) {
+                            return strtolower(str_replace(' ', '_', $f['feature_name'])) === $type;
+                        });
+                        $feature = reset($feature);
+                        if ($feature) {
+                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']}</h1>";
+                        } else {
+                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . "</h1>";
+                        }
+                    }
+                    echo "<div class='scroll-div'>";
+                    echo "<div id='{$type}CarouselContainer'>";
+
+                    echo "</div>"; // Close carousel container
+                    echo "</div>"; // Close scroll div
+                    echo "</div>"; // Close content container
+                }
+                ?>
                 </div>
             </div>
         </div>
     </div>
-    <div id="confirmDeleteAnnouncementModal" class="modal"></div>
-    <div id="confirmDeleteEventModal" class="modal"></div>
-    <div id="confirmDeleteNewsModal" class="modal"></div>
-    <div id="confirmDeletePromaterialModal" class="modal"></div>
-    <div id="confirmDeletePEOModal" class="modal"></div>
-    <div id="confirmDeleteSOModal" class="modal"></div>
-    <div id="confirmUnarchiveAnnouncementModal" class="modal"></div>
-    <div id="confirmUnarchiveEventModal" class="modal"></div>
-    <div id="confirmUnarchiveNewsModal" class="modal"></div>
-    <div id="confirmUnarchivePromaterialModal" class="modal"></div>
-    <div id="confirmUnarchivePEOModal" class="modal"></div>
-    <div id="confirmUnarchiveSOModal" class="modal"></div>
-    <div id="updateExpirationModal" class="modal"></div>
-
+    
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_archived_content.js"></script>
     <script>
         const userType = '<?php echo $user_type; ?>';
         const full_name = '<?php echo $full_name; ?>';
+        const userId = <?php echo $user_id; ?>;
     </script>
 </body>
 </html>

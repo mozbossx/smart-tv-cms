@@ -69,7 +69,7 @@ class ContentHandler implements MessageComponentInterface
                     ];
                 } else {
                     // If it's neither a default type nor a new feature, it's invalid
-                    $response = [$action => 'delete', 'success' => false, 'message' => 'Invalid type specified'];
+                    $response = ['action' => 'delete', 'success' => false, 'message' => 'Invalid type specified'];
                     echo "Invalid type specified\n";
                     $from->send(json_encode($response));
                     return;
@@ -120,7 +120,7 @@ class ContentHandler implements MessageComponentInterface
                     ];
                 } else {
                     // If it's neither a default type nor a new feature, it's invalid
-                    $response = [$action => 'delete', 'success' => false, 'message' => 'Invalid type specified'];
+                    $response = ['action' => 'archive', 'success' => false, 'message' => 'Invalid type specified'];
                     echo "Invalid type specified\n";
                     $from->send(json_encode($response));
                     return;
@@ -158,33 +158,39 @@ class ContentHandler implements MessageComponentInterface
                 'so' => ['table' => 'so_tb', 'idField' => 'so_id']
             ];
             $type = $data['type'] ?? null;
-            
-            if (isset($validTypes[$type])) {
-                $table = $validTypes[$type]['table'];
-                $idField = $validTypes[$type]['idField'];
-                $id = $data[$idField];
-                
-                // Update isCancelled to 1
-                $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = 0 WHERE {$idField} = ?");
-                $stmt->execute([$id]);
-                
-                // Fetch updated data
-                $stmt = $this->pdo->prepare("SELECT * FROM {$table} WHERE {$idField} = ?");
-                $stmt->execute([$id]);
-                $postData = $stmt->fetch(PDO::FETCH_ASSOC);
-                
-                if ($postData) {
-                    // $response = ['action' => 'approve_post', 'success' => true, 'announcement' => $announcementData];
-                    $response = ['action' => 'unarchive', 'success' => true, 'type' => $type, 'data' => $postData] + $postData;
-                    echo "{$type} unarchived for {$idField}: {$id}!\n";
+
+            if (!isset($validTypes[$type])) {
+                // If it's not a default type, check if it's a new feature
+                $stmt = $this->pdo->prepare("SELECT * FROM features_tb WHERE type = ?");
+                $stmt->execute([strtolower($type)]);
+                $feature = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+                if ($feature) {
+                    // It's a new feature, so we need to determine its table and id field
+                    $validTypes[$type] = [
+                        'table' => strtolower($feature['type']) . '_tb',
+                        'idField' => strtolower($feature['type']) . '_id'
+                    ];
                 } else {
-                    $response = ['action' => 'unarchive', 'success' => false, 'message' => 'Failed to fetch updated data'];
-                    echo "Failed to fetch updated data. Unarchive failed.\n";
+                    // If it's neither a default type nor a new feature, it's invalid
+                    $response = ['action' => 'unarchive', 'success' => false, 'message' => 'Invalid type specified'];
+                    echo "Invalid type specified\n";
+                    $from->send(json_encode($response));
+                    return;
                 }
-            } else {
-                $response = ['action' => 'unarchive', 'success' => false, 'message' => 'Invalid type specified'];
-                echo "Invalid type specified. Unarchive failed\n";
             }
+            
+            $table = $validTypes[$type]['table'];
+            $idField = $validTypes[$type]['idField'];
+            $id = $data[$idField];
+                
+            // Update isCancelled to 1
+            $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = 0 WHERE {$idField} = ?");
+            $stmt->execute([$id]);
+
+            $archived = $stmt->rowCount() > 0;
+            $response = ['action' => 'archive', 'success' => $archived, 'type' => $type, $idField => $id];
+            echo "{$type} archived!\n";
             
             // Notify the client who sent the request and all connected clients
             $from->send(json_encode($response));
@@ -723,14 +729,13 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'approve_user') {
             $user_id = $data['user_id'];
-            $evaluated_message = isset($data['evaluated_message']) ? htmlspecialchars($data['evaluated_message']) : '';
 
             // Retrieve full_name from session
             $evaluator_name = $from->full_name;
         
             // Perform the deletion from the database
-            $stmt = $this->pdo->prepare("UPDATE users_tb SET status = 'Approved', evaluated_by = ?, evaluated_message = ? WHERE user_id = ?");
-            $stmt->execute([$evaluator_name, $evaluated_message, $user_id]);
+            $stmt = $this->pdo->prepare("UPDATE users_tb SET status = 'Approved', evaluated_by = ? WHERE user_id = ?");
+            $stmt->execute([$evaluator_name, $user_id]);
             
             $user = $stmt->rowCount() > 0;
 
@@ -833,6 +838,163 @@ class ContentHandler implements MessageComponentInterface
                 $from->send(json_encode(['action' => 'delete_user', 'success' => false]));
             }
             return;
+        }
+
+        else if (isset($data['action']) && $data['action'] === 'add_user') {
+            $full_name = $data['full_name'];
+            $email = $data['email'];
+            $password = $data['password'];
+            $department = $data['department'];
+            $user_type = $data['user_type'];
+            $status = ($user_type == 'Student') ? 'Pending' : 'Approved';
+            $datetime_registered = date('Y-m-d H:i:s');
+        
+            try {
+                // Check if the email or full name already exists
+                $stmt = $this->pdo->prepare("SELECT email, full_name FROM users_tb WHERE email = ? OR full_name = ?");
+                $stmt->execute([$email, $full_name]);
+                $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($existingUser) {
+                    $message = [];
+                    if ($existingUser['email'] === $email) {
+                        $message[] = "Email already exists";
+                    }
+                    if ($existingUser['full_name'] === $full_name) {
+                        $message[] = "Full name already exists";
+                    }
+                    $response = ["action" => "add_user", "success" => false, "message" => implode(" and ", $message) . "."];
+                    $from->send(json_encode($response));
+                    return;
+                }
+
+                // If email and full name don't exist, proceed with insertion
+                $hashedPassword = md5($password);
+        
+                $statement = $this->pdo->prepare(
+                    "INSERT INTO users_tb 
+                    (full_name, email, password, department, user_type, status, datetime_registered) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)"
+                );
+                $success = $statement->execute([
+                    $full_name, $email, $hashedPassword, $department, $user_type, $status, $datetime_registered
+                ]);
+        
+                if ($success) {
+                    $user_id = $this->pdo->lastInsertId();
+        
+                    // Prepare the complete data to send to the clients
+                    $responseData = [
+                        'user_id' => $user_id,
+                        'full_name' => $full_name,
+                        'email' => $email,
+                        'department' => $department,
+                        'status' => $status,
+                        'user_type' => $user_type,
+                        'datetime_registered' => $datetime_registered
+                    ];
+        
+                    // Send success message to client
+                    $response = ['action' => 'add_user', 'success' => true, 'data' => $responseData];
+                    $from->send(json_encode($response));
+        
+                    // Notify all other clients about the new user
+                    foreach ($this->clients as $client) {
+                        if ($client !== $from) {
+                            $client->send(json_encode($response));
+                        }
+                    }
+        
+                    echo "A new user account has been created!\n";
+        
+                    // TODO: Send email to the new user with their temporary password
+                    // You should implement an email sending function here
+        
+                } else {
+                    $response = ["action" => "add_user", "success" => false, "message" => "Failed to insert data. Please try again."];
+                    $from->send(json_encode($response));
+                }
+            } catch (\Exception $e) {
+                $response = ["action" => "add_user", "success" => false, "message" => "Failed to insert data. Please try again. Error: " . $e->getMessage()];
+                $from->send(json_encode($response));
+            }
+        }
+
+        else if (isset($data['action']) && $data['action'] === 'add_multiple_users') {
+            if (isset($data['csv_file']) && is_string($data['csv_file'])) {
+                $csvContent = base64_decode($data['csv_file']);
+            } else {
+                // Handle the case where csv_file is not a string
+                $from->send(json_encode(['action' => 'add_multiple_users', 'success' => false, 'message' => 'Invalid CSV file format']));
+                return;
+            }
+            $lines = explode("\n", $csvContent);
+            $addedCount = 0;
+            $failedCount = 0;
+        
+            foreach ($lines as $line) {
+                $userData = str_getcsv($line);
+                if (count($userData) === 4) { // Ensure we have all required fields
+                    $full_name = trim($userData[0]);
+                    $email = trim($userData[1]);
+                    $user_type = trim($userData[2]);
+                    $department = trim($userData[3]);
+                    $status = ($user_type == 'Student') ? 'Pending' : 'Approved';
+                    $datetime_registered = date('Y-m-d H:i:s');
+                    $password = bin2hex(random_bytes(4));  // Generates an 8-character random password
+                    $hashedPassword = md5($password); // Consider using password_hash() for better security
+        
+                    try {
+                        // Check if the email already exists
+                        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users_tb WHERE email = ? OR full_name = ?");
+                        $stmt->execute([$email, $full_name]);
+                        $count = $stmt->fetchColumn();
+
+                        if ($count > 0) {
+                            $failedCount++;
+                            continue;
+                        }
+
+                        $statement = $this->pdo->prepare(
+                            "INSERT INTO users_tb 
+                            (full_name, email, password, department, user_type, status, datetime_registered) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?)"
+                        );
+                        $success = $statement->execute([
+                            $full_name, $email, $hashedPassword, $department, $user_type, $status, $datetime_registered
+                        ]);
+        
+                        if ($success) {
+                            $addedCount++;
+                            // TODO: Send email to the new user with their temporary password
+                        } else {
+                            $failedCount++;
+                        }
+                    } catch (\Exception $e) {
+                        $failedCount++;
+                        error_log("Failed to add user: " . $e->getMessage());
+                    }
+                } else {
+                    $failedCount++;
+                    echo "Failed to add user: " . $line . "\n";
+                }
+            }
+        
+            $response = [
+                "action" => "add_multiple_users",
+                "success" => true,
+                "addedCount" => $addedCount,
+                "failedCount" => $failedCount,
+                "message" => "Multiple users processed. Added: $addedCount, Failed: $failedCount"
+            ];
+            $from->send(json_encode($response));
+        
+            // Notify all clients to refresh their user tables
+            foreach ($this->clients as $client) {
+                $client->send(json_encode(["action" => "refresh_users"]));
+            }
+        
+            echo "Multiple users processed. Added: $addedCount, Failed: $failedCount\n";
         }
 
         else if (isset($data['action']) && $data['action'] === 'edit_smart_tv') {

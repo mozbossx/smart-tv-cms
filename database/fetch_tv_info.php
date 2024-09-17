@@ -10,12 +10,13 @@ try {
     die(json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]));
 }
 
-// Get the content type from the query string
+// Get the content type and ID from the query string
 $type = $_GET['type'] ?? '';
-$archived = isset($_GET['archived']) && $_GET['archived'] === 'true';
+$id = $_GET['tvId'] ?? '';
 
-// Sanitize the type to prevent SQL injection
+// Sanitize the inputs
 $type = preg_replace('/[^a-z_]/', '', strtolower($type));
+$id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
 
 if ($type == 'announcement' || $type == 'event' || $type == 'promaterial') {
     $tableName = "{$type}s_tb";
@@ -23,28 +24,24 @@ if ($type == 'announcement' || $type == 'event' || $type == 'promaterial') {
     $tableName = "{$type}_tb";
 }
 
-// Construct author ID field name
-$authorIdField = "{$type}_author_id";
-
 try {
-    // Fetch content with author names
-    $query = "SELECT c.*, u.full_name as author_name 
-              FROM {$tableName} c 
-              LEFT JOIN users_tb u ON c.{$authorIdField} = u.user_id
-              WHERE c.isCancelled = :isCancelled";
-    
-    $params = [':isCancelled' => $archived ? 1 : 0];
+    $query = "SELECT ST.tv_name as tv_display
+              FROM {$tableName} CT
+              LEFT JOIN smart_tvs_tb ST ON CT.tv_id = ST.tv_id
+              WHERE CT.tv_id = :contentId";
 
     $statement = $pdo->prepare($query);
-    $statement->execute($params);
-    $content = $statement->fetchAll(PDO::FETCH_ASSOC);
+    $statement->execute([
+        ':contentId' => $id
+    ]);
+    $result = $statement->fetch(PDO::FETCH_ASSOC);
 
     // Return JSON response
     header('Content-Type: application/json');
-    echo json_encode($content);
+    echo json_encode($result ? $result : ['tv_display' => 'No TV assigned']);
 } catch (PDOException $e) {
     // Log the error and return a JSON error response
     error_log('Database query failed: ' . $e->getMessage());
     header('Content-Type: application/json');
-    echo json_encode(['error' => 'Failed to fetch content: ' . $e->getMessage()]);
+    echo json_encode(['error' => 'Failed to fetch TV info: ' . $e->getMessage()]);
 }

@@ -22,12 +22,12 @@ const createButton = (text, iconClass, onClick) => {
         background-color: #316038;
         color: #fff;
         padding: 8px 16px;
-        border-radius: 5px;
+        border-radius: 10px;
         border: none;
         cursor: pointer;
         transition: background-color 0.3s;
         margin-top: 10px;
-        margin-right: 5px;
+        margin-left: 5px;
     `;
     button.onclick = onClick;
     return button;
@@ -102,6 +102,7 @@ const updateUI = (data, type) => {
         existingDiv.querySelector('.content-container-con').innerHTML = contentDiv;
     } else {
         const containerDiv = document.createElement('div');
+        const buttonContainer = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
         containerDiv.setAttribute(`data-${type}-id`, data[`${type}_id`]);
         containerDiv.innerHTML = contentDiv;
@@ -127,15 +128,24 @@ const updateUI = (data, type) => {
             bottom: 0;
         `;
 
+        buttonContainer.style = `
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        `;
+
         const deleteButton = createButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
         const archiveButton = createButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
         const editButton = createButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
         if (userType !== 'Student' && userType !== 'Faculty' || data[`${type}_author_id`] === userId) {
-            containerDiv.appendChild(deleteButton);
-            containerDiv.appendChild(archiveButton);
-            containerDiv.appendChild(editButton);
+            buttonContainer.appendChild(deleteButton);
+            buttonContainer.appendChild(archiveButton);
+            buttonContainer.appendChild(editButton);
         }
+
+        // Append the button container to the main container
+        containerDiv.appendChild(buttonContainer);
 
         document.getElementById(`${type}CarouselContainer`).insertBefore(containerDiv, document.getElementById(`${type}CarouselContainer`).firstChild);
     }
@@ -144,39 +154,6 @@ const updateUI = (data, type) => {
 // Helper function to capitalize the first letter of a string
 const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
-};
-
-// Function to insert content into the archive modal
-const insertArchiveModalContent = (type) => {
-    const modalContent = document.getElementById(`archive${capitalizeFirstLetter(type)}ModalContent`);
-    if (modalContent) {
-        let archiveMessage = '';
-
-        if (type === 'peo') {
-            archiveMessage = 'Proceed to archive this Program Education Objective (PEO)?';
-        } else if (type === 'so') {
-            archiveMessage = 'Proceed to archive this Student Outcome (SO)?';
-        } else if (type === 'promaterial') {
-            archiveMessage = 'Proceed to archive this promotional material?';
-        } else {
-            archiveMessage = `Proceed to archive this ${type}?`;
-        }
-
-        modalContent.innerHTML = `
-            <div class="modal-content">
-                <div class="red-bar-vertical">
-                    <span class="close" id="closeArchive${capitalizeFirstLetter(type)}ModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-                    <br>
-                    <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
-                    <p id="archiveMessage" style="text-align: center">${archiveMessage}</p>
-                    <br>
-                    <div style="text-align: right;">
-                        <button id="archive${capitalizeFirstLetter(type)}Button" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, archive ${type}</b></button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
 };
 
 // Function to archive an item
@@ -271,15 +248,15 @@ const showArchiveModal = (id, type) => {
     modalContent.className = 'modal-content';
     
     modalContent.innerHTML = `
-        <div class="red-bar-vertical">
-            <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <div class="yellow-bar-vertical">
+            <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
-            <p id="deleteMessage" style="text-align: center">Proceed to archive this ${capitalizedType}?</p>
+            <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
+            <p id="deleteMessage" style="text-align: center">Proceed to archive?</p>
             <br>
             <div style="text-align: right;">
                 <button type="button" class="red-button" style="background: #334b353b; color: black" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
-                <button type="button" class="red-button" onclick="archiveItem('${type}', '${id}')">Yes, Archive</button>
+                <button type="button" class="yellow-button" onclick="archiveItem('${type}', '${id}')">Yes, Archive</button>
             </div>
         </div>
     `;
@@ -299,7 +276,7 @@ const showDeleteModal = (id, type) => {
             <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
             <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-            <p id="deleteMessage" style="text-align: center">Proceed to delete this ${capitalizedType}?</p>
+            <p id="deleteMessage" style="text-align: center">Proceed to delete?</p>
             <br>
             <div style="text-align: right;">
                 <button type="button" class="red-button" style="background: #334b353b; color: black" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>

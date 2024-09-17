@@ -76,7 +76,12 @@ if (isset($_SESSION['mail'])) {
             e.preventDefault();
 
             const formData = new FormData(form);
-            const data = { session_data: { otp: "<?php echo $_SESSION['otp']; ?>", registration_details: <?php echo json_encode($_SESSION['registration_details']); ?> } };
+            const data = { 
+                session_data: { 
+                    otp: "<?php echo $_SESSION['otp']; ?>", 
+                    registration_details: <?php echo json_encode($_SESSION['registration_details']); ?> 
+                } 
+            };
             
             formData.forEach((value, key) => {
                 data[key] = value;

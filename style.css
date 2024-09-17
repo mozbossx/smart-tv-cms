@@ -1783,6 +1783,22 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     transition: 0.5s ease;
 }
 
+.yellow-button {
+    background-color: #dc7d09;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: 1px solid #e37f04;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.yellow-button:hover {
+    background: #ae6902;
+    transition: 0.5s ease;
+}
+
+
 .cancel-button {
     padding: 5px;
     padding-left: 10px;
@@ -1865,6 +1881,23 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     top: 2px;
 }
 
+.yellow-bar-vertical {
+    flex-basis: 10%;
+    position: relative;
+    margin-left: 20px;
+    padding-right: 5px;
+}
+
+.yellow-bar-vertical::after {
+    content: '';
+    width: 10px;
+    height: 96.5%;
+    background: linear-gradient(#f7c374, #daa34ffe);
+    position: absolute;
+    left: -18px;
+    top: 2px;
+}
+
 .plus-button {
     width: 190px;
     padding: 5px;
@@ -1940,6 +1973,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 
 .table-container {
     overflow-x: auto;
+    margin-top: 10px;
 }
 
 table {
@@ -1976,6 +2010,54 @@ tr:nth-child(even) {
     -webkit-user-drag: none;
     -webkit-user-select: none;
     -ms-user-select: none;
+}
+
+.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+
+.tab button:hover {
+    background-color: #ddd;
+}
+
+.tab button.active {
+    background-color: #ccc;
+}
+
+.tabcontent {
+    display: none;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+.user-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.user-details-table th, .user-details-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.user-details-table th {
+    font-weight: bold;
+    width: 30%;
 }
 
 .page-indicator-container {
@@ -2139,7 +2221,7 @@ tr:nth-child(even) {
     padding-bottom: 5px;
     right: 0;
     top: 0;
-    z-index: 9999;
+    z-index: 10;
 }
 
 .scale-buttons button {

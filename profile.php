@@ -40,52 +40,42 @@ if ($result->num_rows > 0) {
 // Close the statement
 $stmt->close();
 
-// Fetch the number of posts created by the user in each category
-$queries = [
-    'announcements' => [
-        'approved' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcement_author_id = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcement_author_id = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM announcements_tb WHERE announcement_author_id = ? AND status = 'Rejected'"
-    ],
-    'events' => [
-        'approved' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author_id = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author_id = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM events_tb WHERE event_author_id = ? AND status = 'Rejected'"
-    ],
-    'news' => [
-        'approved' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author_id = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author_id = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM news_tb WHERE news_author_id = ? AND status = 'Rejected'"
-    ],
-    'promotions' => [
-        'approved' => "SELECT COUNT(*) as count FROM promaterials_tb WHERE promaterial_author_id = ? AND status = 'Approved'",
-        'pending' => "SELECT COUNT(*) as count FROM promaterials_tb WHERE promaterial_author_id = ? AND status = 'Pending'",
-        'rejected' => "SELECT COUNT(*) as count FROM promaterials_tb WHERE promaterial_author_id = ? AND status = 'Rejected'"
-    ]
-];
-
+// After fetching user data and before the HTML output
+$content_types = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
+$statuses = ['Pending', 'Approved', 'Rejected'];
 $post_counts = [];
 
-foreach ($queries as $category => $status_queries) {
-    $post_counts[$category] = [
-        'approved' => 0,
-        'pending' => 0,
-        'rejected' => 0
-    ];
-
-    foreach ($status_queries as $status => $query) {
+foreach ($content_types as $type) {
+    if ($type === 'announcement' || $type === 'event' || $type === 'promaterial') {
+        $table_name = $type . 's_tb';
+    } else {
+        $table_name = $type . '_tb';
+    }
+    $author_column = $type . '_author_id';
+    
+    if ($type === 'peo' || $type === 'so') {
+        // PEO and SO don't have status column
+        $query = "SELECT COUNT(*) as count FROM $table_name WHERE $author_column = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $user_id);
+        $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $post_counts[$category][$status] = $row['count'];
+        $count = $result->fetch_assoc()['count'];
+        $post_counts[$type] = ['Total' => $count];
+    } else {
+        // For other content types with status
+        $post_counts[$type] = [];
+        foreach ($statuses as $status) {
+            $query = "SELECT COUNT(*) as count FROM $table_name WHERE $author_column = ? AND status = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("is", $user_id, $status);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $count = $result->fetch_assoc()['count'];
+            $post_counts[$type][$status] = $count;
         }
-
-        $stmt->close();
     }
+    $stmt->close();
 }
 
 // Check for error message from change_password.php
@@ -109,7 +99,7 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
-    <title>Profile</title>
+    <title><?php echo $full_name ?></title>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -118,76 +108,59 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-user" style="padding-right: 5px"></i><?php echo $full_name ?>'s Profile</h1>
                     <div class="content-form">
-                        <div class="input-flex-profile">
                             <?php include('error_message.php'); ?>
-                                <div class="left-side-input-profile">
-                                    <p class="profile-field"><?php echo $full_name; ?></p>
-                                    <p class="profile-title">Full Name</p>
-                                </div>
-                                <div class="right-side-input">
-                                    <p class="profile-field"><?php echo $department; ?></p>
-                                    <p class="profile-title">Department</p>
-                                </div>
-                            </div>
-                            <br>
-                            <div class="input-flex-profile">
-                                <div class="left-side-input-profile">
-                                    <p class="profile-field"><?php echo $user_type; ?></p>
-                                    <p class="profile-title">Role</p>
-                                </div>
-                                <div class="right-side-input">
-                                    <p class="profile-field"><?php echo $email; ?></p>
-                                    <p class="profile-title">USC Email</p>
-                                </div>
-                            </div>
-                            <br><br>
+                            <table class="user-details-table">
+                                <tr>
+                                    <th>Full Name</th>
+                                    <td><?php echo $full_name; ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Department</th>
+                                    <td><?php echo $department; ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Role</th>
+                                    <td><?php echo $user_type; ?></td>
+                                </tr>
+                                <tr>
+                                    <th>USC Email</th>
+                                    <td><?php echo $email; ?></td>
+                                </tr>
+                            </table>
                             <div class="table-container">
-                                <table>
-                                    <thead>
+                            <table class="post-counts-table">
+                                <thead>
+                                    <tr>
+                                        <th>Content Type</th>
+                                        <th>Pending</th>
+                                        <th>Approved</th>
+                                        <th>Rejected</th>
+                                        <th>Total</th>
+                                        <th>View All</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($content_types as $type): ?>
                                         <tr>
-                                            <th colspan="5">Number of Posts</th>
+                                            <td><?php echo ucfirst($type); ?></td>
+                                            <?php if ($type === 'peo' || $type === 'so'): ?>
+                                                <td colspan="3">N/A</td>
+                                                <td><?php echo $post_counts[$type]['Total']; ?></td>
+                                            <?php else: ?>
+                                                <?php foreach ($statuses as $status): ?>
+                                                    <td><?php echo $post_counts[$type][$status]; ?></td>
+                                                <?php endforeach; ?>
+                                                <td><?php echo array_sum($post_counts[$type]); ?></td>
+                                            <?php endif; ?>
+                                            <td>
+                                                <button type="button" class="green-button" style="margin: 0" onclick="openModal('viewPosts', '<?php echo $type; ?>')">View All</button>
+                                                <button type="button" class="red-button" style="margin: 0" onclick="openModal('viewPosts', '<?php echo $type; ?>')">Delete All</button>
+                                            </td>
                                         </tr>
-                                        <tr>
-                                            <th>Category</th>
-                                            <th>Approved</th>
-                                            <th>Pending</th>
-                                            <th>Rejected</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Announcements</td>
-                                            <td><?php echo $post_counts['announcements']['approved']; ?></td>
-                                            <td><?php echo $post_counts['announcements']['pending']; ?></td>
-                                            <td><?php echo $post_counts['announcements']['rejected']; ?></td>
-                                            <td><button class="green-button" style="margin-right: 0">View All</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Events</td>
-                                            <td><?php echo $post_counts['events']['approved']; ?></td>
-                                            <td><?php echo $post_counts['events']['pending']; ?></td>
-                                            <td><?php echo $post_counts['events']['rejected']; ?></td>
-                                            <td><button class="green-button" style="margin-right: 0">View All</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>News</td>
-                                            <td><?php echo $post_counts['news']['approved']; ?></td>
-                                            <td><?php echo $post_counts['news']['pending']; ?></td>
-                                            <td><?php echo $post_counts['news']['rejected']; ?></td>
-                                            <td><button class="green-button" style="margin-right: 0">View All</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Promotional Materials</td>
-                                            <td><?php echo $post_counts['promotions']['approved']; ?></td>
-                                            <td><?php echo $post_counts['promotions']['pending']; ?></td>
-                                            <td><?php echo $post_counts['promotions']['rejected']; ?></td>
-                                            <td><button class="green-button" style="margin-right: 0">View All</button></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
                             </div>
                             <br>
                             <br>

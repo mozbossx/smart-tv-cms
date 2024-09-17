@@ -63,19 +63,18 @@ if ($resultAllUsers->num_rows > 0) {
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-users" style="padding-right: 5px"></i>Manage Users</h1>
                     <div class="content-form">
-                        <div class="button-flex-space-between">
-                            <div class="left-side-button">
-                                <button type="button" class="back-button" onclick="javascript:history.back()"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</button>
-                            </div>
-                            <div class="right-side-button-preview">
-                                <a href="create_post.php" class="green-button">Add a User<i class="fa fa-plus" style="margin-left: 5px"></i></a>
-                            </div>
-                        </div>
-                        <div class="line-separator"></div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Manage Users</li>
+                            </ol>
+                        </nav>
                         <?php include('error_message.php'); ?>
                         <div id="user-data" data-user-id="<?php echo $user_id; ?>"></div>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button type="button" class="green-button" style="margin-right: 0;" onclick="showAddUserModal()">Add User</button>
+                        </div>
                         <div class="table-container">
                             <div id="userTableContainer">
                                 <!-- Latest table of users will be displayed here -->
@@ -86,68 +85,11 @@ if ($resultAllUsers->num_rows > 0) {
             </div>
         </div>
     </div>
-    <div id="confirmApproveUserModal" class="modal"></div>
-    <div id="confirmRejectUserModal" class="modal"></div>
-    <div id="editUserModal" class="modal"></div>
-    <div id="confirmDeleteUserModal" class="modal"></div>
 
     <!-- JavaScript to fetch all users using WebSocket-->
+    <?php include('misc/php/success_modal.php')?>
+    <?php include('misc/php/error_modal.php')?>
     <script src="js/fetch_users.js"></script>
-    <script>
-        function sortTable(columnIndex) {
-            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-            table = document.getElementById("usersTable");
-            switching = true;
-            // Set the sorting direction to ascending:
-            dir = "asc";
-            /* Make a loop that will continue until
-            no switching has been done: */
-            while (switching) {
-                // Start by saying: no switching is done:
-                switching = false;
-                rows = table.rows;
-                /* Loop through all table rows (except the
-                first, which contains table headers): */
-                for (i = 1; i < (rows.length - 1); i++) {
-                    // Start by saying there should be no switching:
-                    shouldSwitch = false;
-                    /* Get the two elements you want to compare,
-                    one from current row and one from the next: */
-                    x = rows[i].getElementsByTagName("TD")[columnIndex];
-                    y = rows[i + 1].getElementsByTagName("TD")[columnIndex];
-                    /* Check if the two rows should switch place,
-                    based on the direction, asc or desc: */
-                    if (dir == "asc") {
-                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                            // If so, mark as a switch and break the loop:
-                            shouldSwitch = true;
-                            break;
-                        }
-                    } else if (dir == "desc") {
-                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-                            // If so, mark as a switch and break the loop:
-                            shouldSwitch = true;
-                            break;
-                        }
-                    }
-                }
-                if (shouldSwitch) {
-                    /* If a switch has been marked, make the switch
-                    and mark that a switch has been done: */
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    // Each time a switch is done, increase this count by 1:
-                    switchcount ++;
-                } else {
-                    /* If no switching has been done AND the direction is "asc",
-                    set the direction to "desc" and run the while loop again. */
-                    if (switchcount == 0 && dir == "asc") {
-                        dir = "desc";
-                        switching = true;
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="misc/js/sort_table.js"></script>
 </body>
 </html>
