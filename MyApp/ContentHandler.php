@@ -660,6 +660,7 @@ class ContentHandler implements MessageComponentInterface
             $from->send(json_encode($response));
         }         
 
+        // User Registration
         else if (isset($data['otp_code']) && isset($data['session_data'])) {
             $otp = $data['session_data']['otp'];
             $otp_code = $data['otp_code'];
@@ -713,6 +714,13 @@ class ContentHandler implements MessageComponentInterface
                         $data['user_type'] = $user_type;
                         $data['datetime_registered'] = $datetime_registered;
 
+                        // Insert notification for new user registration
+                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status) VALUES (?, 'user_registration', 'pending')");
+                        $stmt->execute([$user_id]);
+
+                        // Broadcast new notification to all clients
+                        $this->broadcastNotification('new_notification');
+
                         // Send success message to client
                         $response = ['success' => true, 'data' => $data];
                         echo "A user account has been created! \n";
@@ -740,20 +748,20 @@ class ContentHandler implements MessageComponentInterface
             $user = $stmt->rowCount() > 0;
 
             if ($user) {
-                // Notify the client who sent the request
-                $from->send(json_encode(['action' => 'approve_user', 'success' => true, 'user_id' => $user_id]));
+                // Update notification status
+                $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'approved' WHERE user_id = ? AND notification_type = 'user_registration'");
+                $stmt->execute([$user_id]);
 
-                // Notify all connected clients about the deletion
-                foreach ($this->clients as $client) {
-                    if ($client !== $from) {
-                        $client->send(json_encode(['action' => 'approve_user', 'success' => true, 'user_id' => $user_id]));
-                    }
-                }
+                // Broadcast update notification to all clients
+                $this->broadcastNotification('update_notification');
+
+                $response = ['action' => 'approve_user', 'success' => true, 'user_id' => $user_id];
                 echo "User approved and evaluated by: {$evaluator_name}\n";
             } else {
-                $from->send(json_encode(['action' => 'approve_user', 'success' => false]));
+                $response = ['action' => 'approve_user', 'success' => false];
             }
-            return;
+
+            $from->send(json_encode($response));
         }
 
         else if (isset($data['action']) && $data['action'] === 'reject_user') {
@@ -770,20 +778,20 @@ class ContentHandler implements MessageComponentInterface
             $user = $stmt->rowCount() > 0;
 
             if ($user) {
-                // Notify the client who sent the request
-                $from->send(json_encode(['action' => 'reject_user', 'success' => true, 'user_id' => $user_id]));
+                // Update notification status
+                $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'rejected' WHERE user_id = ? AND notification_type = 'user_registration'");
+                $stmt->execute([$user_id]);
 
-                // Notify all connected clients about the deletion
-                foreach ($this->clients as $client) {
-                    if ($client !== $from) {
-                        $client->send(json_encode(['action' => 'reject_user', 'success' => true, 'user_id' => $user_id]));
-                    }
-                }
+                // Broadcast update notification to all clients
+                $this->broadcastNotification('update_notification');
+
+                $response = ['action' => 'reject_user', 'success' => true, 'user_id' => $user_id];
                 echo "User rejected and evaluated by: {$evaluator_name}\n";
             } else {
-                $from->send(json_encode(['action' => 'reject_user', 'success' => false]));
+                $response = ['action' => 'reject_user', 'success' => false];
             }
-            return;
+
+            $from->send(json_encode($response));
         }
 
         else if (isset($data['action']) && $data['action'] === 'edit_user') {
@@ -1052,37 +1060,47 @@ class ContentHandler implements MessageComponentInterface
         }
 
         else if (isset($data['action']) && $data['action'] === 'approve_post') {
-            $announcement_id = $data['announcement_id'];
+            $content_id = $data['content_id'];
+            $content_type = $data['content_type'];
+            $user_id = $data['user_id'];
         
-            // Update the announcement status in the database
-            $stmt = $this->pdo->prepare("UPDATE announcements_tb SET status = 'Approved' WHERE announcement_id = ?");
-            $stmt->execute([$announcement_id]);
+            // Update the content status in the respective table
+            $table = $content_type . 's_tb';  // Assuming table names follow this pattern
+            $idField = $content_type . '_id';
+            $stmt = $this->pdo->prepare("UPDATE $table SET status = 'Approved' WHERE $idField = ?");
+            $stmt->execute([$content_id]);
+
+            // Update notification status
+            $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'approved' WHERE user_id = ? AND content_id = ? AND content_type = ? AND notification_type = 'content_post'");
+            $stmt->execute([$user_id, $content_id, $content_type]);
+
+            // Create a new notification for the user
+            $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_approved', 'pending')");
+            $stmt->execute([$user_id, $content_id, $content_type]);
+
+            // Broadcast update notification to all clients
+            $this->broadcastNotification('update_notification');
         
-            $announcement = $stmt->rowCount() > 0;
+            $content_updated = $stmt->rowCount() > 0;
         
-            if ($announcement) {
-                // Fetch the updated announcement data
-                $stmt = $this->pdo->prepare("SELECT * FROM announcements_tb WHERE announcement_id = ?");
-                $stmt->execute([$announcement_id]);
-                $announcementData = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($content_updated) {
+                $notification_updated = $stmt->rowCount() > 0;
+
+                // Prepare the response
+                $response = [
+                    'action' => 'approve_post', 
+                    'success' => true, 
+                    'content_updated' => $content_updated,
+                    'notification_updated' => $notification_updated
+                ];
         
-                // Prepare the response with complete announcement data
-                $response = ['action' => 'approve_post', 'success' => true, 'announcement' => $announcementData];
-        
-                // Notify the client who sent the request
-                $from->send(json_encode($response));
-        
-                // Notify all connected clients about the approval
-                foreach ($this->clients as $client) {
-                    if ($client !== $from) {
-                        $client->send(json_encode($response));
-                    }
-                }
-                echo "An Announcement is APPROVED!\n";
+                echo "Content approved and notification updated!\n";
             } else {
-                $from->send(json_encode(['action' => 'approve_post', 'success' => false]));
+                $response = ['action' => 'approve_post', 'success' => false, 'message' => 'Failed to approve content'];
             }
-            return;
+        
+            // Notify the client who sent the request
+            $from->send(json_encode($response));
         }
 
         else if (isset($data['action']) && $data['action'] === 'fetch_dimensions') {
@@ -1504,7 +1522,7 @@ class ContentHandler implements MessageComponentInterface
                     }
                 } else if ($data['type'] === 'event' || $data['type'] === 'announcement' || $data['type'] === 'news' || $data['type'] === 'promaterial' || $data['type'] === 'peo' || $data['type'] === 'so') {
                     foreach ($data['tv_ids'] as $tv_ids) {
-                        $status = ($user_type == 'Admin') ? 'Approved' : 'Pending';
+                        $status = ($user_type == 'Admin' || $user_type == 'Super Admin') ? 'Approved' : 'Pending';
                         $category = match ($data['type']) {
                             'event' => 'Event',
                             'announcement' => 'Announcement',
@@ -1643,6 +1661,16 @@ class ContentHandler implements MessageComponentInterface
                         $statement = $this->pdo->prepare(
                             "INSERT INTO $table ($fieldList) VALUES ($placeholderList)"
                         );
+
+                        if ($user_type == 'Student' || $user_type == 'Faculty') {
+                            // Insert notification for new content post
+                            $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'pending')");
+                            $stmt->execute([$user_id, $data['id'], $data['type']]);
+                
+                            // Broadcast update notification to all clients
+                            $this->broadcastNotification('new_notification');
+                            echo "Notification sent to all clients\n";
+                        }
                     
                         $success = $statement->execute($values);
                     
@@ -1671,12 +1699,13 @@ class ContentHandler implements MessageComponentInterface
                     
                                 $data['media_path'] = $filename;
                             }
-                    
-                            $from->send(json_encode(['success' => true, 'data' => $data]));
+
+                            $response = ['action' => 'post_content', 'success' => true, 'user_id' => $user_id, 'data' => $data];
                             echo ucfirst($data['type']) . " " . (!empty($data['media']) ? 'with' : 'without') . " media uploaded!\n";
                         } else {
-                            $from->send(json_encode(['error' => 'Error processing ' . $data['type'] . '. Try again later']));
+                            $response = ['action' => 'post_content', 'success' => false, 'error' => 'Error processing ' . $data['type'] . '. Try again later'];
                         }
+                        $from->send(json_encode($response));
                     }
                 } else {
                     foreach ($data['tv_ids'] as $tv_ids) { 
@@ -2110,6 +2139,13 @@ include 'misc/php/options_tv.php';
                     <input type=\"{$input['type']}\" name=\"{$name}\" id=\"{$name}\" {$required} placeholder=\" \" style=\"background: #FFFF; width: 100%\" class=\"floating-label-input\">
                     <label for=\"{$name}\" class=\"floating-label\">{$label}</label>
                 </div>";
+        }
+    }
+
+    // Helper function to broadcast notifications to all clients
+    private function broadcastNotification($action) {
+        foreach ($this->clients as $client) {
+            $client->send(json_encode(['action' => $action]));
         }
     }
 

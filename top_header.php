@@ -76,10 +76,15 @@ $hasDrafts = array_sum($draftCounts) > 0;
                         <li><a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">General Information</a></li>
                     </ul>
                 </li>
-                <li>
+                <li style="float: right; margin-right: 5px; margin-top: 3px;">
+                    <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                    <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black;"' : ''; ?>>Preferences</a>
+                </li>
+                <li style="float: right; margin-right: 5px; margin-top: 3px;">
                     <a href="notifications.php?pageid=Notifications?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                        <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Notifications 
-                        <span id="notificationCount" style="background: crimson; color: white; padding: 2px; border-radius: 3px; text-align: center; margin-left: 3px; border: 1px white solid;"></span>
+                        <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>
+                        <i class="fa fa-bell"></i>
+                        <span id="notificationCount" style="background: crimson; color: white; padding: 2px; border-radius: 3px; text-align: center; margin-left: 3px; border: 1px white solid; display: none;"></span>
                     </a>
                 </li>
                 <li>
@@ -100,10 +105,6 @@ $hasDrafts = array_sum($draftCounts) > 0;
                     </ul>
                 </li>
                 <?php } ?>
-                <li>
-                    <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>My Profile</a>
-                </li>
                 <?php if ($hasDrafts) { ?>
                 <li>
                     <!-- Display Drafts option if there are existing drafts in each content type (announcement, event, news, etc.) -->
@@ -120,7 +121,7 @@ $hasDrafts = array_sum($draftCounts) > 0;
         </div>
     </div>
 </div>
-<script src="js/fetch_notifications_count.js"></script>
+<!-- <script src="js/fetch_notifications_count.js"></script> -->
 <script>
     function toggleDropdown() {
         var dropdownContent = document.getElementById("myDropdown");

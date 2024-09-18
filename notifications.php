@@ -54,9 +54,9 @@ $stmt->close();
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-bell" style="padding-right: 5px"></i>Notifications</h1>
-                    <div id="notificationsList" class="content-container" style="height: calc(100vh - 215px); overflow: auto; background: none; border: none">
+                    <div id="notificationsList" class="content-container" style="height: 75.5vh; overflow: auto; background: none; border: none; max-width: 600px; margin: 10px auto; background: #f8f9fa">
                         <div class="scroll-div" style="height: auto; margin-bottom: 10px">
+                            <h1>Notifications</h1>
                             <div id="notificationsContainer">
                                  <!-- Latest notifications will be displayed here -->
                             </div>
@@ -69,7 +69,6 @@ $stmt->close();
     <div id="confirmApproveModal" class="modal"></div>
     <div id="confirmRejectModal" class="modal"></div>
     <div id="confirmApproveContentModal" class="modal"></div>
-    <script src="js/fetch_notifications.js"></script>
     <script>
         const userType = '<?php echo $user_type; ?>';
         const full_name = '<?php echo $full_name; ?>';
@@ -80,5 +79,6 @@ $stmt->close();
             modal.style.display = 'none';
         }
     </script>
+    <script src="js/fetch_notifications.js"></script>
 </body>
 </html>

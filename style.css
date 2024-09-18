@@ -1739,6 +1739,24 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     margin: 10px;
 }
 
+.error-message {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.success-message {
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
 .red-button {
     color: #fff;
     padding: 8px 16px;
@@ -1979,7 +1997,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
 }
 
 th, td {
@@ -2016,6 +2033,7 @@ tr:nth-child(even) {
     overflow: hidden;
     border: 1px solid #ccc;
     background-color: #f1f1f1;
+    user-select: none;
 }
 
 .tab button {
@@ -2046,7 +2064,6 @@ tr:nth-child(even) {
 .user-details-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
 }
 
 .user-details-table th, .user-details-table td {

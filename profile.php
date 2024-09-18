@@ -40,8 +40,17 @@ if ($result->num_rows > 0) {
 // Close the statement
 $stmt->close();
 
+// Fetch all features from the database
+$stmt = $conn->prepare("SELECT * FROM features_tb");
+$stmt->execute();
+$features = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
 // After fetching user data and before the HTML output
 $content_types = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
+foreach ($features as $feature) {
+    $content_types[] = strtolower(str_replace(' ', '_', $feature['feature_name']));
+}
+
 $statuses = ['Pending', 'Approved', 'Rejected'];
 $post_counts = [];
 
@@ -109,63 +118,78 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
             <div class="column1">
                 <div class="content-inside-form">
                     <div class="content-form">
-                            <?php include('error_message.php'); ?>
-                            <table class="user-details-table">
-                                <tr>
-                                    <th>Full Name</th>
-                                    <td><?php echo $full_name; ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Department</th>
-                                    <td><?php echo $department; ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Role</th>
-                                    <td><?php echo $user_type; ?></td>
-                                </tr>
-                                <tr>
-                                    <th>USC Email</th>
-                                    <td><?php echo $email; ?></td>
-                                </tr>
-                            </table>
-                            <div class="table-container">
-                            <table class="post-counts-table">
-                                <thead>
+                            <div class="tab">
+                                <button type="button" class="tablinks active" onclick="openTab(event, 'MyProfile')">My Profile</button>
+                                <button type="button" class="tablinks" onclick="openTab(event, 'MyNumberOfPosts')">My Number of Posts</button>
+                            </div>
+                            <div id="MyProfile" class="tabcontent" style="display: block;">
+                                <?php if ($error_message): ?>
+                                    <div class="error-message"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> <?php echo $error_message; ?></div>
+                                <?php endif; ?>
+
+                                <?php if ($success_message): ?>
+                                    <div class="success-message"><i class="fa fa-check-circle" aria-hidden="true"></i> <?php echo $success_message; ?></div>
+                                <?php endif; ?>
+                                <table class="user-details-table">
                                     <tr>
-                                        <th>Content Type</th>
-                                        <th>Pending</th>
-                                        <th>Approved</th>
-                                        <th>Rejected</th>
-                                        <th>Total</th>
-                                        <th>View All</th>
+                                        <th>Full Name</th>
+                                        <td><?php echo $full_name; ?></td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($content_types as $type): ?>
-                                        <tr>
-                                            <td><?php echo ucfirst($type); ?></td>
-                                            <?php if ($type === 'peo' || $type === 'so'): ?>
-                                                <td colspan="3">N/A</td>
-                                                <td><?php echo $post_counts[$type]['Total']; ?></td>
-                                            <?php else: ?>
-                                                <?php foreach ($statuses as $status): ?>
-                                                    <td><?php echo $post_counts[$type][$status]; ?></td>
-                                                <?php endforeach; ?>
-                                                <td><?php echo array_sum($post_counts[$type]); ?></td>
-                                            <?php endif; ?>
-                                            <td>
-                                                <button type="button" class="green-button" style="margin: 0" onclick="openModal('viewPosts', '<?php echo $type; ?>')">View All</button>
-                                                <button type="button" class="red-button" style="margin: 0" onclick="openModal('viewPosts', '<?php echo $type; ?>')">Delete All</button>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                                    <tr>
+                                        <th>Department</th>
+                                        <td><?php echo $department; ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Role</th>
+                                        <td><?php echo $user_type; ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>USC Email</th>
+                                        <td><?php echo $email; ?></td>
+                                    </tr>
+                                </table>
+                                <br>
+                                <button class="red-button" onclick="openModal('logout')" style="border: none"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</button>
+                                <button class="green-button" onclick="openModal('changePassword', '<?php echo $email; ?>', '<?php echo $user_id; ?>')" style="border: none"><i class="fa fa-pencil" aria-hidden="true"></i> Change Password</a>
+                            </div>
+                            <div id="MyNumberOfPosts" class="tabcontent">
+                                <div class="table-container" style="margin-top: 0">
+                                    <table class="post-counts-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Content Type</th>
+                                                <th>Pending</th>
+                                                <th>Approved</th>
+                                                <th>Rejected</th>
+                                                <th>Total</th>
+                                                <th>View All</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($content_types as $type): ?>
+                                                <tr>
+                                                    <td><?php echo ucfirst($type); ?></td>
+                                                    <?php if ($type === 'peo' || $type === 'so'): ?>
+                                                        <td colspan="3">N/A</td>
+                                                        <td><?php echo $post_counts[$type]['Total']; ?></td>
+                                                    <?php else: ?>
+                                                        <?php foreach ($statuses as $status): ?>
+                                                            <td><?php echo $post_counts[$type][$status]; ?></td>
+                                                        <?php endforeach; ?>
+                                                        <td><?php echo array_sum($post_counts[$type]); ?></td>
+                                                    <?php endif; ?>
+                                                    <td>
+                                                        <button type="button" class="green-button" style="margin: 0" onclick="openViewAllPostsModal('viewPosts', '<?php echo $type; ?>')">View All</button>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                             <br>
                             <br>
-                            <button class="logout-button" onclick="openModal('logout')" style="border: none">Logout</button>
-                            <button class="change-password-button" onclick="openModal('changePassword', '<?php echo $email; ?>', '<?php echo $user_id; ?>')" style="border: none">Change Password</a>
+                            
                         </div>
                     </div>
                 </div>
@@ -174,33 +198,30 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
     </div>
     <!-- Change Password Modal -->
     <div id="changePasswordModal" class="modal">
-        <div class="modal-content">
-            <div class="green-bar-vertical">
-                <span class="close" onclick="closeModal('changePassword')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-                <br>
-                <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-pencil-square" aria-hidden="true"></i></h1>
-                <p>Change Password</p>
-                <form action="change_password.php" method="POST" enctype="multipart/form-data" id="changePasswordForm">
-                    <div class="floating-label-container">
-                        <input type="password" name="password" placeholder=" " class="floating-label-input" required style="padding-right: 50px">
-                        <label for="password" class="floating-label">New Password</label>
-                        <i id="togglePassword" style="font-size: 14px">Show</i>
-                    </div>
-                    <div class="floating-label-container">
-                        <input type="password" name="confirm_password" placeholder=" " class="floating-label-input" required style="padding-right: 50px">
-                        <label for="confirm_password" class="floating-label">Confirm New Password</label>
-                        <i id="toggleConfirmPassword" style="font-size: 14px">Show</i>
-                    </div>
-                    <div style="display: none; height: 0">
-                        <input type="hidden" name="user_id" readonly>
-                        <input type="hidden" name="email" readonly>
-                    </div>
-                    <br>
-                </form>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button class="cancel-button" type="button" onclick="closeModal('changePassword')">Cancel</button>
-                    <button style="margin: 0" class="confirm-button" onclick="changePasswordSubmit()">Change</button>
+        <div class="modal-content" style="padding: 15px">
+            <span class="close" onclick="closeModal('changePassword')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-pencil" aria-hidden="true"></i></h1>
+            <p>Change Password</p>
+            <form action="change_password.php" method="POST" enctype="multipart/form-data" id="changePasswordForm">
+                <div class="floating-label-container">
+                    <input type="password" name="password" placeholder=" " class="floating-label-input" required style="padding-right: 50px">
+                    <label for="password" class="floating-label">New Password</label>
+                    <i id="togglePassword" style="font-size: 14px">Show</i>
                 </div>
+                <div class="floating-label-container">
+                    <input type="password" name="confirm_password" placeholder=" " class="floating-label-input" required style="padding-right: 50px">
+                    <label for="confirm_password" class="floating-label">Confirm New Password</label>
+                    <i id="toggleConfirmPassword" style="font-size: 14px">Show</i>
+                </div>
+                <div style="display: none; height: 0">
+                    <input type="hidden" name="user_id" value="<?php echo $user_id; ?>" readonly>
+                </div>
+                <br>
+            </form>
+            <div style="align-items: right; text-align: right; right: 0">
+                <button class="green-button" type="button" style="background: #334b353b; color: black" onclick="closeModal('changePassword')">Cancel</button>
+                <button style="margin: 0" class="green-button" onclick="changePasswordSubmit()">Update</button>
             </div>
         </div>
     </div>
@@ -212,75 +233,27 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
                 <span class="close" onclick="closeModal('logout')" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
                 <br>
                 <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-sign-out" aria-hidden="true"></i></h1>
-                <p>Are you sure to logout?</p>
+                <p>Proceed to logout?</p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
-                    <button class="cancel-button" onclick="closeModal('logout')">No</button>
+                    <button class="red-button" style="background: #334b353b; color: black" onclick="closeModal('logout')">No</button>
                     <button class="red-button" style="margin: 0" onclick="logout()">Yes, I want to logout</button>
                 </div>
             </div>
         </div>
     </div>
-    <script>
-        function confirmLogout() {
-        return confirm("Are you sure you want to log out?");
-    }
 
-    function logout() {
-        window.location.href = "logout.php";
-    }
+    <!-- View Posts Modal -->
+    <div id="viewPostsModal" class="modal">
+        <div class="modal-content" style="text-align: left; padding: 15px; height: auto; overflow-y: auto;">
+            <span class="close" onclick="closeModal('viewPosts')" style="color: #316038"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <br>
+            <p style="font-size: 13px; color: #6E6E6E; font-weight: bold" id="modalTitle">Posts</p>
+            <div id="postsContainer" style="overflow-y: auto; height: 250px; padding-right: 15px"></div>
+        </div>
+    </div>
 
-    function openModal(modalId, userName, userId) {
-        var modal = document.getElementById(modalId + 'Modal');
-        var userNameInput = document.querySelector('#' + modalId + 'Modal [name="user_name"]');
-        var userIdInput = document.querySelector('#' + modalId + 'Modal [name="user_id"]');
-
-        modal.style.display = 'flex';
-        userNameInput.value = userName;
-        userIdInput.value = userId;
-    }
-
-    function closeModal(modalId) {
-        var modal = document.getElementById(modalId + 'Modal');
-        modal.style.display = 'none';
-
-        // Clear password fields
-        var passwordFields = modal.querySelectorAll("[type='password']");
-        passwordFields.forEach(function(field) {
-            field.value = '';
-        });
-    }
-
-    function changeUserNameSubmit() {
-        document.getElementById('updateUserNameForm').submit();
-    }
-
-    function changePasswordSubmit() {
-        document.getElementById('changePasswordForm').submit();
-    }
-
-    // JavaScript to toggle password visibility and show/hide labels
-    const togglePassword = document.querySelector("#togglePassword");
-    const toggleConfirmPassword = document.querySelector("#toggleConfirmPassword");
-    const password1 = document.querySelector("[name='password']");
-    const password2 = document.querySelector("[name='confirm_password']");
-    const floatingInput = document.querySelector(".floating-label-input");
-
-    togglePassword.addEventListener("click", function () {
-        // Toggle the type attribute
-        const type = password1.getAttribute("type") === "password" ? "text" : "password";
-        password1.setAttribute("type", type);
-        // Toggle the text of the toggle button
-        this.textContent = type === "password" ? "Show" : "Hide";
-    });
-
-    toggleConfirmPassword.addEventListener("click", function () {
-        // Toggle the type attribute
-        const type = password2.getAttribute("type") === "password" ? "text" : "password";
-        password2.setAttribute("type", type);
-        // Toggle the text of the toggle button
-        this.textContent = type === "password" ? "Show" : "Hide";
-    });
-    </script>
+    <script src="js/fetch_myprofile.js"></script>
 </body>
 </html>
