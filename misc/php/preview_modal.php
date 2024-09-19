@@ -65,75 +65,64 @@
         let scheduleDateTime = null;
         
         if (selectedType !== 'peo' && selectedType !== 'so' && selectedType !== 'promaterial') {
-            const expirationDate = document.querySelector('[name="expiration_date"]').value;
-            const expirationTime = document.querySelector('[name="expiration_time"]').value;
-            const scheduleDate = document.querySelector('[name="schedule_date"]').value;
-            const scheduleTime = document.querySelector('[name="schedule_time"]').value;
+            const expirationDateTime = document.querySelector('[name="expiration_datetime"]').value;
+            const scheduleDateTime = document.querySelector('[name="schedule_datetime"]').value;
             
-            // <p><br></p>
             // Check if any of the required fields is empty
-            if (contentBody === "<p><br></p>" || contentBody === "" || displayTime === "" || tvDisplays.length === 0 || expirationDate === "" || expirationTime === "") {
+            if (contentBody === "<p><br></p>" || contentBody === "" || displayTime === "" || tvDisplays.length === 0 || expirationDateTime === "") {
                 // If conditions are not met, show error message and exit
                 errorModalMessage("Please fill the necessary fields and select at least one TV display.");
                 return;
             }
 
             // Convert expiration date and time to Date object
-            expirationDateTime = new Date(expirationDate + ' ' + expirationTime);
             const currentDateTime = new Date();
+            const expirationDate = new Date(expirationDateTime);
 
-            if (expirationDateTime < currentDateTime) {
+            if (expirationDate < currentDateTime) {
                 errorModalMessage("Expiration date and time should not be in the past.");
                 return;
             }
 
             // If schedule date and time are provided, validate them
-            if (scheduleDate !== "" && scheduleTime !== "") {
-                scheduleDateTime = new Date(scheduleDate + ' ' + scheduleTime);
+            if (scheduleDateTime !== "") {
+                const scheduleDate = new Date(scheduleDateTime);
 
-                if (scheduleDateTime < currentDateTime) {
+                if (scheduleDate < currentDateTime) {
                     errorModalMessage("Schedule date and time should not be in the past.");
                     return;
-                } else if (expirationDateTime < scheduleDateTime) {
+                } else if (expirationDate < scheduleDate) {
                     errorModalMessage("Expiration date and time should not be before the schedule date and time.");
-                    return;
-                } else if (scheduleDateTime > expirationDateTime) {
-                    errorModalMessage("Schedule date and time should not be after the expiration date and time.");
                     return;
                 }
             }
         } else if (selectedType === 'promaterial') {
-            const expirationDate = document.querySelector('[name="expiration_date"]').value;
-            const expirationTime = document.querySelector('[name="expiration_time"]').value;
-            const scheduleDate = document.querySelector('[name="schedule_date"]').value;
-            const scheduleTime = document.querySelector('[name="schedule_time"]').value;
+            const expirationDateTime = document.querySelector('[name="expiration_datetime"]').value;
+            const scheduleDateTime = document.querySelector('[name="schedule_datetime"]').value;
             
-            if (!media || displayTime === "" || tvDisplays.length === 0 || expirationDate === "" || expirationTime === "") {
+            if (!media || displayTime === "" || tvDisplays.length === 0 || expirationDateTime === "") {
                 errorModalMessage("Please fill the necessary fields and select at least one TV display.");
                 return;
             }
 
             // Convert expiration date and time to Date object
-            expirationDateTime = new Date(expirationDate + ' ' + expirationTime);
             const currentDateTime = new Date();
+            const expirationDate = new Date(expirationDateTime);
 
-            if (expirationDateTime < currentDateTime) {
+            if (expirationDate < currentDateTime) {
                 errorModalMessage("Expiration date and time should not be in the past.");
                 return;
             }
 
             // If schedule date and time are provided, validate them
-            if (scheduleDate !== "" && scheduleTime !== "") {
-                scheduleDateTime = new Date(scheduleDate + ' ' + scheduleTime);
+            if (scheduleDateTime !== "") {
+                const scheduleDate = new Date(scheduleDateTime);
 
-                if (scheduleDateTime < currentDateTime) {
+                if (scheduleDate < currentDateTime) {
                     errorModalMessage("Schedule date and time should not be in the past.");
                     return;
-                } else if (expirationDateTime < scheduleDateTime) {
+                } else if (expirationDate < scheduleDate) {
                     errorModalMessage("Expiration date and time should not be before the schedule date and time.");
-                    return;
-                } else if (scheduleDateTime > expirationDateTime) {
-                    errorModalMessage("Schedule date and time should not be after the expiration date and time.");
                     return;
                 }
             }
@@ -159,8 +148,8 @@
     function getPreviewContent() {
         const selectedType = document.querySelector('[name="type"]').value;
         // Function to format date and time
-        function formatDateTime(dateString, timeString) {
-            const dateTime = new Date(dateString + ' ' + timeString);
+        function formatDateTime(dateTimeString) {
+            const dateTime = new Date(dateTimeString);
             const options = {
                 weekday: 'short',
                 month: 'short',
@@ -177,8 +166,8 @@
 
         if (selectedType !== 'peo' && selectedType !== 'so') {
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
-            previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_date"]').value, document.querySelector('[name="expiration_time"]').value) + '</p>';
-            previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + (document.querySelector('[name="schedule_date"]').value ? formatDateTime(document.querySelector('[name="schedule_date"]').value, document.querySelector('[name="schedule_time"]').value) : 'Not scheduled') + '</p>';
+            previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_datetime"]').value) + '</p>';
+            previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + (document.querySelector('[name="schedule_datetime"]').value ? formatDateTime(document.querySelector('[name="schedule_datetime"]').value) : 'Not scheduled') + '</p>';
         } else {
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
         }

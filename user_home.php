@@ -135,6 +135,8 @@ include 'get_session.php';
     <script>
         const userType = '<?php echo $user_type; ?>';
         const full_name = '<?php echo $full_name; ?>';
+        const user_id = '<?php echo $user_id; ?>';
+
         const tvFrames = document.querySelectorAll('.tv-frame');
         const scaleUpButtons = document.querySelectorAll('.scale-up');
         const scaleDownButtons = document.querySelectorAll('.scale-down');

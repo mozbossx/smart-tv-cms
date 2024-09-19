@@ -1761,7 +1761,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     color: #fff;
     padding: 8px 16px;
     border-radius: 5px;
-    border: none;
+    border: 1px solid rgb(126, 11, 34);
     cursor: pointer;
     transition: background-color 0.3s;
     color: #ffffff;
@@ -1977,7 +1977,8 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .input-date,
-.input-time {
+.input-time,
+.input-datetime {
     width: 100%;
     padding: 5px;
     margin-bottom: 5px;
@@ -2059,6 +2060,56 @@ tr:nth-child(even) {
     padding: 12px;
     border: 1px solid #ccc;
     border-top: none;
+}
+
+.created-at-notification {
+    font-size: 12px;
+    color: #6E6E6E;
+    font-style: bold;
+}
+
+.notification {
+    background-color: #e6ffe6;
+    color: #2f4f4f;
+    border-left: 5px solid #2e8b57;
+    padding: 25px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease;
+    position: relative;
+    user-select: none;
+}
+
+.notification:hover {
+    background-color: #d0f5d0;
+}
+
+.notification-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.delete-notification {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    border: none;
+    color: #000000;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 2px;
+    background: none;
+    user-select: none;
+    float: right;
 }
 
 .user-details-table {
@@ -2733,6 +2784,14 @@ input[type=range]:focus::-ms-fill-upper {
     .close-sidebar-button.open{
         display: block;
     }
+
+    .notification {
+        flex-direction: column;
+        transition: background-color 0.3s ease;
+        align-items: baseline;
+        gap: 10px;
+    }
+    
 }
 
 /* CSS FOR THE TV  */

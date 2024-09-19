@@ -54,7 +54,13 @@ $stmt->close();
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <div id="notificationsList" class="content-container" style="height: 75.5vh; overflow: auto; background: none; border: none; max-width: 600px; margin: 10px auto; background: #f8f9fa">
+                    <div id="notificationsList" class="content-container" 
+                    style="height: 75.5vh; max-width: 600px;
+                    margin: 10px auto;
+                    padding: 20px;
+                    background-color: #f9f9f9;
+                    border-radius: 8px;
+                    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);">
                         <div class="scroll-div" style="height: auto; margin-bottom: 10px">
                             <h1>Notifications</h1>
                             <div id="notificationsContainer">
@@ -66,9 +72,10 @@ $stmt->close();
             </div>
         </div>
     </div>
-    <div id="confirmApproveModal" class="modal"></div>
-    <div id="confirmRejectModal" class="modal"></div>
+    <div id="confirmApproveUserModal" class="modal"></div>
+    <div id="confirmRejectUserModal" class="modal"></div>
     <div id="confirmApproveContentModal" class="modal"></div>
+    <div id="confirmRejectContentModal" class="modal"></div>
     <script>
         const userType = '<?php echo $user_type; ?>';
         const full_name = '<?php echo $full_name; ?>';

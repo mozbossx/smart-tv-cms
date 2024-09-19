@@ -1,18 +1,17 @@
 const Ws = new WebSocket('ws://192.168.1.13:8081');
 
-// Function to format date to "MM DD YYYY"
-const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const options = { year: 'numeric', month: 'long', day: '2-digit' };
-    return date.toLocaleDateString('en-US', options);
-};
-
-// Function to format time to "01:00pm"
-const formatTime = (timeString) => {
-    const time = new Date(`1970-01-01T${timeString}Z`);
-    const options = { hour: '2-digit', minute: '2-digit' };
-    return time.toLocaleTimeString('en-US', options).replace(/(:\d{2})$/, '').toLowerCase();
-};
+function formatDate(dateTimeString) {
+    const dateTime = new Date(dateTimeString);
+    const options = {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+    };
+    return new Intl.DateTimeFormat('en-US', options).format(dateTime);
+}
 
 // Utility function to create buttons
 const createButton = (text, iconClass, onClick) => {
@@ -34,7 +33,7 @@ const createButton = (text, iconClass, onClick) => {
 };
 
 // Function to create content div
-const createContentDiv = (data, mediaContent, formattedCreatedDate, formattedCreatedTime, formattedExpirationDate, formattedExpirationTime, type, tvDisplay) => {
+const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, type, tvDisplay) => {
     let contentHtml = `
         <div class="content-container-con">
             ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
@@ -58,8 +57,8 @@ const createContentDiv = (data, mediaContent, formattedCreatedDate, formattedCre
         default:
             // For new features, dynamically add all fields
             for (let key in data) {
-                if (key !== `${type}_id` && key !== 'created_date' && key !== 'created_time' && key !== 'expiration_date' 
-                    && key !== 'expiration_time' && key !== 'display_time' && key !== 'status' && key !== 'isCancelled' 
+                if (key !== `${type}_id` && key !== 'created_datetime' && key !== 'expiration_datetime' 
+                    && key !== 'display_time' && key !== 'status' && key !== 'isCancelled' 
                     && key !== 'tv_id' && key !== `${type}_author_id` && key !== 'type' && key !== 'department' 
                     && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name') {
                         contentHtml += `<p>${data[key]}</p>`;
@@ -68,8 +67,8 @@ const createContentDiv = (data, mediaContent, formattedCreatedDate, formattedCre
     }
 
     contentHtml += `
-            <p class="ann-author" style="color: #6E6E6E; margin-top: 10px"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
-            <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDate} at ${formattedExpirationTime}</small></p>
+            <p class="ann-author" style="color: #6E6E6E; margin-top: 10px"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
+            <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDateTime}</small></p>
             <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs  |  <i class="fa fa-tv" aria-hidden="true" style="margin-left: 5px"></i> ${tvDisplay}</p>
         </div>
     `;
@@ -85,10 +84,8 @@ const updateUI = async (data, type) => {
     console.log(tvInfo);
 
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
-    const formattedCreatedDate = formatDate(data.created_date);
-    const formattedCreatedTime = formatTime(data.created_time);
-    const formattedExpirationDate = formatDate(data.expiration_date);
-    const formattedExpirationTime = formatTime(data.expiration_time);
+    const formattedCreatedDateTime = formatDate(data.created_datetime);
+    const formattedExpirationDateTime = formatDate(data.expiration_datetime);
 
     let mediaContent = '';
     if (data.media_path) {
@@ -98,7 +95,7 @@ const updateUI = async (data, type) => {
             isVideo ? `<video width="100%" height="100%" controls style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
-    const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDate, formattedCreatedTime, formattedExpirationDate, formattedExpirationTime, type, tvInfo.tv_display);
+    const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, type, tvInfo.tv_display);
     
     if (existingDiv) {
         existingDiv.querySelector('.content-container-con').innerHTML = contentDiv;
@@ -383,7 +380,7 @@ Ws.addEventListener('message', function(event) {
             if (updatedDiv) {
                 // Update the content of the existing item
                 fetchAndUpdate(data.type);
-                updatedDiv.querySelector('.content-container-con').innerHTML = createContentDiv(data, /* mediaContent */ '', formatDate(data.created_date), formatTime(data.created_time), formatDate(data.expiration_date), formatTime(data.expiration_time));
+                updatedDiv.querySelector('.content-container-con').innerHTML = createContentDiv(data, /* mediaContent */ '', formatDate(data.created_datetime), formatDate(data.expiration_datetime));
             } else {
                 fetchAndUpdate(data.type);
                 console.log(`Received update for non-existing ${data.type} with ID ${data[`${data.type}_id`]}.`);

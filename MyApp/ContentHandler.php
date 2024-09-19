@@ -218,14 +218,13 @@ class ContentHandler implements MessageComponentInterface
                 $id = $data[$idField];
 
                 $isCancelled = 0;
-                $expirationDate = $data['expiration_date'] ?? null;
-                $expirationTime = $data['expiration_time'] ?? null;
+                $expirationDateTime = $data['expiration_datetime'] ?? null;
                 
                 // Prepare the update query
-                $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = ?, expiration_date = ?, expiration_time = ? WHERE {$idField} = ?");
+                $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = ?, expiration_datetime = ? WHERE {$idField} = ?");
                 
                 // Bind parameters and execute query
-                $stmt->execute([$isCancelled, $expirationDate, $expirationTime, $id]);
+                $stmt->execute([$isCancelled, $expirationDateTime, $id]);
                 
                 // Fetch updated data
                 $stmt = $this->pdo->prepare("SELECT * FROM {$table} WHERE {$idField} = ?");
@@ -258,36 +257,36 @@ class ContentHandler implements MessageComponentInterface
                 'announcement' => [
                     'table' => 'announcements_tb',
                     'idField' => 'announcement_id',
-                    'fields' => ['announcement_body', 'announcement_author_id', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['announcement_body', 'announcement_author_id', 'expiration_datetime', 'display_time', 'tv_id'],
                     'mediaFolder' => 'announcement_media'
                 ],
                 'event' => [
                     'table' => 'events_tb',
                     'idField' => 'event_id',
-                    'fields' => ['event_body', 'event_author_id', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['event_body', 'event_author_id', 'expiration_datetime', 'display_time', 'tv_id'],
                     'mediaFolder' => 'event_media'
                 ],
                 'news' => [
                     'table' => 'news_tb',
                     'idField' => 'news_id',
-                    'fields' => ['news_body', 'news_author_id', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['news_body', 'news_author_id', 'expiration_datetime', 'display_time', 'tv_id'],
                     'mediaFolder' => 'news_media'
                 ],
                 'promaterial' => [
                     'table' => 'promaterials_tb',
                     'idField' => 'promaterial_id',
-                    'fields' => ['promaterial_author_id', 'created_date', 'created_time', 'expiration_date', 'expiration_time', 'display_time', 'tv_id'],
+                    'fields' => ['promaterial_author_id', 'expiration_datetime', 'display_time', 'tv_id'],
                     'mediaFolder' => 'promaterial_media'
                 ],
                 'peo' => [
                     'table' => 'peo_tb',
                     'idField' => 'peo_id',
-                    'fields' => ['peo_title', 'peo_description', 'peo_subdescription', 'peo_author_id', 'created_date', 'created_time', 'display_time', 'tv_id']
+                    'fields' => ['peo_title', 'peo_description', 'peo_subdescription', 'peo_author_id', 'display_time', 'tv_id']
                 ],
                 'so' => [
                     'table' => 'so_tb',
                     'idField' => 'so_id',
-                    'fields' => ['so_title', 'so_description', 'so_subdescription', 'so_author_id', 'created_date', 'created_time', 'display_time', 'tv_id']
+                    'fields' => ['so_title', 'so_description', 'so_subdescription', 'so_author_id', 'display_time', 'tv_id']
                 ]
             ];
         
@@ -739,7 +738,7 @@ class ContentHandler implements MessageComponentInterface
             $user_id = $data['user_id'];
 
             // Retrieve full_name from session
-            $evaluator_name = $from->full_name;
+            $evaluator_name = $data['full_name'];
         
             // Perform the deletion from the database
             $stmt = $this->pdo->prepare("UPDATE users_tb SET status = 'Approved', evaluated_by = ? WHERE user_id = ?");
@@ -749,8 +748,12 @@ class ContentHandler implements MessageComponentInterface
 
             if ($user) {
                 // Update notification status
-                $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'approved' WHERE user_id = ? AND notification_type = 'user_registration'");
-                $stmt->execute([$user_id]);
+                $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'approved', evaluator_name = ?, notification_type = 'user_approved' WHERE user_id = ? AND notification_type = 'user_registration'");
+                $stmt->execute([$evaluator_name, $user_id]);
+
+                // Insert user_approved notification
+                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name) VALUES (?, 'user_approved_by_admin', 'approved', ?)");
+                $stmt->execute([$user_id, $evaluator_name]);
 
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('update_notification');
@@ -769,7 +772,7 @@ class ContentHandler implements MessageComponentInterface
             $evaluated_message = isset($data['evaluated_message']) ? htmlspecialchars($data['evaluated_message']) : '';
 
             // Retrieve full_name from session
-            $evaluator_name = $from->full_name;
+            $evaluator_name = $data['full_name'];
         
             // Perform the deletion from the database
             $stmt = $this->pdo->prepare("UPDATE users_tb SET status = 'Rejected', evaluated_by = ?, evaluated_message = ? WHERE user_id = ?");
@@ -779,8 +782,8 @@ class ContentHandler implements MessageComponentInterface
 
             if ($user) {
                 // Update notification status
-                $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'rejected' WHERE user_id = ? AND notification_type = 'user_registration'");
-                $stmt->execute([$user_id]);
+                $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'rejected', evaluator_name = ? WHERE user_id = ? AND notification_type = 'user_registration'");
+                $stmt->execute([$evaluator_name, $user_id]);
 
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('update_notification');
@@ -1063,35 +1066,35 @@ class ContentHandler implements MessageComponentInterface
             $content_id = $data['content_id'];
             $content_type = $data['content_type'];
             $user_id = $data['user_id'];
-        
+            $evaluator_name = $data['full_name'];
+
             // Update the content status in the respective table
-            $table = $content_type . 's_tb';  // Assuming table names follow this pattern
+            $table = $content_type . 's_tb'; 
             $idField = $content_type . '_id';
-            $stmt = $this->pdo->prepare("UPDATE $table SET status = 'Approved' WHERE $idField = ?");
-            $stmt->execute([$content_id]);
-
-            // Update notification status
-            $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'approved' WHERE user_id = ? AND content_id = ? AND content_type = ? AND notification_type = 'content_post'");
-            $stmt->execute([$user_id, $content_id, $content_type]);
-
-            // Create a new notification for the user
-            $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_approved', 'pending')");
-            $stmt->execute([$user_id, $content_id, $content_type]);
-
-            // Broadcast update notification to all clients
-            $this->broadcastNotification('update_notification');
+            $stmtUpdateContentTable = $this->pdo->prepare("UPDATE $table SET status = 'Approved' WHERE $idField = ?");
+            $stmtUpdateContentTable->execute([$content_id]);
         
-            $content_updated = $stmt->rowCount() > 0;
+            $content_updated = $stmtUpdateContentTable->rowCount() > 0;
         
             if ($content_updated) {
-                $notification_updated = $stmt->rowCount() > 0;
+                // Update notification status
+                $stmtUpdateNotificationTable = $this->pdo->prepare("UPDATE notifications_tb SET status = 'approved', notification_type = 'content_approved', evaluator_name = ? WHERE user_id = ? AND content_id = ? AND content_type = ?");
+                $stmtUpdateNotificationTable->execute([$evaluator_name, $user_id, $content_id, $content_type]);
+
+                // Create a new notification for the user
+                $stmtInsertNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, evaluator_name) VALUES (?, ?, ?, 'content_approved_by_admin', 'approved', ?)");
+                $stmtInsertNotificationTable->execute([$user_id, $content_id, $content_type, $evaluator_name]);
+    
+                // Broadcast update notification to all clients
+                $this->broadcastNotification('new_notification');
+
+                echo "Notification sent to all clients\n";
 
                 // Prepare the response
                 $response = [
                     'action' => 'approve_post', 
                     'success' => true, 
-                    'content_updated' => $content_updated,
-                    'notification_updated' => $notification_updated
+                    'content_updated' => $content_updated
                 ];
         
                 echo "Content approved and notification updated!\n";
@@ -1101,6 +1104,81 @@ class ContentHandler implements MessageComponentInterface
         
             // Notify the client who sent the request
             $from->send(json_encode($response));
+        }
+
+        else if (isset($data['action']) && $data['action'] === 'reject_post') {
+            $content_id = $data['content_id'];
+            $content_type = $data['content_type'];
+            $user_id = $data['user_id'];
+            $evaluator_name = $data['full_name'];
+
+            // Update the content status in the respective table
+            $table = $content_type . 's_tb'; 
+            $idField = $content_type . '_id';
+            $stmtUpdateContentTable = $this->pdo->prepare("UPDATE $table SET status = 'Rejected' WHERE $idField = ?");
+            $stmtUpdateContentTable->execute([$content_id]);
+        
+            $content_updated = $stmtUpdateContentTable->rowCount() > 0;
+        
+            if ($content_updated) {
+                // Update notification status
+                $stmtUpdateNotificationTable = $this->pdo->prepare("UPDATE notifications_tb SET status = 'rejected', notification_type = 'content_rejected', evaluator_name = ? WHERE user_id = ? AND content_id = ? AND content_type = ?");
+                $stmtUpdateNotificationTable->execute([$evaluator_name, $user_id, $content_id, $content_type]);
+
+                // Create a new notification for the user
+                $stmtInsertNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, evaluator_name) VALUES (?, ?, ?, 'content_rejected_by_admin', 'rejected', ?)");
+                $stmtInsertNotificationTable->execute([$user_id, $content_id, $content_type, $evaluator_name]);
+    
+                // Broadcast update notification to all clients
+                $this->broadcastNotification('new_notification');
+
+                echo "Notification sent to all clients\n";
+
+                // Prepare the response
+                $response = [
+                    'action' => 'reject_post', 
+                    'success' => true, 
+                    'content_updated' => $content_updated
+                ];
+        
+                echo "Content rejected and notification updated!\n";
+            } else {
+                $response = ['action' => 'reject_post', 'success' => false, 'message' => 'Failed to reject content'];
+            }
+        
+            // Notify the client who sent the request
+            $from->send(json_encode($response));
+        }
+
+        else if (isset($data['action']) && $data['action'] === 'delete_notification') {
+            $notificationId = $data['notification_id'];
+    
+            $stmt = $this->pdo->prepare("DELETE FROM notifications_tb WHERE notification_id = ?");
+            $stmt->execute([$notificationId]);
+    
+            $deleted = $stmt->rowCount() > 0;
+    
+            $response = [
+                'action' => 'delete_notification',
+                'success' => $deleted,
+                'notification_id' => $notificationId
+            ];
+    
+            if ($deleted) {
+                echo "Notification deleted: {$notificationId}\n";
+            } else {
+                echo "Failed to delete notification: {$notificationId}\n";
+            }
+    
+            // Notify the client who sent the request
+            $from->send(json_encode($response));
+    
+            // Broadcast the update to all connected clients
+            foreach ($this->clients as $client) {
+                if ($client !== $from) {
+                    $client->send(json_encode($response));
+                }
+            }
         }
 
         else if (isset($data['action']) && $data['action'] === 'fetch_dimensions') {
@@ -1156,8 +1234,6 @@ class ContentHandler implements MessageComponentInterface
                     };
 
                     $isCancelled = 0;
-                    $created_date = date('Y-m-d');
-                    $created_time = date('H:i:s');
 
                     // Determine media folder
                     $mediaFolder = match ($data['type']) {
@@ -1205,56 +1281,40 @@ class ContentHandler implements MessageComponentInterface
                     // Common fields for all types
                     $fields = [
                         'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                        'category', 'created_date', 'created_time', 'isCancelled', 'status'
+                        'category', 'isCancelled', 'status'
                     ];
                     $values = [
                         $department, $user_type, $user_id, $tv_ids, $data['display_time'] ?? null,
-                        $category, $created_date, $created_time, $isCancelled, $status
+                        $category, $isCancelled, $status
                     ];
 
                     // Add type-specific fields
                     if ($data['type'] === 'event') {
                         $fields[] = 'event_body';
-                        $fields[] = 'expiration_date';
-                        $fields[] = 'expiration_time';
-                        $fields[] = 'schedule_date';
-                        $fields[] = 'schedule_time';
+                        $fields[] = 'expiration_datetime';
+                        $fields[] = 'schedule_datetime';
                         $values[] = $data['event_body'] ?? null;
-                        $values[] = $data['expiration_date'] ?? null;
-                        $values[] = $data['expiration_time'] ?? null;
-                        $values[] = $data['schedule_date'] ?? null;
-                        $values[] = $data['schedule_time'] ?? null;
+                        $values[] = $data['expiration_datetime'] ?? null;
+                        $values[] = $data['schedule_datetime'] ?? null;
                     } elseif ($data['type'] === 'news') {
                         $fields[] = 'news_body';
-                        $fields[] = 'expiration_date';
-                        $fields[] = 'expiration_time';
-                        $fields[] = 'schedule_date';
-                        $fields[] = 'schedule_time';
+                        $fields[] = 'expiration_datetime';
+                        $fields[] = 'schedule_datetime';
                         $values[] = $data['news_body'] ?? null;
-                        $values[] = $data['expiration_date'] ?? null;
-                        $values[] = $data['expiration_time'] ?? null;
-                        $values[] = $data['schedule_date'] ?? null;
-                        $values[] = $data['schedule_time'] ?? null;
+                        $values[] = $data['expiration_datetime'] ?? null;
+                        $values[] = $data['schedule_datetime'] ?? null;
                     } elseif ($data['type'] === 'announcement') {
                         $fields[] = 'announcement_body';
-                        $fields[] = 'expiration_date';
-                        $fields[] = 'expiration_time';
-                        $fields[] = 'schedule_date';
-                        $fields[] = 'schedule_time';
+                        $fields[] = 'expiration_datetime';
+                        $fields[] = 'schedule_datetime';
                         $values[] = $data['announcement_body'] ?? null;
-                        $values[] = $data['expiration_date'] ?? null;
-                        $values[] = $data['expiration_time'] ?? null;
-                        $values[] = $data['schedule_date'] ?? null;
-                        $values[] = $data['schedule_time'] ?? null;
+                        $values[] = $data['expiration_datetime'] ?? null;
+                        $values[] = $data['schedule_datetime'] ?? null;
                     } elseif ($data['type'] === 'promaterial') {
-                        $fields[] = 'expiration_date';
-                        $fields[] = 'expiration_time';
-                        $fields[] = 'schedule_date';
-                        $fields[] = 'schedule_time';
-                        $values[] = $data['expiration_date'] ?? null;
-                        $values[] = $data['expiration_time'] ?? null;
-                        $values[] = $data['schedule_date'] ?? null;
-                        $values[] = $data['schedule_time'] ?? null;
+                        $fields[] = 'expiration_datetime';
+                        $fields[] = 'schedule_datetime';
+                        $values[] = $data['expiration_datetime'] ?? null;
+                        $values[] = $data['schedule_datetime'] ?? null;
                     } elseif ($data['type'] === 'peo') {
                         $fields[] = 'peo_title';
                         $fields[] = 'peo_description';
@@ -1284,8 +1344,6 @@ class ContentHandler implements MessageComponentInterface
                         $id = $this->pdo->lastInsertId();
                         $data[$idField] = $id;
                         $data[$authorField] = $user_id;
-                        $data['created_date'] = $created_date;
-                        $data['created_time'] = $created_time;
                         $data['category'] = $category;
                         $data['user_type'] = $user_type;
                         $data['status'] = $status;
@@ -1326,8 +1384,6 @@ class ContentHandler implements MessageComponentInterface
                 };
 
                 $isCancelled = 0;
-                $created_date = date('Y-m-d');
-                $created_time = date('H:i:s');
 
                 // Determine media folder
                 $mediaFolder = match ($data['type']) {
@@ -1375,56 +1431,40 @@ class ContentHandler implements MessageComponentInterface
                 // Common fields for all types
                 $fields = [
                     'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                    'category', 'created_date', 'created_time', 'isCancelled', 'status'
+                    'category', 'isCancelled', 'status'
                 ];
                 $values = [
                     $department, $user_type, $user_id, null, $data['display_time'] ?? null,
-                    $category, $created_date, $created_time, $isCancelled, $status
+                    $category, $isCancelled, $status
                 ];
 
                 // Add type-specific fields
                 if ($data['type'] === 'event') {
                     $fields[] = 'event_body';
-                    $fields[] = 'expiration_date';
-                    $fields[] = 'expiration_time';
-                    $fields[] = 'schedule_date';
-                    $fields[] = 'schedule_time';
+                    $fields[] = 'expiration_datetime';
+                    $fields[] = 'schedule_datetime';
                     $values[] = $data['event_body'] ?? null;
-                    $values[] = $data['expiration_date'] ?? null;
-                    $values[] = $data['expiration_time'] ?? null;
-                    $values[] = $data['schedule_date'] ?? null;
-                    $values[] = $data['schedule_time'] ?? null;
+                    $values[] = $data['expiration_datetime'] ?? null;
+                    $values[] = $data['schedule_datetime'] ?? null;
                 } elseif ($data['type'] === 'news') {
                     $fields[] = 'news_body';
-                    $fields[] = 'expiration_date';
-                    $fields[] = 'expiration_time';
-                    $fields[] = 'schedule_date';
-                    $fields[] = 'schedule_time';
+                    $fields[] = 'expiration_datetime';
+                    $fields[] = 'schedule_datetime';
                     $values[] = $data['news_body'] ?? null;
-                    $values[] = $data['expiration_date'] ?? null;
-                    $values[] = $data['expiration_time'] ?? null;
-                    $values[] = $data['schedule_date'] ?? null;
-                    $values[] = $data['schedule_time'] ?? null;
+                    $values[] = $data['expiration_datetime'] ?? null;
+                    $values[] = $data['schedule_datetime'] ?? null;
                 } elseif ($data['type'] === 'announcement') {
                     $fields[] = 'announcement_body';
-                    $fields[] = 'expiration_date';
-                    $fields[] = 'expiration_time';
-                    $fields[] = 'schedule_date';
-                    $fields[] = 'schedule_time';
+                    $fields[] = 'expiration_datetime';
+                    $fields[] = 'schedule_datetime';
                     $values[] = $data['announcement_body'] ?? null;
-                    $values[] = $data['expiration_date'] ?? null;
-                    $values[] = $data['expiration_time'] ?? null;
-                    $values[] = $data['schedule_date'] ?? null;
-                    $values[] = $data['schedule_time'] ?? null;
+                    $values[] = $data['expiration_datetime'] ?? null;
+                    $values[] = $data['schedule_datetime'] ?? null;
                 } elseif ($data['type'] === 'promaterial') {
-                    $fields[] = 'expiration_date';
-                    $fields[] = 'expiration_time';
-                    $fields[] = 'schedule_date';
-                    $fields[] = 'schedule_time';
-                    $values[] = $data['expiration_date'] ?? null;
-                    $values[] = $data['expiration_time'] ?? null;
-                    $values[] = $data['schedule_date'] ?? null;
-                    $values[] = $data['schedule_time'] ?? null;
+                    $fields[] = 'expiration_datetime';
+                    $fields[] = 'schedule_datetime';
+                    $values[] = $data['expiration_datetime'] ?? null;
+                    $values[] = $data['schedule_datetime'] ?? null;
                 } elseif ($data['type'] === 'peo') {
                     $fields[] = 'peo_title';
                     $fields[] = 'peo_description';
@@ -1454,8 +1494,6 @@ class ContentHandler implements MessageComponentInterface
                     $id = $this->pdo->lastInsertId();
                     $data[$idField] = $id;
                     $data[$authorField] = $user_id;
-                    $data['created_date'] = $created_date;
-                    $data['created_time'] = $created_time;
                     $data['category'] = $category;
                     $data['user_type'] = $user_type;
                     $data['status'] = $status;
@@ -1534,8 +1572,6 @@ class ContentHandler implements MessageComponentInterface
                         };
                     
                         $isCancelled = 0;
-                        $created_date = date('Y-m-d');
-                        $created_time = date('H:i:s');
                     
                         // Determine media folder
                         $mediaFolder = match ($data['type']) {
@@ -1583,11 +1619,11 @@ class ContentHandler implements MessageComponentInterface
                         // Common fields for all types
                         $fields = [
                             'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                            'category', 'created_date', 'created_time', 'isCancelled'
+                            'category', 'isCancelled'
                         ];
                         $values = [
                             $department, $user_type, $user_id, $tv_ids, $data['display_time'],
-                            $category, $created_date, $created_time, $isCancelled
+                            $category, $isCancelled
                         ];
     
                         if ($data['type'] !== 'peo' && $data['type'] !== 'so') {
@@ -1598,47 +1634,31 @@ class ContentHandler implements MessageComponentInterface
                         // Add type-specific fields
                         if ($data['type'] === 'event') {
                             $fields[] = 'event_body';
-                            $fields[] = 'expiration_date';
-                            $fields[] = 'expiration_time';
-                            $fields[] = 'schedule_date';
-                            $fields[] = 'schedule_time';
+                            $fields[] = 'expiration_datetime';
+                            $fields[] = 'schedule_datetime';
                             $values[] = $data['event_body'];
-                            $values[] = $data['expiration_date'];
-                            $values[] = $data['expiration_time'];
-                            $values[] = $data['schedule_date'];
-                            $values[] = $data['schedule_time'];
+                            $values[] = $data['expiration_datetime'];
+                            $values[] = $data['schedule_datetime'];
                         } elseif ($data['type'] === 'news') {
                             $fields[] = 'news_body';
-                            $fields[] = 'expiration_date';
-                            $fields[] = 'expiration_time';
-                            $fields[] = 'schedule_date';
-                            $fields[] = 'schedule_time';
+                            $fields[] = 'expiration_datetime';
+                            $fields[] = 'schedule_datetime';
                             $values[] = $data['news_body'];
-                            $values[] = $data['expiration_date'];
-                            $values[] = $data['expiration_time'];
-                            $values[] = $data['schedule_date'];
-                            $values[] = $data['schedule_time'];
+                            $values[] = $data['expiration_datetime'];
+                            $values[] = $data['schedule_datetime'];
                         } elseif ($data['type'] === 'announcement') {
                             $fields[] = 'announcement_body';
-                            $fields[] = 'expiration_date';
-                            $fields[] = 'expiration_time';
-                            $fields[] = 'schedule_date';
-                            $fields[] = 'schedule_time';
+                            $fields[] = 'expiration_datetime';
+                            $fields[] = 'schedule_datetime';
                             $values[] = $data['announcement_body'];
-                            $values[] = $data['expiration_date'];
-                            $values[] = $data['expiration_time'];
-                            $values[] = $data['schedule_date'];
-                            $values[] = $data['schedule_time'];
+                            $values[] = $data['expiration_datetime'];
+                            $values[] = $data['schedule_datetime'];
                         } elseif ($data['type'] === 'promaterial') {
-                            $fields[] = 'expiration_date';
-                            $fields[] = 'expiration_time';
-                            $fields[] = 'schedule_date';
-                            $fields[] = 'schedule_time';
+                            $fields[] = 'expiration_datetime';
+                            $fields[] = 'schedule_datetime';
                             // No additional fields for promaterial
-                            $values[] = $data['expiration_date'];
-                            $values[] = $data['expiration_time'];
-                            $values[] = $data['schedule_date'];
-                            $values[] = $data['schedule_time'];
+                            $values[] = $data['expiration_datetime'];
+                            $values[] = $data['schedule_datetime'];
                         } elseif ($data['type'] === 'peo') {
                             $fields[] = 'peo_title';
                             $fields[] = 'peo_description';
@@ -1661,16 +1681,6 @@ class ContentHandler implements MessageComponentInterface
                         $statement = $this->pdo->prepare(
                             "INSERT INTO $table ($fieldList) VALUES ($placeholderList)"
                         );
-
-                        if ($user_type == 'Student' || $user_type == 'Faculty') {
-                            // Insert notification for new content post
-                            $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'pending')");
-                            $stmt->execute([$user_id, $data['id'], $data['type']]);
-                
-                            // Broadcast update notification to all clients
-                            $this->broadcastNotification('new_notification');
-                            echo "Notification sent to all clients\n";
-                        }
                     
                         $success = $statement->execute($values);
                     
@@ -1678,11 +1688,27 @@ class ContentHandler implements MessageComponentInterface
                             $id = $this->pdo->lastInsertId();
                             $data[$idField] = $id;
                             $data[$authorField] = $user_id;
-                            $data['created_date'] = $created_date;
-                            $data['created_time'] = $created_time;
                             $data['category'] = $category;
                             $data['user_type'] = $user_type;
                             $data['status'] = $status;
+
+                            if ($user_type == 'Student' || $user_type == 'Faculty') {
+                                // Insert notification for new content post
+                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'pending')");
+                                $stmt->execute([$user_id, $data[$idField], $data['type']]);
+                    
+                                // Broadcast update notification to all clients
+                                $this->broadcastNotification('new_notification');
+                                echo "Notification sent to all clients\n";
+                            } else if ($user_type == 'Admin' || $user_type == 'Super Admin') {
+                                // Insert notification for new content post
+                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'approved')");
+                                $stmt->execute([$user_id, $data[$idField], $data['type']]);
+                    
+                                // Broadcast update notification to all clients
+                                $this->broadcastNotification('new_notification');
+                                echo "Notification sent to all clients\n";
+                            }
                     
                             if (!empty($data['media'])) {
                                 $base64Data = $data['media'];
@@ -1710,16 +1736,13 @@ class ContentHandler implements MessageComponentInterface
                 } else {
                     foreach ($data['tv_ids'] as $tv_ids) { 
                         $type = $data['type'] ?? null;
-                        $expiration_date = $data['expiration_date'] ?? null;
-                        $expiration_time = $data['expiration_time'] ?? null;
+                        $expiration_datetime = $data['expiration_datetime'] ?? null;
                         
                         echo "Type: $type\n";
                         $status = ($user_type == 'Admin') ? 'Approved' : 'Pending';
                         $category = ucfirst($type); // Capitalize the first letter of the type
             
                         $isCancelled = 0;
-                        $created_date = date('Y-m-d');
-                        $created_time = date('H:i:s');
             
                         // Determine media folder
                         $mediaFolder = $type . '_media';
@@ -1734,14 +1757,14 @@ class ContentHandler implements MessageComponentInterface
                         // Common fields for all types
                         $fields = [
                             'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                            'category', 'created_date', 'created_time', 'isCancelled', 'status',
-                            'expiration_date', 'expiration_time', 'type'
+                            'category', 'isCancelled', 'status',
+                            'expiration_datetime', 'type'
                         ];
 
                         $values = [
                             $department, $user_type, $user_id, $tv_ids, $data['display_time'],
-                            $category, $created_date, $created_time, $isCancelled, $status,
-                            $expiration_date, $expiration_time, $type
+                            $category, $isCancelled, $status,
+                            $expiration_datetime, $type
                         ];
 
                         // Add other fields specific to the content type
@@ -1760,7 +1783,7 @@ class ContentHandler implements MessageComponentInterface
             
                         // Add type-specific fields
                         foreach ($data as $key => $value) {
-                            if (!in_array($key, ['action', 'type', 'tv_id[]', 'tv_ids', 'expiration_date', 'expiration_time', 'display_time', 'media'])) {
+                            if (!in_array($key, ['action', 'type', 'tv_id[]', 'tv_ids', 'expiration_datetime', 'display_time', 'media'])) {
                                 $fields[] = $key;
                                 $values[] = is_array($value) ? json_encode($value) : $value;
                             }
@@ -1784,11 +1807,27 @@ class ContentHandler implements MessageComponentInterface
                             $id = $this->pdo->lastInsertId();
                             $data[$idField] = $id;
                             $data[$authorField] = $user_id;
-                            $data['created_date'] = $created_date;
-                            $data['created_time'] = $created_time;
                             $data['category'] = $category;
                             $data['user_type'] = $user_type;
                             $data['status'] = $status;
+                            
+                            if ($user_type == 'Student' || $user_type == 'Faculty') {
+                                // Insert notification for new content post
+                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'pending')");
+                                $stmt->execute([$user_id, $data[$idField], $data['type']]);
+                    
+                                // Broadcast update notification to all clients
+                                $this->broadcastNotification('new_notification');
+                                echo "Notification sent to all clients\n";
+                            } else if ($user_type == 'Admin' || $user_type == 'Super Admin') {
+                                // Insert notification for new content post
+                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'approved')");
+                                $stmt->execute([$user_id, $data[$idField], $data['type']]);
+                    
+                                // Broadcast update notification to all clients
+                                $this->broadcastNotification('new_notification');
+                                echo "Notification sent to all clients\n";
+                            }
             
                             if (!empty($data['media'])) {
                                 $base64Data = $data['media'];
@@ -1838,8 +1877,7 @@ class ContentHandler implements MessageComponentInterface
                     tv_id INT(100) NOT NULL,
                     category VARCHAR(255) NOT NULL,
                     isCancelled TINYINT(1) DEFAULT 0,
-                    created_date DATE DEFAULT CURRENT_TIMESTAMP,
-                    created_time TIME DEFAULT CURRENT_TIMESTAMP
+                    created_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
                 )";
                 $this->pdo->exec($sql);
             
@@ -1857,8 +1895,7 @@ class ContentHandler implements MessageComponentInterface
                         ADD COLUMN status VARCHAR(255) NOT NULL";
                 
                 if ($data['content_has_expiration_date'] == 'yes') {
-                    $sql .= ", ADD COLUMN expiration_date DATE,
-                            ADD COLUMN expiration_time TIME";
+                    $sql .= ", ADD COLUMN expiration_datetime DATETIME";
                 }
                 
                 if ($data['require_content_approval'] == 'yes') {

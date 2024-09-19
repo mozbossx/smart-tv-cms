@@ -80,12 +80,15 @@ $hasDrafts = array_sum($draftCounts) > 0;
                     <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
                     <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black;"' : ''; ?>>Preferences</a>
                 </li>
-                <li style="float: right; margin-right: 5px; margin-top: 3px;">
-                    <a href="notifications.php?pageid=Notifications?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                <li style="float: right; margin-right: 5px; margin-top: 3px; position: relative;">
+                    <a href=""
                         <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>
                         <i class="fa fa-bell"></i>
                         <span id="notificationCount" style="background: crimson; color: white; padding: 2px; border-radius: 3px; text-align: center; margin-left: 3px; border: 1px white solid; display: none;"></span>
                     </a>
+                    <div id="notificationsDropdown" class="dropdown-content" style="display: none; position: absolute; right: 0; background-color: white; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; width: 300px; max-height: 400px; overflow-y: auto;">
+                        <!-- Notifications will be dynamically inserted here -->
+                    </div>
                 </li>
                 <li>
                     <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
@@ -122,7 +125,19 @@ $hasDrafts = array_sum($draftCounts) > 0;
     </div>
 </div>
 <!-- <script src="js/fetch_notifications_count.js"></script> -->
+<script src="js/fetch_notifications.js"></script>
 <script>
+    // Show dropdown on hover
+    document.querySelector('.fa-bell').parentElement.addEventListener('mouseover', function() {
+        document.getElementById('notificationsDropdown').style.display = 'block';
+        fetchNotifications(); // Fetch notifications when dropdown is shown
+    });
+
+    // // Hide dropdown when not hovering
+    // document.querySelector('.fa-bell').parentElement.addEventListener('mouseout', function() {
+    //     document.getElementById('notificationsDropdown').style.display = 'none';
+    // });
+
     function toggleDropdown() {
         var dropdownContent = document.getElementById("myDropdown");
         dropdownContent.classList.toggle("show");

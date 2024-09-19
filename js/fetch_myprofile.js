@@ -129,8 +129,8 @@ function createPostDiv(data, type) {
         default:
             // For new features, dynamically add all fields
             for (let key in data) {
-                if (key !== `${type}_id` && key !== 'created_date' && key !== 'created_time' && key !== 'expiration_date' 
-                    && key !== 'expiration_time' && key !== 'display_time' && key !== 'status' && key !== 'isCancelled' 
+                if (key !== `${type}_id` && key !== 'created_datetime' && key !== 'expiration_datetime' 
+                    && key !== 'display_time' && key !== 'status' && key !== 'isCancelled' 
                     && key !== 'tv_id' && key !== `${type}_author_id` && key !== 'type' && key !== 'department' 
                     && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name') {
                         contentHtml += `<p>${data[key]}</p>`;
@@ -138,12 +138,11 @@ function createPostDiv(data, type) {
             }
     }
 
-    const formattedCreatedDate = formatDate(data.created_date);
-    const formattedCreatedTime = formatTime(data.created_time);
+    const formattedCreatedDateTime = formatDate(data.created_datetime);
 
     contentHtml += `
         <div class="line-separator"></div>
-        <p class="ann-author" style="color: #6E6E6E; font-size: 13px"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+        <p class="ann-author" style="color: #6E6E6E; font-size: 13px"><small>Posted on ${formattedCreatedDateTime}</small></p>
         ${data.status ? `<p class="status" style="color: #6E6E6E; font-size: 13px"><small>Status: <b>${data.status}</b></small></p>` : ''}
     `;
 
@@ -336,15 +335,18 @@ function unarchiveItem(type, id) {
     Ws.send(JSON.stringify(data));
 }
 
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const options = { year: 'numeric', month: 'long', day: '2-digit' };
-    return date.toLocaleDateString('en-US', options);
-}
-
-function formatTime(timeString) {
-    const time = new Date(`1970-01-01T${timeString}Z`);
-    return time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).toLowerCase();
+// Function to format date to "MM DD YYYY"
+function formatDate(dateTimeString) {
+    const dateTime = new Date(dateTimeString);
+    const options = {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+    };
+    return new Intl.DateTimeFormat('en-US', options).format(dateTime);
 }
 
 function closeModal(modalId) {
