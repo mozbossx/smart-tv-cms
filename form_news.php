@@ -93,7 +93,6 @@ include 'misc/php/options_tv.php';
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo json_encode($tv_names); ?>;
-        const userType = '<?php echo $user_type; ?>';
     </script>
 </body>
 </html>

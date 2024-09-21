@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', fetchNotificationCount);
 setInterval(fetchNotificationCount, 30000);
 
 // Listen for WebSocket messages
-const Ws = new WebSocket('ws://192.168.1.13:8081');
+// const Ws = new WebSocket('ws://192.168.1.13:8081');
 
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);

@@ -1,5 +1,5 @@
 const Ws = new WebSocket('ws://192.168.1.13:8081');
-console.log(user_id);
+
 function fetchNotifications() {
     fetch('get_notifications.php')
         .then(response => response.json())
@@ -11,53 +11,54 @@ function fetchNotifications() {
         });
 }
 
+function fetchNotificationCount() {
+    fetch('get_notification_count.php')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Notification Count Data:", data);
+            updateNotificationCount(data.count);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+function toggleNotificationsDropdown() {
+    var notificationsDropdown = document.getElementById("notificationsDropdown");
+    var triangle = document.querySelector('.triangle');
+    if (notificationsDropdown.style.display === 'none' || notificationsDropdown.style.display === '') {
+        notificationsDropdown.style.display = 'block';
+        triangle.style.display = 'block'; // Show the triangle
+        resetNotificationCount(); // Reset the notification count
+    } else {
+        notificationsDropdown.style.display = 'none';
+        triangle.style.display = 'none'; // Hide the triangle when closing the dropdown
+    }
+}
+
+function resetNotificationCount() {
+    Ws.send(JSON.stringify({
+        action: 'reset_notification_count',
+        user_id: user_id
+    }));
+}
+
 function updateNotificationsUI(notifications) {
-    const notificationsDropdown = document.getElementById('notificationsDropdown');
-    notificationsDropdown.innerHTML = '';
-    let validNotificationsCount = 0;
+    const notificationsContainer = document.getElementById('notificationsContainer');
+
+    notificationsContainer.innerHTML = '';
 
     if (notifications.length === 0) {
-        notificationsDropdown.innerHTML = '<p>No new notifications.</p>';
+        notificationsContainer.innerHTML = '<p>No new notifications.</p>';
     } else {
         notifications.forEach(notification => {
             const notificationDiv = createNotificationDiv(notification);
             if (notificationDiv) {
-                notificationsDropdown.appendChild(notificationDiv);
-                validNotificationsCount++;
+                notificationsContainer.appendChild(notificationDiv);
             }
         });
-
-        if (validNotificationsCount === 0) {
-            notificationsDropdown.innerHTML = '<p>No new notifications.</p>';
-        }
     }
-
-    updateNotificationCount(validNotificationsCount);
 }
-
-// function updateNotificationsUI(notifications) {
-//     const notificationsContainer = document.getElementById('notificationsContainer');
-//     notificationsContainer.innerHTML = '';
-//     let validNotificationsCount = 0;
-
-//     if (notifications.length === 0) {
-//         notificationsContainer.innerHTML = '<p>No new notifications.</p>';
-//     } else {
-//         notifications.forEach(notification => {
-//             const notificationDiv = createNotificationDiv(notification);
-//             if (notificationDiv) {
-//                 notificationsContainer.appendChild(notificationDiv);
-//                 validNotificationsCount++;
-//             }
-//         });
-
-//         if (validNotificationsCount === 0) {
-//             notificationsContainer.innerHTML = '<p>No new notifications.</p>';
-//         }
-//     }
-
-//     updateNotificationCount(validNotificationsCount);
-// }
 
 function createNotificationDiv(notification) {
     const notificationDiv = document.createElement('div');
@@ -99,7 +100,8 @@ function createNotificationDiv(notification) {
                 </div>
                 <div class="notification-buttons">
                     <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Approve</button>
-                    <button type="button" class="red-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Reject</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Reject</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button>
                 </div>
             `;
         } else if (notification.notification_type === 'content_post' && notification.status == 'approved' && notification.user_id == user_id) {
@@ -175,24 +177,19 @@ function createNotificationDiv(notification) {
         return null;
     }
 
-    // else if (notification.notification_type === 'content_approved' && notification.user_id == user_id && notification.status == 'pending') {
-    //     content = `
-    //         <div class="notification-details">  
-    //             <p class="content-approved-notification">Your <strong>${notification.content_type}</strong> has been <strong>approved</strong> by ${notification.evaluator_name}.</p>
-    //             <p class="created-at-notification">${notification.created_at}</p>
-    //         </div>
-    //     `;
-    // }
-
     // delete button
     content += `<button class="delete-notification" onclick="deleteNotification(${notification.notification_id})"><i class="fa fa-times-circle" aria-hidden="true"></i></button>`;
-    content += `<p>${notification.notification_id}</p>`;
     notificationDiv.innerHTML = content;
     return notificationDiv;
 }
 
 function updateNotificationCount(count) {
     const notificationCount = document.getElementById('notificationCount');
+    if (count > 0) {
+        notificationCount.style.display = 'block';
+    } else {
+        notificationCount.style.display = 'none';
+    }
     notificationCount.textContent = count;
 }
 
@@ -288,6 +285,11 @@ function rejectContent(contentId, contentType, userId, fullName) {
     closeModal('confirmRejectContent');
 }
 
+function closeModal(modalId) {
+    var modal = document.getElementById(modalId + 'Modal');
+    modal.style.display = 'none';
+}
+
 function deleteNotification(notificationId) {
     Ws.send(JSON.stringify({
         action: 'delete_notification',
@@ -297,14 +299,29 @@ function deleteNotification(notificationId) {
 
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
-    if (data.action === 'new_notification') {
-        fetchNotifications();
-    } else if (data.action === 'update_notification') {
-        fetchNotifications();
-    } else if (data.action === 'delete_notification') {
-        fetchNotifications();
+    switch (data.action) {
+        case 'new_notification':
+            fetchNotifications();
+            fetchNotificationCount();
+            break;
+        case 'update_notification':
+            fetchNotifications();
+            break;
+        case 'delete_notification':
+            fetchNotifications();
+            break;
+        case 'reset_notification_count':
+            if (data.success) {
+                document.getElementById('notificationCount').style.display = 'none';
+            }
+            break;
+        default:
+            console.log('Unknown action:', data.action);
     }
 });
 
 // Fetch notifications when the page loads
-document.addEventListener('DOMContentLoaded', fetchNotifications);
+document.addEventListener('DOMContentLoaded', function() {
+    fetchNotifications();
+    fetchNotificationCount();
+});

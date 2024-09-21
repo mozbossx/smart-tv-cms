@@ -3,22 +3,21 @@ session_start();
 include("config_connection.php");
 include 'get_session.php';
 
-$userType = $_SESSION['user_type'];
+$user_id = $_SESSION['user_id'];
 
-$query = "SELECT COUNT(*) as count FROM notifications_tb WHERE status = 'pending'";
-
-if ($userType !== 'Admin') {
-    $query .= " AND user_id = ?";
-}
-
+$query = "SELECT notification_count FROM users_tb WHERE user_id = ? AND notification_count > 0";
 $stmt = $conn->prepare($query);
-
-if ($userType !== 'Admin') {
-    $stmt->bind_param("i", $user_id);
-}
-
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
-$count = $result->fetch_assoc()['count'];
 
-echo json_encode(['count' => $count]);
+if ($row = $result->fetch_assoc()) {
+    $notification_count = $row['notification_count'];
+    echo json_encode(['count' => $notification_count]);
+} else {
+    echo json_encode(['error' => 'User not found']);
+}
+
+$stmt->close();
+$conn->close();
+?>

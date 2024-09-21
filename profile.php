@@ -220,7 +220,7 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
                 <br>
             </form>
             <div style="align-items: right; text-align: right; right: 0">
-                <button class="green-button" type="button" style="background: #334b353b; color: black" onclick="closeModal('changePassword')">Cancel</button>
+                <button class="grey-button" type="button" onclick="closeModal('changePassword')">Cancel</button>
                 <button style="margin: 0" class="green-button" onclick="changePasswordSubmit()">Update</button>
             </div>
         </div>

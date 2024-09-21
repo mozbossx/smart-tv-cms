@@ -1801,6 +1801,37 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     transition: 0.5s ease;
 }
 
+.grey-button {
+    background-color: #334b353b;
+    color: black;
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: 1px solid #808080;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.grey-button:hover {
+    background: #2231233b;
+    transition: 0.5s ease;
+}
+
+.light-green-button {
+    background-color: #aad3b0;
+    color: black;
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: 1px solid #3e7a47 ;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.light-green-button:hover {
+    background: #3e7a47;
+    color: #fff;
+    transition: 0.5s ease;
+}
+
 .yellow-button {
     background-color: #dc7d09;
     color: #fff;
@@ -2062,6 +2093,20 @@ tr:nth-child(even) {
     border-top: none;
 }
 
+.notification-count {
+    display: none;
+    background: red;
+    color: white;
+    padding: 5px;
+    border-radius: 3px;
+    border: rgb(171, 0, 0) 1px solid;
+    font-weight: bold;
+    font-size: 10px;
+    position: absolute;
+    left: 25px;
+    top: 8px;
+}
+
 .created-at-notification {
     font-size: 12px;
     color: #6E6E6E;
@@ -2072,19 +2117,24 @@ tr:nth-child(even) {
     background-color: #e6ffe6;
     color: #2f4f4f;
     border-left: 5px solid #2e8b57;
-    padding: 25px;
+    padding: 10px;
     margin-bottom: 10px;
     border-radius: 6px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     transition: background-color 0.3s ease;
     position: relative;
     user-select: none;
+    padding-right: 30px;
 }
 
 .notification:hover {
     background-color: #d0f5d0;
+}
+
+.notifications-container {
+    overflow-y: auto;
+    max-height: 300px;
 }
 
 .notification-details {
@@ -2096,6 +2146,7 @@ tr:nth-child(even) {
     display: flex;
     flex-direction: row;
     gap: 5px;
+    margin-top: 10px;
 }
 
 .delete-notification {
@@ -2180,7 +2231,47 @@ tr:nth-child(even) {
   
 /* Change color of dropdown links on hover */
 .dropdown-content a:hover {background-color: #ddd;}
-  
+
+.notifications-button {
+    color: white;
+    background: none;
+    font-size: 16px;
+    border: none;
+    margin-right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 5px;
+}
+
+.dropdown-notifications {
+    position: relative;
+    right: 0;
+    background-color: white;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    width: 450px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    border-radius: 10px;
+    transition: 0.5s ease;
+}
+
+.triangle {
+    display: none; /* Initially hidden */
+    position: absolute;
+    top: 22px;
+    left: 13px;
+    height: 15px;
+    width: 15px;
+    border-radius: 6px 0px 0px 0px;
+    transform: rotate(45deg);
+    background: white;
+    z-index: 100;
+}
+
 /* Show the dropdown menu on hover */
 .dropdown:hover .dropdown-content {display: block;}
 

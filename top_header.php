@@ -49,6 +49,15 @@ foreach ($contentTypes as $type) {
 
 // Check if there are any drafts
 $hasDrafts = array_sum($draftCounts) > 0;
+
+// Fetch notification count for the logged-in user
+$stmtNotificationCount = $conn->prepare("SELECT notification_count FROM users_tb WHERE user_id = ?");
+$stmtNotificationCount->bind_param("i", $user_id);
+$stmtNotificationCount->execute();
+$resultNotificationCount = $stmtNotificationCount->get_result();
+$notificationCount = $resultNotificationCount->fetch_assoc()['notification_count'];
+$stmtNotificationCount->close();
+
 ?>
 
 <div class="header">
@@ -80,14 +89,15 @@ $hasDrafts = array_sum($draftCounts) > 0;
                     <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
                     <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black;"' : ''; ?>>Preferences</a>
                 </li>
-                <li style="float: right; margin-right: 5px; margin-top: 3px; position: relative;">
-                    <a href=""
-                        <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>
-                        <i class="fa fa-bell"></i>
-                        <span id="notificationCount" style="background: crimson; color: white; padding: 2px; border-radius: 3px; text-align: center; margin-left: 3px; border: 1px white solid; display: none;"></span>
-                    </a>
-                    <div id="notificationsDropdown" class="dropdown-content" style="display: none; position: absolute; right: 0; background-color: white; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; width: 300px; max-height: 400px; overflow-y: auto;">
-                        <!-- Notifications will be dynamically inserted here -->
+                <li style="float: right; margin-right: 2px; margin-top: 22px;">
+                    <button id="notifications-button" class="notifications-button" onclick="toggleNotificationsDropdown()"><i class="fa fa-bell"></i></button>
+                    <span id="notificationCount" class="notification-count"><?php echo $notificationCount; ?></span>
+                    <span class="triangle"></span>
+                    <div id="notificationsDropdown" class="dropdown-notifications" style="display: none; position: absolute; right: -10px; top: 30px; background-color: white; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; width: 300px; max-height: 400px; overflow-y: auto; padding: 10px;">
+                        <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Notifications</p>
+                        <div id="notificationsContainer" class="notifications-container">
+                            <!-- Notifications will be dynamically inserted here -->
+                        </div>
                     </div>
                 </li>
                 <li>
@@ -124,19 +134,15 @@ $hasDrafts = array_sum($draftCounts) > 0;
         </div>
     </div>
 </div>
+<div id="confirmApproveUserModal" class="modal"></div>
+<div id="confirmRejectUserModal" class="modal"></div>
+<div id="confirmApproveContentModal" class="modal"></div>
+<div id="confirmRejectContentModal" class="modal"></div>
 <!-- <script src="js/fetch_notifications_count.js"></script> -->
-<script src="js/fetch_notifications.js"></script>
 <script>
-    // Show dropdown on hover
-    document.querySelector('.fa-bell').parentElement.addEventListener('mouseover', function() {
-        document.getElementById('notificationsDropdown').style.display = 'block';
-        fetchNotifications(); // Fetch notifications when dropdown is shown
-    });
-
-    // // Hide dropdown when not hovering
-    // document.querySelector('.fa-bell').parentElement.addEventListener('mouseout', function() {
-    //     document.getElementById('notificationsDropdown').style.display = 'none';
-    // });
+    const userType = '<?php echo $user_type; ?>';
+    const full_name = '<?php echo $full_name; ?>';
+    const user_id = '<?php echo $user_id; ?>';
 
     function toggleDropdown() {
         var dropdownContent = document.getElementById("myDropdown");
@@ -165,4 +171,4 @@ $hasDrafts = array_sum($draftCounts) > 0;
         }
     }
 </script>
-
+<script src="js/fetch_notifications.js"></script>

@@ -84,13 +84,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
-    
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_archived_content.js"></script>
-    <script>
-        const userType = '<?php echo $user_type; ?>';
-        const full_name = '<?php echo $full_name; ?>';
-        const userId = <?php echo $user_id; ?>;
-    </script>
 </body>
 </html>

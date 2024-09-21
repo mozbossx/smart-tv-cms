@@ -1,4 +1,4 @@
-const ws = new WebSocket('ws://192.168.1.13:8081');
+// const Ws = new WebSocket('Ws://192.168.1.13:8081');
 const smartTVTableContainer = document.getElementById('smartTVTableContainer');
 
 const displaySmartTVTable = (data) => {
@@ -82,7 +82,7 @@ const deleteSmartTV = (tv_id) => {
     fetch('websocket_conn.php')
         .then(response => response.text())
         .then(url => {
-            const ws = new WebSocket(url);
+            const Ws = new WebSocket(url);
 
             // Data to send to WebSocket server
             const data = {
@@ -91,12 +91,12 @@ const deleteSmartTV = (tv_id) => {
             };
 
             // Send data to WebSocket server
-            ws.onopen = function () {
-                ws.send(JSON.stringify(data));
+            Ws.onopen = function () {
+                Ws.send(JSON.stringify(data));
             };
 
             // Handle messages from WebSocket server
-            ws.onmessage = function (event) {
+            Ws.onmessage = function (event) {
                 const message = JSON.parse(event.data);
                 if (message.success) {
                     // Optional: Handle success, if needed
@@ -107,12 +107,12 @@ const deleteSmartTV = (tv_id) => {
             };
 
             // Close WebSocket connection
-            ws.onclose = function () {
+            Ws.onclose = function () {
                 console.log('WebSocket connection closed');
             };
 
             // Handle errors
-            ws.onerror = function (error) {
+            Ws.onerror = function (error) {
                 console.error('WebSocket error:', error);
             };
         })
@@ -212,7 +212,7 @@ const editSmartTV = (tv_id, tv_name, tv_brand) => {
     fetch('websocket_conn.php')
         .then(response => response.text())
         .then(url => {
-            const ws = new WebSocket(url);
+            const Ws = new WebSocket(url);
 
             // Data to send to WebSocket server
             const data = {
@@ -223,12 +223,12 @@ const editSmartTV = (tv_id, tv_name, tv_brand) => {
             };
 
             // Send data to WebSocket server
-            ws.onopen = function () {
-                ws.send(JSON.stringify(data));
+            Ws.onopen = function () {
+                Ws.send(JSON.stringify(data));
             };
 
             // Handle messages from WebSocket server
-            ws.onmessage = function (event) {
+            Ws.onmessage = function (event) {
                 const message = JSON.parse(event.data);
                 if (message.success) {
                     // Optional: Handle success, if needed
@@ -239,12 +239,12 @@ const editSmartTV = (tv_id, tv_name, tv_brand) => {
             };
 
             // Close WebSocket connection
-            ws.onclose = function () {
+            Ws.onclose = function () {
                 console.log('WebSocket connection closed');
             };
 
             // Handle errors
-            ws.onerror = function (error) {
+            Ws.onerror = function (error) {
                 console.error('WebSocket error:', error);
             };
         })
@@ -253,7 +253,7 @@ const editSmartTV = (tv_id, tv_name, tv_brand) => {
         });
 };
 
-ws.addEventListener('message', function (event) {
+Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
     if (data.action === 'delete_smart_tv' && data.success) {
         // Fetch all smart TVs and refresh the table

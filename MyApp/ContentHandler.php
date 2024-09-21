@@ -1084,7 +1084,15 @@ class ContentHandler implements MessageComponentInterface
                 // Create a new notification for the user
                 $stmtInsertNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, evaluator_name) VALUES (?, ?, ?, 'content_approved_by_admin', 'approved', ?)");
                 $stmtInsertNotificationTable->execute([$user_id, $content_id, $content_type, $evaluator_name]);
-    
+
+                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' OR user_type = 'Super Admin'");
+                $stmtUpdateAdminOrSuperAdminNotificationCount->execute();
+
+                // Increase the notification count of the student or faculty
+                $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
+        
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('new_notification');
 
@@ -1696,6 +1704,14 @@ class ContentHandler implements MessageComponentInterface
                                 // Insert notification for new content post
                                 $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'pending')");
                                 $stmt->execute([$user_id, $data[$idField], $data['type']]);
+
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' OR user_type = 'Super Admin'");
+                                $stmtUpdateAdminOrSuperAdminNotificationCount->execute();
+
+                                // Increase the notification count of the student or faculty
+                                $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                                $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
                     
                                 // Broadcast update notification to all clients
                                 $this->broadcastNotification('new_notification');
@@ -1704,6 +1720,8 @@ class ContentHandler implements MessageComponentInterface
                                 // Insert notification for new content post
                                 $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'approved')");
                                 $stmt->execute([$user_id, $data[$idField], $data['type']]);
+
+                                // No need to increase the notification count of the Admin or Super Admin since they are priveledged users and no need to approve the content
                     
                                 // Broadcast update notification to all clients
                                 $this->broadcastNotification('new_notification');
@@ -1966,6 +1984,25 @@ class ContentHandler implements MessageComponentInterface
                 echo "Unexpected error creating new feature: {$e->getMessage()}\n";
             }
             
+            $from->send(json_encode($response));
+        } 
+
+        else if (isset($data['action']) && $data['action'] === 'reset_notification_count') {
+            $user_id = $data['user_id'];
+            
+            // Reset the notification count for the user
+            $stmt = $this->pdo->prepare("UPDATE users_tb SET notification_count = 0 WHERE user_id = ?");
+            $stmt->execute([$user_id]);
+    
+            $success = $stmt->rowCount() > 0;
+            $response = ['action' => 'reset_notification_count', 'success' => $success];
+            
+            if ($success) {
+                echo "Notification count reset for user {$user_id}\n";
+            } else {
+                echo "Failed to reset notification count for user {$user_id}\n";
+            }
+    
             $from->send(json_encode($response));
         }
 

@@ -126,9 +126,6 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_content2.js"></script>
     <script>
-        const userType = '<?php echo $user_type; ?>';
-        const full_name = '<?php echo $full_name; ?>';
-        const userId = <?php echo $user_id; ?>;
         const tvFrame = document.getElementById('tv-frame');
         const scaleUpButton = document.getElementById('scale-up');
         const scaleDownButton = document.getElementById('scale-down');

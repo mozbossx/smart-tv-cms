@@ -63,7 +63,7 @@ $stmt->close();
                     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);">
                         <div class="scroll-div" style="height: auto; margin-bottom: 10px">
                             <h1>Notifications</h1>
-                            <div id="notificationsContainer">
+                            <div id="ViewAllNotificationsContainer">
                                  <!-- Latest notifications will be displayed here -->
                             </div>
                         </div>
@@ -72,20 +72,5 @@ $stmt->close();
             </div>
         </div>
     </div>
-    <div id="confirmApproveUserModal" class="modal"></div>
-    <div id="confirmRejectUserModal" class="modal"></div>
-    <div id="confirmApproveContentModal" class="modal"></div>
-    <div id="confirmRejectContentModal" class="modal"></div>
-    <script>
-        const userType = '<?php echo $user_type; ?>';
-        const full_name = '<?php echo $full_name; ?>';
-        const user_id = '<?php echo $user_id; ?>';
-
-        function closeModal(modalId) {
-            var modal = document.getElementById(modalId + 'Modal');
-            modal.style.display = 'none';
-        }
-    </script>
-    <script src="js/fetch_notifications.js"></script>
 </body>
 </html>

@@ -1,5 +1,3 @@
-const Ws = new WebSocket('ws://192.168.1.13:8081');
-
 // Function to format date to "MM DD YYYY"
 function formatDate(dateTimeString) {
     const dateTime = new Date(dateTimeString);
@@ -22,7 +20,7 @@ const createButton = (text, iconClass, onClick) => {
         background-color: #316038;
         color: #fff;
         padding: 8px 16px;
-        border-radius: 10px;
+        border-radius: 5px;
         border: none;
         cursor: pointer;
         transition: background-color 0.3s;
@@ -136,7 +134,7 @@ const updateUI = (data, type) => {
         const archiveButton = createButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
         const editButton = createButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
-        if (userType !== 'Student' && userType !== 'Faculty' || data[`${type}_author_id`] === userId) {
+        if (userType !== 'Student' && userType !== 'Faculty' || data[`${type}_author_id`] === user_id) {
             buttonContainer.appendChild(deleteButton);
             buttonContainer.appendChild(archiveButton);
             buttonContainer.appendChild(editButton);
