@@ -86,5 +86,6 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     </div>
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_archived_content.js"></script>
+    <script src="js/fetch_user_session.js"></script>
 </body>
 </html>

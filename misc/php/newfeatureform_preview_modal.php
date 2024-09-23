@@ -37,7 +37,6 @@
             'name_of_feature',
             'number_of_inputs',
             'selectedIcon',
-            'require_content_approval',
             'content_has_expiration_date'
         ];
 
@@ -196,7 +195,6 @@
             name_of_feature: formData.get('name_of_feature'),
             number_of_inputs: formData.get('number_of_inputs'),
             selectedIcon: formData.get('selectedIcon'),
-            require_content_approval: formData.get('require_content_approval'),
             content_has_expiration_date: formData.get('content_has_expiration_date'),
             department: formData.get('department'),
             user_types: formData.getAll('user_type[]'),
@@ -223,10 +221,7 @@
                 document.getElementById('successMessage').textContent = "New feature was successfully added!";
                 document.getElementById('successMessageModal').style.display = 'flex';
                 isFormDirty = false;
-            } else {
-                document.getElementById('errorText').textContent = message.message || "Error adding new feature. Try again later";
-                document.getElementById('errorModal').style.display = 'flex';
-            }
+            } 
         };
     }
 

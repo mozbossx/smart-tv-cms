@@ -8,6 +8,36 @@ include 'get_session.php';
 
 $tvId = $_GET['tvId'];
 
+if (isset($_GET['tvId'])) {
+    $tvId = $_GET['tvId'];
+    $tvQuery = "SELECT tv_department FROM smart_tvs_tb WHERE tv_id = ?";
+    $tvStmt = $conn->prepare($tvQuery);
+    $tvStmt->bind_param("i", $tvId);
+    $tvStmt->execute();
+    $tvResult = $tvStmt->get_result();
+
+    if ($tvResult->num_rows > 0) {
+        $tvData = $tvResult->fetch_assoc();
+        $tvDepartment = $tvData['tv_department'];
+
+        // Check if the tv_department is not equal to the sessioned department
+        if ($tvDepartment !== $department) {
+            echo '
+                <script>
+                    alert("You are not authorized to access this TV."); 
+                    window.location.href = "user_home.php";
+                </script>';
+            exit;
+        }
+    } else {
+        // If no TV found, redirect to user_home.php
+        header('location: user_home.php');
+        exit;
+    }
+
+    $tvStmt->close();
+}
+
 // Fetch data from smart_tvs_tb
 $query = "SELECT * FROM smart_tvs_tb WHERE tv_id = '$tvId'";
 $result = mysqli_query($conn, $query);
@@ -41,7 +71,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
-    <title>Home</title>
+    <title><?php echo $tvName; ?></title>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -52,7 +82,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 <nav aria-label="breadcrumb" style="margin: 10px;">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">View Contents</li>
+                        <li class="breadcrumb-item active" aria-current="page"><?php echo $tvName; ?></li>
                     </ol>
                 </nav>
                 <?php
@@ -125,6 +155,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_content2.js"></script>
+    <script src="js/fetch_user_session.js"></script>
     <script>
         const tvFrame = document.getElementById('tv-frame');
         const scaleUpButton = document.getElementById('scale-up');

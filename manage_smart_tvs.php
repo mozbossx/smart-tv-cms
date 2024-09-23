@@ -65,6 +65,7 @@ if (!$resultAllSmartTVs) {
     <div id="editSmartTVModal" class="modal"></div>
     <div id="confirmDeleteSmartTVModal" class="modal"></div>
     <script src="js/fetch_smart_tvs.js"></script>
+    <script src="js/fetch_user_session.js"></script>
     <script>
         function sortTable(columnIndex) {
             var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;

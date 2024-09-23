@@ -95,5 +95,6 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
+    <script src="js/fetch_user_session.js"></script>
 </body>
 </html>

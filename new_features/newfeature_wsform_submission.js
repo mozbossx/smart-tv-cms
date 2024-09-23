@@ -72,13 +72,10 @@ function submitFormViaWebSocket() {
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
         if (message.success) {
-            document.getElementById('successMessage').textContent = message.message || `${capitalizeFirstLetter(contentType)} was successfully processed!`;
-            document.getElementById('successMessageModal').style.display = 'flex';
+            document.getElementById('successMessageVersion2').textContent = message.message || `${capitalizeFirstLetter(contentType)} was successfully processed!`;
+            document.getElementById('successMessageModalVersion2').style.display = 'flex';
             isFormDirty = false;
-        } else {
-            document.getElementById('errorText').textContent = message.message || `Error processing ${contentType}. Try again later`;
-            document.getElementById('errorModal').style.display = 'flex';
-        }
+        } 
     };
 }
 

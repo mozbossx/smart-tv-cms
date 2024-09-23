@@ -85,5 +85,6 @@ if (!$resultTVQuery) {
             </div>
         </div>
     </div>
+    <script src="js/fetch_user_session.js"></script>
 </body>
 </html>

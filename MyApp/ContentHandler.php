@@ -717,6 +717,14 @@ class ContentHandler implements MessageComponentInterface
                         $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status) VALUES (?, 'user_registration', 'pending')");
                         $stmt->execute([$user_id]);
 
+                        // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                        $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' OR user_type = 'Super Admin'");
+                        $stmtUpdateAdminOrSuperAdminNotificationCount->execute();
+
+                        // Increase the notification count of the student or faculty
+                        $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
+                
                         // Broadcast new notification to all clients
                         $this->broadcastNotification('new_notification');
 
@@ -769,7 +777,7 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'reject_user') {
             $user_id = $data['user_id'];
-            $evaluated_message = isset($data['evaluated_message']) ? htmlspecialchars($data['evaluated_message']) : '';
+            $evaluator_message = isset($data['evaluator_message']) ? htmlspecialchars($data['evaluator_message']) : '';
 
             // Retrieve full_name from session
             $evaluator_name = $data['full_name'];
@@ -801,23 +809,72 @@ class ContentHandler implements MessageComponentInterface
             $userId = $data['user_id'];
             $userType = $data['user_type'];
             $department = $data['department'];
+            $evaluator_name = $data['full_name'];
 
             // Perform the update in the database
             $stmt = $this->pdo->prepare("UPDATE users_tb SET user_type = ?, department = ? WHERE user_id = ?");
             $stmt->execute([$userType, $department, $userId]);
-
+        
             $user = $stmt->rowCount() > 0;
-
+        
             if ($user) {
-                // Notify the client who sent the request
-                $from->send(json_encode(['action' => 'edit_user', 'success' => true, 'user_id' => $userId]));
+                // Insert user_approved notification
+                $stmtInsertAdminOrSuperAdminNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name) VALUES (?, 'user_edited', 'edited', ?)");
+                $stmtInsertAdminOrSuperAdminNotificationTable->execute([$userId, $evaluator_name]);
 
-                // Notify all connected clients about the update
+                $stmtInsertStudentOrFacultyNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name) VALUES (?, 'user_edited_by_admin', 'edited', ?)");
+                $stmtInsertStudentOrFacultyNotificationTable->execute([$userId, $evaluator_name]);
+
+                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
+                $stmtUpdateAdminOrSuperAdminNotificationCount->execute([$evaluator_name]);
+
+                // Increase the notification count of the student or faculty
+                $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                $stmtUpdateStudentOrFacultyNotificationCount->execute([$userId]);
+
+                // Broadcast new notification to all clients
+                $this->broadcastNotification('new_notification');
+
+                // Find the connection for the edited user
+                $editedUserConnection = null;
                 foreach ($this->clients as $client) {
-                    if ($client !== $from) {
-                        $client->send(json_encode(['action' => 'edit_user', 'success' => true, 'user_id' => $userId]));
+                    if ($client->user_id == $userId) {
+                        $editedUserConnection = $client;
+                        break;
                     }
                 }
+        
+                // Prepare the response
+                $response = [
+                    'action' => 'user_edited',
+                    'success' => true,
+                    'user_id' => $userId,
+                    'user_type' => $userType,
+                    'department' => $department,
+                    'message' => 'Your account has been updated. You will be logged out now.'
+                ];
+        
+                // Send the response to the edited user if they are connected
+                if ($editedUserConnection) {
+                    $editedUserConnection->send(json_encode($response));
+                }
+        
+                // Notify all other clients about the update, without the logout message
+                $generalResponse = [
+                    'action' => 'user_edited',
+                    'success' => true,
+                    'user_id' => $userId,
+                    'user_type' => $userType,
+                    'department' => $department,
+                    'message' => 'Your account has been updated. You will be logged out now.'
+                ];
+                foreach ($this->clients as $client) {
+                    if ($client !== $editedUserConnection) {
+                        $client->send(json_encode($generalResponse));
+                    }
+                }
+        
                 echo "User details updated for user_id: {$userId}\n";
             } else {
                 $from->send(json_encode(['action' => 'edit_user', 'success' => false]));
@@ -1012,10 +1069,11 @@ class ContentHandler implements MessageComponentInterface
             $tvId = $data['tv_id'];
             $tvName = $data['tv_name'];
             $tvBrand = $data['tv_brand'];
+            $tvDepartment = $data['tv_department'];
 
             // Perform the update in the database
-            $stmt = $this->pdo->prepare("UPDATE smart_tvs_tb SET tv_name = ?, tv_brand = ? WHERE tv_id = ?");
-            $stmt->execute([$tvName, $tvBrand, $tvId]);
+            $stmt = $this->pdo->prepare("UPDATE smart_tvs_tb SET tv_name = ?, tv_brand = ?, tv_department = ? WHERE tv_id = ?");
+            $stmt->execute([$tvName, $tvBrand, $tvDepartment, $tvId]);
 
             $tv = $stmt->rowCount() > 0;
 
@@ -1069,7 +1127,12 @@ class ContentHandler implements MessageComponentInterface
             $evaluator_name = $data['full_name'];
 
             // Update the content status in the respective table
-            $table = $content_type . 's_tb'; 
+            if ($content_type === 'announcement' || $content_type === 'event' || $content_type === 'promaterial') {
+                $table = $content_type . 's_tb'; 
+            } else {
+                $table = $content_type . '_tb'; 
+            }
+                
             $idField = $content_type . '_id';
             $stmtUpdateContentTable = $this->pdo->prepare("UPDATE $table SET status = 'Approved' WHERE $idField = ?");
             $stmtUpdateContentTable->execute([$content_id]);
@@ -1085,13 +1148,20 @@ class ContentHandler implements MessageComponentInterface
                 $stmtInsertNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, evaluator_name) VALUES (?, ?, ?, 'content_approved_by_admin', 'approved', ?)");
                 $stmtInsertNotificationTable->execute([$user_id, $content_id, $content_type, $evaluator_name]);
 
-                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
-                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' OR user_type = 'Super Admin'");
-                $stmtUpdateAdminOrSuperAdminNotificationCount->execute();
+                // Increase the notification count of the Evaluator and notify them that a student or faculty posted new content
+                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
+                $stmtUpdateAdminOrSuperAdminNotificationCount->execute([$evaluator_name]);
 
-                // Increase the notification count of the student or faculty
-                $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
+                // Check the current notification count of the student or faculty
+                $stmtCheckNotificationCount = $this->pdo->prepare("SELECT notification_count FROM users_tb WHERE user_id = ?");
+                $stmtCheckNotificationCount->execute([$user_id]);
+                $currentNotificationCount = $stmtCheckNotificationCount->fetchColumn();
+
+                // Only update the notification count if it's currently 0
+                if ($currentNotificationCount == 0) {
+                    $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = 1 WHERE user_id = ?");
+                    $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
+                }
         
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('new_notification');
@@ -1119,6 +1189,7 @@ class ContentHandler implements MessageComponentInterface
             $content_type = $data['content_type'];
             $user_id = $data['user_id'];
             $evaluator_name = $data['full_name'];
+            $evaluator_message = $data['evaluator_message'];
 
             // Update the content status in the respective table
             $table = $content_type . 's_tb'; 
@@ -1130,12 +1201,27 @@ class ContentHandler implements MessageComponentInterface
         
             if ($content_updated) {
                 // Update notification status
-                $stmtUpdateNotificationTable = $this->pdo->prepare("UPDATE notifications_tb SET status = 'rejected', notification_type = 'content_rejected', evaluator_name = ? WHERE user_id = ? AND content_id = ? AND content_type = ?");
-                $stmtUpdateNotificationTable->execute([$evaluator_name, $user_id, $content_id, $content_type]);
+                $stmtUpdateNotificationTable = $this->pdo->prepare("UPDATE notifications_tb SET status = 'rejected', notification_type = 'content_rejected', evaluator_name = ?, evaluator_message = ? WHERE user_id = ? AND content_id = ? AND content_type = ?");
+                $stmtUpdateNotificationTable->execute([$evaluator_name, $evaluator_message, $user_id, $content_id, $content_type]);
 
                 // Create a new notification for the user
-                $stmtInsertNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, evaluator_name) VALUES (?, ?, ?, 'content_rejected_by_admin', 'rejected', ?)");
-                $stmtInsertNotificationTable->execute([$user_id, $content_id, $content_type, $evaluator_name]);
+                $stmtInsertNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, evaluator_name, evaluator_message) VALUES (?, ?, ?, 'content_rejected_by_admin', 'rejected', ?, ?)");
+                $stmtInsertNotificationTable->execute([$user_id, $content_id, $content_type, $evaluator_name, $evaluator_message]);
+
+                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
+                $stmtUpdateAdminOrSuperAdminNotificationCount->execute([$evaluator_name]);
+
+                // Check the current notification count of the student or faculty
+                $stmtCheckNotificationCount = $this->pdo->prepare("SELECT notification_count FROM users_tb WHERE user_id = ?");
+                $stmtCheckNotificationCount->execute([$user_id]);
+                $currentNotificationCount = $stmtCheckNotificationCount->fetchColumn();
+
+                // Only update the notification count if it's currently 0
+                if ($currentNotificationCount == 0) {
+                    $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = 1 WHERE user_id = ?");
+                    $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
+                }
     
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('new_notification');
@@ -1541,6 +1627,7 @@ class ContentHandler implements MessageComponentInterface
                 error_log("TV IDs are selected."); // Log for debugging
                 // $tv_ids = $data['tv_ids'];
                 if ($data['type'] === 'orgchart' && isset($data['orgChartData']) && is_array($data['orgChartData'])) {
+                    // For Orgchart only
                     foreach ($data['tv_ids'] as $tv_ids) {
                         $orgChartData = $data['orgChartData'];
                         $display_time = $data['display_time'];
@@ -1561,12 +1648,14 @@ class ContentHandler implements MessageComponentInterface
                                 $tv_ids,
                                 $member['picture']
                             ]);
+                            
                         }
                         $from->send(json_encode(['success' => true, 'data' => $data, 'orgchart_id' => $orgchart_id]));
                         // $from->send(json_encode(['action' => 'post_content', 'success' => true, 'type' => 'orgchart', 'orgchart_id' => $orgchart_id, 'orgChartData' => $orgChartData]));
                         echo "A member is being added! \n";
                     }
                 } else if ($data['type'] === 'event' || $data['type'] === 'announcement' || $data['type'] === 'news' || $data['type'] === 'promaterial' || $data['type'] === 'peo' || $data['type'] === 'so') {
+                    // For Announcement, Event, News, Promotional Materials, PEO, and SO only
                     foreach ($data['tv_ids'] as $tv_ids) {
                         $status = ($user_type == 'Admin' || $user_type == 'Super Admin') ? 'Approved' : 'Pending';
                         $category = match ($data['type']) {
@@ -1721,7 +1810,9 @@ class ContentHandler implements MessageComponentInterface
                                 $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'approved')");
                                 $stmt->execute([$user_id, $data[$idField], $data['type']]);
 
-                                // No need to increase the notification count of the Admin or Super Admin since they are priveledged users and no need to approve the content
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                                $stmtUpdateAdminOrSuperAdminNotificationCount->execute([$user_id]);
                     
                                 // Broadcast update notification to all clients
                                 $this->broadcastNotification('new_notification');
@@ -1752,6 +1843,7 @@ class ContentHandler implements MessageComponentInterface
                         $from->send(json_encode($response));
                     }
                 } else {
+                    // For New Feature only
                     foreach ($data['tv_ids'] as $tv_ids) { 
                         $type = $data['type'] ?? null;
                         $expiration_datetime = $data['expiration_datetime'] ?? null;
@@ -1833,6 +1925,14 @@ class ContentHandler implements MessageComponentInterface
                                 // Insert notification for new content post
                                 $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'pending')");
                                 $stmt->execute([$user_id, $data[$idField], $data['type']]);
+
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' OR user_type = 'Super Admin'");
+                                $stmtUpdateAdminOrSuperAdminNotificationCount->execute();
+
+                                // Increase the notification count of the student or faculty
+                                $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                                $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
                     
                                 // Broadcast update notification to all clients
                                 $this->broadcastNotification('new_notification');
@@ -1877,6 +1977,66 @@ class ContentHandler implements MessageComponentInterface
             }
         }
 
+        else if (isset($data['action']) && $data['action'] === 'view_content') {
+            $content_id = $data['content_id'];
+            $content_type = $data['content_type'];
+            $user_id = $data['user_id'];
+        
+            $validTypes = [
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id', 'fields' => ['announcement_id', 'announcement_author_id', 'announcement_body', 'created_datetime', 'expiration_datetime', 'schedule_datetime', 'media_path', 'display_time', 'tv_id']],
+                'event' => ['table' => 'events_tb', 'idField' => 'event_id', 'fields' => ['event_id', 'event_author_id', 'event_body', 'created_datetime', 'expiration_datetime', 'schedule_datetime', 'media_path', 'display_time', 'tv_id']],
+                'news' => ['table' => 'news_tb', 'idField' => 'news_id', 'fields' => ['news_id', 'news_author_id', 'news_body', 'created_datetime', 'expiration_datetime', 'schedule_datetime', 'media_path', 'display_time', 'tv_id']],
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id', 'fields' => ['promaterial_id', 'promaterial_author_id', 'created_datetime', 'expiration_datetime', 'schedule_datetime', 'media_path', 'display_time', 'tv_id']],
+                'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id', 'fields' => ['peo_id', 'peo_author_id', 'peo_title', 'peo_description', 'peo_subdescription', 'created_datetime', 'display_time', 'tv_id']],
+                'so' => ['table' => 'so_tb', 'idField' => 'so_id', 'fields' => ['so_id', 'so_author_id', 'so_title', 'so_description', 'so_subdescription', 'created_datetime', 'display_time', 'tv_id']]
+            ];
+        
+            if (isset($validTypes[$content_type])) {
+                $table = $validTypes[$content_type]['table'];
+                $idField = $validTypes[$content_type]['idField'];
+                $fields = implode(', ', $validTypes[$content_type]['fields']);
+
+                $queryTvName = "SELECT ST.tv_name as tv_display
+                        FROM {$table} CT
+                        LEFT JOIN smart_tvs_tb ST ON CT.tv_id = ST.tv_id
+                        WHERE CT.tv_id = ST.tv_id";
+
+                $statement = $this->pdo->prepare($queryTvName);
+                $statement->execute();
+                $result = $statement->fetch(PDO::FETCH_ASSOC);
+        
+                $stmt = $this->pdo->prepare("SELECT $fields FROM $table WHERE $idField = ? AND {$content_type}_author_id = ?");
+                $stmt->execute([$content_id, $user_id]);
+                $content = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+                if ($content) {
+                    $response = [
+                        'action' => 'view_content',
+                        'success' => true,
+                        'content_type' => $content_type,
+                        'content' => $content,
+                        'idField' => $idField,
+                        'tv_display' => $result['tv_display']
+                    ];
+                } else {
+                    $response = [
+                        'action' => 'view_content',
+                        'success' => false,
+                        'message' => 'Content not found'
+                    ];
+                }
+            } else {
+                $response = [
+                    'action' => 'view_content',
+                    'success' => false,
+                    'message' => 'Invalid content type'
+                ];
+            }
+        
+            $from->send(json_encode($response));
+        }
+
+        // For Creating New Feature only
         else if (isset($data['action']) && $data['action'] === 'post_new_feature') {
             try {
                 $featureName = $data['name_of_feature'];
@@ -1896,6 +2056,8 @@ class ContentHandler implements MessageComponentInterface
                     category VARCHAR(255) NOT NULL,
                     isCancelled TINYINT(1) DEFAULT 0,
                     created_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (tv_id) REFERENCES smart_tvs_tb(tv_id),
+                    FOREIGN KEY ({$featureId}_author_id) REFERENCES users_tb(user_id)
                 )";
                 $this->pdo->exec($sql);
             
@@ -1915,24 +2077,18 @@ class ContentHandler implements MessageComponentInterface
                 if ($data['content_has_expiration_date'] == 'yes') {
                     $sql .= ", ADD COLUMN expiration_datetime DATETIME";
                 }
-                
-                if ($data['require_content_approval'] == 'yes') {
-                    $sql .= ", ADD COLUMN evaluated_by INT(11),
-                            ADD COLUMN evaluated_message TEXT";
-                }
-                
+
                 $this->pdo->exec($sql);
             
                 // Insert the feature details into a features_tb
                 $fileName = $this->createFeaturePhpFile($featureName, $data['inputs'], $data['selectedIcon'], $data['content_has_expiration_date']);
-                $stmt = $this->pdo->prepare("INSERT INTO features_tb (feature_name, file_name, type, department, icon, require_approval, has_expiration) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $this->pdo->prepare("INSERT INTO features_tb (feature_name, file_name, type, department, icon, has_expiration) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $featureName,
                     $fileName,
                     $contentType,
                     $data['department'],
                     $data['selectedIcon'],
-                    $data['require_content_approval'],
                     $data['content_has_expiration_date']
                 ]);
             
@@ -2166,16 +2322,14 @@ include 'misc/php/options_tv.php';
             </div>
         </div>
     </div>
-    <?php include('misc/php/error_modal.php') ?>
-    <?php include('misc/php/success_modal.php') ?>
+    <?php include('new_features/newfeature_error_modal.php') ?>
+    <?php include('new_features/newfeature_success_modal.php') ?>
     <script src=\"misc/js/capitalize_first_letter.js\"></script>
     <script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js\"></script>
-    <script src=\"misc/js/quill_textarea_submission.js\"></script>
     <script src=\"new_features/newfeature_wsform_submission.js\"></script>
     <script>
         const containers = <?php echo json_encode(\$containers); ?>;
         const tvNames = <?php echo json_encode(\$tv_names); ?>; 
-        const userType = '<?php echo \$user_type; ?>';
 
         document.addEventListener('DOMContentLoaded', function() {
             $quillInitialization

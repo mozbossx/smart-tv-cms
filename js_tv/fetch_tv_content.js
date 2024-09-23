@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.13:8081');
+const Ws = new WebSocket('ws://192.168.1.35:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {

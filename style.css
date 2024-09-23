@@ -1258,6 +1258,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 .custom-node .details {
     font-size: 14px; /* Text size */
     line-height: 1.5; /* Line height for better readability */
+    text-align: left;
 }
 
 .custom-node .node-name {
@@ -2105,6 +2106,14 @@ tr:nth-child(even) {
     position: absolute;
     left: 25px;
     top: 8px;
+}
+
+.evaluator-message-notification {
+    font-size: 14px;
+    color: #6E6E6E;
+    font-style: bold;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 
 .created-at-notification {

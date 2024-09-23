@@ -25,7 +25,7 @@ include 'misc/php/options_tv.php';
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <title>Create an not for students</title>
+    <title>Create an Carlo Feature</title>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -38,20 +38,20 @@ include 'misc/php/options_tv.php';
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb" style="background: none">
                                 <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">not for students Form</li>
+                                <li class="breadcrumb-item active" aria-current="page">Carlo Feature Form</li>
                             </ol>
                         </nav>
-                        <form id="not_for_studentsForm" enctype="multipart/form-data" class="main-form">
+                        <form id="carlo_featureForm" enctype="multipart/form-data" class="main-form">
                             <?php include('error_message.php'); ?>
-                            <input type="hidden" name="type" value="not_for_students">
-                            <h1 style="text-align: center">not for students Form</h1>
+                            <input type="hidden" name="type" value="carlo_feature">
+                            <h1 style="text-align: center">Carlo Feature Form</h1>
                             
                 <div class="floating-label-container">
-                    <div id="quillEditorContainer_student_name" class="quill-editor-container-newfeature">
-                        <label for="quillEditorContainer_student_name" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">Student name</label>
-                        <div id="student_name" style="height: 150px;"></div>
+                    <div id="quillEditorContainer_text_test" class="quill-editor-container-newfeature">
+                        <label for="quillEditorContainer_text_test" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">Text test</label>
+                        <div id="text_test" style="height: 150px;"></div>
                     </div>
-                    <input type="hidden" name="student_name" id="student_nameHiddenInput">
+                    <input type="hidden" name="text_test" id="text_testHiddenInput">
                 </div>
                             <div class="form-row">
                             <?php include('misc/php/expiration_date.php')?>
@@ -74,18 +74,18 @@ include 'misc/php/options_tv.php';
     </div>
     <?php include('new_features/newfeature_error_modal.php') ?>
     <?php include('new_features/newfeature_success_modal.php') ?>
+    <script src="misc/js/capitalize_first_letter.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script src="new_features/newfeature_wsform_submission.js"></script>
-    <script src="js/fetch_user_session.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo json_encode($tv_names); ?>; 
 
         document.addEventListener('DOMContentLoaded', function() {
             
-                                        var student_nameQuill = new Quill('#student_name', {
+                                        var text_testQuill = new Quill('#text_test', {
                                             theme: 'snow',
-                                            placeholder: 'Enter student name',
+                                            placeholder: 'Enter text test',
                                             modules: {
                                                 toolbar: [
                                                     ['bold', 'italic', 'underline'],
@@ -96,7 +96,7 @@ include 'misc/php/options_tv.php';
                                         });
                                     
 
-            const form = document.getElementById('not_for_studentsForm');
+            const form = document.getElementById('carlo_featureForm');
             form.onsubmit = function(e) {
                 e.preventDefault();
                 submitFormViaWebSocket();

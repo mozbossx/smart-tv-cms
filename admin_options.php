@@ -106,5 +106,6 @@ if ($user_data['user_type'] === 'Admin') {
         </div>
     </div>
     <script src="js/fetch_notifications_count.js"></script>
+    <script src="js/fetch_user_session.js"></script>
 </body>
 </html>

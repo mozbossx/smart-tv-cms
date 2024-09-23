@@ -1,5 +1,3 @@
-// const Ws = new WebSocket('ws://192.168.1.13:8081');
-
 function formatDate(dateTimeString) {
     const dateTime = new Date(dateTimeString);
     const options = {
@@ -14,20 +12,34 @@ function formatDate(dateTimeString) {
 }
 
 // Utility function to create buttons
-const createButton = (text, iconClass, onClick) => {
+const createDeleteButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.className = 'light-green-button';
     button.style = `
-        background-color: #316038;
-        color: #fff;
-        padding: 8px 16px;
-        border-radius: 10px;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.3s;
         margin-top: 10px;
-        margin-left: 5px;
+        margin-right: 5px;
     `;
+    button.onclick = onClick;
+    return button;
+};
+
+const createArchiveButton = (text, iconClass, onClick) => {
+    const button = document.createElement('button');
+    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.className = 'light-green-button';
+    button.style = `
+        margin-top: 10px;
+        margin-right: 5px;
+    `;
+    button.onclick = onClick;
+    return button;
+};
+
+const createEditButton = (text, iconClass, onClick) => {
+    const button = document.createElement('button');
+    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.className = 'green-button';
     button.onclick = onClick;
     return button;
 };
@@ -133,9 +145,9 @@ const updateUI = async (data, type) => {
             margin-top: 10px;
         `;
 
-        const deleteButton = createButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
-        const unarchiveButton = createButton('Unarchive', 'fa fa-arrow-circle-o-up', () => showUnarchiveModal(data[`${type}_id`], type));
-        const editButton = createButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
+        const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
+        const unarchiveButton = createArchiveButton('Unarchive', 'fa fa-arrow-circle-o-up', () => showUnarchiveModal(data[`${type}_id`], type));
+        const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
         if (userType !== 'Student' && userType !== 'Faculty' || data[`${type}_author_id`] === userId) {
             buttonContainer.appendChild(deleteButton);
@@ -158,11 +170,6 @@ const fetchTVInfo = async (type, tv_id) => {
         console.error('Error fetching TV info:', error);
         return { tv_display: 'Error fetching TV info' };
     }
-};
-
-// Helper function to capitalize the first letter of a string
-const capitalizeFirstLetter = (string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
 // Function to unarchive an item
@@ -257,15 +264,15 @@ const showUnarchiveModal = (id, type) => {
     modalContent.className = 'modal-content';
     
     modalContent.innerHTML = `
-        <div class="green-bar-vertical">
-            <span class="close" onclick="document.getElementById('confirmUnarchive${capitalizedType}Modal').style.display='none'" style="color: #316038"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <div class="yellow-bar-vertical">
+            <span class="close" onclick="document.getElementById('confirmUnarchive${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #316038; font-size: 50px"><i class="fa fa-arrow-circle-o-up" aria-hidden="true"></i></h1>
+            <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-arrow-circle-o-up" aria-hidden="true"></i></h1>
             <p id="deleteMessage" style="text-align: center">Proceed to unarchive?</p>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="green-button" style="background: #334b353b; color: black" onclick="document.getElementById('confirmUnarchive${capitalizedType}Modal').style.display='none'">Cancel</button>
-                <button type="button" class="green-button" onclick="unarchiveItem('${type}', '${id}')">Yes, Unarchive</button>
+                <button type="button" class="grey-button" onclick="document.getElementById('confirmUnarchive${capitalizedType}Modal').style.display='none'">Cancel</button>
+                <button type="button" class="yellow-button" onclick="unarchiveItem('${type}', '${id}')">Yes, Unarchive</button>
             </div>
         </div>
     `;
@@ -288,7 +295,7 @@ const showDeleteModal = (id, type) => {
             <p id="deleteMessage" style="text-align: center">Proceed to delete?</p>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="red-button" style="background: #334b353b; color: black" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
+                <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
                 <button type="button" class="red-button" onclick="deleteItem('${type}', '${id}')">Yes, Delete</button>
             </div>
         </div>

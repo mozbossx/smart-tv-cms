@@ -135,6 +135,7 @@ include 'misc/php/options_tv.php';
     </div>
     <?php include 'misc/php/success_modal.php' ?>
     <?php include 'misc/php/error_modal.php' ?>
+    <script src="js/fetch_user_session.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo json_encode($tv_names); ?>; 
@@ -155,10 +156,6 @@ include 'misc/php/options_tv.php';
             modal.style.display = "none";
             modal.classList.remove('show');
         }
-        // Helper function to capitalize the first letter of a string
-        const capitalizeFirstLetter = (string) => {
-            return string.charAt(0).toUpperCase() + string.slice(1);
-        };
 
         function submitFormViaWebSocket() {
             const data = {

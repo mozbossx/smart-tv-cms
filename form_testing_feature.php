@@ -74,10 +74,10 @@ include 'misc/php/options_tv.php';
     </div>
     <?php include('misc/php/error_modal.php') ?>
     <?php include('misc/php/success_modal.php') ?>
-    <script src="misc/js/capitalize_first_letter.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script src="misc/js/quill_textarea_submission.js"></script>
     <script src="new_features/newfeature_wsform_submission.js"></script>
+    <script src="js/fetch_user_session.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo json_encode($tv_names); ?>; 

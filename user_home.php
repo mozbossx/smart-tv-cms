@@ -32,7 +32,7 @@ include 'get_session.php';
                 <div class="content-grid-container">
                 <?php
                 // Fetch data from smart_tvs_tb
-                $query = "SELECT * FROM smart_tvs_tb";
+                $query = "SELECT * FROM smart_tvs_tb WHERE tv_department = '$department' AND tv_name != 'Unknown' AND tv_brand != 'Unknown'";
                 $result = mysqli_query($conn, $query);
 
                 if (mysqli_num_rows($result) > 0) {
@@ -60,7 +60,7 @@ include 'get_session.php';
                         echo '</div>';
                     }
                 } else {
-                    echo '<p>No TVs found.</p>';
+                    echo '<p style="font-size: 25px; color: black; margin-top: 5px;">No TVs found.</p>';
                 }
                 ?>
                 </div>
@@ -68,5 +68,6 @@ include 'get_session.php';
         </div>
     </div>
     <script src="misc/js/tv_frames.js"></script>
+    <script src="js/fetch_user_session.js"></script>
 </body>
 </html>

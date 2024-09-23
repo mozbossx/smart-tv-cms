@@ -35,7 +35,6 @@ function validateAndOpenNewFeaturePreviewModal() {
     const selectedType = document.querySelector('[name="type"]').value;
     const form = document.getElementById(`${selectedType}Form`);
     const inputs = form.querySelectorAll('input, select, textarea');
-    const quillEditors = form.querySelectorAll('[id$="Quill"]');
     
     let isValid = true;
     let contentBody = {};
@@ -51,12 +50,20 @@ function validateAndOpenNewFeaturePreviewModal() {
     });
 
     // Validate Quill editors
-    quillEditors.forEach(editor => {
-        const content = editor.querySelector('.ql-editor').innerHTML.trim();
-        if (content === '<p><br></p>' || content === '') {
+    const quillEditors = document.querySelectorAll('.quill-editor-container-newfeature .ql-container');
+    quillEditors.forEach(editorContainer => {
+        const quillEditor = Quill.find(editorContainer);
+        const quillContent = quillEditor.root.innerHTML.trim();
+        const quillPlainText = quillEditor.getText().trim();
+        const editorName = editorContainer.closest('.quill-editor-container-newfeature').id.replace('quillEditorContainer_', '');
+        
+        if (quillPlainText === '' || quillContent === '<p><br></p>') {
             isValid = false;
+            editorContainer.classList.add('quill-error');
+        } else {
+            editorContainer.classList.remove('quill-error');
+            contentBody[editorName] = quillContent;
         }
-        contentBody[editor.id.replace('Quill', '')] = content;
     });
 
     // Check for file inputs
@@ -77,14 +84,12 @@ function validateAndOpenNewFeaturePreviewModal() {
     }
 
     // Validate expiration dates/times if they exist
-    const expirationDate = form.querySelector('[name="expiration_date"]');
-    const expirationTime = form.querySelector('[name="expiration_time"]');
-
-    if (expirationDate && expirationTime) {
-        const expirationDateTime = new Date(expirationDate.value + ' ' + expirationTime.value);
+    const expirationDateTime = document.querySelector('[name="expiration_datetime"]');
+    if (expirationDateTime) {
+        const expirationDate = new Date(expirationDateTime.value);
         const currentDateTime = new Date();
 
-        if (expirationDateTime < currentDateTime) {
+        if (expirationDate < currentDateTime) {
             errorModalMessage("Expiration date and time should not be in the past.");
             return;
         }
@@ -214,8 +219,8 @@ function getNewFeaturePreviewContent(contentBody) {
     }
 
     // Expiration Date & Time
-    if (contentBody.expiration_date && contentBody.expiration_time) {
-        previewContent += `<p class="preview-input"><strong>Expiration Date & Time: </strong><br>${formatDateTime(contentBody.expiration_date, contentBody.expiration_time)}</p>`;
+    if (contentBody.expiration_datetime && contentBody.expiration_time) {
+        previewContent += `<p class="preview-input"><strong>Expiration Date & Time: </strong><br>${formatDateTime(contentBody.expiration_datetime, contentBody.expiration_time)}</p>`;
     }
 
     // TV Display

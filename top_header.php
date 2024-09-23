@@ -87,7 +87,7 @@ $stmtNotificationCount->close();
                 </li>
                 <li style="float: right; margin-right: 5px; margin-top: 3px;">
                     <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black;"' : ''; ?>>Preferences</a>
+                    <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black;"' : ''; ?>><?php echo $full_name; ?></a>
                 </li>
                 <li style="float: right; margin-right: 2px; margin-top: 22px;">
                     <button id="notifications-button" class="notifications-button" onclick="toggleNotificationsDropdown()"><i class="fa fa-bell"></i></button>
@@ -95,6 +95,7 @@ $stmtNotificationCount->close();
                     <span class="triangle"></span>
                     <div id="notificationsDropdown" class="dropdown-notifications" style="display: none; position: absolute; right: -10px; top: 30px; background-color: white; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; width: 300px; max-height: 400px; overflow-y: auto; padding: 10px;">
                         <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Notifications</p>
+                        <a href="notifications.php?pageid=Notifications?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="padding: 0; position: absolute; right: 12px; top: 9px;"><p style="color: black">View All</p></a>
                         <div id="notificationsContainer" class="notifications-container">
                             <!-- Notifications will be dynamically inserted here -->
                         </div>
@@ -138,11 +139,15 @@ $stmtNotificationCount->close();
 <div id="confirmRejectUserModal" class="modal"></div>
 <div id="confirmApproveContentModal" class="modal"></div>
 <div id="confirmRejectContentModal" class="modal"></div>
-<!-- <script src="js/fetch_notifications_count.js"></script> -->
+<div id="viewContentModal" class="modal">
+    <!-- Modal content will be dynamically inserted here -->
+</div>
+ <script src="misc/js/capitalize_first_letter.js"></script>
 <script>
     const userType = '<?php echo $user_type; ?>';
     const full_name = '<?php echo $full_name; ?>';
     const user_id = '<?php echo $user_id; ?>';
+    const department = '<?php echo $department; ?>';
 
     function toggleDropdown() {
         var dropdownContent = document.getElementById("myDropdown");

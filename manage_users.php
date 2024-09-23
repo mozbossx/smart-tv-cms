@@ -15,7 +15,7 @@ if (!$resultCurrentUser) {
 }
 
 // Check if the user is not 'Admin', redirect to the user_home
-if ($_SESSION['user_type'] !== 'Admin') {
+if ($_SESSION['user_type'] !== 'Admin' && $_SESSION['user_type'] !== 'Super Admin') {
     header('location: user_home.php');
     exit;
 }
@@ -91,5 +91,6 @@ if ($resultAllUsers->num_rows > 0) {
     <?php include('misc/php/error_modal.php')?>
     <script src="js/fetch_users.js"></script>
     <script src="misc/js/sort_table.js"></script>
+    <script src="js/fetch_user_session.js"></script>
 </body>
 </html>

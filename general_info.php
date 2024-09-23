@@ -73,5 +73,6 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
             </div>
         </div>
     </div>
+    <script src="js/fetch_user_session.js"></script>
 </body>
 </html>

@@ -1,5 +1,3 @@
-// const Ws = new WebSocket('ws://192.168.1.13:8081');
-
 const openTab = (evt, tabName) => {
     const tabcontent = document.getElementsByClassName("tabcontent");
     for (let i = 0; i < tabcontent.length; i++) {

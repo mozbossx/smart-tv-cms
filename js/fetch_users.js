@@ -1,4 +1,4 @@
-const ws = new WebSocket('ws://192.168.1.13:8081');
+const ws = new WebSocket('ws://192.168.1.35:8081');
 const userTableContainer = document.getElementById('userTableContainer');
 
 const loggedInUserId = document.getElementById('user-data').getAttribute('data-user-id');
@@ -60,13 +60,6 @@ const displayUserTable = (data) => {
 
     tableHtml += `</tbody></table>`;
     userTableContainer.innerHTML = tableHtml;
-};
-
-const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-        month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true
-    });
 };
 
 const generateOperationsButtons = (userId, status) => {
@@ -191,17 +184,17 @@ const insertDeleteUserModalContent = (userId) => createModal('DeleteUserModal', 
 
 const showApproveUserModal = (userId) => {
     insertApproveUserModalContent(userId);
-    showModal('ApproveUserModal', 'approveUserButton', () => approveUser(userId));
+    showModal('ApproveUserModal', 'approveUserButton', () => approveTableUser(userId));
 };
 
 const showRejectUserModal = (userId) => {
     insertRejectUserModalContent(userId);
-    showModal('RejectUserModal', 'rejectUserButton', () => rejectUser(userId));
+    showModal('RejectUserModal', 'rejectUserButton', () => rejectTableUser(userId));
 };
 
 const showDeleteUserModal = (userId) => {
     insertDeleteUserModalContent(userId);
-    showModal('DeleteUserModal', 'deleteUserButton', () => deleteUser(userId));
+    showModal('DeleteUserModal', 'deleteUserButton', () => deleteTableUser(userId));
 };
 
 const showAddUserModal = () => {
@@ -351,18 +344,28 @@ const sendFormData = (formData) => {
                 if (message.success) {
                     if (message.action === 'add_user') {
                         document.getElementById('successMessageVersion2').textContent = `User added successfully! The temporary password is sent to the user's email.`;
+                        document.getElementById('AddUserModal').style.display = 'none';
+                        document.getElementById('successMessageModalVersion2').style.display = 'flex';
                     } else if (message.action === 'add_multiple_users') {
                         document.getElementById('successMessageVersion2').textContent = `${message.addedCount} users added successfully! ${message.failedCount} users failed to add.`;
+                        document.getElementById('AddUserModal').style.display = 'none';
+                        document.getElementById('successMessageModalVersion2').style.display = 'flex';
                     } else if (message.action === 'edit_user') {
                         document.getElementById('successMessageVersion2').textContent = 'User updated successfully!';
-                    }
-                    document.getElementById('AddUserModal').style.display = 'none';
-                    document.getElementById('successMessageModalVersion2').style.display = 'flex';;
+                        document.getElementById('EditUserModal').style.display = 'none';
+                        document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                    } 
                     refreshUserTable();
                 } else {
-                    document.getElementById('errorTextVersion2').textContent = message.message;
-                    document.getElementById('AddUserModal').style.display = 'none';
-                    document.getElementById('errorModalVersion2').style.display = 'flex';
+                    if (message.action === 'add_user' || message.action === 'add_multiple_users') {
+                        document.getElementById('errorTextVersion2').textContent = message.message;
+                        document.getElementById('AddUserModal').style.display = 'none';
+                        document.getElementById('errorModalVersion2').style.display = 'flex';
+                    } else if (message.action === 'edit_user') {
+                        document.getElementById('errorTextVersion2').textContent = message.message;
+                        document.getElementById('EditUserModal').style.display = 'none';
+                        document.getElementById('errorModalVersion2').style.display = 'flex';
+                    }
                 }
             };
 
@@ -395,9 +398,9 @@ const performUserAction = (action, userId) => {
     }
 };
 
-const approveUser = (userId) => performUserAction('approve_user', userId);
-const rejectUser = (userId) => performUserAction('reject_user', userId);
-const deleteUser = (userId) => performUserAction('delete_user', userId);
+const approveTableUser = (userId) => performUserAction('approve_user', userId);
+const rejectTableUser = (userId) => performUserAction('reject_user', userId);
+const deleteTableUser = (userId) => performUserAction('delete_user', userId);
 
 /* ============== EDIT USER DETAILS ============== */
 // Function to populate the edit user modal with user data
@@ -475,9 +478,9 @@ const showEditUserModal = (userId) => {
 const editUser = (userId) => {
     const form = document.getElementById('editUserForm');
     const formData = new FormData(form);
-    const editUserModal = document.getElementById('EditUserModal');
     formData.append('user_id', userId);
     formData.append('action', 'edit_user');
+    formData.append('full_name', full_name);
 
     sendFormData(formData);
 };

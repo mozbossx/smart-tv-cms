@@ -13,20 +13,34 @@ function formatDate(dateTimeString) {
 }
 
 // Utility function to create buttons
-const createButton = (text, iconClass, onClick) => {
+const createDeleteButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.className = 'light-green-button';
     button.style = `
-        background-color: #316038;
-        color: #fff;
-        padding: 8px 16px;
-        border-radius: 5px;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.3s;
         margin-top: 10px;
-        margin-left: 5px;
+        margin-right: 5px;
     `;
+    button.onclick = onClick;
+    return button;
+};
+
+const createArchiveButton = (text, iconClass, onClick) => {
+    const button = document.createElement('button');
+    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.className = 'light-green-button';
+    button.style = `
+        margin-top: 10px;
+        margin-right: 5px;
+    `;
+    button.onclick = onClick;
+    return button;
+};
+
+const createEditButton = (text, iconClass, onClick) => {
+    const button = document.createElement('button');
+    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.className = 'green-button';
     button.onclick = onClick;
     return button;
 };
@@ -130,9 +144,9 @@ const updateUI = (data, type) => {
             margin-top: 10px;
         `;
 
-        const deleteButton = createButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
-        const archiveButton = createButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
-        const editButton = createButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
+        const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
+        const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
+        const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
         if (userType !== 'Student' && userType !== 'Faculty' || data[`${type}_author_id`] === user_id) {
             buttonContainer.appendChild(deleteButton);
@@ -145,11 +159,6 @@ const updateUI = (data, type) => {
 
         document.getElementById(`${type}CarouselContainer`).insertBefore(containerDiv, document.getElementById(`${type}CarouselContainer`).firstChild);
     }
-};
-
-// Helper function to capitalize the first letter of a string
-const capitalizeFirstLetter = (string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
 // Function to archive an item
@@ -251,7 +260,7 @@ const showArchiveModal = (id, type) => {
             <p id="deleteMessage" style="text-align: center">Proceed to archive?</p>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="red-button" style="background: #334b353b; color: black" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
+                <button type="button" class="grey-button" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
                 <button type="button" class="yellow-button" onclick="archiveItem('${type}', '${id}')">Yes, Archive</button>
             </div>
         </div>
@@ -275,7 +284,7 @@ const showDeleteModal = (id, type) => {
             <p id="deleteMessage" style="text-align: center">Proceed to delete?</p>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="red-button" style="background: #334b353b; color: black" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
+                <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
                 <button type="button" class="red-button" onclick="deleteItem('${type}', '${id}')">Yes, Delete</button>
             </div>
         </div>
@@ -302,16 +311,6 @@ const fetchAndUpdate = async (type) => {
     const tvId = urlParams.get('tvId');
 
     try {
-        let requireApproval = true; // Default to requiring approval
-
-        // Only check for require_approval if it's not a default content type
-        if (!defaultContentTypes.includes(type)) {
-            const featureInfo = await getFeatureInfo(type);
-            if (featureInfo) {
-                requireApproval = featureInfo.require_approval === 'yes';
-            }
-        }
-
         const response = await fetch(`database/fetch_content.php?type=${type}`);
         const data = await response.json();
 
@@ -320,7 +319,7 @@ const fetchAndUpdate = async (type) => {
             if (type === 'peo' || type === 'so') {
                 return baseConditions;
             } else {
-                return requireApproval ? (baseConditions && item.status === 'Approved') : baseConditions;
+                return baseConditions && item.status === 'Approved';
             }
         });
 
@@ -395,6 +394,12 @@ Ws.addEventListener('message', function(event) {
             // Handle new content being posted
             console.log(`New ${data.type} posted:`, data);
             fetchAndUpdate(data.type);
+            break;
+        
+        case 'approve_post':
+            // Handle new approved content being posted
+            console.log(`New Approved ${data.type} posted:`, data);
+            fetchAndUpdate(data.content_type);
             break;
 
         default:

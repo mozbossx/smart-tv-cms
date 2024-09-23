@@ -1,4 +1,3 @@
-// const Ws = new WebSocket('Ws://192.168.1.13:8081');
 const smartTVTableContainer = document.getElementById('smartTVTableContainer');
 
 const displaySmartTVTable = (data) => {
@@ -9,6 +8,7 @@ const displaySmartTVTable = (data) => {
                     <th onclick="sortTable(0)">Device ID</th>
                     <th onclick="sortTable(1)">TV Name</th>
                     <th onclick="sortTable(2)">TV Brand</th>
+                    <th onclick="sortTable(3)">TV Department</th>
                     <th>Operations</th>
                 </tr>
             </thead>
@@ -19,6 +19,7 @@ const displaySmartTVTable = (data) => {
             <td style="text-align: center;">${row.device_id}</td>
             <td style="text-align: left;">${row.tv_name}</td>
             <td style="text-align: left;">${row.tv_brand}</td>
+            <td style="text-align: left;">${row.tv_department}</td>
             <td style="text-align:center;">
                 <button type="button" class="green-button" onclick="showEditSmartTVModal(${row.tv_id})">Edit</button>
                 <button type="button" class="red-button" onclick="showDeleteSmartTVModal(${row.tv_id})">Delete</button>
@@ -145,6 +146,19 @@ const populateEditSmartTVModal = (tvId) => {
                         <input type="text" name="tv_brand" id="edit_tv_brand" placeholder=" " class="floating-label-input-text-area">
                         <label for="edit_tv_brand" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">TV Brand</label>
                     </div>
+                    <div class="floating-label-container">
+                        <select name="tv_department" id="edit_tv_department" class="floating-label-input">
+                            <option value="">~</option>
+                            <option value="COMPUTER ENGINEERING">Department of Computer Engineering</option>
+                            <option value="CHEMICAL ENGINEERING">Department of Chemical Engineering</option>
+                            <option value="CIVIL ENGINEERING">Department of Civil Engineering</option>
+                            <option value="INDUSTRIAL ENGINEERING">Department of Industrial Engineering</option>
+                            <option value="ELECTRICAL ENGINEERING">Department of Electrical Engineering</option>
+                            <option value="MECHANICAL ENGINEERING">Department of Mechanical Engineering</option>
+                            <option value="ELECTRONICS ENGINEERING">Department of Electronics Engineering</option>
+                        </select>
+                        <label for="edit_tv_department" class="floating-label">Department</label>
+                    </div>
                     <br>
                     <div style="text-align: right;">
                         <button type="button" id="cancelEditSmartTVModalButton" class="cancel-button">Cancel</button>
@@ -164,6 +178,7 @@ const populateEditSmartTVModal = (tvId) => {
                 document.getElementById('edit_tv_name').value = tv.tv_name || '';
                 document.getElementById('edit_tv_brand').value = tv.tv_brand || '';
                 document.getElementById('edit_device_id').value = tv.device_id || '';
+                document.getElementById('edit_tv_department').value = tv.tv_department || '';
             } else {
                 console.error('TV data is null or undefined');
             }
@@ -186,8 +201,9 @@ const showEditSmartTVModal = (tvId) => {
         event.preventDefault(); // Prevent the default form submission
         const tvName = document.getElementById('edit_tv_name').value;
         const tvBrand = document.getElementById('edit_tv_brand').value;
+        const tvDepartment = document.getElementById('edit_tv_department').value;
 
-        editSmartTV(tvId, tvName, tvBrand);
+        editSmartTV(tvId, tvName, tvBrand, tvDepartment);
         modal.style.display = 'none';
     };
   
@@ -207,7 +223,7 @@ const showEditSmartTVModal = (tvId) => {
     };
 };
 
-const editSmartTV = (tv_id, tv_name, tv_brand) => {
+const editSmartTV = (tv_id, tv_name, tv_brand, tv_department) => {
     // Fetch the WebSocket URL from PHP script
     fetch('websocket_conn.php')
         .then(response => response.text())
@@ -219,7 +235,8 @@ const editSmartTV = (tv_id, tv_name, tv_brand) => {
                 action: 'edit_smart_tv',
                 tv_id: tv_id,
                 tv_name: tv_name,
-                tv_brand: tv_brand
+                tv_brand: tv_brand,
+                tv_department: tv_department
             };
 
             // Send data to WebSocket server

@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Hash the new password
-    $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+    $hashed_password = md5($new_password);
 
     // Update the password in the database
     $query = "UPDATE users_tb SET password = ? WHERE user_id = ?";

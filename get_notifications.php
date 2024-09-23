@@ -17,14 +17,16 @@ if ($userType === 'Admin') {
                 OR (n.notification_type = 'user_approved' OR n.notification_type = 'user_rejected')
                 OR (n.notification_type = 'content_post' AND n.status = 'approved')
                 OR (n.notification_type = 'content_rejected' AND n.status = 'rejected')
-                OR (n.notification_type = 'content_deleted' AND n.status = 'deleted'))";
+                OR (n.notification_type = 'content_deleted' AND n.status = 'deleted')
+                OR (n.notification_type = 'user_edited' AND n.status = 'edited'))";
 } else {
     // For non-Admin users, show their own notifications and content_approved notifications for their posts
     $query .= " AND ((n.user_id = ? AND n.status = 'pending') 
                 OR (n.notification_type = 'content_approved' AND n.user_id = ?)
                 OR (n.notification_type = 'content_approved_by_admin' AND n.user_id = ?)
                 OR (n.notification_type = 'content_rejected_by_admin' AND n.user_id = ?)
-                OR (n.notification_type = 'user_approved_by_admin' AND n.user_id = ?))";
+                OR (n.notification_type = 'user_approved_by_admin' AND n.user_id = ?)
+                OR (n.notification_type = 'user_edited_by_admin' AND n.user_id = ?))";
 }
 
 $query .= " ORDER BY n.created_at DESC";
@@ -32,7 +34,7 @@ $query .= " ORDER BY n.created_at DESC";
 $stmt = $conn->prepare($query);
 
 if ($userType !== 'Admin') {
-    $stmt->bind_param("iiiii", $user_id, $user_id, $user_id, $user_id, $user_id);
+    $stmt->bind_param("iiiiii", $user_id, $user_id, $user_id, $user_id, $user_id, $user_id);
 } 
 
 $stmt->execute();

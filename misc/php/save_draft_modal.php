@@ -13,7 +13,7 @@
 </div>
 
 <script>
-    const ws = new WebSocket('ws://192.168.1.13:8081?user_id=<?php echo urlencode($user_id)?>&full_name=<?php echo urlencode($full_name); ?>&user_type=<?php echo urlencode($user_type); ?>&department=<?php echo urlencode($department); ?>&email=<?php echo urlencode($email)?>');
+    const ws = new WebSocket('ws://192.168.1.35:8081?user_id=<?php echo urlencode($user_id)?>&full_name=<?php echo urlencode($full_name); ?>&user_type=<?php echo urlencode($user_type); ?>&department=<?php echo urlencode($department); ?>&email=<?php echo urlencode($email)?>');
 
     let isFormDirty = false;
 
@@ -103,10 +103,7 @@
             if (message.success) {
                 document.getElementById('successMessage').textContent = capitalizeFirstLetter(contentType) + " was drafted!";                        
                 document.getElementById('successMessageModal').style.display = 'flex';
-            } else {
-                document.getElementById('errorText').textContent = "Error processing " + contentType + ". Try again later";
-                document.getElementById('errorModal').style.display = 'flex';
-            }
+            } 
         };
 
         ws.onerror = function (event) {

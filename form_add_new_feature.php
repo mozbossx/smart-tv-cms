@@ -105,14 +105,6 @@ include 'misc/php/options_tv.php';
                                 ?>
                             </div>
                             <div class="form-row" style="margin-bottom: 5px"> 
-                                <div id="requireContentApproval" class="floating-label-container" style="display: none; flex: 1">
-                                    <select id="require_content_approval" name="require_content_approval" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
-                                        <option value="">Choose Selection</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                    <label for="require_content_approval" class="floating-label">Require Content Approval?</label>
-                                </div>
                                 <div id="contentExpirationDate" class="floating-label-container" style="display: none; flex: 1">
                                     <select id="content_has_expiration_date" name="content_has_expiration_date" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
                                         <option value="">Choose Selection</option>
@@ -156,7 +148,7 @@ include 'misc/php/options_tv.php';
                                     </div>
                                 </div>
                             </div>
-                            <?php include('misc/php/newfeature_preview_modal.php') ?>
+                            <?php include('misc/php/newfeatureform_preview_modal.php') ?>
                         </form>
                     </div>
                 </div>
@@ -166,21 +158,19 @@ include 'misc/php/options_tv.php';
     <?php include('misc/php/error_modal.php') ?>
     <?php include('misc/php/success_modal.php') ?>
     <script src="misc/js/populate_font_awesome_icons.js"></script>
-    <script src="misc/js/capitalize_first_letter.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script src="js/fetch_user_session.js"></script>
     <script>
         document.getElementById('number_of_inputs').addEventListener('change', function() {
             const numberOfInputs = parseInt(this.value);
             const newInputContainer = document.getElementById('newInput');
             const userTypeAccess = document.getElementById('userTypeAccess');
-            const requireContentApproval = document.getElementById('requireContentApproval');
             const contentExpirationDate = document.getElementById('contentExpirationDate');
             const departmentSelection = document.getElementById('departmentSelection');
             
             // Clear existing inputs
             newInputContainer.innerHTML = '';
             userTypeAccess.style.display = 'none';
-            requireContentApproval.style.display = 'none';
             contentExpirationDate.style.display = 'none';
             departmentSelection.style.display = 'none';
             // Create and append new input sections
@@ -217,7 +207,6 @@ include 'misc/php/options_tv.php';
             // Show the container if inputs are selected, hide otherwise
             newInputContainer.style.display = numberOfInputs > 0 ? 'block' : 'none';
             userTypeAccess.style.display = numberOfInputs > 0 ? 'block' : 'none';
-            requireContentApproval.style.display = numberOfInputs > 0 ? 'block' : 'none';
             contentExpirationDate.style.display = numberOfInputs > 0 ? 'block' : 'none';
             departmentSelection.style.display = numberOfInputs > 0 ? 'block' : 'none';
         });

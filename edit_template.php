@@ -33,6 +33,33 @@ $topbarDateFontFamily = '';
 if (isset($_GET['tvId'])) {
     $tvId = $_GET['tvId'];
 
+    $tvQuery1 = "SELECT tv_department FROM smart_tvs_tb WHERE tv_id = ?";
+    $tvStmt1 = $conn->prepare($tvQuery1);
+    $tvStmt1->bind_param("i", $tvId);
+    $tvStmt1->execute();
+    $tvResult1 = $tvStmt1->get_result();
+
+    if ($tvResult1->num_rows > 0) {
+        $tvData = $tvResult1->fetch_assoc();
+        $tvDepartment = $tvData['tv_department'];
+
+        // Check if the tv_department is not equal to the sessioned department
+        if ($tvDepartment !== $department) {
+            echo '
+                <script>
+                    alert("You are not authorized to access this TV."); 
+                    window.location.href = "user_home.php";
+                </script>';
+            exit;
+        }
+    } else {
+        // If no TV found, redirect to user_home.php
+        header('location: user_home.php');
+        exit;
+    }
+
+    $tvStmt1->close();
+
     // Fetch background color from the database
     $backgroundColorQuery = "SELECT background_hex_color FROM background_tv_tb WHERE tv_id = ?";
     $stmtBgColor = $conn->prepare($backgroundColorQuery);
@@ -351,6 +378,7 @@ $conn->close();
             </div>
         </div>
     </div>
+    <script src="js/fetch_user_session.js"></script>
     <script>
         let ws;
         var containers = <?php echo json_encode($containers); ?>;
