@@ -416,9 +416,9 @@ class ContentHandler implements MessageComponentInterface
                        'topbar_tvname_font_color',
                        'topbar_tvname_font_style',
                        'topbar_tvname_font_family',
-                       'topbar_deviceid_font_color',
-                       'topbar_deviceid_font_style',
-                       'topbar_deviceid_font_family',
+                       'topbar_tvid_font_color',
+                       'topbar_tvid_font_style',
+                       'topbar_tvid_font_family',
                        'topbar_time_font_color',
                        'topbar_time_font_style',
                        'topbar_time_font_family',
@@ -436,9 +436,9 @@ class ContentHandler implements MessageComponentInterface
             $topbarTvNameFontStyle = $data['topbar_tvname_font_style'] ?? null;
             $topbarTvNameFontFamily = $data['topbar_tvname_font_family'] ?? null;
 
-            $topbarDeviceIdColor = $data['topbar_deviceid_font_color'] ?? null;
-            $topbarDeviceIdFontStyle = $data['topbar_deviceid_font_style'] ?? null;
-            $topbarDeviceIdFontFamily = $data['topbar_deviceid_font_family'] ?? null;
+            $topbarTvIdColor = $data['topbar_tvid_font_color'] ?? null;
+            $topbarTvIdFontStyle = $data['topbar_tvid_font_style'] ?? null;
+            $topbarTvIdFontFamily = $data['topbar_tvid_font_family'] ?? null;
 
             $topbarTimeColor = $data['topbar_time_font_color'] ?? null;
             $topbarTimeFontStyle = $data['topbar_time_font_style'] ?? null;
@@ -450,15 +450,15 @@ class ContentHandler implements MessageComponentInterface
 
             $topbarPosition = $data['topbar_position'] ?? null;
             
-            if ($tvId !== null || $topbarColor !== null || $topbarTvNameColor !== null || $topbarDeviceIdColor !== null || $topbarTimeColor !== null || $topbarDateColor !== null) {
+            if ($tvId !== null || $topbarColor !== null || $topbarTvNameColor !== null || $topbarTvIdColor !== null || $topbarTimeColor !== null || $topbarDateColor !== null) {
                 // Prepare the parameters for the update statement
                 $params = [$topbarColor, 
                            $topbarTvNameColor, 
                            $topbarTvNameFontStyle, 
                            $topbarTvNameFontFamily,
-                           $topbarDeviceIdColor, 
-                           $topbarDeviceIdFontStyle,
-                           $topbarDeviceIdFontFamily,
+                           $topbarTvIdColor, 
+                           $topbarTvIdFontStyle,
+                           $topbarTvIdFontFamily,
                            $topbarTimeColor, 
                            $topbarTimeFontStyle,
                            $topbarTimeFontFamily,
@@ -486,9 +486,9 @@ class ContentHandler implements MessageComponentInterface
                         'topbar_tvname_font_color' => $topbarTvNameColor,
                         'topbar_tvname_font_style' => $topbarTvNameFontStyle,
                         'topbar_tvname_font_family' => $topbarTvNameFontFamily,
-                        'topbar_deviceid_font_color' => $topbarDeviceIdColor,
-                        'topbar_deviceid_font_style' => $topbarDeviceIdFontStyle,
-                        'topbar_deviceid_font_family' => $topbarDeviceIdFontFamily,
+                        'topbar_tvid_font_color' => $topbarTvIdColor,
+                        'topbar_tvid_font_style' => $topbarTvIdFontStyle,
+                        'topbar_tvid_font_family' => $topbarTvIdFontFamily,
                         'topbar_time_font_color' => $topbarTimeColor,
                         'topbar_time_font_style' => $topbarTimeFontStyle,
                         'topbar_time_font_family' => $topbarTimeFontFamily,
@@ -679,7 +679,7 @@ class ContentHandler implements MessageComponentInterface
                 $datetime_registered = $userDetails['datetime_registered'];
 
                 // Set status based on user_type
-                $status = ($user_type == 'Student') ? 'Pending' : 'Approved';
+                $status = ($user_type == 'Student' || $user_type == 'TBD') ? 'Pending' : 'Approved';
 
                 try {
                     // Hash the password using md5
@@ -729,7 +729,7 @@ class ContentHandler implements MessageComponentInterface
                         $this->broadcastNotification('new_notification');
 
                         // Send success message to client
-                        $response = ['success' => true, 'data' => $data];
+                        $response = ['success' => true, 'data' => $data, 'user_type' => $user_type];
                         echo "A user account has been created! \n";
                     } else {
                         $response = ["success" => false, "message" => "Failed to insert data. Please try again."];
@@ -740,6 +740,28 @@ class ContentHandler implements MessageComponentInterface
 
                 $from->send(json_encode($response));
             }
+        }
+
+        else if (isset($data['action']) && $data['action'] === 'update_user_type') {
+            $user_type = $data['user_type'];
+            $email = $data['email'];
+    
+            try {
+                $stmt = $this->pdo->prepare("UPDATE users_tb SET user_type = ? WHERE email = ?");
+                $success = $stmt->execute([$user_type, $email]);
+
+                $this->broadcastNotification('new_notification');
+    
+                if ($success) {
+                    $response = ['success' => true, 'message' => 'User type updated successfully'];
+                } else {
+                    $response = ['success' => false, 'message' => 'Failed to update user type'];
+                }
+            } catch (\Exception $e) {
+                $response = ['success' => false, 'message' => 'Error updating user type: ' . $e->getMessage()];
+            }
+    
+            $from->send(json_encode($response));
         }
 
         else if (isset($data['action']) && $data['action'] === 'approve_user') {
@@ -1849,7 +1871,7 @@ class ContentHandler implements MessageComponentInterface
                         $expiration_datetime = $data['expiration_datetime'] ?? null;
                         
                         echo "Type: $type\n";
-                        $status = ($user_type == 'Admin') ? 'Approved' : 'Pending';
+                        $status = ($user_type == 'Admin' || $user_type == 'Super Admin') ? 'Approved' : 'Pending';
                         $category = ucfirst($type); // Capitalize the first letter of the type
             
                         $isCancelled = 0;

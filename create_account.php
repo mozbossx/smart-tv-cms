@@ -14,14 +14,15 @@ if (isset($_POST["submit"])) {
     $datetime_registered = date("Y-m-d H:i:s");
 
     // Check if email contains '@usc.edu.ph'
-    if (strpos($email, '@usc.edu.ph') === false) {
-        $error[] = "Email must be a USC email address (must contain '@usc.edu.ph')";
-    } else {
+    // if (strpos($email, '@usc.edu.ph') === false) {
+    //     $error[] = "Email must be a USC email address (must contain '@usc.edu.ph')";
+    // } else {
         // Determine user_type based on the email pattern
-        if (preg_match('/\d{8}/', $email)) {
+        if (preg_match('/^\d{1,8}@usc\.edu\.ph$/', $email)) {
             $user_type = "Student";
         } else {
-            $user_type = "Faculty";
+            // User type will still be empty if not student
+            $user_type = "TBD";
         }
 
         // Check if full_name contains symbols and numbers
@@ -127,7 +128,7 @@ if (isset($_POST["submit"])) {
         } else {
             $error[] = "Passwords do not match!";
         }
-    }
+    // }
 } else {
     // Initialize variables to store the form values
     $full_name = "";

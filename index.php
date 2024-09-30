@@ -21,9 +21,9 @@ if (isset($_POST['submit'])) {
     $password = $_POST['password'];
 
     // Check if email contains '@usc.edu.ph'
-    if (strpos($email, '@usc.edu.ph') === false) {
-        $error[] = "Email must be a USC email address (must contain '@usc.edu.ph')";
-    } else {
+    // if (strpos($email, '@usc.edu.ph') === false) {
+    //     $error[] = "Email must be a USC email address (must contain '@usc.edu.ph')";
+    // } else {
         if (strlen($password) < 6) {
             $error[] = "Password should be at least 6 characters long.";
         } else {
@@ -59,7 +59,7 @@ if (isset($_POST['submit'])) {
 
             $stmt->close();
         }
-    }
+    // }
 } else {
     $email = "";
 }

@@ -1,6 +1,6 @@
 let updatedContainers = {}; // Define updatedContainers in a higher scope
  
-const websocket = new WebSocket('ws://192.168.1.35:8081');
+const websocket = new WebSocket('ws://192.168.1.30:8081');
 
 websocket.onopen = function() {
     console.log('WebSocket connection established');

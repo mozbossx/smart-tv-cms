@@ -21,13 +21,15 @@ if (isset($_GET['tvId'])) {
         $tvDepartment = $tvData['tv_department'];
 
         // Check if the tv_department is not equal to the sessioned department
-        if ($tvDepartment !== $department) {
-            echo '
-                <script>
-                    alert("You are not authorized to access this TV."); 
-                    window.location.href = "user_home.php";
-                </script>';
-            exit;
+        if ($user_type != 'Super Admin') {
+            if ($tvDepartment !== $department) {
+                echo '
+                    <script>
+                        alert("You are not authorized to access this TV."); 
+                        window.location.href = "user_home.php";
+                    </script>';
+                exit;
+            }
         }
     } else {
         // If no TV found, redirect to user_home.php
@@ -87,18 +89,16 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 </nav>
                 <?php
                 echo '<h1 class="content-title" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($tvName) . '</h1>';
-                echo '<div class="tv-frame-parent" style="width: auto; height: 450px; ">';
+                echo '<div class="tv-frame-parent" style="width: auto; height: 450px; background: none; cursor: default;">';
                 echo '<div class="tv-frame" id="tv-frame" style="scale: 0.5; user-select: none">';
                     echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
                     echo '<p style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($tvBrand) .'</p>';
                 echo "</div>";
-                echo '<div class="scale-buttons">';
-                echo '<button id="scale-down"><i class="fa fa-search-minus"></i></button>';
-                echo '<button id="scale-up"><i class="fa fa-search-plus"></i></button>';
-                if ($user_type == 'Admin') {
+                echo "<div class='scale-buttons'>";
+                if ($user_type == 'Admin' || $user_type == 'Super Admin') {
                     echo "<button class='green-button' style='margin-left: 20px' onclick=\"window.location.href='edit_template.php?tvId=$tvId&initialize=false'\"><i class='fa fa-window-restore' style='margin-right: 6px' aria-hidden='true'></i>Edit Template</button>";
                 }
-                echo '</div>';
+                echo "</div>";
                 echo "</div>";
                 ?>
                 <div class="content-grid-container">
@@ -151,54 +151,37 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
-    
-    
+
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_content2.js"></script>
     <script src="js/fetch_user_session.js"></script>
     <script>
-        const tvFrame = document.getElementById('tv-frame');
-        const scaleUpButton = document.getElementById('scale-up');
-        const scaleDownButton = document.getElementById('scale-down');
-        let scale = 1;
-        let isDragging = false;
-        let startX, startY, scrollLeft, scrollTop;
+        const tvFrame = document.querySelector('.tv-frame');
 
-        // Scale Up Button
-        scaleUpButton.addEventListener('click', () => {
-            scale += 0.1;
+        // Function to fit the tv-frame inside its parent
+        function fitFrameToParent() {
+            const parent = tvFrame.parentElement;
+            const parentRect = parent.getBoundingClientRect();
+
+            // Reset any existing transformations and positioning
+            tvFrame.style.transform = 'none';
+            
+            const frameRect = tvFrame.getBoundingClientRect();
+
+            const scaleX = parentRect.width / frameRect.width;
+            const scaleY = parentRect.height / frameRect.height;
+            const scale = Math.min(scaleX, scaleY, 1); // Don't scale up if already smaller
+
+            // Apply transformations
             tvFrame.style.transform = `scale(${scale})`;
-        });
+            sliders.value = scale;
+        }
 
-        // Scale Down Button
-        scaleDownButton.addEventListener('click', () => {
-            if (scale > 0.2) {  // Prevent scaling too small
-                scale -= 0.1;
-                tvFrame.style.transform = `scale(${scale})`;
-            }
-        });
+        // Fit frame on load
+        fitFrameToParent();
 
-        // Drag to Pan
-        tvFrame.parentElement.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - tvFrame.offsetLeft;
-            startY = e.clientY - tvFrame.offsetTop;
-            tvFrame.parentElement.style.cursor = 'grabbing';
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            tvFrame.parentElement.style.cursor = 'grab';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            const x = e.clientX - startX;
-            const y = e.clientY - startY;
-            tvFrame.style.left = `${x}px`;
-            tvFrame.style.top = `${y}px`;
-        });
+        // Refit on window resize
+        window.addEventListener('resize', fitFrameToParent);
     </script>
 </body>
 </html>

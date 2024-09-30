@@ -6,6 +6,8 @@ include 'config_connection.php';
 // fetch user data for the currently logged-in user
 include 'get_session.php';
 
+include 'admin_access_only.php';
+
 // Fetch data from the smart_tvs_tb table
 $sqlAllSmartTVs = "SELECT * FROM smart_tvs_tb";
 $resultAllSmartTVs = mysqli_query($conn, $sqlAllSmartTVs);
@@ -43,14 +45,17 @@ if (!$resultAllSmartTVs) {
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <h1 class="content-title" style="color: black"><i class="fa fa-tv" style="padding-right: 5px"></i>Manage Smart TVs</h1>
                     <div class="content-form">
-                        <div class="button-flex-space-between">
-                            <div class="left-side-button">
-                                <button type="button" class="back-button" onclick="javascript:history.back()"><i class="fa fa-arrow-left" style="padding-right: 5px"></i>Back</button>
-                            </div>                                
+                        <!-- Breadcrumb Navigation -->
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="admin_options.php" style="color: #264B2B">Admin Options</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Manage Smart TVs</li>
+                            </ol>
+                        </nav>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button type="button" id="scanTVsButton" class="green-button" style="width: auto; margin-right: 0;"  ><i class="fa fa-search" style="padding-right: 5px"></i>Scan for Smart TVs</button>
                         </div>
-                        <div class="line-separator"></div>
                         <?php include('error_message.php'); ?>
                         <div class="table-container">
                             <div id="smartTVTableContainer">
@@ -64,8 +69,11 @@ if (!$resultAllSmartTVs) {
     </div>
     <div id="editSmartTVModal" class="modal"></div>
     <div id="confirmDeleteSmartTVModal" class="modal"></div>
+    <div id="scanResultsModal" class="modal"></div>
+
     <script src="js/fetch_smart_tvs.js"></script>
     <script src="js/fetch_user_session.js"></script>
+    <script src="misc/js/scan_smart_tvs.js"></script>
     <script>
         function sortTable(columnIndex) {
             var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
@@ -121,6 +129,10 @@ if (!$resultAllSmartTVs) {
                 }
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('scanTVsButton').addEventListener('click', scanForSmartTVs);
+        });
     </script>
 </body>
 </html>

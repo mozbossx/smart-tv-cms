@@ -67,10 +67,24 @@ if (isset($_SESSION['mail'])) {
             </div>
         </div>
     </div>
+    <div id="facultyOrStaffModal" class="modal">
+        <div class="modal-content">
+            <div class="green-bar-vertical">
+                <span class="close" onclick="closeModal('facultyOrStaffModal')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+                <br>
+                <p style="text-align: center">Are you a faculty or staff member?</p>
+                <br>
+                <div style="align-items: right; text-align: right; right: 0">
+                    <button id="facultyBtn" class="green-button" style="margin: 0">Faculty</button>
+                    <button id="staffBtn" class="green-button" style="margin: 0">Staff</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         // Handle form submission via WebSocket
         const form = document.getElementById('pendingUserForm');
-        const ws = new WebSocket('ws://192.168.1.35:8081?email=<?php echo urlencode($email); ?>');
+        const ws = new WebSocket('ws://192.168.1.30:8081?email=<?php echo urlencode($email); ?>');
         
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -94,8 +108,27 @@ if (isset($_SESSION['mail'])) {
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
                 if (message.success) {
-                    // Redirect the user to user_home.php if success
-                    window.location.href = "index.php";
+                    // Unset the session mail variable
+                    fetch('unset_session_mail.php')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                console.log('Session mail unset successfully');
+                            } else {
+                                console.error('Failed to unset session mail');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+
+                    if (message.user_type === 'TBD') {
+                        // Show the faculty or staff modal
+                        document.getElementById('facultyOrStaffModal').style.display = 'flex';
+                    } else {
+                        // Redirect the user to user_home.php if success
+                        window.location.href = "index.php";
+                    }
                 } else {
                     // Display an error message
                     console.error(message.message);
@@ -106,6 +139,27 @@ if (isset($_SESSION['mail'])) {
                 console.error('WebSocket error observed:', event);
             };
         });
+
+        // Add event listeners for faculty and staff buttons
+        document.getElementById('facultyBtn').addEventListener('click', function() {
+            updateUserType('Faculty');
+        });
+
+        document.getElementById('staffBtn').addEventListener('click', function() {
+            updateUserType('Staff');
+        });
+
+        function updateUserType(userType) {
+            ws.send(JSON.stringify({
+                action: 'update_user_type',
+                user_type: userType,
+                email: '<?php echo $email; ?>'
+            }));
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
 
     </script>
 

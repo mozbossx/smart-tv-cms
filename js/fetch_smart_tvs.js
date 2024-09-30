@@ -5,7 +5,7 @@ const displaySmartTVTable = (data) => {
         <table id="smartTVsTable">
             <thead>
                 <tr>
-                    <th onclick="sortTable(0)">Device ID</th>
+                    <th onclick="sortTable(0)">TV ID</th>
                     <th onclick="sortTable(1)">TV Name</th>
                     <th onclick="sortTable(2)">TV Brand</th>
                     <th onclick="sortTable(3)">TV Department</th>
@@ -16,7 +16,7 @@ const displaySmartTVTable = (data) => {
 
     data.forEach(row => {
         tableHtml += `<trs>
-            <td style="text-align: center;">${row.device_id}</td>
+            <td style="text-align: center;">${row.tv_id}</td>
             <td style="text-align: left;">${row.tv_name}</td>
             <td style="text-align: left;">${row.tv_brand}</td>
             <td style="text-align: left;">${row.tv_department}</td>
@@ -102,9 +102,7 @@ const deleteSmartTV = (tv_id) => {
                 if (message.success) {
                     // Optional: Handle success, if needed
                     console.log('SmartTV deleted successfully');
-                } else {
-                    console.error('Failed to delete smart TV');
-                }
+                } 
             };
 
             // Close WebSocket connection
@@ -135,8 +133,8 @@ const populateEditSmartTVModal = (tvId) => {
                 <p id="editMessage" style="text-align: center">Edit Smart TV</p>
                 <form id="editSmartTVForm">
                     <div class="floating-label-container">
-                        <input type="text" name="device_id" id="edit_device_id" placeholder=" " class="floating-label-input-text-area" style="background: none; box-shadow: none; pointer-events: none" readonly>
-                        <label for="edit_device_id" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Device ID</label>
+                        <input type="text" name="tv_id" id="edit_tv_id" placeholder=" " class="floating-label-input-text-area" style="background: none; box-shadow: none; pointer-events: none" readonly>
+                        <label for="edit_tv_id" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Device ID</label>
                     </div>
                     <div class="floating-label-container">
                         <input type="text" name="tv_name" id="edit_tv_name" placeholder=" " class="floating-label-input-text-area">
@@ -177,7 +175,7 @@ const populateEditSmartTVModal = (tvId) => {
             if (tv) {
                 document.getElementById('edit_tv_name').value = tv.tv_name || '';
                 document.getElementById('edit_tv_brand').value = tv.tv_brand || '';
-                document.getElementById('edit_device_id').value = tv.device_id || '';
+                document.getElementById('edit_tv_id').value = tv.tv_id || '';
                 document.getElementById('edit_tv_department').value = tv.tv_department || '';
             } else {
                 console.error('TV data is null or undefined');

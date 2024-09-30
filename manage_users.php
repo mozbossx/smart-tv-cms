@@ -6,18 +6,14 @@ include 'config_connection.php';
 // fetch user data for the currently logged-in user
 include 'get_session.php';
 
+include 'admin_access_only.php';
+
 // Fetch the current user's data
 $sqlCurrentUser = "SELECT * FROM users_tb";
 $resultCurrentUser = mysqli_query($conn, $sqlCurrentUser);
 
 if (!$resultCurrentUser) {
     $error[] = "Error: " . mysqli_error($conn);
-}
-
-// Check if the user is not 'Admin', redirect to the user_home
-if ($_SESSION['user_type'] !== 'Admin' && $_SESSION['user_type'] !== 'Super Admin') {
-    header('location: user_home.php');
-    exit;
 }
 
 // Fetch data from the users_tb table

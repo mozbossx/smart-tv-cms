@@ -6,14 +6,11 @@ $isIframe = $_GET['isIframe'] ?? null;
 echo "<script>console.log('isIframe: " . $isIframe . "');</script>";
 
 // Check if the tv_id is already stored in a cookie
-if ($tvId === null) {
-    // Generate a random six-digit device ID
+if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
     $tv_name = "Unknown";
     $tv_brand = "Unknown";
-    $device_id = sprintf('%06d', mt_rand(0, 999999));
 
-    // Store the device ID in the database
-    $sql = "INSERT INTO smart_tvs_tb (tv_name, tv_brand, device_id) VALUES ('$tv_name', '$tv_brand', '$device_id')";
+    $sql = "INSERT INTO smart_tvs_tb (tv_name, tv_brand) VALUES ('$tv_name', '$tv_brand')";
     if (mysqli_query($conn, $sql)) {
         // Get the ID of the newly inserted row
         $tvId = mysqli_insert_id($conn);
@@ -82,7 +79,7 @@ if ($tvId === null) {
     }
 } 
 
-if ($_COOKIE['tv_id'] != $tvId && !$isIframe) {
+if ((!isset($_COOKIE['tv_id']) || $_COOKIE['tv_id'] != $tvId) && !$isIframe) {
     echo "<h1 style='color: red;'>You have no permission to access this TV</h1>";
     echo "<h1 style='color: red;'>$isIframe</h1>";
     exit();
@@ -107,7 +104,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             // Set session variables based on the matching row
             $_SESSION['tv_name'] = $row['tv_name'];
             $_SESSION['tv_brand'] = $row['tv_brand'];
-            $_SESSION['device_id'] = $row['device_id'];
+            $_SESSION['tv_id'] = $row['tv_id'];
 
             // Fetch background color from the database
             $backgroundColorQuery = "SELECT background_hex_color FROM background_tv_tb WHERE tv_id = ?";
@@ -148,9 +145,9 @@ if ($result && mysqli_num_rows($result) > 0) {
                 $topbarTvNameFontStyle = $topbarColorData['topbar_tvname_font_style'];
                 $topbarTvNameFontFamily = $topbarColorData['topbar_tvname_font_family'];
 
-                $topbarDeviceIdColor = $topbarColorData['topbar_deviceid_font_color'];
-                $topbarDeviceIdFontStyle = $topbarColorData['topbar_deviceid_font_style'];
-                $topbarDeviceIdFontFamily = $topbarColorData['topbar_deviceid_font_family'];
+                $topbarTvIdColor = $topbarColorData['topbar_tvid_font_color'];
+                $topbarTvIdFontStyle = $topbarColorData['topbar_tvid_font_style'];
+                $topbarTvIdFontFamily = $topbarColorData['topbar_tvid_font_family'];
 
                 $topbarTimeColor = $topbarColorData['topbar_time_font_color'];
                 $topbarTimeFontStyle = $topbarColorData['topbar_time_font_style'];

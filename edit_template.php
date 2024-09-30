@@ -17,9 +17,9 @@ $topbarTvNameColor = '';
 $topbarTvNameFontStyle = '';
 $topbarTvNameFontFamily = '';
 
-$topbarDeviceIdColor = '';
-$topbarDeviceIdFontStyle = '';
-$topbarDeviceIdFontFamily = '';
+$topbarTvIdColor = '';
+$topbarTvIdFontStyle = '';
+$topbarTvIdFontFamily = '';
 
 $topbarTimeColor = '';
 $topbarTimeFontStyle = '';
@@ -44,13 +44,15 @@ if (isset($_GET['tvId'])) {
         $tvDepartment = $tvData['tv_department'];
 
         // Check if the tv_department is not equal to the sessioned department
-        if ($tvDepartment !== $department) {
-            echo '
-                <script>
-                    alert("You are not authorized to access this TV."); 
-                    window.location.href = "user_home.php";
-                </script>';
-            exit;
+        if ($user_type != 'Super Admin') {
+            if ($tvDepartment !== $department) {
+                echo '
+                    <script>
+                        alert("You are not authorized to access this TV."); 
+                        window.location.href = "user_home.php";
+                    </script>';
+                exit;
+            }
         }
     } else {
         // If no TV found, redirect to user_home.php
@@ -89,9 +91,9 @@ if (isset($_GET['tvId'])) {
         $topbarTvNameFontStyle = $topbarColorData['topbar_tvname_font_style'];
         $topbarTvNameFontFamily = $topbarColorData['topbar_tvname_font_family'];
 
-        $topbarDeviceIdColor = $topbarColorData['topbar_deviceid_font_color'];
-        $topbarDeviceIdFontStyle = $topbarColorData['topbar_deviceid_font_style'];
-        $topbarDeviceIdFontFamily = $topbarColorData['topbar_deviceid_font_family'];
+        $topbarTvIdColor = $topbarColorData['topbar_tvid_font_color'];
+        $topbarTvIdFontStyle = $topbarColorData['topbar_tvid_font_style'];
+        $topbarTvIdFontFamily = $topbarColorData['topbar_tvid_font_family'];
 
         $topbarTimeColor = $topbarColorData['topbar_time_font_color'];
         $topbarTimeFontStyle = $topbarColorData['topbar_time_font_style'];
@@ -140,7 +142,7 @@ if (isset($_GET['tvId'])) {
 }
 
 // Fetch smart TVs data
-$smartTvsQuery = "SELECT tv_id, tv_name, device_id, tv_brand FROM smart_tvs_tb WHERE tv_id = ?";
+$smartTvsQuery = "SELECT tv_id, tv_name, tv_id, tv_brand FROM smart_tvs_tb WHERE tv_id = ?";
 $stmt = $conn->prepare($smartTvsQuery);
 $stmt->bind_param("i", $tvId);
 $stmt->execute();
@@ -191,17 +193,18 @@ $conn->close();
                         </nav>
                         <?php include('error_message.php'); ?>
                         <!-- Content Area -->
-                        <div class="tv-frame-parent" style="height: 70vh; user-select: none; -moz-user-select: none; -webkit-user-drag: none; -webkit-user-select: none; -ms-user-select: none;">
+                        <div class="tv-frame-parent" style="height: 60vh; user-select: none; -moz-user-select: none; -webkit-user-drag: none; -webkit-user-select: none; -ms-user-select: none;">
                             <!-- Display iframe based on tvId -->
                             <div class="tv-frame" id="tv-frame">
                                 <iframe id="tv-iframe" frameborder="0" src="tv2.php?tvId=<?php echo $tvId?>&isIframe=true" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
                                 <p style="text-align: center; font-size: 25px; margin-top: auto; color: white;"><?php echo $tvBrand?></p>
+                                <div class="tv-stand" style="left: 30%"></div>
                             </div>
                             <!-- Sidebar -->
                             <div class="left-sidebar" id="leftSidebar">
-                                <div class="content-container" style="margin-top: 0; position: fixed; width: 245px">
+                                <div class="content-container" style="margin-top: 0; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
                                     <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Show/Hide Content Containers</b></p>
-                                    <form id="visibilitySettingsForm" style="padding: 8px; height: 58vh; overflow-y: auto;">
+                                    <form id="visibilitySettingsForm" style="padding: 8px; height: 45vh; overflow-y: auto;">
                                         <?php foreach ($containers as $container): ?>
                                             <label class="option-div">
                                                 <input type="checkbox" id="container_<?php echo $container['container_id']; ?>" name="container_<?php echo $container['container_id']; ?>" <?php echo $container['visible'] ? 'checked' : ''; ?> style="margin-right: 10px;">
@@ -214,18 +217,16 @@ $conn->close();
                             <div class="scale-buttons-2">
                                 <button type="button" id="openSidebarButton" class="open-sidebar-button open" onclick="openSidebar()"><i class="fa fa-angle-right"></i></button>
                                 <button type="button" id="closeSidebarButton" class="close-sidebar-button" onclick="closeSidebar()"><i class="fa fa-angle-left"></i></button>
-                                <button type="button" id="scale-down"><i class="fa fa-search-minus"></i></button>
-                                <button type="button" id="scale-up"><i class="fa fa-search-plus"></i></button>
                                 <button type="button" id="updateTemplateButton" style="display: none;"><i class="fa fa-floppy-o"></i></button>
                             </div>
                             <!-- Top Bar Customization Left-side panel -->
                             <div id="topbarLeftSidePanel" class="left-side-panel" >
-                                <div class="content-container" style="background: #f9fffa; position: fixed; width: 245px">
+                                <div class="content-container" style="background: #f9fffa; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
                                     <div class="panel-close-btn">
                                         <button onclick="closeTopbarLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
                                     <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Customize Top Bar</b></p>
-                                    <form id="editTopBarColorForm" enctype="multipart/form-data" style="height: 57vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">
+                                    <form id="editTopBarColorForm" enctype="multipart/form-data" style="height: 44vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">
                                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
                                             <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 60px; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
                                             <label for="topbar_color" class="floating-label">Top Bar Color</label>
@@ -259,32 +260,32 @@ $conn->close();
                                             <label for="topbar_tvname_font_family" class="floating-label">Font Family</label>
                                         </div>
                                         <div class="line-separator" style="margin: 0px;"></div>
-                                        <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Device ID</b></p>
+                                        <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Tv ID</b></p>
                                         <div class="split-container" style="margin-bottom: 0">
                                             <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                                                <input type="color" id="topbar_deviceid_color" name="topbar_deviceid_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarDeviceIdColor); ?>">
-                                                <label for="topbar_deviceid_color" class="floating-label">Font Color</label>
+                                                <input type="color" id="topbar_tvid_color" name="topbar_tvid_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarTvIdColor); ?>">
+                                                <label for="topbar_tvid_color" class="floating-label">Font Color</label>
                                             </div>
                                             <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                                                <select id="topbar_deviceid_font_style" name="topbar_deviceid_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                                                    <option value="normal" <?php echo $topbarDeviceIdFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
-                                                    <option value="italic" <?php echo $topbarDeviceIdFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
+                                                <select id="topbar_tvid_font_style" name="topbar_tvid_font_style" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                    <option value="normal" <?php echo $topbarTvIdFontStyle == 'normal' ? 'selected' : ''; ?>>Normal</option>
+                                                    <option value="italic" <?php echo $topbarTvIdFontStyle == 'italic' ? 'selected' : ''; ?> style="font-style: italic">Italic</option>
                                                 </select>
-                                                <label for="topbar_deviceid_font_style" class="floating-label">Font Style</label>
+                                                <label for="topbar_tvid_font_style" class="floating-label">Font Style</label>
                                             </div>
                                         </div>
                                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
-                                            <select id="topbar_deviceid_font_family" name="topbar_deviceid_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
-                                                <option value="Questrial" <?php echo $topbarDeviceIdFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
-                                                <option value="Arial" <?php echo $topbarDeviceIdFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
-                                                <option value="Helvetica" <?php echo $topbarDeviceIdFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
-                                                <option value="Verdana" <?php echo $topbarDeviceIdFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
-                                                <option value="Times New Roman" <?php echo $topbarDeviceIdFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
-                                                <option value="Georgia" <?php echo $topbarDeviceIdFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
-                                                <option value="Courier New" <?php echo $topbarDeviceIdFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
-                                                <option value="Libre Baskerville" <?php echo $topbarDeviceIdFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
+                                            <select id="topbar_tvid_font_family" name="topbar_tvid_font_family" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                <option value="Questrial" <?php echo $topbarTvIdFontFamily == 'Questrial' ? 'selected' : ''; ?> style="font-family: Questrial">Questrial</option>
+                                                <option value="Arial" <?php echo $topbarTvIdFontFamily == 'Arial' ? 'selected' : ''; ?> style="font-family: Arial">Arial</option>
+                                                <option value="Helvetica" <?php echo $topbarTvIdFontFamily == 'Helvetica' ? 'selected' : ''; ?> style="font-family: Helvetica">Helvetica</option>
+                                                <option value="Verdana" <?php echo $topbarTvIdFontFamily == 'Verdana' ? 'selected' : ''; ?> style="font-family: Verdana">Verdana</option>
+                                                <option value="Times New Roman" <?php echo $topbarTvIdFontFamily == 'Times New Roman' ? 'selected' : ''; ?> style="font-family: Times New Roman">Times New Roman</option>
+                                                <option value="Georgia" <?php echo $topbarTvIdFontFamily == 'Georgia' ? 'selected' : ''; ?> style="font-family: Georgia">Georgia</option>
+                                                <option value="Courier New" <?php echo $topbarTvIdFontFamily == 'Courier New' ? 'selected' : ''; ?> style="font-family: Courier New">Courier New</option>
+                                                <option value="Libre Baskerville" <?php echo $topbarTvIdFontFamily == 'Libre Baskerville' ? 'selected' : ''; ?> style="font-family: Libre Baskerville">Libre Baskerville</option>
                                             </select>
-                                            <label for="topbar_deviceid_font_family" class="floating-label">Device ID Font Family</label>
+                                            <label for="topbar_tvid_font_family" class="floating-label">TV ID Font Family</label>
                                         </div>
                                         <div class="line-separator" style="margin: 0px;"></div>
                                         <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Time</b></p>
@@ -347,12 +348,12 @@ $conn->close();
                             </div>
                             <!-- Background Customization Left-side panel -->
                             <div id="backgroundLeftSidePanel" class="left-side-panel">
-                                <div class="content-container" style="background: #f9fffa; position: fixed; width: 245px">
+                                <div class="content-container" style="background: #f9fffa; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
                                     <div class="panel-close-btn">
                                         <button onclick="closeBackgroundLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
                                     <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Customize Background</b></p>
-                                    <form id="editBackgroundColorForm" enctype="multipart/form-data" style="height: 57vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">                                        
+                                    <form id="editBackgroundColorForm" enctype="multipart/form-data" style="height: 44vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">                                        
                                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
                                             <input type="color" id="background_color" name="background_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($backgroundColor); ?>">
                                             <label for="background_color" class="floating-label">TV Background Color</label>
@@ -362,16 +363,19 @@ $conn->close();
                             </div>
                             <!-- Containers Customization Left-side panel -->
                             <div id="contentContainerLeftSidePanel" class="left-side-panel">
-                                <div class="content-container" style="background: #f9fffa; overflow: hidden; position: fixed; width: 245px">
+                                <div class="content-container" style="background: #f9fffa; overflow: hidden; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
                                     <div class="panel-close-btn">
                                         <button onclick="closeContainerLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
                                     <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Customize Containers</b></p>
-                                    <form id="editContentContainerForm" enctype="multipart/form-data" style="height: 57vh; overflow: hidden;">
+                                    <form id="editContentContainerForm" enctype="multipart/form-data" style="height: 44vh; overflow: hidden;">
                                         <!-- Dynamic content will be added here -->
                                     </form>
                                 </div>
                             </div>
+                        </div>
+                        <div class="scale-control" style="margin-right: 0">
+                            <input type="range" min="0.1" max="2" step="0.1" value="1" class="scale-slider">
                         </div>
                     </div>
                 </div>
@@ -664,49 +668,97 @@ $conn->close();
             const topbarLeftSidePanel = document.getElementById('topbarLeftSidePanel');
             const backgroundLeftSidePanel = document.getElementById('backgroundLeftSidePanel');
             const contentContainerLeftSidePanel = document.getElementById('contentContainerLeftSidePanel');
-
-            const tvFrame = document.getElementById('tv-frame');
-            const scaleUpButton = document.getElementById('scale-up');
-            const scaleDownButton = document.getElementById('scale-down');
-            let scale = 1;
+            
+            const tvFrame = document.querySelector('.tv-frame');
+            const sliders = document.querySelector('.scale-slider');
             let isDragging = false;
-            let startX, startY, scrollLeft, scrollTop;
+            let startX, startY;
 
-            // Scale Up Button
-            scaleUpButton.addEventListener('click', () => {
-                scale += 0.1;
+            // Function to fit the tv-frame inside its parent
+            function fitFrameToParent() {
+                const parent = tvFrame.parentElement;
+                const parentRect = parent.getBoundingClientRect();
+
+                // Reset any existing transformations and positioning
+                tvFrame.style.transform = 'none';
+                
+                const frameRect = tvFrame.getBoundingClientRect();
+
+                const scaleX = parentRect.width / frameRect.width;
+                const scaleY = parentRect.height / frameRect.height;
+                const scale = Math.min(scaleX, scaleY, 1); // Don't scale up if already smaller
+
+                // Apply transformations
+                tvFrame.style.transform = `scale(${scale})`;
+                sliders.value = scale;
+            }
+
+            // Fit frame on load
+            fitFrameToParent();
+
+            // Refit on window resize
+            window.addEventListener('resize', fitFrameToParent);
+
+            // Scale Slider
+            sliders.addEventListener('input', (e) => {
+                const scale = e.target.value;
+                const parent = tvFrame.parentElement;
+                const parentRect = parent.getBoundingClientRect();
+                const frameRect = tvFrame.getBoundingClientRect();
+
+                // Center the frame
+                const leftOffset = (parentRect.width - frameRect.width * scale) / 2;
+                const topOffset = (parentRect.height - frameRect.height * scale) / 2;
+
+                // Apply transformations
                 tvFrame.style.transform = `scale(${scale})`;
             });
 
-            // Scale Down Button
-            scaleDownButton.addEventListener('click', () => {
-                if (scale > 0.2) {  // Prevent scaling too small
-                    scale -= 0.1;
-                    tvFrame.style.transform = `scale(${scale})`;
-                }
-            });
+            // Drag to Pan (Mouse Events)
+            tvFrame.parentElement.addEventListener('mousedown', startDragging);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDragging);
 
-            // Drag to Pan
-            tvFrame.parentElement.addEventListener('mousedown', (e) => {
+            // Drag to Pan (Touch Events)
+            tvFrame.parentElement.addEventListener('touchstart', startDragging);
+            document.addEventListener('touchmove', drag);
+            document.addEventListener('touchend', stopDragging);
+
+            function startDragging(e) {
                 isDragging = true;
-                startX = e.clientX - tvFrame.offsetLeft;
-                startY = e.clientY - tvFrame.offsetTop;
+                if (e.type === 'mousedown') {
+                    startX = e.clientX - tvFrame.offsetLeft;
+                    startY = e.clientY - tvFrame.offsetTop;
+                } else if (e.type === 'touchstart') {
+                    startX = e.touches[0].clientX - tvFrame.offsetLeft;
+                    startY = e.touches[0].clientY - tvFrame.offsetTop;
+                }
                 tvFrame.parentElement.style.cursor = 'grabbing';
-            });
+            }
 
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                tvFrame.parentElement.style.cursor = 'grab';
-            });
-
-            document.addEventListener('mousemove', (e) => {
+            function drag(e) {
                 if (!isDragging) return;
                 e.preventDefault();
-                const x = e.clientX - startX;
-                const y = e.clientY - startY;
-                tvFrame.style.left = `${x}px`;
-                tvFrame.style.top = `${y}px`;
-            });
+                let clientX, clientY;
+                if (e.type === 'mousemove') {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                } else if (e.type === 'touchmove') {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+                const x = clientX - startX;
+                const y = clientY - startY;
+                requestAnimationFrame(() => {
+                    tvFrame.style.left = `${x}px`;
+                    tvFrame.style.top = `${y}px`;
+                });
+            }
+
+            function stopDragging() {
+                isDragging = false;
+                tvFrame.parentElement.style.cursor = 'grab';
+            }
 
             // Function to open and close the left side panels
             function openTopbarLeftSidePanel() {
@@ -778,10 +830,10 @@ $conn->close();
             });
 
             const topbarFields = [
-                'topbar_color','topbar_tvname_color', 'topbar_deviceid_color', 
+                'topbar_color','topbar_tvname_color', 'topbar_tvid_color', 
                 'topbar_time_color', 'topbar_date_color', 'topbar_tvname_font_style', 
-                'topbar_tvname_font_family', 'topbar_deviceid_font_style', 
-                'topbar_deviceid_font_family', 'topbar_time_font_style', 
+                'topbar_tvname_font_family', 'topbar_tvid_font_style', 
+                'topbar_tvid_font_family', 'topbar_time_font_style', 
                 'topbar_time_font_family', 'topbar_date_font_style', 
                 'topbar_date_font_family', 'topbar_position',
             ];
@@ -796,9 +848,9 @@ $conn->close();
                     topbar_tvname_font_color: formData.get('topbar_tvname_color'),
                     topbar_tvname_font_style: formData.get('topbar_tvname_font_style'),
                     topbar_tvname_font_family: formData.get('topbar_tvname_font_family'),
-                    topbar_deviceid_font_color: formData.get('topbar_deviceid_color'),
-                    topbar_deviceid_font_style: formData.get('topbar_deviceid_font_style'),
-                    topbar_deviceid_font_family: formData.get('topbar_deviceid_font_family'),
+                    topbar_tvid_font_color: formData.get('topbar_tvid_color'),
+                    topbar_tvid_font_style: formData.get('topbar_tvid_font_style'),
+                    topbar_tvid_font_family: formData.get('topbar_tvid_font_family'),
                     topbar_time_font_color: formData.get('topbar_time_color'),
                     topbar_time_font_style: formData.get('topbar_time_font_style'),
                     topbar_time_font_family: formData.get('topbar_time_font_family'),

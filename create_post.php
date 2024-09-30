@@ -11,9 +11,9 @@ $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
 $stmtNewFeatures = $pdo->prepare("
     SELECT DISTINCT f.* 
     FROM features_tb f
-    JOIN feature_user_types fut ON f.feature_id = fut.feature_id
-    WHERE (f.department = :department AND fut.user_type = :user_type)
-       OR :user_type IN ('Admin', 'Super Admin')
+    LEFT JOIN feature_user_types fut ON f.feature_id = fut.feature_id
+    WHERE (f.department = :department AND (fut.user_type = :user_type OR :user_type = 'Admin'))
+       OR :user_type = 'Super Admin'
 ");
 $stmtNewFeatures->execute([':department' => $department, ':user_type' => $user_type]);
 $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
@@ -76,7 +76,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                                 </a>
                             </div>
                         <?php endforeach; ?>
-                        <?php if ($user_type === 'Admin'){ ?>
+                        <?php if ($user_type === 'Admin' || $user_type === 'Super Admin'){ ?>
                             <div class="button-container">
                                 <a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
                                     <div class="button-icon"><i class="fa fa-sitemap"></i></div>

@@ -1,4 +1,4 @@
-const ws = new WebSocket('ws://192.168.1.35:8081');
+const ws = new WebSocket('ws://192.168.1.30:8081');
 const userTableContainer = document.getElementById('userTableContainer');
 
 const loggedInUserId = document.getElementById('user-data').getAttribute('data-user-id');
@@ -356,17 +356,7 @@ const sendFormData = (formData) => {
                         document.getElementById('successMessageModalVersion2').style.display = 'flex';
                     } 
                     refreshUserTable();
-                } else {
-                    if (message.action === 'add_user' || message.action === 'add_multiple_users') {
-                        document.getElementById('errorTextVersion2').textContent = message.message;
-                        document.getElementById('AddUserModal').style.display = 'none';
-                        document.getElementById('errorModalVersion2').style.display = 'flex';
-                    } else if (message.action === 'edit_user') {
-                        document.getElementById('errorTextVersion2').textContent = message.message;
-                        document.getElementById('EditUserModal').style.display = 'none';
-                        document.getElementById('errorModalVersion2').style.display = 'flex';
-                    }
-                }
+                } 
             };
 
             ws.onclose = function () {
@@ -506,10 +496,7 @@ const sendWebSocketMessage = (data) => {
                     } 
                     document.getElementById('successMessageModalVersion2').style.display = 'flex';
                     refreshUserTable();
-                } else {
-                    document.getElementById('errorTextVersion2').textContent = message.message;
-                    document.getElementById('errorModalVersion2').style.display = 'flex';
-                }
+                } 
             };
             ws.onclose = () => console.log('WebSocket connection closed');
             ws.onerror = (error) => console.error('WebSocket error:', error);

@@ -65,7 +65,7 @@ $stmtNotificationCount->close();
         <div style="padding-left: 20px; padding-top: 10px">
             <img src="images/USC Logo Full.png" class="logo-header" id="logo">
         </div>
-        <nav id='menu'>
+        <nav id='menu' style="z-index: 10000">
             <input type='checkbox' id='responsive-menu' onclick='updatemenu()'><label for="responsive-menu"></label>
             <ul>
                 <li>
@@ -89,8 +89,8 @@ $stmtNotificationCount->close();
                     <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
                     <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black;"' : ''; ?>><?php echo $full_name; ?></a>
                 </li>
-                <li style="float: right; margin-right: 2px; margin-top: 22px;">
-                    <button id="notifications-button" class="notifications-button" onclick="toggleNotificationsDropdown()"><i class="fa fa-bell"></i></button>
+                <li style="float: right; margin-right: 2px; margin-top: 23px; margin-right: 30px;">
+                    <button id="notifications-button" class="notifications-button" <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="text-shadow: 0px 0px 5px black; border-radius: 20px;"' : ''; ?>" onclick="toggleNotificationsDropdown()"><i class="fa fa-bell"></i></button>
                     <span id="notificationCount" class="notification-count"><?php echo $notificationCount; ?></span>
                     <span class="triangle"></span>
                     <div id="notificationsDropdown" class="dropdown-notifications" style="display: none; position: absolute; right: -10px; top: 30px; background-color: white; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; width: 300px; max-height: 400px; overflow-y: auto; padding: 10px;">
@@ -105,17 +105,16 @@ $stmtNotificationCount->close();
                     <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
                     <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives</a>
                 </li>
-                <?php if ($user_type === 'Admin') { ?>
+                <?php if ($user_type === 'Admin'|| $user_type === 'Super Admin') { ?>
                 <li>
                     <a id="dropdown-arrow" href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                        <?php echo ($current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
+                        <?php echo ($current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
                         Admin Options
                     </a>
                     <ul class='sub-menus'>
                         <li><a href="manage_users.php?pageid=ManageUsers?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Users</a></li>
                         <li><a href="manage_smart_tvs.php?pageid=ManageSmartTVs?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Smart TVs</a></li>
                         <li><a href="manage_templates.php?pageid=ManageTemplates?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Templates</a></li>
-                        <li><a href="manage_posts.php?pageid=ManagePosts?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Posts</a></li>
                     </ul>
                 </li>
                 <?php } ?>

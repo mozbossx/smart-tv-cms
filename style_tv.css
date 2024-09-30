@@ -24,7 +24,7 @@ body {
     cursor: pointer;
 }
 
-.device-id {
+.tv-id {
     flex: 1; /* Takes up available space */
     padding-left: 10px;
     display: flex;
@@ -241,7 +241,7 @@ body {
 
 /* Small TVs (Under 32 inches) */
 @media (max-width: 800px) {
-    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message{
+    .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message{
         font-size: 1.50vh;
     }
     .tv-name, .content-title, .main-message {
@@ -251,7 +251,7 @@ body {
 
 /* Medium TVs (32 to 49 inches) */
 @media (min-width: 801px) and (max-width: 1200px) {
-    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
+    .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
         font-size: 1.75vh;
     }
     .tv-name, .content-title, .main-message {
@@ -261,7 +261,7 @@ body {
 
 /* Large TVs (50 to 59 inches) */
 @media (min-width: 1201px) and (max-width: 1500px) {
-    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
+    .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
         font-size: 2.00vh;
     }
     .tv-name, .content-title, .main-message {
@@ -271,7 +271,7 @@ body {
 
 /* Extra Large TVs (60 to 69 inches) */
 @media (min-width: 1501px) and (max-width: 1800px) {
-    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
+    .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
         font-size: 2.25vh;
     }
     .tv-name, .content-title, .main-message {
@@ -281,7 +281,7 @@ body {
 
 /* Super Large TVs (70 inches and above) */
 @media (min-width: 1801px) {
-    .device-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
+    .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
         font-size: 2.50vh;
     }
     .tv-name, .content-title, .main-message {

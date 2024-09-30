@@ -5,37 +5,76 @@ include 'get_session.php';
 
 $userType = $_SESSION['user_type'];
 $user_id = $_SESSION['user_id'];
+$department = $_SESSION['department'];
 
-$query = "SELECT n.*, u.full_name, u.user_type 
+$query = "SELECT n.*, u.full_name, u.user_type, u.department
           FROM notifications_tb n
           LEFT JOIN users_tb u ON n.user_id = u.user_id
-          WHERE 1=1";  // Changed from n.status = 'pending' to 1=1 to include all notifications
+          WHERE u.user_type != 'TBD' AND (";  // Changed from n.status = 'pending' to 1=1 to include all notifications
 
+// For Admin, show all pending notifications and all content_approved notifications only from their respective departments (if users_tb == department of the Admin)
 if ($userType === 'Admin') {
-    // For Admin, show all pending notifications and all content_approved notifications
-    $query .= " AND ((n.status = 'pending' OR n.notification_type = 'content_approved')
-                OR (n.notification_type = 'user_approved' OR n.notification_type = 'user_rejected')
-                OR (n.notification_type = 'content_post' AND n.status = 'approved')
-                OR (n.notification_type = 'content_rejected' AND n.status = 'rejected')
-                OR (n.notification_type = 'content_deleted' AND n.status = 'deleted')
-                OR (n.notification_type = 'user_edited' AND n.status = 'edited'))";
+    // $query .= " AND ((n.status = 'pending' OR n.notification_type = 'content_approved')
+    //             OR (n.notification_type = 'user_approved' OR n.notification_type = 'user_rejected')
+    //             OR (n.notification_type = 'content_post' AND n.status = 'approved')
+    //             OR (n.notification_type = 'content_rejected' AND n.status = 'rejected')
+    //             OR (n.notification_type = 'content_deleted' AND n.status = 'deleted')
+    //             OR (n.notification_type = 'user_edited' AND n.status = 'edited'))";
+    $query .= "
+        (n.status = 'pending' AND u.department = ?)
+        OR (n.notification_type = 'content_approved' AND u.department = ?)
+        OR (n.notification_type = 'user_approved' AND u.department = ?)
+        OR (n.notification_type = 'user_rejected' AND u.department = ?)
+        OR (n.notification_type = 'content_post' AND n.status = 'approved' AND u.department = ?)
+        OR (n.notification_type = 'content_rejected' AND n.status = 'rejected' AND u.department = ?)
+        OR (n.notification_type = 'content_deleted' AND n.status = 'deleted' AND u.department = ?)
+        OR (n.notification_type = 'user_edited' AND n.status = 'edited' AND u.department = ?)
+    ";
+} else if ($userType === 'Super Admin') {
+    // For Super Admin, show all pending notifications and all content_approved notifications from all departments
+    // $query .= " AND ((n.status = 'pending' OR n.notification_type = 'content_approved')
+    //             OR (n.notification_type = 'user_approved' OR n.notification_type = 'user_rejected')
+    //             OR (n.notification_type = 'content_post' AND n.status = 'approved')
+    //             OR (n.notification_type = 'content_rejected' AND n.status = 'rejected')
+    //             OR (n.notification_type = 'content_deleted' AND n.status = 'deleted')
+    //             OR (n.notification_type = 'user_edited' AND n.status = 'edited'))";
+    $query .= "
+        n.status = 'pending'
+        OR n.notification_type = 'content_approved'
+        OR n.notification_type = 'user_approved'
+        OR n.notification_type = 'user_rejected'
+        OR (n.notification_type = 'content_post' AND n.status = 'approved')
+        OR (n.notification_type = 'content_rejected' AND n.status = 'rejected')
+        OR (n.notification_type = 'content_deleted' AND n.status = 'deleted')
+        OR (n.notification_type = 'user_edited' AND n.status = 'edited')
+    ";
 } else {
     // For non-Admin users, show their own notifications and content_approved notifications for their posts
-    $query .= " AND ((n.user_id = ? AND n.status = 'pending') 
-                OR (n.notification_type = 'content_approved' AND n.user_id = ?)
-                OR (n.notification_type = 'content_approved_by_admin' AND n.user_id = ?)
-                OR (n.notification_type = 'content_rejected_by_admin' AND n.user_id = ?)
-                OR (n.notification_type = 'user_approved_by_admin' AND n.user_id = ?)
-                OR (n.notification_type = 'user_edited_by_admin' AND n.user_id = ?))";
+    // $query .= " AND ((n.user_id = ? AND n.status = 'pending') 
+    //             OR (n.notification_type = 'content_approved' AND n.user_id = ?)
+    //             OR (n.notification_type = 'content_approved_by_admin' AND n.user_id = ?)
+    //             OR (n.notification_type = 'content_rejected_by_admin' AND n.user_id = ?)
+    //             OR (n.notification_type = 'user_approved_by_admin' AND n.user_id = ?)
+    //             OR (n.notification_type = 'user_edited_by_admin' AND n.user_id = ?))";
+    $query .= "
+        (n.user_id = ? AND n.status = 'pending') 
+        OR (n.notification_type = 'content_approved' AND n.user_id = ?)
+        OR (n.notification_type = 'content_approved_by_admin' AND n.user_id = ?)
+        OR (n.notification_type = 'content_rejected_by_admin' AND n.user_id = ?)
+        OR (n.notification_type = 'user_approved_by_admin' AND n.user_id = ?)
+        OR (n.notification_type = 'user_edited_by_admin' AND n.user_id = ?)
+    ";
 }
 
-$query .= " ORDER BY n.created_at DESC";
+$query .= ") ORDER BY n.created_at DESC";
 
 $stmt = $conn->prepare($query);
 
-if ($userType !== 'Admin') {
+if ($userType === 'Admin') {
+    $stmt->bind_param("ssssssss", $department, $department, $department, $department, $department, $department, $department, $department);
+} else if ($userType !== 'Super Admin') {
     $stmt->bind_param("iiiiii", $user_id, $user_id, $user_id, $user_id, $user_id, $user_id);
-} 
+}
 
 $stmt->execute();
 $result = $stmt->get_result();

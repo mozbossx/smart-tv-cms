@@ -6,6 +6,8 @@ include 'config_connection.php';
 // fetch user data for the currently logged-in user
 include 'get_session.php';
 
+include 'admin_access_only.php';
+
 // Fetch smart TVs data
 $smartTvsQuery = "SELECT * FROM smart_tvs_tb";
 $resultTVQuery = $conn->query($smartTvsQuery);
@@ -41,13 +43,19 @@ if (!$resultTVQuery) {
                 <div class="content-inside-form">
                     <div class="content-form">
                         <!-- Breadcrumb Navigation -->
-                        <nav aria-label="breadcrumb">
+                        <nav aria-label="breadcrumb" style="margin-bottom: 10px;">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="admin_options.php" style="color: #264B2B">Admin Options</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Manage Templates</li>
                             </ol>
                         </nav>
-                        <div class="line-separator"></div>
+                        <!-- search form -->
+                        <form class="search-form" style="width: 550px; max-width: 100%; margin: 0 auto; margin-bottom: 10px;">
+                            <div class="floating-label-container">
+                                <input type="text" id="searchInput" required placeholder=" " class="floating-label-input">
+                                <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search for TV</label>
+                            </div>
+                        </form>
                         <?php include('error_message.php'); ?>
                         <div class="content-grid-container">
                         <?php
@@ -58,25 +66,25 @@ if (!$resultTVQuery) {
                                 $tvHeight = $row['height_px'];
                                 $tvWidth = $row['width_px'];
                                 // Display each TV item
-                                echo '<div class="content-container">';
+                                echo '<div class="content-container" data-tv-name="' . strtolower($row['tv_name']) . '">';
                                 echo '<h1 class="content-title" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($row['tv_name']) . '</h1>';
-                                echo '<div class="tv-frame-parent" style="width: auto; height: 350px; ">';
-                                echo '<div class="tv-frame" id="tv-frame" style="scale: 0.35">';
-                                    echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
-                                    echo '<p style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($row['tv_brand']) .'</p>';
-                                echo "</div>";
-                                echo '<div class="scale-buttons">';
-                                echo '<button id="scale-down"><i class="fa fa-search-minus"></i></button>';
-                                echo '<button id="scale-up"><i class="fa fa-search-plus"></i></button>';
+                                echo '<div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">';
+                                    echo '<p style="font-size: 13px; margin: 0; margin-right: 5px; color: #6E6E6E">ID: ' . htmlspecialchars($row['tv_id']) . '</p>'; 
+                                    echo '<p style="font-size: 13px; margin: 0; color: #6E6E6E">| ' . htmlspecialchars($row['tv_brand']) . '</p>'; 
                                 echo '</div>';
+                                echo '<div class="tv-frame-parent" style="width: auto; height: 350px; background: none; cursor: default;">';
+                                echo '<div class="tv-frame" style="display: flex; flex-direction: column; align-items: center;">';
+                                    echo "<iframe frameborder='0' src='tv2.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
+                                    echo '<p style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($row['tv_brand']) .'</p>';
+                                    echo '<div class="tv-stand"></div>';
                                 echo "</div>";
-                                echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"edit_template.php?tvId=$tvId&initialize=false\"'><i class='fa fa-window-restore' style='margin-right: 6px' aria-hidden='true'></i>Edit Template</button>";
-                                echo '<p>Device ID: ' . htmlspecialchars($row['device_id']) . '</p>'; 
-                                echo '<p>TV Brand: ' . htmlspecialchars($row['tv_brand']) . '</p>'; 
+                                echo "</div>";
+                                echo "<div class='line-separator'></div>";
+                                echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"edit_template.php?tvId=$tvId&isIframe=true\"'><i class='fa fa-window-restore' style='margin-right: 6px' aria-hidden='true'></i>Edit Template</button>";
                                 echo '</div>';
                             }
                         } else {
-                            echo '<p>No TVs found.</p>';
+                            echo '<p style="font-size: 25px; color: black; margin-top: 5px;">No TVs found.</p>';
                         }
                         ?>
                         </div>
@@ -85,6 +93,26 @@ if (!$resultTVQuery) {
             </div>
         </div>
     </div>
+    <script src="misc/js/tv_frames.js"></script>
     <script src="js/fetch_user_session.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const tvContainers = document.querySelectorAll('.content-container');
+
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+
+                tvContainers.forEach(container => {
+                    const tvName = container.getAttribute('data-tv-name');
+                    if (tvName.includes(searchTerm)) {
+                        container.style.display = '';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

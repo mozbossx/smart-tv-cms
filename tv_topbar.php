@@ -1,8 +1,8 @@
 <div class="topbar" id="topbar" style="background: <?php echo $topbarColor; ?>">
     <img src="images/soe_icon.png" alt="" style="width: 3vh; height: 3vh; margin-left: 5px">
-    <div class="device-id" style="color: <?php echo $topbarDeviceIdColor; ?>; font-style: <?php echo $topbarDeviceIdFontStyle; ?>; font-family: <?php echo $topbarDeviceIdFontFamily; ?>;">
-        <p>Device ID:</p>
-        <?php echo htmlspecialchars($_SESSION['device_id']); ?>
+    <div class="tv-id" style="color: <?php echo $topbarTvIdColor; ?>; font-style: <?php echo $topbarTvIdFontStyle; ?>; font-family: <?php echo $topbarTvIdFontFamily; ?>;">
+        <p>TV ID:</p>
+        <?php echo htmlspecialchars($_SESSION['tv_id']); ?>
     </div>
     <h1 class="tv-name" style="color: <?php echo $topbarTvNameColor; ?>; font-style: <?php echo $topbarTvNameFontStyle; ?>; font-family: <?php echo $topbarTvNameFontFamily; ?>;">
         <?php echo htmlspecialchars($_SESSION['tv_name']); ?>

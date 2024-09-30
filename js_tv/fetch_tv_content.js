@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.35:8081');
+const Ws = new WebSocket('ws://192.168.1.30:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -832,9 +832,9 @@ Ws.addEventListener('message', function (event) {
                 topbarElement.querySelector('.tv-name').style.fontStyle = data.topbar_tvname_font_style;
                 topbarElement.querySelector('.tv-name').style.fontFamily = data.topbar_tvname_font_family;
 
-                topbarElement.querySelector('.device-id').style.color = data.topbar_deviceid_font_color;
-                topbarElement.querySelector('.device-id').style.fontStyle = data.topbar_deviceid_font_style;
-                topbarElement.querySelector('.device-id').style.fontFamily = data.topbar_deviceid_font_family;
+                topbarElement.querySelector('.tv-id').style.color = data.topbar_tvid_font_color;
+                topbarElement.querySelector('.tv-id').style.fontStyle = data.topbar_tvid_font_style;
+                topbarElement.querySelector('.tv-id').style.fontFamily = data.topbar_tvid_font_family;
 
                 topbarElement.querySelector('.time').style.color = data.topbar_time_font_color;
                 topbarElement.querySelector('.time').style.fontStyle = data.topbar_time_font_style;

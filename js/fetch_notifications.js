@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.35:8081');
+const Ws = new WebSocket('ws://192.168.1.30:8081');
 
 function fetchNotifications() {
     fetch('get_notifications.php')
@@ -92,7 +92,92 @@ function createNotificationDiv(notification) {
 
     let content = '';
 
-    if (userType === 'Admin' || userType === 'Super Admin') {
+    if (userType === 'Super Admin') {
+        if (notification.notification_type === 'user_registration' && notification.status == 'pending') {
+            content = `
+                <div class="notification-details">
+                    <p class="user-registration-notification"><strong>${notification.full_name}</strong> has registered as a <strong>${notification.user_type}</strong>.</p>
+                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+                <div class="notification-buttons">
+                    <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveModal(${notification.user_id}, '${full_name}')">Approve</button>
+                    <button type="button" class="red-button" style="margin: 0;" onclick="showConfirmRejectModal(${notification.user_id}, '${full_name}')">Reject</button>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_approved' && notification.status == 'approved' && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="user-approved-notification">You <strong>approved</strong> ${notification.full_name}'s registration.</p>
+                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_rejected' && notification.status == 'rejected' && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="user-approved-notification">You <strong>rejected</strong> ${notification.full_name}'s registration.</p>
+                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited' && notification.status == 'edited' && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="user-approved-notification">You <strong>edited</strong> ${notification.full_name}'s profile.</p>
+                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'content_post' && notification.status == 'pending') {
+            content = `
+                <div class="notification-details">
+                    <p class="content-post-notification"><strong>${notification.full_name}</strong> wants to post a <strong>${notification.content_type}</strong>.</p>
+                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+                <div class="notification-buttons">
+                    <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Approve</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Reject</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button>
+                </div>
+            `;
+        } else if (notification.notification_type === 'content_post' && notification.status == 'approved' && notification.user_id == user_id) {
+            content = `
+                <div class="notification-details">
+                    <p class="content-post-notification">You posted <strong>${notification.content_type}</strong>.</p>
+                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'content_approved' && notification.status == 'approved' && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You <strong>approved</strong> ${notification.full_name}'s ${notification.content_type}.</p>
+                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'content_rejected' && notification.status == 'rejected' && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You <strong>rejected</strong> ${notification.full_name}'s ${notification.content_type}.</p>
+                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'content_deleted' && notification.status == 'deleted' && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You <strong>deleted</strong> ${notification.full_name}'s ${notification.content_type}.</p>
+                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        }
+    } else if (userType === 'Admin') {
         if (notification.notification_type === 'user_registration' && notification.status == 'pending') {
             content = `
                 <div class="notification-details">
@@ -246,13 +331,13 @@ function showConfirmApproveModal(userId, fullName) {
     const modal = document.getElementById('confirmApproveUserModal');
     modal.innerHTML = `
         <div class="modal-content">
-            <span class="close" onclick="closeModal('confirmApprove')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" onclick="closeModal('confirmApproveUser')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
             <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-thumbs-up" aria-hidden="true"></i></h1>
             <p>Proceed to approve this user?</p>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="closeModal('confirmApprove')">Cancel</button>
+                <button type="button" class="grey-button" onclick="closeModal('confirmApproveUser')">Cancel</button>
                 <button type="button" class="green-button" style="margin-right: 0" onclick="approveUser(${userId}, '${fullName}')">Yes, Approve</button>
             </div>
         </div>
@@ -264,7 +349,7 @@ function showConfirmRejectModal(userId, fullName) {
     const modal = document.getElementById('confirmRejectUserModal');
     modal.innerHTML = `
         <div class="modal-content">
-            <span class="close" onclick="closeModal('confirmReject')" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" onclick="closeModal('confirmRejectUser')" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
             <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-thumbs-down" aria-hidden="true"></i></h1>
             <p>Proceed to reject this user?</p>
@@ -275,7 +360,7 @@ function showConfirmRejectModal(userId, fullName) {
             </div>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="closeModal('confirmReject')">Cancel</button>
+                <button type="button" class="grey-button" onclick="closeModal('confirmRejectUser')">Cancel</button>
                 <button type="button" class="red-button" style="margin-right: 0" onclick="rejectUser(${userId}, '${fullName}')">Yes, Reject</button>
             </div>
         </div>
@@ -334,7 +419,7 @@ function approveUser(userId, fullName) {
         user_id: userId,
         full_name: fullName
     }));
-    closeModal('confirmApprove');
+    closeModal('confirmApproveUser');
 }
 
 function rejectUser(userId, fullName) {
@@ -349,7 +434,7 @@ function rejectUser(userId, fullName) {
         full_name: fullName,
         evaluator_message: evaluatorMessage
     }));
-    closeModal('confirmReject');
+    closeModal('confirmRejectUser');
 }
 
 function approveContent(contentId, contentType, userId, fullName) {
@@ -382,6 +467,7 @@ function rejectContent(contentId, contentType, userId, fullName) {
 
 function closeModal(modalId) {
     var modal = document.getElementById(modalId + 'Modal');
+    console.log(modal);
     modal.style.display = 'none';
 }
 
