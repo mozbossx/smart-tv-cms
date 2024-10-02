@@ -8,13 +8,7 @@ include 'get_session.php';
 
 include 'admin_access_only.php';
 
-// Fetch smart TVs data
-$smartTvsQuery = "SELECT * FROM smart_tvs_tb";
-$resultTVQuery = $conn->query($smartTvsQuery);
 
-if (!$resultTVQuery) {
-    $error[] = "No smart TV data found!";
-}
 
 ?>
 
@@ -59,8 +53,17 @@ if (!$resultTVQuery) {
                         <?php include('error_message.php'); ?>
                         <div class="content-grid-container">
                         <?php
-                        if (mysqli_num_rows($resultTVQuery) > 0) {
-                            while ($row = mysqli_fetch_assoc($resultTVQuery)) {
+                        // Fetch data from smart_tvs_tb
+                        if($user_type == 'Super Admin') {
+                            $query = "SELECT * FROM smart_tvs_tb WHERE tv_name != 'Unknown' AND tv_brand != 'Unknown'";
+                        } else {
+                            $query = "SELECT * FROM smart_tvs_tb WHERE tv_department = '$department' AND tv_name != 'Unknown' AND tv_brand != 'Unknown'";
+                        }
+
+                        $result = mysqli_query($conn, $query);
+                
+                        if (mysqli_num_rows($result) > 0) {
+                            while ($row = mysqli_fetch_assoc($result)) {
                                 $tvId = $row['tv_id'];
                                 $tvBrand = $row['tv_brand'];
                                 $tvHeight = $row['height_px'];
@@ -68,10 +71,11 @@ if (!$resultTVQuery) {
                                 // Display each TV item
                                 echo '<div class="content-container" data-tv-name="' . strtolower($row['tv_name']) . '">';
                                 echo '<h1 class="content-title" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($row['tv_name']) . '</h1>';
-                                echo '<div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">';
-                                    echo '<p style="font-size: 13px; margin: 0; margin-right: 5px; color: #6E6E6E">ID: ' . htmlspecialchars($row['tv_id']) . '</p>'; 
-                                    echo '<p style="font-size: 13px; margin: 0; color: #6E6E6E">| ' . htmlspecialchars($row['tv_brand']) . '</p>'; 
+                                echo '<div style="display: flex; justify-content: center; align-items: center;">';
+                                    echo '<p style="margin: 0; margin-right: 5px; color: #6E6E6E">ID: ' . htmlspecialchars($row['tv_id']) . '</p>'; 
+                                    echo '<p style="margin: 0; color: #6E6E6E;">| ' . htmlspecialchars($row['tv_brand']) . '</p>'; 
                                 echo '</div>';
+                                echo '<p style="margin: 0; margin-bottom: 10px; color: #6E6E6E; text-align: center;">' . htmlspecialchars($row['tv_department']) . '</p>'; 
                                 echo '<div class="tv-frame-parent" style="width: auto; height: 350px; background: none; cursor: default;">';
                                 echo '<div class="tv-frame" style="display: flex; flex-direction: column; align-items: center;">';
                                     echo "<iframe frameborder='0' src='tv2.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
@@ -79,8 +83,11 @@ if (!$resultTVQuery) {
                                     echo '<div class="tv-stand"></div>';
                                 echo "</div>";
                                 echo "</div>";
+                                // echo '<div class="scale-control">';
+                                // echo '<input type="range" min="0.1" max="2" step="0.1" value="1" class="scale-slider">';
+                                // echo '</div>';
                                 echo "<div class='line-separator'></div>";
-                                echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"edit_template.php?tvId=$tvId&isIframe=true\"'><i class='fa fa-window-restore' style='margin-right: 6px' aria-hidden='true'></i>Edit Template</button>";
+                                echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"edit_template.php?tvId=$tvId&isIframe=true\"'>Edit Template</button>";
                                 echo '</div>';
                             }
                         } else {

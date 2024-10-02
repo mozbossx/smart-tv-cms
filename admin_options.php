@@ -56,7 +56,6 @@ include 'admin_access_only.php';
             </div>
         </div>
     </div>
-    <script src="js/fetch_notifications_count.js"></script>
     <script src="js/fetch_user_session.js"></script>
 </body>
 </html>

@@ -697,7 +697,7 @@ $conn->close();
             fitFrameToParent();
 
             // Refit on window resize
-            window.addEventListener('resize', fitFrameToParent);
+            // window.addEventListener('resize', fitFrameToParent);
 
             // Scale Slider
             sliders.addEventListener('input', (e) => {

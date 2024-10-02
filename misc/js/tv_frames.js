@@ -28,7 +28,7 @@ tvFrames.forEach((tvFrame, index) => {
     fitFrameToParent();
 
     // Refit on window resize
-    window.addEventListener('resize', fitFrameToParent);
+    // window.addEventListener('resize', fitFrameToParent);
 
     // Scale Slider
     // sliders[index].addEventListener('input', (e) => {

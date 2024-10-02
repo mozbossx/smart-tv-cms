@@ -931,13 +931,48 @@ class ContentHandler implements MessageComponentInterface
         }
 
         else if (isset($data['action']) && $data['action'] === 'add_user') {
-            $full_name = $data['full_name'];
-            $email = $data['email'];
-            $password = $data['password'];
-            $department = $data['department'];
-            $user_type = $data['user_type'];
-            $status = ($user_type == 'Student') ? 'Pending' : 'Approved';
-            $datetime_registered = date('Y-m-d H:i:s');
+            $full_name = trim($data['full_name'] ?? '');
+            $email = trim($data['email'] ?? '');
+            $password = $data['password'] ?? '';
+            $department = trim($data['department'] ?? '');
+            $user_type = trim($data['user_type'] ?? '');
+            $status = 'Approved';
+
+            // Check for empty fields
+            if (empty($full_name) || empty($email) || empty($password) || empty($department) || empty($user_type)) {
+                $response = [
+                    "action" => "add_user", 
+                    "success" => false, 
+                    "message" => "Please fill up all fields.",
+                    "messageType" => "error"
+                ];
+                $from->send(json_encode($response));
+                return;
+            }
+
+            // Validate email
+            if (!preg_match('/@usc\.edu\.ph$/', $email)) {
+                $response = [
+                    "action" => "add_user", 
+                    "success" => false, 
+                    "message" => "Invalid email. Please use a @usc.edu.ph email address.",
+                    "messageType" => "error"
+                ];
+                $from->send(json_encode($response));
+                return;
+            }
+
+            // Validate full name
+            if (!preg_match('/^[a-zA-Z\s]+$/', $full_name)) {
+                $response = [
+                    "action" => "add_user", 
+                    "success" => false, 
+                    "message" => "Invalid full name. Please use only letters and spaces.",
+                    "messageType" => "error"
+                ];
+                $from->send(json_encode($response));
+                return;
+            }
         
             try {
                 // Check if the email or full name already exists
@@ -946,14 +981,18 @@ class ContentHandler implements MessageComponentInterface
                 $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 if ($existingUser) {
-                    $message = [];
-                    if ($existingUser['email'] === $email) {
-                        $message[] = "Email already exists";
+                    if ($existingUser['email'] === $email || $existingUser['full_name'] === $full_name) {
+                        $message = "User already exists";
                     }
-                    if ($existingUser['full_name'] === $full_name) {
-                        $message[] = "Full name already exists";
-                    }
-                    $response = ["action" => "add_user", "success" => false, "message" => implode(" and ", $message) . "."];
+
+                    $response = [
+                        "action" => "add_user", 
+                        "success" => false, 
+                        "message" => $message,
+                        "messageType" => "error"
+                    ];
+
+                    error_log($message);
                     $from->send(json_encode($response));
                     return;
                 }
@@ -963,11 +1002,11 @@ class ContentHandler implements MessageComponentInterface
         
                 $statement = $this->pdo->prepare(
                     "INSERT INTO users_tb 
-                    (full_name, email, password, department, user_type, status, datetime_registered) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)"
+                    (full_name, email, password, department, user_type, status) 
+                    VALUES (?, ?, ?, ?, ?, ?)"
                 );
                 $success = $statement->execute([
-                    $full_name, $email, $hashedPassword, $department, $user_type, $status, $datetime_registered
+                    $full_name, $email, $hashedPassword, $department, $user_type, $status
                 ]);
         
                 if ($success) {
@@ -980,12 +1019,17 @@ class ContentHandler implements MessageComponentInterface
                         'email' => $email,
                         'department' => $department,
                         'status' => $status,
-                        'user_type' => $user_type,
-                        'datetime_registered' => $datetime_registered
+                        'user_type' => $user_type
                     ];
-        
+
                     // Send success message to client
-                    $response = ['action' => 'add_user', 'success' => true, 'data' => $responseData];
+                    $response = [
+                        'action' => 'add_user', 
+                        'success' => true, 
+                        'data' => $responseData, 
+                        'message' => 'User added successfully',
+                        'messageType' => 'success'
+                    ];
                     $from->send(json_encode($response));
         
                     // Notify all other clients about the new user
@@ -1001,11 +1045,21 @@ class ContentHandler implements MessageComponentInterface
                     // You should implement an email sending function here
         
                 } else {
-                    $response = ["action" => "add_user", "success" => false, "message" => "Failed to insert data. Please try again."];
+                    $response = [
+                        "action" => "add_user", 
+                        "success" => false, 
+                        "message" => "Failed to insert data. Please try again.",
+                        "messageType" => "error"
+                    ];
                     $from->send(json_encode($response));
                 }
             } catch (\Exception $e) {
-                $response = ["action" => "add_user", "success" => false, "message" => "Failed to insert data. Please try again. Error: " . $e->getMessage()];
+                $response = [
+                    "action" => "add_user", 
+                    "success" => false, 
+                    "message" => "Failed to insert data. Please try again. Error: " . $e->getMessage(),
+                    "messageType" => "error"
+                ];
                 $from->send(json_encode($response));
             }
         }
@@ -1015,67 +1069,121 @@ class ContentHandler implements MessageComponentInterface
                 $csvContent = base64_decode($data['csv_file']);
             } else {
                 // Handle the case where csv_file is not a string
-                $from->send(json_encode(['action' => 'add_multiple_users', 'success' => false, 'message' => 'Invalid CSV file format']));
+                $from->send(json_encode(['action' => 'add_multiple_users', 'success' => false, 'message' => 'Invalid CSV file format. Try Again']));
                 return;
             }
             $lines = explode("\n", $csvContent);
             $addedCount = 0;
             $failedCount = 0;
+            $errorMessages = [];
+
+            // Check if the CSV file is empty
+            if (count($lines) <= 1) { // Assuming the first line might be headers
+                $from->send(json_encode(['action' => 'add_multiple_users', 'success' => false, 'message' => 'The CSV file is empty or contains only headers.']));
+                return;
+            }
         
-            foreach ($lines as $line) {
+            foreach ($lines as $lineNumber => $line) {
                 $userData = str_getcsv($line);
-                if (count($userData) === 4) { // Ensure we have all required fields
-                    $full_name = trim($userData[0]);
-                    $email = trim($userData[1]);
-                    $user_type = trim($userData[2]);
-                    $department = trim($userData[3]);
-                    $status = ($user_type == 'Student') ? 'Pending' : 'Approved';
-                    $datetime_registered = date('Y-m-d H:i:s');
-                    $password = bin2hex(random_bytes(4));  // Generates an 8-character random password
-                    $hashedPassword = md5($password); // Consider using password_hash() for better security
+                
+                // Skip empty lines
+                if (empty(array_filter($userData))) {
+                    continue;
+                }
         
-                    try {
-                        // Check if the email already exists
-                        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users_tb WHERE email = ? OR full_name = ?");
-                        $stmt->execute([$email, $full_name]);
-                        $count = $stmt->fetchColumn();
-
-                        if ($count > 0) {
-                            $failedCount++;
-                            continue;
-                        }
-
-                        $statement = $this->pdo->prepare(
-                            "INSERT INTO users_tb 
-                            (full_name, email, password, department, user_type, status, datetime_registered) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?)"
-                        );
-                        $success = $statement->execute([
-                            $full_name, $email, $hashedPassword, $department, $user_type, $status, $datetime_registered
-                        ]);
-        
-                        if ($success) {
-                            $addedCount++;
-                            // TODO: Send email to the new user with their temporary password
-                        } else {
-                            $failedCount++;
-                        }
-                    } catch (\Exception $e) {
-                        $failedCount++;
-                        error_log("Failed to add user: " . $e->getMessage());
-                    }
-                } else {
+                // Check for the correct number of fields
+                if (count($userData) !== 4) {
+                    $errorMessages[] = "Line $lineNumber: Incorrect number of fields. Expected 4, got " . count($userData);
                     $failedCount++;
-                    echo "Failed to add user: " . $line . "\n";
+                    continue;
+                }
+        
+                $full_name = trim($userData[0]);
+                $email = trim($userData[1]);
+                $user_type = trim($userData[2]);
+                $department = trim($userData[3]);
+        
+                // Check for empty fields
+                if (empty($full_name) || empty($email) || empty($user_type) || empty($department)) {
+                    $errorMessages[] = "Line $lineNumber: One or more required fields are empty.";
+                    $failedCount++;
+                    continue;
+                }
+        
+                // Validate email format
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/@usc\.edu\.ph$/', $email)) {
+                    $errorMessages[] = "Line $lineNumber: Invalid email format for $email. Must be a valid @usc.edu.ph address.";
+                    $failedCount++;
+                    continue;
+                }
+        
+                // Validate user type
+                $validUserTypes = ['Super Admin', 'Admin', 'Faculty', 'Student'];
+                if (!in_array($user_type, $validUserTypes)) {
+                    $errorMessages[] = "Line $lineNumber: Invalid user type '$user_type'. Must be one of: " . implode(', ', $validUserTypes);
+                    $failedCount++;
+                    continue;
+                }
+        
+                // Validate department
+                $validDepartments = ['COMPUTER ENGINEERING', 'CHEMICAL ENGINEERING', 'CIVIL ENGINEERING', 'INDUSTRIAL ENGINEERING', 'ELECTRICAL ENGINEERING', 'MECHANICAL ENGINEERING', 'ELECTRONICS ENGINEERING'];
+                if (!in_array(strtoupper($department), $validDepartments)) {
+                    $errorMessages[] = "Line $lineNumber: Invalid department '$department'. Must be one of: " . implode(', ', $validDepartments);
+                    $failedCount++;
+                    continue;
+                }
+        
+                $status = 'Approved';
+                $password = bin2hex(random_bytes(4));  // Generates an 8-character random password
+                $hashedPassword = md5($password); 
+        
+                try {
+                    // Check if the email or full name already exists
+                    $stmt = $this->pdo->prepare("SELECT email, full_name FROM users_tb WHERE email = ? OR full_name = ?");
+                    $stmt->execute([$email, $full_name]);
+                    $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+                    if ($existingUser) {
+                        $failedCount++;
+                        if ($existingUser['email'] === $email) {
+                            $errorMessages[] = "Line $lineNumber: Email already exists: $email";
+                        }
+                        if ($existingUser['full_name'] === $full_name) {
+                            $errorMessages[] = "Line $lineNumber: Full name already exists: $full_name";
+                        }
+                        continue;
+                    }
+        
+                    $statement = $this->pdo->prepare(
+                        "INSERT INTO users_tb 
+                        (full_name, email, password, department, user_type, status) 
+                        VALUES (?, ?, ?, ?, ?, ?)"
+                    );
+                    $success = $statement->execute([
+                        $full_name, $email, $hashedPassword, $department, $user_type, $status
+                    ]);
+        
+                    if ($success) {
+                        $addedCount++;
+                        // TODO: Send email to the new user with their temporary password
+                    } else {
+                        $failedCount++;
+                        $errorMessages[] = "Line $lineNumber: Failed to add user: $full_name";
+                    }
+                } catch (\Exception $e) {
+                    $failedCount++;
+                    $errorMessages[] = "Line $lineNumber: Error adding user $full_name: " . $e->getMessage();
+                    error_log("Failed to add user: " . $e->getMessage());
                 }
             }
         
             $response = [
                 "action" => "add_multiple_users",
-                "success" => true,
+                "success" => $addedCount > 0,
                 "addedCount" => $addedCount,
                 "failedCount" => $failedCount,
-                "message" => "Multiple users processed. Added: $addedCount, Failed: $failedCount"
+                "message" => "Multiple users processed. Added: $addedCount, Failed: $failedCount",
+                "errorMessages" => $errorMessages
             ];
             $from->send(json_encode($response));
         

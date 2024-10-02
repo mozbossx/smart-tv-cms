@@ -1,4 +1,4 @@
-<div id="saveDraftModal" class="modal">
+<!-- <div id="saveDraftModal" class="modal">
     <div class="modal-content">
         <div class="green-bar-vertical">
             <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-file" aria-hidden="true"></i></h1>
@@ -10,10 +10,10 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <script>
-    const ws = new WebSocket('ws://192.168.1.30:8081?user_id=<?php echo urlencode($user_id)?>&full_name=<?php echo urlencode($full_name); ?>&user_type=<?php echo urlencode($user_type); ?>&department=<?php echo urlencode($department); ?>&email=<?php echo urlencode($email)?>');
+    // const ws = new WebSocket('ws://192.168.1.17:8081?user_id=<?php echo urlencode($user_id)?>&full_name=<?php echo urlencode($full_name); ?>&user_type=<?php echo urlencode($user_type); ?>&department=<?php echo urlencode($department); ?>&email=<?php echo urlencode($email)?>');
 
     let isFormDirty = false;
 
@@ -21,7 +21,7 @@
     document.querySelectorAll('.content-form input, .content-form textarea, .content-form select').forEach(input => {
         input.addEventListener('input', () => {
             isFormDirty = true;
-            document.getElementById('saveDraftButton').style.display = "block";
+            // document.getElementById('saveDraftButton').style.display = "block";
         });
     });
 

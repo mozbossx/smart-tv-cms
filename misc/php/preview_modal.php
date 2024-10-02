@@ -234,9 +234,9 @@
 
                 carouselHTML += `
                     <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;" data-tv-id="${matchingContainer.tv_id}">
-                        <div style="background-color: ${matchingContainer.parent_background_color}; padding: 10px; border-radius: 5px; height: ${matchingContainer.height_px}px; width: ${matchingContainer.width_px}px;">
-                            <h1 style="color: ${matchingContainer.parent_font_color}; font-family: ${matchingContainer.parent_font_family}; font-style: ${matchingContainer.parent_font_style}; font-size: 2.0vh; margin-bottom: 5px">${matchingContainer.container_name}</h1>
-                            <div style="background-color: ${matchingContainer.child_background_color}; color: ${matchingContainer.child_font_color}; font-style: ${matchingContainer.child_font_style}; font-family: ${matchingContainer.child_font_family}; width: auto; height: calc(100% - 6.5vh); font-size: 1.5vh; padding: 10px; border-radius: 5px">
+                        <div class="carousel-content" style="background-color: ${matchingContainer.parent_background_color}; padding: 10px; border-radius: 5px; height: ${matchingContainer.height_px}px; width: ${matchingContainer.width_px}px;">
+                            <h1 style="color: ${matchingContainer.parent_font_color}; font-family: ${matchingContainer.parent_font_family}; font-style: ${matchingContainer.parent_font_style}; margin-bottom: 5px">${matchingContainer.container_name}</h1>
+                            <div style="background-color: ${matchingContainer.child_background_color}; color: ${matchingContainer.child_font_color}; font-style: ${matchingContainer.child_font_style}; font-family: ${matchingContainer.child_font_family}; width: auto; height: calc(100% - 11.5vh); padding: 10px; border-radius: 5px">
                                 <p style="white-space: pre-wrap">${content}</p>
                             </div>
                         </div>
@@ -294,6 +294,33 @@
 
                 updateTvName(); // Update the TV name based on the new active item
             };
+
+            const carouselContent = document.querySelector('.carousel-content');
+
+            // Function to fit the tv-frame inside its parent
+            function fitFrameToParent() {
+                const parent = carouselContent.parentElement;
+                const parentRect = parent.getBoundingClientRect();
+
+                // Reset any existing transformations and positioning
+                carouselContent.style.transform = 'none';
+                
+                const frameRect = carouselContent.getBoundingClientRect();
+
+                const scaleX = parentRect.width / frameRect.width;
+                const scaleY = parentRect.height / frameRect.height;
+                const scale = Math.min(scaleX, scaleY, 1); // Don't scale up if already smaller
+
+                // Apply transformations
+                carouselContent.style.transform = `scale(${scale})`;
+                carouselContent.style.transformOrigin = 'top left';
+            }
+
+            // Fit frame on load
+            fitFrameToParent();
+
+            // Refit on window resize
+            // window.addEventListener('resize', fitFrameToParent);
         } else {
             previewContainer.innerHTML = '<p>No container found for the selected TVs.</p>'; // Fallback message
         }

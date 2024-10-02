@@ -1,4 +1,5 @@
 <?php
+// For manage_smart_tvs.php only
 // Disable error reporting to prevent PHP errors from breaking JSON output
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -27,25 +28,25 @@ $loggedInUserId = $_SESSION['user_id'];
 $loggedInUserType = $_SESSION['user_type'];
 $loggedInUserDepartment = $_SESSION['department'];
 
+// Get tvId from the query string
+$tvId = isset($_GET['tvId']) ? intval($_GET['tvId']) : 0;
+
 try {
-    // Check if userId parameter is set in the GET request
-    if (isset($_GET['userId'])) {
-        // Fetch a specific user's data based on userId
-        $userId = $_GET['userId'];
-        $statement = $conn->prepare("SELECT * FROM users_tb WHERE user_id = ?");
-        $statement->bind_param("i", $userId);
+    if ($tvId > 0) {
+        $statement = $conn->prepare("SELECT * FROM smart_tvs_tb WHERE tv_id = ?");
+        $statement->bind_param("i", $tvId);
         $statement->execute();
         $result = $statement->get_result();
-        $user = $result->fetch_assoc();
+        $smart_tv = $result->fetch_assoc();
 
-        sendJsonResponse($user);
+        sendJsonResponse($smart_tv);
     } else {
         // Prepare the SQL query based on user type
         if ($loggedInUserType === 'Super Admin') {
-            $sql = "SELECT * FROM users_tb";
+            $sql = "SELECT * FROM smart_tvs_tb";
             $statement = $conn->prepare($sql);
         } elseif ($loggedInUserType === 'Admin') {
-            $sql = "SELECT * FROM users_tb WHERE department = ?";
+            $sql = "SELECT * FROM smart_tvs_tb WHERE tv_department = ? OR tv_department = 'Unknown'";
             $statement = $conn->prepare($sql);
             $statement->bind_param("s", $loggedInUserDepartment);
         } else {
@@ -56,12 +57,12 @@ try {
         // Execute the query
         $statement->execute();
         $result = $statement->get_result();
-        $users = $result->fetch_all(MYSQLI_ASSOC);
+        $smart_tv = $result->fetch_all(MYSQLI_ASSOC);
 
-        sendJsonResponse($users);
+        sendJsonResponse($smart_tv);
     }
 } catch (Exception $e) {
-    sendJsonResponse(['error' => 'An error occurred while fetching users'], 500);
+    sendJsonResponse(['error' => 'An error occurred while fetching tvs'], 500);
 } finally {
     if (isset($conn)) {
         $conn->close();

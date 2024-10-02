@@ -14,7 +14,7 @@
     <div class="modal-content">
         <div class="red-bar-vertical">
             <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
-            <p id="errorTextVersion2"></p>
+            <p id="errorTextVersion2" style="max-height: 200px; overflow: auto"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">
                 <button type="button" id="okayButtonVersion2" class="red-button" style="margin: 0" onclick="closeErrorModalVersion2()">Okay</button>

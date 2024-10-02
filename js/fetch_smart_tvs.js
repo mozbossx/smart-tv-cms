@@ -21,8 +21,8 @@ const displaySmartTVTable = (data) => {
             <td style="text-align: left;">${row.tv_brand}</td>
             <td style="text-align: left;">${row.tv_department}</td>
             <td style="text-align:center;">
-                <button type="button" class="green-button" onclick="showEditSmartTVModal(${row.tv_id})">Edit</button>
-                <button type="button" class="red-button" onclick="showDeleteSmartTVModal(${row.tv_id})">Delete</button>
+                <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showEditSmartTVModal(${row.tv_id})">Edit</button>
+                <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteSmartTVModal(${row.tv_id})">Delete</button>
             </td>
         </tr>`;
     });
@@ -168,7 +168,7 @@ const populateEditSmartTVModal = (tvId) => {
     `;
 
     // Fetch smart TV data based on tvId
-    fetch(`database/fetch_smart_tvs.php?tvId=${tvId}`)
+    fetch(`database/fetch_smart_tvs2.php?tvId=${tvId}`)
         .then(response => response.json())
         .then(tv => {
             console.log('Fetched smart TV data:', tv); // Log fetched tv data to check if it's correct
@@ -272,7 +272,7 @@ Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
     if (data.action === 'delete_smart_tv' && data.success) {
         // Fetch all smart TVs and refresh the table
-        fetch('database/fetch_smart_tvs.php')
+        fetch('database/fetch_smart_tvs2.php')
             .then(response => response.json())
             .then(data => {
                 displaySmartTVTable(data);
@@ -281,7 +281,7 @@ Ws.addEventListener('message', function (event) {
             .catch(error => console.error('Error fetching updated smart TVs:', error));
     } else if (data.action === 'edit_smart_tv' && data.success) {
         // Fetch all smart TVs and refresh the table
-        fetch('database/fetch_smart_tvs.php')
+        fetch('database/fetch_smart_tvs2.php')
             .then(response => response.json())
             .then(data => {
                 displaySmartTVTable(data);
@@ -292,7 +292,7 @@ Ws.addEventListener('message', function (event) {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('database/fetch_smart_tvs.php')
+    fetch('database/fetch_smart_tvs2.php')
         .then(response => response.json())
         .then(data => {
             displaySmartTVTable(data);

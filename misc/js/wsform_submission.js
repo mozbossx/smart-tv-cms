@@ -24,6 +24,7 @@ function getQuillEditorContent(contentType) {
 }
 
 function submitFormViaWebSocket() {
+    isFormDirty = false;
     const contentType = document.querySelector('[name="type"]').value;
     const form = document.getElementById(`${contentType}Form`);
 

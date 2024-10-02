@@ -42,11 +42,11 @@ include 'get_session.php';
                 // Fetch data from smart_tvs_tb
                 if($user_type == 'Super Admin') {
                     $query = "SELECT * FROM smart_tvs_tb WHERE tv_name != 'Unknown' AND tv_brand != 'Unknown'";
-                    $result = mysqli_query($conn, $query);
                 } else {
                     $query = "SELECT * FROM smart_tvs_tb WHERE tv_department = '$department' AND tv_name != 'Unknown' AND tv_brand != 'Unknown'";
-                    $result = mysqli_query($conn, $query);
                 }
+
+                $result = mysqli_query($conn, $query);
         
                 if (mysqli_num_rows($result) > 0) {
                     while ($row = mysqli_fetch_assoc($result)) {
@@ -73,7 +73,7 @@ include 'get_session.php';
                         // echo '<input type="range" min="0.1" max="2" step="0.1" value="1" class="scale-slider">';
                         // echo '</div>';
                         echo "<div class='line-separator'></div>";
-                        echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"tv_contents.php?tvId=$tvId&initialize=false\"'>View Contents</button>";
+                        echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"tv_contents.php?tvId=$tvId&isIframe=true\"'>View Contents</button>";
                         echo '</div>';
                     }
                 } else {

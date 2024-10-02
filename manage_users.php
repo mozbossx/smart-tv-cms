@@ -30,6 +30,7 @@ if ($resultAllUsers->num_rows > 0) {
 } else {
     $error[] = "No user data found";
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -62,15 +63,27 @@ if ($resultAllUsers->num_rows > 0) {
                     <div class="content-form">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
+                                <li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Admin Options</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Manage Users</li>
                             </ol>
-                        </nav>
-                        <?php include('error_message.php'); ?>
-                        <div id="user-data" data-user-id="<?php echo $user_id; ?>"></div>
+                        </nav>                        
+                        <div id="user-data" data-user-id="<?php echo $user_id; ?>" data-user-type="<?php echo $user_type; ?>"></div>
                         <div style="display: flex; justify-content: flex-end;">
-                            <button type="button" class="green-button" style="margin-right: 0;" onclick="showAddUserModal()">Add User</button>
+                            <button type="button" class="green-button" id="selectMultipleBtn" style="margin-right: 5px"><i class="fa fa-check-square" style="margin-right: 2px"></i> Select Multiple</button>
+                            <button type="button" class="green-button" id="deleteSelectedBtn" style="margin-right: 5px; display: none"><i class="fa fa-user-times" style="margin-right: 2px"></i> Delete Selected</button>
+                            <button type="button" class="green-button" style="margin-right: 0;" onclick="showAddUserModal(<?php echo $user_id?>)"><i class="fa fa-user-plus" style="margin-right: 2px"></i> Add User</button>
                         </div>
+                        <div class="error-message" style="display: none; margin-top: 10px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div>
+                        <div class="success-message" style="display: none; margin-top: 10px"><i class="fa fa-check-circle" aria-hidden="true"></i></div>
+                        <form class="search-form" style="width: 300px; max-width: 100%; margin: 0; margin-bottom: 10px;">
+                            <div class="floating-label-container">
+                                <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchUsersTable()">
+                                <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search User Table</label>
+                                <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                                    <i class="fa fa-times" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </form>
                         <div class="table-container">
                             <div id="userTableContainer">
                                 <!-- Latest table of users will be displayed here -->
@@ -88,5 +101,42 @@ if ($resultAllUsers->num_rows > 0) {
     <script src="js/fetch_users.js"></script>
     <script src="misc/js/sort_table.js"></script>
     <script src="js/fetch_user_session.js"></script>
+    <script>
+        function searchUsersTable() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("searchInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("usersTable");
+            tr = table.getElementsByTagName("tr");
+
+            // Show/hide clear button based on input value
+            document.getElementById("clearSearch").style.display = input.value ? "block" : "none";
+
+            for (i = 1; i < tr.length; i++) {
+                var found = false;
+                for (var j = 0; j < tr[i].cells.length; j++) {
+                    td = tr[i].getElementsByTagName("td")[j];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (found) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+
+        // Add event listener for clear button
+        document.getElementById("clearSearch").addEventListener("click", function() {
+            document.getElementById("searchInput").value = "";
+            searchUsersTable();
+        });
+    </script>
 </body>
 </html>

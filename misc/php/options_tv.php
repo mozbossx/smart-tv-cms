@@ -1,7 +1,7 @@
 <?php
 // fetch tv data
 $options_tv = '';
-$user_department = $department; // Assuming $department is already set from the session
+$user_department = $department; // $department is already set from the session
 
 // Modify the SQL query based on user type
 if ($user_type == 'Super Admin') {

@@ -174,14 +174,13 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
 
             // Apply transformations
             tvFrame.style.transform = `scale(${scale})`;
-            sliders.value = scale;
         }
 
         // Fit frame on load
         fitFrameToParent();
 
         // Refit on window resize
-        window.addEventListener('resize', fitFrameToParent);
+        // window.addEventListener('resize', fitFrameToParent);
     </script>
 </body>
 </html>

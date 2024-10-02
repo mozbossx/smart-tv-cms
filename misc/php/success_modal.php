@@ -15,7 +15,7 @@
     <div class="modal-content">
         <div class="green-bar-vertical">
             <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
-            <p id="successMessageVersion2"></p>
+            <p id="successMessageVersion2" style="max-height: 200px; overflow: auto"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">
                 <button type="button" id="okayButton" class="green-button" style="margin-right: 0" onclick="closeSuccessMessageModalVersion2()">Okay</button>
@@ -36,6 +36,7 @@
     function closeSuccessMessageModal() {
         var successMessageModal = document.getElementById('successMessageModal');
         var previewModal = document.getElementById('previewModal');
+        isFormDirty = false;
         successMessageModal.style.display = 'none';
         previewModal.style.display = 'none';
     }

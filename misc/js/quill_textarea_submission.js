@@ -13,12 +13,6 @@ if (contentType === 'announcement') {
             ]
         }
     });
-
-    // Trigger isFormDirty when Quill content changes
-    announcementBodyQuill.on('text-change', function() {
-        isFormDirty = true;
-        document.getElementById('saveDraftButton').style.display = "block";
-    });
 } else if (contentType === 'event') {
     var eventBodyQuill = new Quill('#event_body', {
         theme: 'snow', // 'snow' is the default theme
@@ -31,11 +25,6 @@ if (contentType === 'announcement') {
             ]
         }
     });
-
-    eventBodyQuill.on('text-change', function() {
-        isFormDirty = true;
-        document.getElementById('saveDraftButton').style.display = "block";
-    });
 } else if (contentType === 'news') {
     var newsBodyQuill = new Quill('#news_body', {
         theme: 'snow', // 'snow' is the default theme
@@ -47,11 +36,6 @@ if (contentType === 'announcement') {
                 [{ 'list': 'ordered'}, { 'list': 'bullet' }]
             ]
         }
-    });
-
-    newsBodyQuill.on('text-change', function() {
-        isFormDirty = true;
-        document.getElementById('saveDraftButton').style.display = "block";
     });
 } else if (contentType === 'peo') {
     var peoTitleQuill = new Quill('#peo_title', {
@@ -126,6 +110,45 @@ if (contentType === 'announcement') {
         }
     });
 }
+
+// Add this after initializing your Quill editors
+if (announcementBodyQuill) {
+    announcementBodyQuill.on('text-change', () => {
+        isFormDirty = true;
+    });
+} else if (eventBodyQuill) {
+    eventBodyQuill.on('text-change', () => {
+        isFormDirty = true;
+    });
+} else if (newsBodyQuill) {
+    newsBodyQuill.on('text-change', () => {
+        isFormDirty = true;
+    });
+} else if (peoTitleQuill) {
+    peoTitleQuill.on('text-change', () => {
+        isFormDirty = true;
+    });
+} else if (peoDescriptionQuill) {
+    peoDescriptionQuill.on('text-change', () => {
+        isFormDirty = true;
+    });
+} else if (peoSubdescriptionQuill) {
+    peoSubdescriptionQuill.on('text-change', () => {
+        isFormDirty = true;
+    });
+} else if (soTitleQuill) {
+    soTitleQuill.on('text-change', () => {
+        isFormDirty = true;
+    });
+} else if (soDescriptionQuill) {
+    soDescriptionQuill.on('text-change', () => {
+        isFormDirty = true;
+    });
+} else if (soSubdescriptionQuill) {
+    soSubdescriptionQuill.on('text-change', () => {
+        isFormDirty = true;
+    });
+} 
 
 function handleFormSubmission(event) {
     event.preventDefault();

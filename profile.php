@@ -236,7 +236,7 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
                 <p>Proceed to logout?</p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
-                    <button class="red-button" style="background: #334b353b; color: black" onclick="closeModal('logout')">No</button>
+                    <button class="red-button" style="background: #334b353b; color: black; border: none" onclick="closeModal('logout')">No</button>
                     <button class="red-button" style="margin: 0" onclick="logout()">Yes, I want to logout</button>
                 </div>
             </div>

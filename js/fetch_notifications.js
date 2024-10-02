@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.30:8081');
+const Ws = new WebSocket('ws://192.168.1.17:8081');
 
 function fetchNotifications() {
     fetch('get_notifications.php')
@@ -580,7 +580,6 @@ Ws.addEventListener('message', function(event) {
             } 
             break;
         default:
-            console.log('Unknown action:', data.action);
     }
 });
 

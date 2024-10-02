@@ -65,11 +65,6 @@ include 'misc/php/options_tv.php';
                             <?php include('misc/php/schedule_post.php')?>
                             <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
                                 <div>
-                                    <button type="button" id="saveDraftButton" class="preview-button" style="display: none; background: none; color: #316038; border: #316038 solid 1px">
-                                        <i class="fa fa-file" style="padding-right: 5px"></i> Save Draft 
-                                    </button>
-                                </div>
-                                <div>
                                     <button type="button" id="schedulePostButton" class="preview-button" style="background: none; color: #316038; border: #316038 solid 1px">
                                         <i class="fa fa-calendar" style="padding-right: 5px"></i> Schedule Post 
                                     </button>
@@ -87,9 +82,9 @@ include 'misc/php/options_tv.php';
             </div>
         </div>
     </div>
+    <script src="misc/js/is_form_dirty.js"></script>
     <?php include('misc/php/error_modal.php') ?>
     <?php include('misc/php/success_modal.php') ?>    
-    <?php include('misc/php/save_draft_modal.php') ?>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script src="misc/js/quill_textarea_submission.js"></script>
     <script src="misc/js/wsform_submission.js"></script>
