@@ -144,7 +144,7 @@ const updateUI = (data, type) => {
             margin-top: 10px;
         `;
 
-        const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
+        const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name));
         const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
         const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
@@ -176,13 +176,27 @@ const archiveItem = (type, id) => {
 };
 
 // Function to delete an item
-const deleteItem = (type, id) => {
+const deleteItem = (type, id, author_id, full_name) => {
+    const evaluatorMessageElement = document.getElementById('evaluator_message');
+    let evaluatorMessage = '';
+
+    if (evaluatorMessageElement) {
+        evaluatorMessage = evaluatorMessageElement.value;
+        if (!evaluatorMessage) {
+            alert('Evaluator message is required.');
+            return;
+        }
+    }
+
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
     const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
     const data = {
-        action: 'delete',
+        action: 'delete_content',
         type: type,
-        [`${type}_id`]: id // Dynamically set the ID based on the type
+        [`${type}_id`]: id, // Dynamically set the ID based on the type
+        user_id: author_id,
+        evaluator_name: full_name,
+        evaluator_message: evaluatorMessage
     };
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
@@ -270,23 +284,33 @@ const showArchiveModal = (id, type) => {
 };
 
 // Function to show delete modal
-const showDeleteModal = (id, type) => {
+const showDeleteModal = (id, type, author_id, full_name) => {
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
     const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
     const modalContent = document.getElementById(`delete${capitalizedType}ModalContent`);
     modalContent.className = 'modal-content';
+    modalContent.style = `
+        padding: 15px;
+    `;
+
+    const evaluatorMessageHtml = user_id != author_id ? `
+        <div class="floating-label-container">
+            <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+            <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+        </div>
+        <br>
+    ` : '';
     
-    modalContent.innerHTML = `        
-        <div class="red-bar-vertical">
-            <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-            <p id="deleteMessage" style="text-align: center">Proceed to delete?</p>
-            <br>
-            <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
-                <button type="button" class="red-button" onclick="deleteItem('${type}', '${id}')">Yes, Delete</button>
-            </div>
+    modalContent.innerHTML = `
+        <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <br>
+        <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+        <p id="deleteMessage" style="text-align: center">Proceed to delete?</p>
+        <br>
+        ${evaluatorMessageHtml}
+        <div style="text-align: right;">
+            <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="red-button" onclick="deleteItem('${type}', '${id}', '${author_id}', '${full_name}')">Yes, Delete</button>
         </div>
     `;
     
@@ -343,7 +367,7 @@ const fetchAndUpdate = async (type) => {
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
     switch (data.action) {
-        case 'delete':
+        case 'delete_content':
             // Handle deletion confirmation
             const deleteMessageDiv = document.getElementById(`no-${data.type}-message`);
             if (deleteMessageDiv) {
@@ -399,11 +423,7 @@ Ws.addEventListener('message', function(event) {
         case 'approve_post':
             // Handle new approved content being posted
             console.log(`New Approved ${data.type} posted:`, data);
-            fetchAndUpdate(data.content_type);
-            break;
-
-        default:
-            console.warn(`Unknown action: ${data.action}`);
+            fetchAndUpdate(data.type);
             break;
     }
 });

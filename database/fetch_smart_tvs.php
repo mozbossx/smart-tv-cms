@@ -18,6 +18,7 @@ if ($tvId > 0) {
     echo json_encode($smart_tv);
 } else {
     // Fetch all smart TVs from the database
+    // manage_smart_tv.php section
     $statement = $pdo->query("SELECT * FROM smart_tvs_tb");
     $smart_tvs = $statement->fetchAll(PDO::FETCH_ASSOC);
 

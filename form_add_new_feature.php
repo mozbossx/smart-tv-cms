@@ -159,7 +159,6 @@ include 'misc/php/options_tv.php';
     <?php include('misc/php/success_modal.php') ?>
     <script src="misc/js/populate_font_awesome_icons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <script src="js/fetch_user_session.js"></script>
     <script>
         document.getElementById('number_of_inputs').addEventListener('change', function() {
             const numberOfInputs = parseInt(this.value);

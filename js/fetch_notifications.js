@@ -1,10 +1,22 @@
-const Ws = new WebSocket('ws://192.168.1.17:8081');
+const Ws = new WebSocket('ws://192.168.1.30:8081');
+
+function updateNotificationCount(count) {
+    const notificationCount = document.getElementById('notificationCount');
+    if (count > 0) {
+        console.log(count > 0);
+        notificationCount.style.display = 'block';
+        notificationCount.textContent = count;
+    } else {
+        notificationCount.style.display = 'none';
+    }
+}
 
 function fetchNotifications() {
     fetch('get_notifications.php')
         .then(response => response.json())
         .then(data => {
             updateNotificationsUI(data);
+            console.log(data);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -15,7 +27,7 @@ function fetchNotificationCount() {
     fetch('get_notification_count.php')
         .then(response => response.json())
         .then(data => {
-            console.log("Notification Count Data:", data);
+            console.log("Notification Count Data:", data.count);
             updateNotificationCount(data.count);
         })
         .catch(error => {
@@ -63,15 +75,18 @@ function updateNotificationsUI(notifications) {
     // Function to populate a container with notifications
     const populateContainer = (container) => {
         container.innerHTML = '';
-        if (notifications.length === 0) {
+        let relevantNotifications = 0;
+
+        notifications.forEach(notification => {
+            const notificationDiv = createNotificationDiv(notification);
+            if (notificationDiv) {
+                container.appendChild(notificationDiv.cloneNode(true));
+                relevantNotifications++;
+            }
+        });
+
+        if (relevantNotifications === 0) {
             container.innerHTML = '<p>No new notifications.</p>';
-        } else {
-            notifications.forEach(notification => {
-                const notificationDiv = createNotificationDiv(notification);
-                if (notificationDiv) {
-                    container.appendChild(notificationDiv.cloneNode(true));
-                }
-            });
         }
     };
 
@@ -90,6 +105,10 @@ function createNotificationDiv(notification) {
     const notificationDiv = document.createElement('div');
     notificationDiv.className = 'notification';
 
+    // Add data attributes here
+    notificationDiv.setAttribute('data-content-id', notification.content_id);
+    notificationDiv.setAttribute('data-content-type', notification.content_type);
+
     let content = '';
 
     if (userType === 'Super Admin') {
@@ -97,7 +116,7 @@ function createNotificationDiv(notification) {
             content = `
                 <div class="notification-details">
                     <p class="user-registration-notification"><strong>${notification.full_name}</strong> has registered as a <strong>${notification.user_type}</strong>.</p>
-                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="department-notification"><strong>${notification.department}</strong> department.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
                 <div class="notification-buttons">
@@ -109,7 +128,7 @@ function createNotificationDiv(notification) {
             content = `
                 <div class="notification-details">
                     <p class="user-approved-notification">You <strong>approved</strong> ${notification.full_name}'s registration.</p>
-                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="department-notification"><strong>${notification.department}</strong> department.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
@@ -117,16 +136,37 @@ function createNotificationDiv(notification) {
             content = `
                 <div class="notification-details">
                     <p class="user-approved-notification">You <strong>rejected</strong> ${notification.full_name}'s registration.</p>
-                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="department-notification"><strong>${notification.department}</strong> department.</p>
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
-        } else if (notification.notification_type === 'user_edited' && notification.status == 'edited' && notification.evaluator_name == full_name) {
+        } else if (notification.notification_type === 'user_edited' && notification.status == 'edited' && notification.evaluator_name == full_name && notification.edited_user_type != null && notification.edited_user_department == null) {
             content = `
                 <div class="notification-details">
-                    <p class="user-approved-notification">You <strong>edited</strong> ${notification.full_name}'s profile.</p>
-                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="user-approved-notification">You <strong>updated</strong> ${notification.full_name}'s profile to <strong>${notification.edited_user_type}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited' && notification.status == 'edited' && notification.evaluator_name == full_name && notification.edited_user_type == null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">
+                    <p class="user-approved-notification">You <strong>updated</strong> ${notification.full_name}'s profile to <strong>${notification.edited_user_department}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited' && notification.status == 'edited' && notification.evaluator_name == full_name && notification.edited_user_type != null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">
+                    <p class="user-approved-notification">You <strong>updated</strong> ${notification.full_name}'s profile to <strong>${notification.edited_user_type}</strong> and <strong>${notification.edited_user_department}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_deleted' && notification.status == 'deleted' && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="user-deleted-notification">You <strong>deleted</strong> ${notification.full_name}'s account.</p>
+                    <p class="department-notification">This user was from <strong>${notification.department}</strong> department.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
@@ -134,7 +174,7 @@ function createNotificationDiv(notification) {
             content = `
                 <div class="notification-details">
                     <p class="content-post-notification"><strong>${notification.full_name}</strong> wants to post a <strong>${notification.content_type}</strong>.</p>
-                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="department-notification"><strong>${notification.department}</strong> department.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
                 <div class="notification-buttons">
@@ -147,7 +187,6 @@ function createNotificationDiv(notification) {
             content = `
                 <div class="notification-details">
                     <p class="content-post-notification">You posted <strong>${notification.content_type}</strong>.</p>
-                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
@@ -155,7 +194,7 @@ function createNotificationDiv(notification) {
             content = `
                 <div class="notification-details">
                     <p class="content-approved-notification">You <strong>approved</strong> ${notification.full_name}'s ${notification.content_type}.</p>
-                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="department-notification"><strong>${notification.department}</strong> department.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
@@ -163,16 +202,44 @@ function createNotificationDiv(notification) {
             content = `
                 <div class="notification-details">
                     <p class="content-approved-notification">You <strong>rejected</strong> ${notification.full_name}'s ${notification.content_type}.</p>
-                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="department-notification"><strong>${notification.department}</strong> department.</p>
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
-        } else if (notification.notification_type === 'content_deleted' && notification.status == 'deleted' && notification.evaluator_name == full_name) {
+        } else if (notification.notification_type === 'content_deleted' && notification.status == 'deleted' && notification.user_id == user_id && notification.evaluator_name == full_name) {
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You <strong>deleted</strong> ${notification.full_name}'s ${notification.content_type}.</p>
-                    <p class="department-notification">This user is from <strong>${notification.department}</strong> department.</p>
+                    <p class="content-approved-notification">You <strong>deleted</strong> your ${notification.content_type}.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'content_deleted_by_admin' && notification.status == 'deleted' && notification.evaluator_name != full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">Your ${notification.content_type} has been <strong>deleted</strong> by ${notification.full_name}.</p>
+                    <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id && notification.edited_user_type != null && notification.edited_user_department == null) {
+            content = `
+                <div class="notification-details">  
+                    <p class="content-approved-notification">Your profile has been <strong>updated</strong> by ${notification.evaluator_name} to <strong>${notification.edited_user_type}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id && notification.edited_user_type == null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">  
+                    <p class="content-approved-notification">Your profile has been <strong>updated</strong> by ${notification.evaluator_name} to <strong>${notification.edited_user_department}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id  && notification.edited_user_type != null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">  
+                    <p class="content-approved-notification">Your profile has been <strong>updated</strong> by ${notification.evaluator_name} to <strong>${notification.edited_user_type}</strong> and <strong>${notification.edited_user_department}</strong>.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
@@ -204,10 +271,32 @@ function createNotificationDiv(notification) {
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
-        } else if (notification.notification_type === 'user_edited' && notification.status == 'edited' && notification.evaluator_name == full_name) {
+        } else if (notification.notification_type === 'user_edited' && notification.status == 'edited' && notification.evaluator_name == full_name && notification.edited_user_type != null && notification.edited_user_department == null) {
             content = `
                 <div class="notification-details">
-                    <p class="user-approved-notification">You <strong>edited</strong> ${notification.full_name}'s profile.</p>
+                    <p class="user-approved-notification">You <strong>updated</strong> ${notification.full_name}'s profile to <strong>${notification.edited_user_type}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited' && notification.status == 'edited' && notification.evaluator_name == full_name && notification.edited_user_type == null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">
+                    <p class="user-approved-notification">You <strong>updated</strong> ${notification.full_name}'s profile to <strong>${notification.edited_user_department}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited' && notification.status == 'edited' && notification.evaluator_name == full_name && notification.edited_user_type != null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">
+                    <p class="user-approved-notification">You <strong>updated</strong> ${notification.full_name}'s profile to <strong>${notification.edited_user_type}</strong> and <strong>${notification.edited_user_department}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_deleted' && notification.status == 'deleted' && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="user-deleted-notification">You <strong>deleted</strong> ${notification.deleted_user_name}'s account.</p>
+                    <p class="department-notification">This user was from <strong>${notification.deleted_user_department}</strong> department.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
@@ -245,15 +334,44 @@ function createNotificationDiv(notification) {
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
-        } else if (notification.notification_type === 'content_deleted' && notification.status == 'deleted' && notification.evaluator_name == full_name) {
+        } else if (notification.notification_type === 'content_deleted' && notification.status == 'deleted' && notification.user_id == user_id && notification.evaluator_name == full_name) {
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You <strong>deleted</strong> ${notification.full_name}'s ${notification.content_type}.</p>
+                    <p class="content-approved-notification">You <strong>deleted</strong> your ${notification.content_type}.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'content_deleted_by_admin' && notification.status == 'deleted' && notification.evaluator_name != full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">Your ${notification.content_type} has been <strong>deleted</strong> by ${notification.full_name}.</p>
+                    <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id && notification.edited_user_type != null && notification.edited_user_department == null) {
+            content = `
+                <div class="notification-details">  
+                    <p class="content-approved-notification">Your profile has been <strong>updated</strong> by ${notification.evaluator_name} to <strong>${notification.edited_user_type}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id && notification.edited_user_type == null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">  
+                    <p class="content-approved-notification">Your profile has been <strong>updated</strong> by ${notification.evaluator_name} to <strong>${notification.edited_user_department}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id  && notification.edited_user_type != null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">  
+                    <p class="content-approved-notification">Your profile has been <strong>updated</strong> by ${notification.evaluator_name} to <strong>${notification.edited_user_type}</strong> and <strong>${notification.edited_user_department}</strong>.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
         }
-    } else if (userType === 'Student' || userType === 'Faculty') {
+    } else if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
         if (notification.notification_type === 'content_post' && notification.status == 'pending' && notification.user_id == user_id) {
             content = `
             <div class="notification-details">
@@ -275,6 +393,25 @@ function createNotificationDiv(notification) {
                     <p class="content-rejected-notification">Your ${notification.content_type} has been <strong>rejected by </strong> ${notification.evaluator_name}.</p>
                     <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                    <div class="notification-buttons">
+                        <!-- <button type="button" class="green-button" style="margin: 0;" onclick="showEditContentContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Edit</button> -->
+                        <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmDeleteContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Delete Content</button>
+                    </div>
+                </div>
+            `;
+        } else if (notification.notification_type === 'content_deleted' && notification.status == 'deleted' && notification.user_id == user_id && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You <strong>deleted</strong> your ${notification.content_type}.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'content_deleted_by_admin' && notification.status == 'deleted' && notification.evaluator_name != full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">Your ${notification.content_type} has been <strong>deleted</strong> by ${notification.full_name}.</p>
+                    <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
         } else if (notification.notification_type === 'user_approved_by_admin' && notification.status == 'approved' && notification.user_id == user_id) {
@@ -292,10 +429,24 @@ function createNotificationDiv(notification) {
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
-        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id) {
+        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id && notification.edited_user_type != null && notification.edited_user_department == null) {
             content = `
                 <div class="notification-details">  
-                    <p class="content-approved-notification">Your profile has been <strong>${notification.status}</strong> by ${notification.evaluator_name}.</p>
+                    <p class="content-approved-notification">Your profile has been <strong>updated</strong> by ${notification.evaluator_name} to <strong>${notification.edited_user_type}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id && notification.edited_user_type == null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">  
+                    <p class="content-approved-notification">Your profile has been <strong>updated</strong> by ${notification.evaluator_name} to <strong>${notification.edited_user_department}</strong>.</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
+        } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id  && notification.edited_user_type != null && notification.edited_user_department != null) {
+            content = `
+                <div class="notification-details">  
+                    <p class="content-approved-notification">Your profile has been <strong>updated</strong> by ${notification.evaluator_name} to <strong>${notification.edited_user_type}</strong> and <strong>${notification.edited_user_department}</strong>.</p>
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
@@ -317,15 +468,7 @@ function createNotificationDiv(notification) {
     return notificationDiv;
 }
 
-function updateNotificationCount(count) {
-    const notificationCount = document.getElementById('notificationCount');
-    if (count > 0) {
-        notificationCount.style.display = 'block';
-    } else {
-        notificationCount.style.display = 'none';
-    }
-    notificationCount.textContent = count;
-}
+
 
 function showConfirmApproveModal(userId, fullName) {
     const modal = document.getElementById('confirmApproveUserModal');
@@ -413,6 +556,24 @@ function showConfirmRejectContentModal(contentId, contentType, userId, fullName)
     modal.style.display = 'flex';
 }
 
+function showConfirmDeleteContentModal(contentId, contentType, userId, fullName) {
+    const confirmDeleteContentModal = document.getElementById('confirmDeleteContentModal');
+    confirmDeleteContentModal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('confirmDeleteContent')" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+            <p>Proceed to delete this ${contentType}?</p>
+            <br>
+            <div style="text-align: right;">
+                <button type="button" class="grey-button" onclick="closeModal('confirmDeleteContent')">Cancel</button>
+                <button type="button" class="red-button" style="margin-right: 0" onclick="deleteContent(${contentId}, '${contentType}', ${userId}, '${fullName}')">Yes, Delete</button>
+            </div>
+        </div>
+    `;
+    confirmDeleteContentModal.style.display = 'flex';
+}
+
 function approveUser(userId, fullName) {
     Ws.send(JSON.stringify({
         action: 'approve_user',
@@ -423,16 +584,12 @@ function approveUser(userId, fullName) {
 }
 
 function rejectUser(userId, fullName) {
-    const evaluatorMessage = document.getElementById('evaluator_message').value;
-    if (!evaluatorMessage) {
-        alert('Evaluator message is required.');
-        return;
-    }
     Ws.send(JSON.stringify({
         action: 'reject_user',
+        content_id: contentId,
+        content_type: contentType,
         user_id: userId,
-        full_name: fullName,
-        evaluator_message: evaluatorMessage
+        full_name: fullName
     }));
     closeModal('confirmRejectUser');
 }
@@ -465,6 +622,17 @@ function rejectContent(contentId, contentType, userId, fullName) {
     closeModal('confirmRejectContent');
 }
 
+function deleteContent(contentId, contentType, userId, fullName) {
+    Ws.send(JSON.stringify({
+        action: 'delete_content',
+        [`${contentType}_id`]: contentId,
+        type: contentType,
+        user_id: userId,
+        evaluator_name: fullName
+    }));
+    closeModal('confirmDeleteContent');
+}
+
 function closeModal(modalId) {
     var modal = document.getElementById(modalId + 'Modal');
     console.log(modal);
@@ -492,11 +660,9 @@ Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
     switch (data.action) {
         case 'new_notification':
-            fetchNotifications();
-            fetchNotificationCount();
-            break;
         case 'update_notification':
             fetchNotifications();
+            fetchNotificationCount();
             break;
         case 'delete_notification':
             fetchNotifications();
@@ -504,6 +670,17 @@ Ws.addEventListener('message', function(event) {
         case 'reset_notification_count':
             if (data.success) {
                 document.getElementById('notificationCount').style.display = 'none';
+            }
+            break;
+        case 'delete_content':
+            if (data.success) {
+                // Remove the deleted notification from the UI
+                const notificationElement = document.querySelector(`[data-content-id="${data[`${data.type}_id`]}"][data-content-type="${data.type}"]`);
+                if (notificationElement) {
+                    notificationElement.remove();
+                }
+                // Refresh the notifications
+                fetchNotifications();
             }
             break;
         case 'view_content':
@@ -578,6 +755,31 @@ Ws.addEventListener('message', function(event) {
                 `;
                 modal.style.display = 'flex';
             } 
+            break;
+        case 'edit_smart_tv':
+            if (data.success) {
+                const tvNameContent = document.getElementById('tvNameContent');
+                const tvNameUserHome = document.getElementById(`tvNameUserHome_${data.tv_id}`);
+                const tvDepartmentUserHome = document.getElementById(`tvDepartmentUserHome_${data.tv_id}`);
+                const tvBrandUserHome = document.getElementById(`tvBrandUserHome_${data.tv_id}`);
+                const tvBrand2UserHome = document.getElementById(`tvBrand2UserHome_${data.tv_id}`);
+                
+                if (tvNameContent && data.tv_id == tvIdFromUrl) {
+                    tvNameContent.textContent = data.tv_name;
+                } 
+                if (tvNameUserHome) {
+                    tvNameUserHome.innerHTML = `<i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>${data.tv_name}`;
+                }
+                if (tvDepartmentUserHome) {
+                    tvDepartmentUserHome.innerHTML = data.tv_department;
+                }
+                if (tvBrandUserHome) {
+                    tvBrandUserHome.innerHTML = `| ${data.tv_brand}`;
+                }
+                if (tvBrand2UserHome) {
+                    tvBrand2UserHome.innerHTML = data.tv_brand;
+                }
+            }
             break;
         default:
     }

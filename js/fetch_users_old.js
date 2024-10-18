@@ -20,101 +20,6 @@ const formatDateTime = (dateString) => {
 
 let isMultiSelectMode = false;
 
-const showUserTableSummary = () => {
-    const table = document.getElementById('usersTable');
-    if (!table) {
-        console.error('Users table not found');
-        return;
-    }
-
-    const rows = table.getElementsByTagName('tr');
-    const summary = {
-        roles: {
-            'Super Admin': 0,
-            'Admin': 0,
-            'Student': 0,
-            'Faculty': 0,
-            'Staff': 0
-        },
-        departments: {
-            'COMPUTER ENGINEERING': 0,
-            'CHEMICAL ENGINEERING': 0,
-            'CIVIL ENGINEERING': 0,
-            'INDUSTRIAL ENGINEERING': 0,
-            'ELECTRICAL ENGINEERING': 0,
-            'MECHANICAL ENGINEERING': 0,
-            'ELECTRONICS ENGINEERING': 0
-        },
-        status: {
-            'Approved': 0,
-            'Rejected': 0,
-            'Pending': 0
-        }
-    };
-
-    for (let i = 1; i < rows.length; i++) {
-        const cells = rows[i].getElementsByTagName('td');
-        const role = cells[4].textContent.trim();
-        const department = cells[5].textContent.trim();
-        const status = cells[6].textContent.trim();
-
-        if (summary.roles.hasOwnProperty(role)) {
-            summary.roles[role]++;
-        }
-        if (summary.departments.hasOwnProperty(department)) {
-            summary.departments[department]++;
-        }
-        if (summary.status.hasOwnProperty(status)) {
-            summary.status[status]++;
-        }
-    }
-
-    let summaryHtml = `
-        <div style="height: auto; max-height: 300px; overflow-y: auto; padding-right: 10px">
-            <table class="summary-table">
-                <tr>
-                    <th colspan="2" style="text-align: left">Roles</th>
-                </tr>
-                ${Object.entries(summary.roles).map(([role, count]) => `
-                    <tr>
-                        <td style="text-align: left">${role}</td>
-                        <td>${count}</td>
-                    </tr>
-                `).join('')}
-                <tr>
-                    <th colspan="2" style="text-align: left">Departments</th>
-                </tr>
-                ${Object.entries(summary.departments).map(([dept, count]) => `
-                    <tr>
-                        <td style="text-align: left">${dept}</td>
-                        <td>${count}</td>
-                    </tr>
-                `).join('')}
-                <tr>
-                    <th colspan="2" style="text-align: left">Status</th>
-                </tr>
-                ${Object.entries(summary.status).map(([status, count]) => `
-                    <tr>
-                        <td style="text-align: left">${status}</td>
-                        <td>${count}</td>
-                    </tr>
-                `).join('')}
-            </table>
-        </div>
-    `;
-
-    const modal = createModal('userTableSummaryModal', `
-        <div class="modal-content" style="padding: 15px;">
-            <span class="close" onclick="closeModal('userTableSummary')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <p style="text-align: center">Users Table Summary</p>
-            ${summaryHtml}
-        </div>
-    `);
-
-    modal.style.display = 'flex';
-};
-
 const displayUserTable = (data) => {
     let tableHtml = `
         <table id="usersTable">
@@ -152,7 +57,7 @@ const displayUserTable = (data) => {
         } 
 
         // Determine if checkbox should be displayed
-        const showCheckbox = user_id !== loggedInUserId && !(loggedInUserType === 'Admin' && user_type === 'Super Admin');
+        const showCheckbox = !(loggedInUserType === 'Admin' && user_type === 'Super Admin');
 
         tableHtml += `
             <tr data-user-id="${user_id}">
@@ -196,15 +101,11 @@ const toggleMultiSelectMode = () => {
         const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
 
         checkboxColumns.forEach(col => {
-            col.style.display = ''; // Display all checkbox columns
+            col.style.display = '';
+            // Only show checkboxes that were created (i.e., not for Super Admins when logged in as Admin)
             const checkbox = col.querySelector('.user-checkbox');
             if (checkbox) {
-                const userId = checkbox.getAttribute('data-user-id');
-                if (userId !== loggedInUserId) {
-                    checkbox.style.display = ''; // Only show checkboxes for non-logged-in users
-                } else {
-                    checkbox.style.display = 'none'; // Hide checkbox for logged-in user
-                }
+                checkbox.style.display = '';
             }
         });
 
@@ -228,16 +129,16 @@ const showDeleteConfirmModal = (userCount, evaluatorName) => {
             <span class="close" id="closeDeleteConfirmModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
             <h1 style="color: rgb(126, 11, 34); font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-            <p id="deleteConfirmMessage" style="text-align: center">Proceed to delete ${userCount} user(s)?</p>
+            <p id="deleteConfirmMessage" style="text-align: center">Are you sure you want to delete ${userCount} user(s)?</p>
             <br>
             <div style="text-align: right;">
-                <button id="cancelDeleteConfirmButton" class="grey-button" type="button">Cancel</button>
+                <button id="cancelDeleteConfirmButton" class="red-button" style="background: #334b353b; color: black" type="button">Cancel</button>
                 <button id="confirmDeleteButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, delete</b></button>
             </div>
         </div>
     `;
 
-    const modal = createModal('DeleteUserModal', modalContent);
+    const modal = createModal('deleteConfirmModal', modalContent);
     modal.style.display = 'flex';
 
     const closeModal = () => {
@@ -252,15 +153,14 @@ const showDeleteConfirmModal = (userCount, evaluatorName) => {
 
         let deletedCount = 0;
         userIds.forEach(userId => {
-            sendWebSocketMessage({
+            sendWebSocketUserMessage({
                 action: 'delete_user',
                 user_id: userId,
                 full_name: evaluatorName
             });
             deletedCount++;
         });
-        // showMultiDeleteSuccessModal(deletedCount);
-        refreshUserTable();
+        showMultiDeleteSuccessModal(deletedCount);
         closeModal();
         resetMultiSelectMode();
     };
@@ -292,31 +192,31 @@ const resetMultiSelectMode = () => {
     // });
 };
 
-// const showMultiDeleteSuccessModal = (count) => {
-//     refreshUserTable();
-//     const modalContent = `
-//         <div class="modal-content" style="padding: 15px">
-//             <span class="close" id="closeMultiDeleteSuccessModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-//             <br>
-//             <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
-//             <p id="multiDeleteSuccessMessage" style="text-align: center">${count} user(s) have been successfully deleted.</p>
-//             <br>
-//             <div style="text-align: right;">
-//                 <button id="okayMultiDeleteSuccessButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Okay</b></button>
-//             </div>
-//         </div>
-//     `;
+const showMultiDeleteSuccessModal = (count) => {
+    refreshUserTable();
+    const modalContent = `
+        <div class="modal-content" style="padding: 15px">
+            <span class="close" id="closeMultiDeleteSuccessModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
+            <p id="multiDeleteSuccessMessage" style="text-align: center">${count} user(s) have been successfully deleted.</p>
+            <br>
+            <div style="text-align: right;">
+                <button id="okayMultiDeleteSuccessButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Okay</b></button>
+            </div>
+        </div>
+    `;
 
-//     const modal = createModal('multiDeleteSuccessModal', modalContent);
-//     modal.style.display = 'flex';
+    const modal = createModal('multiDeleteSuccessModal', modalContent);
+    modal.style.display = 'flex';
 
-//     const closeModal = () => {
-//         modal.style.display = 'none';
-//     };
+    const closeModal = () => {
+        modal.style.display = 'none';
+    };
 
-//     document.getElementById('closeMultiDeleteSuccessModalButton').onclick = closeModal;
-//     document.getElementById('okayMultiDeleteSuccessButton').onclick = closeModal;
-// };
+    document.getElementById('closeMultiDeleteSuccessModalButton').onclick = closeModal;
+    document.getElementById('okayMultiDeleteSuccessButton').onclick = closeModal;
+};
 
 const deleteSelectedUsers = () => {
     const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
@@ -526,7 +426,7 @@ const showAddUserModal = (userId) => {
                     <div style="max-height: 150px; overflow: auto">
                         <p style="font-size: 12px; color: #666; text-align: left; margin-top: 10px">CSV format example:</p>
                         <div class="table-container">
-                            <table style="font-size: 12px">
+                            <table id="usersTable" style="font-size: 12px">
                                 <tr style="user-select: none;">
                                     <th>Carlo Mozar</th>
                                     <th>20101951@usc.edu.ph</th>
@@ -556,7 +456,6 @@ const showAddUserModal = (userId) => {
                                     <li>Super Admin</li>
                                     <li>Admin</li>
                                     <li>Faculty</li>
-                                    <li>Staff</li>
                                     <li>Student</li>
                                 </ul>
                             </li>
@@ -603,7 +502,6 @@ const showAddUserModal = (userId) => {
                             <option value="">Select Role</option>
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
-                            <option value="Staff">Staff</option>
                             <option value="Student">Student</option>
                         </select>
                         <label for="add_user_type" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Role</label>
@@ -628,7 +526,6 @@ const showAddUserModal = (userId) => {
                             <option value="">Select Role</option>
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
-                            <option value="Staff">Staff</option>
                             <option value="Student">Student</option>
                             <option value="Super Admin">Super Admin</option>
                         </select>
@@ -716,82 +613,19 @@ const addUser = () => {
     }
 };
 
-const sendFormData = (formData) => {
-    fetch('websocket_conn.php')
-        .then(response => response.text())
-        .then(url => {
-            const Ws = new WebSocket(url);
-
-            Ws.onopen = function () {
-                Ws.send(JSON.stringify(Object.fromEntries(formData)));
-            };
-
-            Ws.onmessage = function (event) {
-                const message = JSON.parse(event.data);
-                if (message.action === 'add_user') {
-                    if (message.success == true) {
-                        document.getElementById('successMessageVersion2').textContent = `User added successfully! The temporary password is sent to the user's email.`;
-                        document.getElementById('AddUserModal').style.display = 'none';
-                        document.getElementById('successMessageModalVersion2').style.display = 'flex';
-                    } else if (message.success == false) {
-                        document.getElementById('errorTextVersion2').textContent = message.message;
-                        document.getElementById('AddUserModal').style.display = 'none';
-                        document.getElementById('errorModalVersion2').style.display = 'flex';
-                    }
-                } else if (message.action === 'add_multiple_users') {
-                    if (message.success == true) {
-                        let successMessage = `${message.addedCount} users added successfully! ${message.failedCount} users failed to add.`;
-                        if (message.errorMessages && message.errorMessages.length > 0) {
-                            successMessage += "<p>Errors:</p><ul style='text-align: left; color: red; font-size: 14px'>" + 
-                                message.errorMessages.map(error => `<li>• ${error}</li>`).join('') + 
-                                "</ul>";
-                        }
-                        document.getElementById('successMessageVersion2').innerHTML = successMessage;
-                        document.getElementById('AddUserModal').style.display = 'none';
-                        document.getElementById('successMessageModalVersion2').style.display = 'flex';
-                    } else if (message.success == false){
-                        document.getElementById('errorTextVersion2').innerHTML = message.message;
-                        document.getElementById('AddUserModal').style.display = 'none';
-                        document.getElementById('errorModalVersion2').style.display = 'flex';
-                    }
-                } else if (message.action === 'edit_user' || message.action === 'user_edited') {
-                    document.getElementById('successMessageVersion2').innerHTML = 'User updated successfully!';
-                    document.getElementById('EditUserModal').style.display = 'none';
-                    document.getElementById('successMessageModalVersion2').style.display = 'flex';
-                } 
-                refreshUserTable();
-            };
-
-            Ws.onclose = function () {
-                console.log('WebSocket connection closed');
-            };
-
-            Ws.onerror = function (error) {
-                console.error('WebSocket error:', error);
-            };
-        })
-        .catch(error => {
-            console.error('Error fetching WebSocket URL:', error);
-        });
-};
-
 const performUserAction = (action, userId, evaluatorName) => {
-    if (action === 'approve_user') {
-        sendWebSocketMessage({
-            action: action,
-            user_id: userId,
-            full_name: evaluatorName
-        });
-    } else {
-        const evaluatedMessage = document.getElementById('evaluator_message').value;
-        sendWebSocketMessage({
-            action: action,
-            user_id: userId,
-            full_name: evaluatorName,
-            evaluator_message: evaluatedMessage
-        });
+    const data = {
+        action: action,
+        user_id: userId,
+        full_name: evaluatorName
+    };
+    
+    if (action === 'reject_user' || action === 'delete_user') {
+        data.evaluator_message = document.getElementById('evaluator_message').value;
     }
-};
+    
+    sendWebSocketUserMessage(data);
+}
 
 const approveTableUser = (userId, evaluatorName) => performUserAction('approve_user', userId, evaluatorName);
 const rejectTableUser = (userId, evaluatorName) => performUserAction('reject_user', userId, evaluatorName);
@@ -850,7 +684,6 @@ const populateEditUserModal = (userId) => {
                         <select name="user_type" id="edit_user_type" class="floating-label-input-text-area">
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
-                            <option value="Staff">Staff</option>
                             <option value="Student">Student</option>
                         </select>
                         <label for="edit_user_type" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Role</label>
@@ -866,7 +699,6 @@ const populateEditUserModal = (userId) => {
                         <select name="user_type" id="edit_user_type" class="floating-label-input-text-area">
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
-                            <option value="Staff">Staff</option>
                             <option value="Student">Student</option>
                             <option value="Super Admin">Super Admin</option>
                         </select>
@@ -901,7 +733,7 @@ const showEditUserModal = (userId, evaluatorName) => {
     showModal('EditUserModal', 'editUserButton', () => editUser(userId, evaluatorName));
 };
 
-const editUser = (userId, evaluatorName) => {
+function editUser(userId, evaluatorName) {
     const form = document.getElementById('editUserForm');
     const formData = new FormData(form);
     formData.append('user_id', userId);
@@ -909,9 +741,75 @@ const editUser = (userId, evaluatorName) => {
     formData.append('full_name', evaluatorName);
 
     sendFormData(formData);
+}
+
+const sendFormData = (formData) => {
+    fetch('websocket_conn.php')
+        .then(response => response.text())
+        .then(url => {
+            const Ws = new WebSocket(url);
+
+            Ws.onopen = function () {
+                Ws.send(JSON.stringify(Object.fromEntries(formData)));
+            };
+
+            Ws.onmessage = function (event) {
+                const message = JSON.parse(event.data);
+                if (message.action === 'add_user') {
+                    if (message.success == true) {
+                        document.getElementById('successMessageVersion2').textContent = `User added successfully! The temporary password is sent to the user's email.`;
+                        document.getElementById('AddUserModal').style.display = 'none';
+                        document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                    } else if (message.success == false) {
+                        document.getElementById('errorTextVersion2').textContent = message.message;
+                        document.getElementById('AddUserModal').style.display = 'none';
+                        document.getElementById('errorModalVersion2').style.display = 'flex';
+                    }
+                } else if (message.action === 'add_multiple_users') {
+                    if (message.success == true) {
+                        let successMessage = `${message.addedCount} users added successfully! ${message.failedCount} users failed to add.`;
+                        if (message.errorMessages && message.errorMessages.length > 0) {
+                            successMessage += "<p>Errors:</p><ul style='text-align: left; color: red; font-size: 14px'>" + 
+                                message.errorMessages.map(error => `<li>• ${error}</li>`).join('') + 
+                                "</ul>";
+                        }
+                        document.getElementById('successMessageVersion2').innerHTML = successMessage;
+                        document.getElementById('AddUserModal').style.display = 'none';
+                        document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                    } else if (message.success == false){
+                        document.getElementById('errorTextVersion2').innerHTML = message.message;
+                        document.getElementById('AddUserModal').style.display = 'none';
+                        document.getElementById('errorModalVersion2').style.display = 'flex';
+                    }
+                } else if (message.action === 'edit_user') {
+                    if (message.success == true) {
+                        document.getElementById('successMessageVersion2').innerHTML = 'User successMessage successfully!';
+                        document.getElementById('EditUserModal').style.display = 'none';
+                        document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                        refreshUserTable();
+                    } else if (message.success == false) {
+                        document.getElementById('errorTextVersion2').innerHTML = message.message;
+                        document.getElementById('EditUserModal').style.display = 'none';
+                        document.getElementById('errorModalVersion2').style.display = 'flex';
+                    }
+                }
+                refreshUserTable();
+            };
+
+            Ws.onclose = function () {
+                console.log('WebSocket connection closed');
+            };
+
+            Ws.onerror = function (error) {
+                console.error('WebSocket error:', error);
+            };
+        })
+        .catch(error => {
+            console.error('Error fetching WebSocket URL:', error);
+        });
 };
 
-const sendWebSocketMessage = (data) => {
+const sendWebSocketUserMessage = (data) => {
     fetch('websocket_conn.php')
         .then(response => response.text())
         .then(url => {
@@ -946,6 +844,13 @@ const sendWebSocketMessage = (data) => {
                             document.getElementById('successMessageVersion2').textContent = successMessage;
                             document.getElementById('successMessageModalVersion2').style.display = 'flex';
                             break;
+                        case 'user_edited':
+                        case 'edit_user':
+                            successMessage = 'User edited successfully!';
+                            document.getElementById('EditUserModal').style.display = 'none';
+                            document.getElementById('successMessageVersion2').textContent = successMessage;
+                            document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                            break;
                     }
                     refreshUserTable();
                 } else if (message.success == false) {
@@ -965,16 +870,111 @@ const refreshUserTable = () => {
         .then(response => response.json())
         .then(data => {
             displayUserTable(data);
+            updateNotificationCount();
         })
         .catch(error => console.error('Error fetching updated users:', error));
 };
 
-Ws.addEventListener('message', function (event) {
-    const data = JSON.parse(event.data);
-    if (data.success && ['approve_user', 'reject_user', 'delete_user', 'edit_user', 'add_user'].includes(data.action)) {
-        refreshUserTable();
+function handleUserMessage(data) {
+    switch (data.action) {
+        case 'approve_user':
+            handleApproveUser(data);
+            break;
+        case 'reject_user':
+            handleRejectUser(data);
+            break;
+        case 'delete_user':
+            handleDeleteUser(data);
+            break;
+        case 'edit_user':
+        case 'user_edited':
+            handleEditUser(data);
+            break;
+        case 'add_user':
+        case 'add_multiple_users':
+            handleAddUser(data);
+            break;
+        default:
+            console.warn(`Unknown action: ${data.action}`);
     }
-})
+}
+
+function handleApproveUser(data) {
+    if (data.success) {
+        document.getElementById('successMessageVersion2').textContent = 'User approved successfully!';
+        document.getElementById('ApproveUserModal').style.display = 'none';
+        document.getElementById('successMessageModalVersion2').style.display = 'flex';
+        refreshUserTable();
+    } else {
+        showErrorMessage(data.message);
+    }
+}
+
+function handleRejectUser(data) {
+    if (data.success) {
+        document.getElementById('successMessageVersion2').textContent = 'User rejected successfully!';
+        document.getElementById('RejectUserModal').style.display = 'none';
+        document.getElementById('successMessageModalVersion2').style.display = 'flex';
+        refreshUserTable();
+    } else {
+        showErrorMessage(data.message);
+    }
+}
+
+function handleDeleteUser(data) {
+    if (data.success) {
+        document.getElementById('successMessageVersion2').textContent = 'User deleted successfully!';
+        document.getElementById('DeleteUserModal').style.display = 'none';
+        document.getElementById('successMessageModalVersion2').style.display = 'flex';
+        refreshUserTable();
+    } else {
+        showErrorMessage(data.message);
+    }
+}
+
+function handleEditUser(data) {
+    if (data.success) {
+        document.getElementById('successMessageVersion2').textContent = data.message || 'User edited successfully!';
+        document.getElementById('EditUserModal').style.display = 'none';
+        document.getElementById('successMessageModalVersion2').style.display = 'flex';
+        refreshUserTable();
+    } else {
+        showErrorMessage(data.message);
+    }
+}
+
+function handleAddUser(data) {
+    if (data.success) {
+        let successMessage = data.action === 'add_user' 
+            ? `User added successfully! The temporary password is sent to the user's email.`
+            : `${data.addedCount} users added successfully! ${data.failedCount} users failed to add.`;
+        
+        if (data.errorMessages && data.errorMessages.length > 0) {
+            successMessage += "<p>Errors:</p><ul style='text-align: left; color: red; font-size: 14px'>" + 
+                data.errorMessages.map(error => `<li>• ${error}</li>`).join('') + 
+                "</ul>";
+        }
+        
+        document.getElementById('successMessageVersion2').innerHTML = successMessage;
+        document.getElementById('AddUserModal').style.display = 'none';
+        document.getElementById('successMessageModalVersion2').style.display = 'flex';
+        refreshUserTable();
+    } else {
+        showErrorMessage(data.message);
+    }
+}
+
+function showErrorMessage(message) {
+    document.getElementById('errorTextVersion2').textContent = message;
+    document.getElementById('errorModalVersion2').style.display = 'flex';
+}
+
+// Ws.addEventListener('message', function (event) {
+//     const data = JSON.parse(event.data);
+//     if (data.success && ['approve_user', 'reject_user', 'delete_user', 'edit_user', 'add_user'].includes(data.action)) {
+//         refreshUserTable();
+//     }
+// })
 
 document.addEventListener('DOMContentLoaded', () => {
     fetch('database/fetch_users.php')

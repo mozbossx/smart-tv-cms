@@ -40,33 +40,42 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
         $containerTypePEO = 'peo';
         $containerTypeSO = 'so';
         $containerTypeOrgChart = 'orgchart';
-        $containerPositionAnnouncements = 1;
-        $containerPositionEvents = 2;
-        $containerPositionNews = 3;
-        $containerPositionPromaterials = 4;
-        $containerPositionPEO = 5;
-        $containerPositionSO = 6;
-        $containerPositionOrgChart = 7;
+        $containerVisibleAnnouncements = 1;
+        $containerVisibleEvents = 1;
+        $containerVisibleNews = 1;
+        $containerVisiblePromaterials = 1;
+        $containerVisiblePEO = 0;
+        $containerVisibleSO = 0;
+        $containerVisibleOrgChart = 0;
+        $containerXaxisAnnouncements = 1.0;
+        $containerYaxisAnnouncements = 5.0;
+        $containerXaxisEvents = 415.0;
+        $containerYaxisEvents = 5.0;
+        $containerXaxisNews = 826.0;
+        $containerYaxisNews = 5.0;
+        $containerXaxisPromaterials = 1200.0;
+        $containerYaxisPromaterials = 5.0;
+        
 
-        $sql_announcement_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNameAnnouncements', '$containerTypeAnnouncements', $containerPositionAnnouncements)";
+        $sql_announcement_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible, xaxis, yaxis) VALUES ($tvId, '$containerNameAnnouncements', '$containerTypeAnnouncements', $containerVisibleAnnouncements, $containerXaxisAnnouncements, $containerYaxisAnnouncements)";
         mysqli_query($conn, $sql_announcement_container);
         
-        $sql_event_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNameEvents', '$containerTypeEvents', $containerPositionEvents)";
+        $sql_event_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible, xaxis, yaxis) VALUES ($tvId, '$containerNameEvents', '$containerTypeEvents', $containerVisibleEvents, $containerXaxisEvents, $containerYaxisEvents)";
         mysqli_query($conn, $sql_event_container);
 
-        $sql_news_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNameNews', '$containerTypeNews', $containerPositionNews)";
+        $sql_news_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible, xaxis, yaxis) VALUES ($tvId, '$containerNameNews', '$containerTypeNews', $containerVisibleNews, $containerXaxisNews, $containerYaxisNews)";
         mysqli_query($conn, $sql_news_container);
 
-        $sql_promaterials_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNamePromaterials', '$containerTypePromaterials', $containerPositionPromaterials)";
+        $sql_promaterials_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible, xaxis, yaxis) VALUES ($tvId, '$containerNamePromaterials', '$containerTypePromaterials', $containerVisiblePromaterials, $containerXaxisPromaterials, $containerYaxisPromaterials)";
         mysqli_query($conn, $sql_promaterials_container);
 
-        $sql_peo_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNamePEO', '$containerTypePEO', $containerPositionPEO)";
+        $sql_peo_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible) VALUES ($tvId, '$containerNamePEO', '$containerTypePEO', $containerVisiblePEO)";
         mysqli_query($conn, $sql_peo_container);
 
-        $sql_so_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNameSO', '$containerTypeSO', $containerPositionSO)";
+        $sql_so_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible) VALUES ($tvId, '$containerNameSO', '$containerTypeSO', $containerVisibleSO)";
         mysqli_query($conn, $sql_so_container);
 
-        $sql_orgchart_container = "INSERT INTO containers_tb (tv_id, container_name, type, position_order) VALUES ($tvId, '$containerNameOrgChart', '$containerTypeOrgChart', $containerPositionOrgChart)";
+        $sql_orgchart_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible) VALUES ($tvId, '$containerNameOrgChart', '$containerTypeOrgChart', $containerVisibleOrgChart)";
         mysqli_query($conn, $sql_orgchart_container);
 
         // Redirect to the same page with tvId as query parameter
@@ -104,6 +113,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             // Set session variables based on the matching row
             $_SESSION['tv_name'] = $row['tv_name'];
             $_SESSION['tv_brand'] = $row['tv_brand'];
+            $_SESSION['tv_department'] = $row['tv_department'];
             $_SESSION['tv_id'] = $row['tv_id'];
 
             // Fetch background color from the database
@@ -121,7 +131,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             $resultTopbarColorQuery = $stmtTopbarColor->get_result();
 
             // Fetch background colors for each container from the database
-            $containersQuery = "SELECT * FROM containers_tb WHERE tv_id = ? ORDER BY position_order ASC";
+            $containersQuery = "SELECT * FROM containers_tb WHERE tv_id = ?";
             $stmtContainers = $conn->prepare($containersQuery);
             $stmtContainers->bind_param("i", $tvId);
             $stmtContainers->execute();

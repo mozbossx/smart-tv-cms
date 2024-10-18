@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.17:8081');
+const Ws = new WebSocket('ws://192.168.1.30:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -576,16 +576,18 @@ const setCarouselInterval = (displayTime, type) => {
     }, 1000);
 };
 
-const fetchSmartTVName = () => {
+const fetchSmartTVDetails = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const tvId = urlParams.get('tvId');
 
     if (tvId) {
-        fetch(`database/fetch_smart_tvs.php?tvId=${tvId}`)
+        fetch(`database/fetch_smart_tvs2.php?tvId=${tvId}`)
             .then(response => response.json())
             .then(data => {
                 const tvName = data.tv_name;
-                updateTvName(tvName);
+                const tvBrand = data.tv_brand;
+                const tvDepartment = data.tv_department;
+                updateTvDetails(tvName, tvBrand, tvDepartment, tvId);
             })
             .catch(error => console.error('Error fetching TV name:', error));
     } else {
@@ -593,10 +595,18 @@ const fetchSmartTVName = () => {
     }
 };
 
-const updateTvName = (newTvName) => {
+const updateTvDetails = (tvName, tvBrand, tvDepartment, tvId) => {
     const tvNameElement = document.querySelector('.tv-name');
     if (tvNameElement) {
-        tvNameElement.textContent = newTvName;
+        tvNameElement.textContent = tvName;
+    }
+    const tvBrandElement = document.querySelector('.tv-brand');
+    if (tvBrandElement) {
+        tvBrandElement.textContent = tvBrand;
+    }
+    const tvDepartmentElement = document.getElementById(`tvDepartment_${tvId}`);
+    if (tvDepartmentElement) {
+        tvDepartmentElement.textContent = tvDepartment;
     }
 };
 
@@ -641,10 +651,11 @@ const fetchAndUpdateContents = (type) => {
     const tvId = urlParams.get('tvId');
 
     if (tvId) {
-        fetch(`database/fetch_smart_tvs.php?tvId=${tvId}`)
+        fetch(`database/fetch_smart_tvs2.php?tvId=${tvId}`)
             .then(response => response.json())
             .then(data => {
                 const tvName = data.tv_name;
+                const tvDepartment = data.tv_department;
                 fetch(`database/fetch_${type}.php`)
                     .then(response => response.json())
                     .then(data => {
@@ -667,7 +678,8 @@ const fetchAndUpdateContents = (type) => {
                         } else if (type === 'peo' || type === 'so') {
                             const filteredData = data.filter(item =>
                                 item.tv_id === parseInt(tvId, 10) &&
-                                item.isCancelled === 0
+                                item.isCancelled === 0 &&
+                                item.department === tvDepartment
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
@@ -681,7 +693,8 @@ const fetchAndUpdateContents = (type) => {
                             const filteredData = data.filter(item =>
                                 item.status === 'Approved' &&
                                 item.tv_id === parseInt(tvId, 10) &&
-                                item.isCancelled === 0
+                                item.isCancelled === 0 && 
+                                item.department === tvDepartment
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
@@ -704,7 +717,7 @@ const fetchAndUpdateContents = (type) => {
 
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
-    if (data.action === 'delete' || data.action === 'archive') {
+    if (data.action === 'delete_content' || data.action === 'archive') {
         const type = data.type;
         const id = data[`${type}_id`]; 
 
@@ -753,7 +766,7 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
         }
-    } else if (data.action === 'post_content') {
+    } else if (data.action === 'post_content' || data.action === 'approve_post') {
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');
         } else if (data.type === 'event') {
@@ -771,8 +784,8 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('orgchart');
         }
     } else if (data.action === 'edit_smart_tv') {
-        fetchSmartTVName();
-        location.reload();
+        fetchSmartTVDetails();
+        // location.reload();
     } else if (data.action === 'update_container_positions' || data.action === 'show_hide_content') {
         const urlParams = new URLSearchParams(window.location.search);
         const tvId = urlParams.get('tvId');
@@ -869,5 +882,5 @@ document.addEventListener('DOMContentLoaded', () => {
         adjustFontSize(type);
         setupFontSizeObserver(type);
     });
-    fetchSmartTVName();
+    fetchSmartTVDetails();
 });

@@ -35,7 +35,7 @@ include 'tv_initialize.php';
     <link rel="stylesheet" href="misc/js/treant-js-master/Treant.css" />
     <title><?php echo $_SESSION['tv_name'] ?></title>
 </head>
-<p id="screen" style="color: white; position: fixed"></p>
+<p id="screen" style="display: none; color: white; position: fixed"></p>
 <body>
     <?php include('tv_topbar.php'); ?>
     <div style="background: <?php echo $backgroundColor ?>; cursor: pointer; width: 100%; height: calc(100% - 7vh); overflow: hidden; display: flex; flex-direction: column; /* Arrange containers vertically */ height: 100vh; overflow: hidden; /* Prevent any overflow */" id="tvBackgroundColor">
@@ -189,27 +189,6 @@ include 'tv_initialize.php';
                         })
                     ]
                 });
-
-            // Directly establish WebSocket connection and load layout from the server
-            const ws = new WebSocket('ws://192.168.1.17:8081');
-
-            ws.onopen = () => {
-                console.log("WebSocket connection established.");
-            };
-
-            ws.onmessage = function(event) {
-                const message = JSON.parse(event.data);
-                console.log('Received WebSocket message:', message);
-
-                if (message.action === 'update_template') {
-                   
-                } 
-            };
-
-            ws.onerror = function(error) {
-                console.error('WebSocket Error:', error);
-            };
-
         }
 
         function updateContainerPositions() {

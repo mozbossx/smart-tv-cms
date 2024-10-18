@@ -25,31 +25,6 @@ $result = $stmt->get_result();
 // Close the statement
 $stmt->close();
 
-// Fetch draft counts for each content type
-$draftCounts = [
-    'announcement' => 0,
-    'event' => 0,
-    'news' => 0,
-    'promaterial' => 0,
-];
-
-$contentTypes = ['announcement', 'event', 'news', 'promaterial'];
-foreach ($contentTypes as $type) {
-    if ($type !== 'news') {
-        $query = "SELECT COUNT(*) as count FROM {$type}s_tb WHERE status = 'Draft' AND {$type}_author_id = ?";
-    } else {
-        $query = "SELECT COUNT(*) as count FROM {$type}_tb WHERE status = 'Draft' AND {$type}_author_id = ?";
-    }
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("s", $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $draftCounts[$type] = $result->fetch_assoc()['count'];  // Fetch the associative array without arguments
-}
-
-// Check if there are any drafts
-$hasDrafts = array_sum($draftCounts) > 0;
-
 // Fetch notification count for the logged-in user
 $stmtNotificationCount = $conn->prepare("SELECT notification_count FROM users_tb WHERE user_id = ?");
 $stmtNotificationCount->bind_param("i", $user_id);
@@ -105,7 +80,7 @@ $stmtNotificationCount->close();
                     <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
                     <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives</a>
                 </li>
-                <?php if ($user_type === 'Admin'|| $user_type === 'Super Admin') { ?>
+                <?php if ($user_type === 'Admin') { ?>
                 <li>
                     <a id="dropdown-arrow" href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
                         <?php echo ($current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
@@ -118,11 +93,17 @@ $stmtNotificationCount->close();
                     </ul>
                 </li>
                 <?php } ?>
-                <?php if ($hasDrafts) { ?>
+                <?php if ($user_type === 'Super Admin') { ?>
                 <li>
-                    <!-- Display Drafts option if there are existing drafts in each content type (announcement, event, news, etc.) -->
-                    <a href="drafts.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'drafts.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Drafts  <span style="background: crimson; padding: 2px; border: 1px solid white; border-radius: 3px; color: white;"><?php echo array_sum($draftCounts); ?></span></a>
+                    <a id="dropdown-arrow" href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                        <?php echo ($current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
+                        Super Admin Options
+                    </a>
+                    <ul class='sub-menus'>
+                        <li><a href="manage_users.php?pageid=ManageUsers?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Users</a></li>
+                        <li><a href="manage_smart_tvs.php?pageid=ManageSmartTVs?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Smart TVs</a></li>
+                        <li><a href="manage_templates.php?pageid=ManageTemplates?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Templates</a></li>
+                    </ul>
                 </li>
                 <?php } ?>
             </ul>
@@ -138,15 +119,18 @@ $stmtNotificationCount->close();
 <div id="confirmRejectUserModal" class="modal"></div>
 <div id="confirmApproveContentModal" class="modal"></div>
 <div id="confirmRejectContentModal" class="modal"></div>
-<div id="viewContentModal" class="modal">
+<div id="viewContentModal" class="modal"></div>
+<div id="confirmDeleteContentModal" class="modal"></div>
     <!-- Modal content will be dynamically inserted here -->
-</div>
- <script src="misc/js/capitalize_first_letter.js"></script>
+<script src="misc/js/capitalize_first_letter.js"></script>
 <script>
     const userType = '<?php echo $user_type; ?>';
     const full_name = '<?php echo $full_name; ?>';
     const user_id = '<?php echo $user_id; ?>';
     const department = '<?php echo $department; ?>';
+    <?php if (isset($_GET['tvId'])) { ?>
+        const tvIdFromUrl = '<?php echo $_GET['tvId']; ?>';
+    <?php } ?>
 
     function toggleDropdown() {
         var dropdownContent = document.getElementById("myDropdown");
@@ -176,3 +160,4 @@ $stmtNotificationCount->close();
     }
 </script>
 <script src="js/fetch_notifications.js"></script>
+<script src="js/fetch_user_session.js"></script>

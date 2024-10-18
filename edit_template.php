@@ -186,7 +186,13 @@ $conn->close();
                         <!-- Breadcrumb Navigation -->
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="admin_options.php" style="color: #264B2B">Admin Options</a></li>
+                                <?php 
+                                    if ($user_type == 'Super Admin') {
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Super Admin Options</a></li>';
+                                    } else {
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Admin Options</a></li>';
+                                    }
+                                ?>
                                 <li class="breadcrumb-item"><a href="manage_templates.php" style="color: #264B2B">Manage Templates</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Edit Template</li>
                             </ol>
@@ -197,7 +203,7 @@ $conn->close();
                             <!-- Display iframe based on tvId -->
                             <div class="tv-frame" id="tv-frame">
                                 <iframe id="tv-iframe" frameborder="0" src="tv2.php?tvId=<?php echo $tvId?>&isIframe=true" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
-                                <p style="text-align: center; font-size: 25px; margin-top: auto; color: white;"><?php echo $tvBrand?></p>
+                                <p id="tvBrand2UserHome_<?php echo $tvId?>" style="text-align: center; font-size: 25px; margin-top: auto; color: white;"><?php echo $tvBrand?></p>
                                 <div class="tv-stand" style="left: 30%"></div>
                             </div>
                             <!-- Sidebar -->
@@ -382,7 +388,6 @@ $conn->close();
             </div>
         </div>
     </div>
-    <script src="js/fetch_user_session.js"></script>
     <script>
         let ws;
         var containers = <?php echo json_encode($containers); ?>;

@@ -255,6 +255,5 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
     </div>
 
     <script src="js/fetch_myprofile.js"></script>
-    <script src="js/fetch_user_session.js"></script>
 </body>
 </html>

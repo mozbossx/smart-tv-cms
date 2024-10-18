@@ -191,7 +191,7 @@ const deleteItem = (type, id) => {
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
     const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
     const data = {
-        action: 'delete',
+        action: 'delete_content',
         type: type,
         [`${type}_id`]: id // Dynamically set the ID based on the type
     };
@@ -361,7 +361,7 @@ const fetchAndUpdate = async (type) => {
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
     switch (data.action) {
-        case 'delete':
+        case 'delete_content':
             // Handle deletion confirmation
             const deleteMessageDiv = document.getElementById(`no-${data.type}-message`);
             if (deleteMessageDiv) {

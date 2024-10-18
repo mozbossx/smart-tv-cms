@@ -135,7 +135,6 @@ include 'misc/php/options_tv.php';
     </div>
     <?php include 'misc/php/success_modal.php' ?>
     <?php include 'misc/php/error_modal.php' ?>
-    <script src="js/fetch_user_session.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo json_encode($tv_names); ?>; 

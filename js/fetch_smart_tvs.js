@@ -21,8 +21,8 @@ const displaySmartTVTable = (data) => {
             <td style="text-align: left;">${row.tv_brand}</td>
             <td style="text-align: left;">${row.tv_department}</td>
             <td style="text-align:center;">
-                <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showEditSmartTVModal(${row.tv_id})">Edit</button>
-                <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteSmartTVModal(${row.tv_id})">Delete</button>
+                <button type="button" class="green-button" style="width: 100%; margin-bottom: 5px" onclick="showEditSmartTVModal(${row.tv_id})">Edit</button>
+                <button type="button" class="red-button" style="width: 100%;" onclick="showDeleteSmartTVModal(${row.tv_id})">Delete</button>
             </td>
         </tr>`;
     });
@@ -41,16 +41,104 @@ const insertDeleteSmartTVModalContent = (tvId) => {
                 <span class="close" id="closeDeleteSmartTVModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
                 <br>
                 <h1 style="color: rgb(126, 11, 34); font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-                <p id="deleteMessage" style="text-align: center">Are you sure you want to delete this smart TV?</p>
+                <p id="deleteMessage" style="text-align: center">Proceed to delete this smart TV?</p>
                 <br>
                 <div style="text-align: right;">
-                    <button id="cancelDeleteSmartTVModalButton" class="cancel-button" type="button">Cancel</button>
+                    <button id="cancelDeleteSmartTVModalButton" class="grey-button" type="button">Cancel</button>
                     <button id="deleteSmartTVButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, I want to delete</b></button>
                 </div>
             </div>
         </div>
     `;
 }
+
+const sendWebSocketMessage = (data) => {
+    fetch('websocket_conn.php')
+        .then(response => response.text())
+        .then(url => {
+            const Ws = new WebSocket(url);
+            Ws.onopen = () => Ws.send(JSON.stringify(data));
+            Ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                if (message.success) {
+                    let successMessage = '';
+                    switch (message.action) {
+                        case 'edit_smart_tv':
+                            successMessage = 'Smart TV updated successfully!';
+                            document.getElementById('editSmartTVModal').style.display = 'none';
+                            showSuccessModal(successMessage);
+                            break;
+                        case 'delete_smart_tv':
+                            successMessage = 'Smart TV deleted successfully!';
+                            document.getElementById('confirmDeleteSmartTVModal').style.display = 'none';
+                            showSuccessModal(successMessage);
+                            break;
+                    }
+                    displaySmartTVTable(data);
+                } else {
+                    let errorMessage = message.message || 'An error occurred. Please try again.';
+                    showErrorModal(errorMessage);
+                }
+            };
+            Ws.onclose = () => console.log('WebSocket connection closed');
+            Ws.onerror = (error) => console.error('WebSocket error:', error);
+        })
+        .catch(error => console.error('Error fetching WebSocket URL:', error));
+};
+
+const showSuccessModal = (message) => {
+    const modalContent = `
+        <div class="modal-content" style="padding: 15px">
+            <span class="close" id="closeSuccessModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
+            <p id="successMessage" style="text-align: center">${message}</p>
+            <br>
+            <div style="text-align: right;">
+                <button id="okaySuccessModalButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Okay</b></button>
+            </div>
+        </div>
+    `;
+
+    const modal = createModal('successMessageModal', modalContent);
+    modal.style.display = 'flex';
+
+    document.getElementById('closeSuccessModalButton').onclick = () => modal.style.display = 'none';
+    document.getElementById('okaySuccessModalButton').onclick = () => modal.style.display = 'none';
+};
+
+const showErrorModal = (message) => {
+    const modalContent = `
+        <div class="modal-content" style="padding: 15px">
+            <span class="close" id="closeErrorModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: rgb(126, 11, 34); font-size: 50px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1>
+            <p id="errorText" style="text-align: center">${message}</p>
+            <br>
+            <div style="text-align: right;">
+                <button id="okayErrorModalButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Okay</b></button>
+            </div>
+        </div>
+    `;
+
+    const modal = createModal('errorModal', modalContent);
+    modal.style.display = 'flex';
+
+    document.getElementById('closeErrorModalButton').onclick = () => modal.style.display = 'none';
+    document.getElementById('okayErrorModalButton').onclick = () => modal.style.display = 'none';
+};
+
+const createModal = (id, content) => {
+    let modalContainer = document.getElementById(id);
+    if (!modalContainer) {
+        modalContainer = document.createElement('div');
+        modalContainer.id = id;
+        modalContainer.className = 'modal';
+        document.body.appendChild(modalContainer);
+    }
+    modalContainer.innerHTML = content;
+    return modalContainer;
+};
 
 // Show delete smart TV modal
 const showDeleteSmartTVModal = (tvId) => {
@@ -79,45 +167,13 @@ const showDeleteSmartTVModal = (tvId) => {
 
 // Function to Delete smart TV
 const deleteSmartTV = (tv_id) => {
-    // Fetch the WebSocket URL from PHP script
-    fetch('websocket_conn.php')
-        .then(response => response.text())
-        .then(url => {
-            const Ws = new WebSocket(url);
+    // Data to send to WebSocket server
+    const data = {
+        action: 'delete_smart_tv',
+        tv_id: tv_id
+    };
 
-            // Data to send to WebSocket server
-            const data = {
-                action: 'delete_smart_tv',
-                tv_id: tv_id
-            };
-
-            // Send data to WebSocket server
-            Ws.onopen = function () {
-                Ws.send(JSON.stringify(data));
-            };
-
-            // Handle messages from WebSocket server
-            Ws.onmessage = function (event) {
-                const message = JSON.parse(event.data);
-                if (message.success) {
-                    // Optional: Handle success, if needed
-                    console.log('SmartTV deleted successfully');
-                } 
-            };
-
-            // Close WebSocket connection
-            Ws.onclose = function () {
-                console.log('WebSocket connection closed');
-            };
-
-            // Handle errors
-            Ws.onerror = function (error) {
-                console.error('WebSocket error:', error);
-            };
-        })
-        .catch(error => {
-            console.error('Error fetching WebSocket URL:', error);
-        });
+    sendWebSocketMessage(data);
 };
 
 /* ============== EDIT SMART TV DETAILS ============== */
@@ -125,45 +181,43 @@ const deleteSmartTV = (tv_id) => {
 const populateEditSmartTVModal = (tvId) => {
     const modalContainer = document.getElementById('editSmartTVModal');
     modalContainer.innerHTML = `
-        <div class="modal-content">
-            <div class="green-bar-vertical">
-                <span class="close" id="closeEditSmartTVModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <div class="modal-content" style="padding: 15px">
+            <span class="close" id="closeEditSmartTVModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-pencil" aria-hidden="true"></i></h1>
+            <p id="editMessage" style="text-align: center">Edit Smart TV</p>
+            <form id="editSmartTVForm">
+                <div class="floating-label-container">
+                    <input type="text" name="tv_id" id="edit_tv_id" placeholder=" " class="floating-label-input-text-area" style="background: none; box-shadow: none; border: none; pointer-events: none" readonly>
+                    <label for="edit_tv_id" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Device ID</label>
+                </div>
+                <div class="floating-label-container">
+                    <input type="text" name="tv_name" id="edit_tv_name" placeholder=" " class="floating-label-input-text-area">
+                    <label for="edit_tv_name" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">TV Name</label>
+                </div>
+                <div class="floating-label-container">
+                    <input type="text" name="tv_brand" id="edit_tv_brand" placeholder=" " class="floating-label-input-text-area">
+                    <label for="edit_tv_brand" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">TV Brand</label>
+                </div>
+                <div class="floating-label-container">
+                    <select name="tv_department" id="edit_tv_department" class="floating-label-input">
+                        <option value="">~</option>
+                        <option value="COMPUTER ENGINEERING">Department of Computer Engineering</option>
+                        <option value="CHEMICAL ENGINEERING">Department of Chemical Engineering</option>
+                        <option value="CIVIL ENGINEERING">Department of Civil Engineering</option>
+                        <option value="INDUSTRIAL ENGINEERING">Department of Industrial Engineering</option>
+                        <option value="ELECTRICAL ENGINEERING">Department of Electrical Engineering</option>
+                        <option value="MECHANICAL ENGINEERING">Department of Mechanical Engineering</option>
+                        <option value="ELECTRONICS ENGINEERING">Department of Electronics Engineering</option>
+                    </select>
+                    <label for="edit_tv_department" class="floating-label">Department</label>
+                </div>
                 <br>
-                <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-pencil" aria-hidden="true"></i></h1>
-                <p id="editMessage" style="text-align: center">Edit Smart TV</p>
-                <form id="editSmartTVForm">
-                    <div class="floating-label-container">
-                        <input type="text" name="tv_id" id="edit_tv_id" placeholder=" " class="floating-label-input-text-area" style="background: none; box-shadow: none; pointer-events: none" readonly>
-                        <label for="edit_tv_id" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Device ID</label>
-                    </div>
-                    <div class="floating-label-container">
-                        <input type="text" name="tv_name" id="edit_tv_name" placeholder=" " class="floating-label-input-text-area">
-                        <label for="edit_tv_name" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">TV Name</label>
-                    </div>
-                    <div class="floating-label-container">
-                        <input type="text" name="tv_brand" id="edit_tv_brand" placeholder=" " class="floating-label-input-text-area">
-                        <label for="edit_tv_brand" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">TV Brand</label>
-                    </div>
-                    <div class="floating-label-container">
-                        <select name="tv_department" id="edit_tv_department" class="floating-label-input">
-                            <option value="">~</option>
-                            <option value="COMPUTER ENGINEERING">Department of Computer Engineering</option>
-                            <option value="CHEMICAL ENGINEERING">Department of Chemical Engineering</option>
-                            <option value="CIVIL ENGINEERING">Department of Civil Engineering</option>
-                            <option value="INDUSTRIAL ENGINEERING">Department of Industrial Engineering</option>
-                            <option value="ELECTRICAL ENGINEERING">Department of Electrical Engineering</option>
-                            <option value="MECHANICAL ENGINEERING">Department of Mechanical Engineering</option>
-                            <option value="ELECTRONICS ENGINEERING">Department of Electronics Engineering</option>
-                        </select>
-                        <label for="edit_tv_department" class="floating-label">Department</label>
-                    </div>
-                    <br>
-                    <div style="text-align: right;">
-                        <button type="button" id="cancelEditSmartTVModalButton" class="cancel-button">Cancel</button>
-                        <button type="submit" id="editSmartTVButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Update</b></button>
-                    </div>
-                </form>
-            </div>
+                <div style="text-align: right;">
+                    <button type="button" id="cancelEditSmartTVModalButton" class="grey-button">Cancel</button>
+                    <button type="submit" id="editSmartTVButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Update</b></button>
+                </div>
+            </form>
         </div>
     `;
 
@@ -222,50 +276,16 @@ const showEditSmartTVModal = (tvId) => {
 };
 
 const editSmartTV = (tv_id, tv_name, tv_brand, tv_department) => {
-    // Fetch the WebSocket URL from PHP script
-    fetch('websocket_conn.php')
-        .then(response => response.text())
-        .then(url => {
-            const Ws = new WebSocket(url);
+    // Data to send to WebSocket server
+    const data = {
+        action: 'edit_smart_tv',
+        tv_id: tv_id,
+        tv_name: tv_name,
+        tv_brand: tv_brand,
+        tv_department: tv_department
+    };
 
-            // Data to send to WebSocket server
-            const data = {
-                action: 'edit_smart_tv',
-                tv_id: tv_id,
-                tv_name: tv_name,
-                tv_brand: tv_brand,
-                tv_department: tv_department
-            };
-
-            // Send data to WebSocket server
-            Ws.onopen = function () {
-                Ws.send(JSON.stringify(data));
-            };
-
-            // Handle messages from WebSocket server
-            Ws.onmessage = function (event) {
-                const message = JSON.parse(event.data);
-                if (message.success) {
-                    // Optional: Handle success, if needed
-                    console.log('Smart TV edited successfully');
-                } else {
-                    console.error('Failed to edit Smart TV');
-                }
-            };
-
-            // Close WebSocket connection
-            Ws.onclose = function () {
-                console.log('WebSocket connection closed');
-            };
-
-            // Handle errors
-            Ws.onerror = function (error) {
-                console.error('WebSocket error:', error);
-            };
-        })
-        .catch(error => {
-            console.error('Error fetching WebSocket URL:', error);
-        });
+    sendWebSocketMessage(data);
 };
 
 Ws.addEventListener('message', function (event) {
@@ -276,7 +296,6 @@ Ws.addEventListener('message', function (event) {
             .then(response => response.json())
             .then(data => {
                 displaySmartTVTable(data);
-                updateNotificationCount();
             })
             .catch(error => console.error('Error fetching updated smart TVs:', error));
     } else if (data.action === 'edit_smart_tv' && data.success) {
@@ -285,7 +304,6 @@ Ws.addEventListener('message', function (event) {
             .then(response => response.json())
             .then(data => {
                 displaySmartTVTable(data);
-                updateNotificationCount();
             })
             .catch(error => console.error('Error fetching updated smart TVs:', error));
     } 
@@ -299,3 +317,12 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => console.error('Error fetching smart TVs:', error));
 });
+
+// const refreshSmartTVTable = () => {
+//     fetch('database/fetch_smart_tvs2.php')
+//         .then(response => response.json())
+//         .then(data => {
+//             displaySmartTVTable(data);
+//         })
+//         .catch(error => console.error('Error fetching updated smart TVs:', error));
+// };

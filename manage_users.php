@@ -8,29 +8,6 @@ include 'get_session.php';
 
 include 'admin_access_only.php';
 
-// Fetch the current user's data
-$sqlCurrentUser = "SELECT * FROM users_tb";
-$resultCurrentUser = mysqli_query($conn, $sqlCurrentUser);
-
-if (!$resultCurrentUser) {
-    $error[] = "Error: " . mysqli_error($conn);
-}
-
-// Fetch data from the users_tb table
-$sqlAllUsers = "SELECT * FROM users_tb";
-$resultAllUsers = mysqli_query($conn, $sqlAllUsers);
-
-if (!$resultAllUsers) {
-    $error[] = "Error: " . mysqli_error($conn);
-}
-
-// Check if user data is found
-if ($resultAllUsers->num_rows > 0) {
-    // Move the loop inside the if statement
-} else {
-    $error[] = "No user data found";
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -63,7 +40,13 @@ if ($resultAllUsers->num_rows > 0) {
                     <div class="content-form">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Admin Options</a></li>
+                                <?php 
+                                    if ($user_type == 'Super Admin') {
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Super Admin Options</a></li>';
+                                    } else {
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Admin Options</a></li>';
+                                    }
+                                ?>
                                 <li class="breadcrumb-item active" aria-current="page">Manage Users</li>
                             </ol>
                         </nav>                        
@@ -71,7 +54,8 @@ if ($resultAllUsers->num_rows > 0) {
                         <div style="display: flex; justify-content: flex-end;">
                             <button type="button" class="green-button" id="selectMultipleBtn" style="margin-right: 5px"><i class="fa fa-check-square" style="margin-right: 2px"></i> Select Multiple</button>
                             <button type="button" class="green-button" id="deleteSelectedBtn" style="margin-right: 5px; display: none"><i class="fa fa-user-times" style="margin-right: 2px"></i> Delete Selected</button>
-                            <button type="button" class="green-button" style="margin-right: 0;" onclick="showAddUserModal(<?php echo $user_id?>)"><i class="fa fa-user-plus" style="margin-right: 2px"></i> Add User</button>
+                            <button type="button" class="green-button" style="margin-right: 5px;" onclick="showAddUserModal(<?php echo $user_id?>)"><i class="fa fa-user-plus" style="margin-right: 2px"></i> Add User</button>
+                            <button type="button" class="green-button" style="margin-right: 0;" onclick="showUserTableSummary()"><i class="fa fa-table" style="margin-right: 2px"></i> Table Summary</button>
                         </div>
                         <div class="error-message" style="display: none; margin-top: 10px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div>
                         <div class="success-message" style="display: none; margin-top: 10px"><i class="fa fa-check-circle" aria-hidden="true"></i></div>
@@ -99,8 +83,6 @@ if ($resultAllUsers->num_rows > 0) {
     <?php include('misc/php/success_modal.php')?>
     <?php include('misc/php/error_modal.php')?>
     <script src="js/fetch_users.js"></script>
-    <script src="misc/js/sort_table.js"></script>
-    <script src="js/fetch_user_session.js"></script>
     <script>
         function searchUsersTable() {
             var input, filter, table, tr, td, i, txtValue;
@@ -137,6 +119,88 @@ if ($resultAllUsers->num_rows > 0) {
             document.getElementById("searchInput").value = "";
             searchUsersTable();
         });
+
+        function sortTable(columnIndex) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById("usersTable");
+            switching = true;
+            dir = "asc";
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[columnIndex];
+                    y = rows[i + 1].getElementsByTagName("TD")[columnIndex];
+                    
+                    if (dir == "asc") {
+                        if (compareValues(x, y) > 0) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (compareValues(x, y) < 0) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+
+        function compareValues(x, y) {
+            const xValue = x.textContent || x.innerText;
+            const yValue = y.textContent || y.innerText;
+
+            // Check if the values are dates
+            const xDate = parseDate(xValue);
+            const yDate = parseDate(yValue);
+            if (xDate && yDate) {
+                return xDate - yDate;
+            }
+
+            // Check if the values are numbers
+            const xNum = parseFloat(xValue);
+            const yNum = parseFloat(yValue);
+            if (!isNaN(xNum) && !isNaN(yNum)) {
+                return xNum - yNum;
+            }
+
+            // Default to string comparison
+            return xValue.localeCompare(yValue);
+        }
+
+        function parseDate(dateString) {
+            // Assuming date format is MM/DD/YYYY | HH:MM AM/PM
+            const parts = dateString.split('|');
+            if (parts.length === 2) {
+                const datePart = parts[0].trim();
+                const timePart = parts[1].trim();
+                const [month, day, year] = datePart.split('/');
+                let [time, ampm] = timePart.split(' ');
+                let [hours, minutes] = time.split(':');
+                
+                if (ampm.toUpperCase() === 'PM' && hours !== '12') {
+                    hours = parseInt(hours) + 12;
+                }
+                if (ampm.toUpperCase() === 'AM' && hours === '12') {
+                    hours = '00';
+                }
+                
+                return new Date(year, month - 1, day, hours, minutes);
+            }
+            return null;
+        }
     </script>
 </body>
 </html>
