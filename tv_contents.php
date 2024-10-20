@@ -154,7 +154,6 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_content2.js"></script>
-    <script src="js/fetch_user_session.js"></script>
     <script>
         const tvFrame = document.querySelector('.tv-frame');
 

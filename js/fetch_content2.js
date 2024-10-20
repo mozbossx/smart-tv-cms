@@ -148,12 +148,11 @@ const updateUI = (data, type) => {
         const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
         const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
-        if (userType !== 'Student' && userType !== 'Faculty' || data[`${type}_author_id`] === user_id) {
+        if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
             buttonContainer.appendChild(deleteButton);
             buttonContainer.appendChild(archiveButton);
             buttonContainer.appendChild(editButton);
         }
-
         // Append the button container to the main container
         containerDiv.appendChild(buttonContainer);
 
@@ -178,7 +177,7 @@ const archiveItem = (type, id) => {
 // Function to delete an item
 const deleteItem = (type, id, author_id, full_name) => {
     const evaluatorMessageElement = document.getElementById('evaluator_message');
-    let evaluatorMessage = '';
+    let evaluatorMessage = null;
 
     if (evaluatorMessageElement) {
         evaluatorMessage = evaluatorMessageElement.value;
@@ -194,10 +193,12 @@ const deleteItem = (type, id, author_id, full_name) => {
         action: 'delete_content',
         type: type,
         [`${type}_id`]: id, // Dynamically set the ID based on the type
-        user_id: author_id,
+        user_id: user_id,
+        author_id: author_id,
         evaluator_name: full_name,
         evaluator_message: evaluatorMessage
     };
+    console.log("Deleted Content Data: ", data);
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
@@ -330,38 +331,45 @@ const getFeatureInfo = async (type) => {
 };
 
 // Function to fetch and update content for all types
-const fetchAndUpdate = async (type) => {
+function fetchAndUpdate(type) {
     const urlParams = new URLSearchParams(window.location.search);
     const tvId = urlParams.get('tvId');
 
-    try {
-        const response = await fetch(`database/fetch_content.php?type=${type}`);
-        const data = await response.json();
+    // If we're not on a TV contents page, don't try to update the UI
+    if (!tvId) return;
 
-        const filteredData = data.filter(item => {
-            const baseConditions = item.tv_id === parseInt(tvId, 10) && item.isCancelled === 0;
-            if (type === 'peo' || type === 'so') {
-                return baseConditions;
+    fetch(`database/fetch_content.php?type=${type}&tvId=${tvId}`)
+        .then(response => response.json())
+        .then(data => {
+            let filteredData;
+            if (Array.isArray(data)) {
+                filteredData = data.filter(item => {
+                    return item.tv_id === parseInt(tvId, 10) && item.isCancelled === 0 && item.status === 'Approved';
+                });
+            } else if (typeof data === 'object' && data !== null) {
+                // If data is a single object, wrap it in an array
+                filteredData = [data].filter(item => {
+                    return item.tv_id === parseInt(tvId, 10) && item.isCancelled === 0 && item.status === 'Approved';
+                });
             } else {
-                return baseConditions && item.status === 'Approved';
+                console.error(`Unexpected data format for ${type}:`, data);
+                return;
             }
+
+            const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+            if (carouselContainer) {
+                carouselContainer.innerHTML = '';
+                if (filteredData.length === 0) {
+                    displayNoMessage(type);
+                } else {
+                    filteredData.forEach(item => updateUI(item, type));
+                }
+            }
+        })
+        .catch(error => {
+            console.error(`Error fetching ${type} of TV ${tvId}:`, error);
         });
-
-        const carouselContainer = document.getElementById(`${type}CarouselContainer`);
-        if (carouselContainer) {
-            carouselContainer.innerHTML = '';
-            if (filteredData.length === 0) {
-                displayNoMessage(type);
-            } else {
-                filteredData.forEach(item => updateUI(item, type));
-            }
-        } else {
-            console.error(`Element with ID ${type}CarouselContainer not found.`);
-        }
-    } catch (error) {
-        console.error(`Error fetching ${type}:`, error);
-    }
-};
+}
 
 /* Web-Socket Server Connection */
 Ws.addEventListener('message', function(event) {
@@ -422,8 +430,13 @@ Ws.addEventListener('message', function(event) {
         
         case 'approve_post':
             // Handle new approved content being posted
-            console.log(`New Approved ${data.type} posted:`, data);
-            fetchAndUpdate(data.type);
+            if (data.content_type) {
+                console.log(`New Approved ${data.content_type} posted:`, data);
+                fetchAndUpdate(data.content_type);
+            } else if (data.type) {
+                console.log(`New Approved ${data.type} posted:`, data);
+                fetchAndUpdate(data.type);
+            }
             break;
     }
 });

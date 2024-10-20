@@ -79,7 +79,8 @@ class ContentHandler implements MessageComponentInterface
             $table = $validTypes[$type]['table'];
             $idField = $validTypes[$type]['idField'];
             $id = $data[$idField];
-            $user_id = $data['user_id'];
+            $user_id = $data['user_id']; // logged-in user's ID
+            $author_id = $data['author_id']; // author's ID
             $evaluator_message = $data['evaluator_message'];
             $evaluator_name = $data['evaluator_name'];
             
@@ -87,21 +88,24 @@ class ContentHandler implements MessageComponentInterface
             $stmt->execute([$id]);
                 
             $deleted = $stmt->rowCount() > 0;
-            if ($deleted) {
-                // Insert notification for new user registration
-                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted', 'deleted', ?, ?)");
-                $stmt->execute([$id, $user_id, $type, $evaluator_message, $evaluator_name]);
-                
-                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted_by_admin', 'deleted', ?, ?)");
-                $stmt->execute([$id, $user_id, $type, $evaluator_message, $evaluator_name]);
+            if ($deleted) {               
+                // Insert notification for the user who owns the content
+                if ($user_id == $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted', 'deleted', ?, ?)");
+                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+                }
 
-                // Update the notification count of the user who deleted the content and does not own the content
-                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name != ? AND user_id != ?");
-                $stmtUpdateAdminOrSuperAdminNotificationCount->execute([$evaluator_name, $user_id]);
+                // Insert notification for the user who doesn't own the content
+                if ($author_id != $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted_by_admin', 'deleted', ?, ?)");
+                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+                }
 
-                // Update the notification count of the user who owns the content
-                $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ? AND user_id = ?");
-                $stmtUpdateStudentOrFacultyNotificationCount->execute([$evaluator_name, $user_id]);
+                $stmtUpdateUserWhoDeletedTheContent = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
+                $stmtUpdateUserWhoDeletedTheContent->execute([$evaluator_name]);
+
+                $stmtUpdateUserWhoOwnedTheContent = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
+                $stmtUpdateUserWhoOwnedTheContent->execute([$evaluator_name]);
         
                 // Broadcast new notification to all clients
                 $this->broadcastNotification('new_notification');

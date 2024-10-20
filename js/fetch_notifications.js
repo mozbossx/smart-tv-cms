@@ -222,6 +222,14 @@ function createNotificationDiv(notification) {
                     <p class="created-at-notification">${formatDate(notification.created_at)}</p>
                 </div>
             `;
+        } else if (notification.notification_type === 'content_deleted_by_admin' && notification.status == 'deleted' && notification.evaluator_name == full_name) {
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You <strong>deleted</strong> ${notification.full_name}'s ${notification.content_type}</p>
+                    <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatDate(notification.created_at)}</p>
+                </div>
+            `;
         } else if (notification.notification_type === 'user_edited_by_admin' && notification.status == 'edited' && notification.user_id == user_id && notification.edited_user_type != null && notification.edited_user_department == null) {
             content = `
                 <div class="notification-details">  
