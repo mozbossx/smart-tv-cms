@@ -37,8 +37,9 @@ $stmtNotificationCount->close();
 
 <div class="header">
     <div class="header-bar">
-        <div style="padding-left: 20px; padding-top: 10px">
-            <img src="images/USC Logo Full.png" class="logo-header" id="logo">
+        <div class="logo-header-container">
+            <img src="images/USC Logo Full.png" class="logo-header" id="logo" onclick="goToHome()">
+            <img src="images/usc_icon.png" class="logo-header-2" id="logo-2" onclick="goToHome()">
         </div>
         <nav id='menu' style="z-index: 10000">
             <input type='checkbox' id='responsive-menu' onclick='updatemenu()'><label for="responsive-menu"></label>
@@ -65,15 +66,15 @@ $stmtNotificationCount->close();
                     <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black;"' : ''; ?>><?php echo $full_name; ?></a>
                 </li>
                 <li style="float: right; margin-right: 2px; margin-top: 23px; margin-right: 30px;">
-                    <button id="notifications-button" class="notifications-button" <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="text-shadow: 0px 0px 5px black; border-radius: 20px;"' : ''; ?>" onclick="toggleNotificationsDropdown()"><i class="fa fa-bell"></i></button>
+                    <button id="notifications-button" class="notifications-button" <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="border-radius: 20px;"' : ''; ?>" onclick="toggleNotificationsDropdown(false)"><i class="fa fa-bell"></i></button>
                     <span id="notificationCount" class="notification-count"><?php echo $notificationCount; ?></span>
-                    <span class="triangle"></span>
-                    <div id="notificationsDropdown" class="dropdown-notifications" style="display: none; position: absolute; right: -10px; top: 30px; background-color: white; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; width: 300px; max-height: 400px; overflow-y: auto; padding: 10px;">
-                        <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Notifications</p>
-                        <a href="notifications.php?pageid=Notifications?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="padding: 0; position: absolute; right: 12px; top: 9px;"><p style="color: black">View All</p></a>
+                    <span id="triangle" class="triangle"></span>
+                    <div id="notificationsDropdown" class="dropdown-notifications" style="display: none; position: absolute; right: -10px; top: 30px; background-color: white; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; width: 300px; height: 400px; max-height: 400px; overflow-y: auto; padding: 10px;">
+                        <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Notifications <span class="all-notifications-count-2"></span></p>
                         <div id="notificationsContainer" class="notifications-container">
                             <!-- Notifications will be dynamically inserted here -->
                         </div>
+                        <button onclick="goToNotifications()" class="green-button" style="width: 100%; margin-top: 10px; margin-right: 0; padding: 10px;"><p style="color: white; text-align: center;">View All</p></button>
                     </div>
                 </li>
                 <li>
@@ -108,6 +109,18 @@ $stmtNotificationCount->close();
                 <?php } ?>
             </ul>
         </nav>
+        <div class="notifications-button-mobile-container">
+            <button id="notifications-button-mobile" class="notifications-button-mobile" <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="border-radius: 20px;"' : ''; ?>" onclick="toggleNotificationsDropdown(true)"><i class="fa fa-bell" style="font-size: 35px; margin-top: 5px;"></i></button>
+            <span id="notificationCountMobile" class="notification-count-mobile"><?php echo $notificationCount; ?></span>
+            <span id="triangleMobile" class="triangle-mobile"></span>
+            <div id="notificationsDropdownMobile" class="dropdown-notifications-mobile" style="display: none; position: absolute; right: 5px; top: 65px; background-color: white; box-shadow: 0px 0px 16px 0px rgba(0,0,0,0.54); z-index: 1; width: 250px; height: 400px; max-height: 400px; overflow-y: auto; padding: 10px;">
+                <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Notifications <span class="all-notifications-count-2"></span></p>
+                <div id="notificationsContainerMobile" class="notifications-container-mobile">
+                    <!-- Notifications will be dynamically inserted here -->
+                </div>
+                <button onclick="goToNotifications()" class="green-button" style="width: 100%; margin-top: 10px; margin-right: 0; padding: 10px;"><p style="color: white; text-align: center;">View All</p></button>
+            </div>
+        </div>
         <div class="toggle">
             <div class="hamburger">
                 <span></span>
@@ -157,6 +170,14 @@ $stmtNotificationCount->close();
         } else{
             document.getElementById('menu').style.borderRadius = '10px';
         }
+    }
+
+    function goToHome() {
+        window.location.href = 'user_home.php?pageid=UserHome?userId=' + user_id + '' + full_name;
+    }
+
+    function goToNotifications() {
+        window.location.href = 'notifications.php?pageid=Notifications?userId=' + user_id + '' + full_name;
     }
 </script>
 <script src="js/fetch_notifications.js"></script>

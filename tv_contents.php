@@ -46,8 +46,10 @@ $result = mysqli_query($conn, $query);
 
 if (mysqli_num_rows($result) > 0) {
     while ($row = mysqli_fetch_assoc($result)) {
+        $tvId = $row['tv_id'];
         $tvName = $row['tv_name'];
         $tvBrand = $row['tv_brand'];
+        $tvDepartment = $row['tv_department'];
         $tvHeight = $row['height_px'];
         $tvWidth = $row['width_px'];
     }
@@ -89,6 +91,11 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 </nav>
                 <?php
                 echo '<h1 class="content-title" id="tvNameContent" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($tvName) . '</h1>';
+                echo '<div style="display: flex; justify-content: center; align-items: center;">';
+                    echo '<p style="margin: 0; margin-right: 5px; color: #6E6E6E"><small>ID: ' . $tvId . '</small></p>'; 
+                    echo '<p id="tvBrandUserHome_' . $tvId . '" style="margin: 0; color: #6E6E6E;"><small>| ' . $tvBrand . '</small></p>'; 
+                echo '</div>';
+                echo '<p id="tvDepartmentUserHome_' . $tvId . '" style="margin: 0; margin-bottom: 10px; color: #6E6E6E; text-align: center;"><small>' . $tvDepartment . '</small></p>'; 
                 echo '<div class="tv-frame-parent" style="width: auto; height: 450px; background: none; cursor: default;">';
                 echo '<div class="tv-frame" id="tv-frame" style="scale: 0.5; user-select: none">';
                     echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";

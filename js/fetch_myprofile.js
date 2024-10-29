@@ -158,7 +158,7 @@ function createPostDiv(data, type) {
     const deleteButton = createButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
     buttonContainer.appendChild(deleteButton);
     if(data.isCancelled === 0){
-        const archiveButton = createButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
+        const archiveButton = createButton('archive_content', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
         buttonContainer.appendChild(archiveButton);
     } else if (data.isCancelled === 1){
         const unarchiveButton = createButton('Unarchive', 'fa fa-archive', () => showUnarchiveModal(data[`${type}_id`], type));
@@ -313,7 +313,7 @@ function archiveItem(type, id) {
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
     const modal = document.getElementById(`confirmArchive${capitalizedType}Modal`);
     const data = {
-        action: 'archive',
+        action: 'archive_content',
         type: type,
         [`${type}_id`]: id
     };
@@ -392,7 +392,7 @@ toggleConfirmPassword.addEventListener("click", function () {
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
     switch (data.action) {
-        case 'archive':
+        case 'archive_content':
         case 'unarchive':
         case 'delete':
         case 'update':

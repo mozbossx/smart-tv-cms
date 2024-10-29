@@ -93,19 +93,19 @@ class ContentHandler implements MessageComponentInterface
                 if ($user_id == $user_id) {
                     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted', 'deleted', ?, ?)");
                     $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+
+                    $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser1->execute([$author_id]);
                 }
 
                 // Insert notification for the user who doesn't own the content
                 if ($author_id != $user_id) {
                     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted_by_admin', 'deleted', ?, ?)");
                     $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+
+                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser2->execute([$user_id]);
                 }
-
-                $stmtUpdateUserWhoDeletedTheContent = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
-                $stmtUpdateUserWhoDeletedTheContent->execute([$evaluator_name]);
-
-                $stmtUpdateUserWhoOwnedTheContent = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
-                $stmtUpdateUserWhoOwnedTheContent->execute([$evaluator_name]);
         
                 // Broadcast new notification to all clients
                 $this->broadcastNotification('new_notification');
@@ -123,7 +123,7 @@ class ContentHandler implements MessageComponentInterface
             }
         }
 
-        else if (isset($data['action']) && $data['action'] === 'archive') {
+        else if (isset($data['action']) && $data['action'] === 'archive_content') {
             $validTypes = [
                 'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
                 'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
@@ -148,7 +148,7 @@ class ContentHandler implements MessageComponentInterface
                     ];
                 } else {
                     // If it's neither a default type nor a new feature, it's invalid
-                    $response = ['action' => 'archive', 'success' => false, 'message' => 'Invalid type specified'];
+                    $response = ['action' => 'archive_content', 'success' => false, 'message' => 'Invalid type specified'];
                     echo "Invalid type specified\n";
                     $from->send(json_encode($response));
                     return;
@@ -158,25 +158,53 @@ class ContentHandler implements MessageComponentInterface
             $table = $validTypes[$type]['table'];
             $idField = $validTypes[$type]['idField'];
             $id = $data[$idField];
+            $user_id = $data['user_id']; // logged-in user's ID
+            $author_id = $data['author_id']; // author's ID
+            $evaluator_message = $data['evaluator_message'];
+            $evaluator_name = $data['evaluator_name'];
                 
             // Update isCancelled to 1
             $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = 1 WHERE {$idField} = ?");
             $stmt->execute([$id]);
 
             $archived = $stmt->rowCount() > 0;
-            $response = ['action' => 'archive', 'success' => $archived, 'type' => $type, $idField => $id];
-            echo "{$type} archived!\n";
-            
-            // Notify the client who sent the request and all connected clients
-            $from->send(json_encode($response));
-            foreach ($this->clients as $client) {
-                if ($client !== $from) {
-                    $client->send(json_encode($response));
+
+            if ($archived) {
+                // Insert notification for the user who owns the content
+                if ($user_id == $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_archived', 'archived', ?, ?)");
+                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+
+                    $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser1->execute([$author_id]);
+                }
+
+                // Insert notification for the user who doesn't own the content
+                if ($author_id != $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_archived_by_admin', 'archived', ?, ?)");
+                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+
+                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser2->execute([$user_id]);
+                }
+        
+                // Broadcast new notification to all clients
+                $this->broadcastNotification('new_notification');
+
+                $response = ['action' => 'archive_content', 'success' => $archived, 'type' => $type, $idField => $id];
+                echo "{$type} archived!\n";
+                
+                // Notify the client who sent the request and all connected clients
+                $from->send(json_encode($response));
+                foreach ($this->clients as $client) {
+                    if ($client !== $from) {
+                        $client->send(json_encode($response));
+                    }
                 }
             }
         }
 
-        else if (isset($data['action']) && $data['action'] === 'unarchive') {
+        else if (isset($data['action']) && $data['action'] === 'restore_content') {
             $validTypes = [
                 'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
                 'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
@@ -201,7 +229,7 @@ class ContentHandler implements MessageComponentInterface
                     ];
                 } else {
                     // If it's neither a default type nor a new feature, it's invalid
-                    $response = ['action' => 'unarchive', 'success' => false, 'message' => 'Invalid type specified'];
+                    $response = ['action' => 'restore_content', 'success' => false, 'message' => 'Invalid type specified'];
                     echo "Invalid type specified\n";
                     $from->send(json_encode($response));
                     return;
@@ -211,32 +239,58 @@ class ContentHandler implements MessageComponentInterface
             $table = $validTypes[$type]['table'];
             $idField = $validTypes[$type]['idField'];
             $id = $data[$idField];
-                
+            $user_id = $data['user_id']; // logged-in user's ID
+            $author_id = $data['author_id']; // author's ID
+            $evaluator_message = $data['evaluator_message'];
+            $evaluator_name = $data['evaluator_name'];
+            $content_tv_id = $data['content_tv_id'];
             // Update isCancelled to 1
             $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = 0 WHERE {$idField} = ?");
             $stmt->execute([$id]);
 
-            $archived = $stmt->rowCount() > 0;
-            $response = ['action' => 'archive', 'success' => $archived, 'type' => $type, $idField => $id];
-            echo "{$type} archived!\n";
-            
-            // Notify the client who sent the request and all connected clients
-            $from->send(json_encode($response));
-            foreach ($this->clients as $client) {
-                if ($client !== $from) {
-                    $client->send(json_encode($response));
+            $restored = $stmt->rowCount() > 0;
+
+            if ($restored) {
+                // Insert notification for the user who owns the content
+                if ($user_id == $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored', 'restored', ?, ?, ?)");
+                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser1->execute([$author_id]);
+                }
+
+                // Insert notification for the user who doesn't own the content
+                if ($author_id != $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored_by_admin', 'restored', ?, ?, ?)");
+                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser2->execute([$user_id]);
+                }
+        
+                // Broadcast new notification to all clients
+                $this->broadcastNotification('new_notification');
+                
+                $response = ['action' => 'restore_content', 'success' => $restored, 'type' => $type, $idField => $id];
+                echo "{$type} restored!\n";
+                
+                // Notify the client who sent the request and all connected clients
+                $from->send(json_encode($response));
+                foreach ($this->clients as $client) {
+                    if ($client !== $from) {
+                        $client->send(json_encode($response));
+                    }
                 }
             }
         }
 
-        else if (isset($data['action']) && $data['action'] === 'unarchive_and_update_expiration') {
+        else if (isset($data['action']) && $data['action'] === 'restore_content_and_update_expiration') {
             $validTypes = [
                 'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
                 'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
-                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id'],
-                'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
-                'so' => ['table' => 'so_tb', 'idField' => 'so_id']
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id']
             ];
             $type = $data['type'] ?? null;
             
@@ -244,7 +298,12 @@ class ContentHandler implements MessageComponentInterface
                 $table = $validTypes[$type]['table'];
                 $idField = $validTypes[$type]['idField'];
                 $id = $data[$idField];
-
+                $user_id = $data['user_id']; // logged-in user's ID
+                $author_id = $data['author_id']; // author's ID
+                $evaluator_message = $data['evaluator_message'];
+                $evaluator_name = $data['evaluator_name'];
+                $content_tv_id = $data['content_tv_id'];
+        
                 $isCancelled = 0;
                 $expirationDateTime = $data['expiration_datetime'] ?? null;
                 
@@ -254,21 +313,54 @@ class ContentHandler implements MessageComponentInterface
                 // Bind parameters and execute query
                 $stmt->execute([$isCancelled, $expirationDateTime, $id]);
                 
-                // Fetch updated data
-                $stmt = $this->pdo->prepare("SELECT * FROM {$table} WHERE {$idField} = ?");
-                $stmt->execute([$id]);
-                $postData = $stmt->fetch(PDO::FETCH_ASSOC);
-                
-                if ($postData) {
-                    $response = ['action' => 'unarchive_and_update_expiration', 'success' => true, 'type' => $type, 'data' => $postData] + $postData;
-                    echo "{$type} unarchived and expiration updated!\n";
+                $restored = $stmt->rowCount() > 0;
+        
+                if ($restored) {
+                    // Insert notification for the user who owns the content
+                    if ($user_id == $user_id) {
+                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored', 'restored', ?, ?, ?)");
+                        $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+        
+                        $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateUser1->execute([$author_id]);
+                    }
+        
+                    // Insert notification for the user who doesn't own the content
+                    if ($author_id != $user_id) {
+                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored_by_admin', 'restored', ?, ?, ?)");
+                        $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+        
+                        $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateUser2->execute([$user_id]);
+                    }
+            
+                    // Broadcast new notification to all clients
+                    $this->broadcastNotification('new_notification');
+                    
+                    // Fetch updated data
+                    $stmt = $this->pdo->prepare("SELECT * FROM {$table} WHERE {$idField} = ?");
+                    $stmt->execute([$id]);
+                    $postData = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($postData) {
+                        $response = [
+                            'action' => 'restore_content_and_update_expiration', 
+                            'success' => true, 
+                            'type' => $type, 
+                            'data' => $postData
+                        ] + $postData;
+                        echo "{$type} content restored and expiration updated!\n";
+                    } else {
+                        $response = ['action' => 'restore_content_and_update_expiration', 'success' => false, 'message' => 'Failed to fetch updated data'];
+                        echo "Failed to fetch updated data. Restore and expiration update failed.\n";
+                    }
                 } else {
-                    $response = ['action' => 'unarchive_and_update_expiration', 'success' => false, 'message' => 'Failed to fetch updated data'];
-                    echo "Failed to fetch updated data. Unarchive and expiration update failed.\n";
+                    $response = ['action' => 'restore_content_and_update_expiration', 'success' => false, 'message' => 'Failed to restore and update content'];
+                    echo "Failed to restore and update {$type} content.\n";
                 }
             } else {
-                $response = ['action' => 'unarchive_and_update_expiration', 'success' => false, 'message' => 'Invalid type specified'];
-                echo "Invalid type specified. Unarchive and expiration update failed.\n";
+                $response = ['action' => 'restore_content_and_update_expiration', 'success' => false, 'message' => 'Invalid type specified'];
+                echo "Invalid type specified. Restore and expiration update failed.\n";
             }
             
             // Notify the client who sent the request and all connected clients
@@ -278,7 +370,7 @@ class ContentHandler implements MessageComponentInterface
                     $client->send(json_encode($response));
                 }
             }
-        }     
+        }
 
         else if (isset($data['action']) && $data['action'] === 'update') {
             $validTypes = [
@@ -746,12 +838,16 @@ class ContentHandler implements MessageComponentInterface
                         $stmt->execute([$user_id]);
 
                         // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
-                        $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' OR user_type = 'Super Admin'");
-                        $stmtUpdateAdminOrSuperAdminNotificationCount->execute();
+                        $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin'");
+                        $stmtUpdateSuperAdminNotificationCount->execute();
+
+                        // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                        $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ?");
+                        $stmtUpdateAdminNotificationCount->execute([$department]);
 
                         // Increase the notification count of the student or faculty
-                        $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                        $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
+                        $stmtUpdateUserWhoRegisteredNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateUserWhoRegisteredNotificationCount->execute([$user_id]);
                 
                         // Broadcast new notification to all clients
                         $this->broadcastNotification('new_notification');
@@ -796,24 +892,75 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'approve_user') {
             $user_id = $data['user_id'];
-
-            // Retrieve full_name from session
+            $department = $data['department'];
             $evaluator_name = $data['full_name'];
+            $evaluator_id = $data['evaluator_id'];
         
             // Perform the deletion from the database
-            $stmt = $this->pdo->prepare("UPDATE users_tb SET status = 'Approved', evaluated_by = ? WHERE user_id = ?");
-            $stmt->execute([$evaluator_name, $user_id]);
+            $stmtUpdateUserStatus = $this->pdo->prepare("UPDATE users_tb SET status = 'Approved', evaluated_by = ? WHERE user_id = ?");
+            $stmtUpdateUserStatus->execute([$evaluator_name, $user_id]);
             
-            $user = $stmt->rowCount() > 0;
+            $approve_user = $stmtUpdateUserStatus->rowCount() > 0;
 
-            if ($user) {
+            if ($approve_user) {
                 // Update notification status
-                $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'approved', evaluator_name = ?, notification_type = 'user_approved' WHERE user_id = ? AND notification_type = 'user_registration'");
-                $stmt->execute([$evaluator_name, $user_id]);
+                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'approved', evaluator_name = ?, notification_type = 'user_approved', created_at = NOW() WHERE user_id = ? AND notification_type = 'user_registration'");
+                $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $user_id]);
 
-                // Insert user_approved notification
+                // Notify the Admin or Super Admin who approved the user
+                $stmtUserIdEvaluator = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_id = ?");
+                $stmtUserIdEvaluator->execute([$evaluator_id]);
+                $evaluatorId = $stmtUserIdEvaluator->fetchAll(PDO::FETCH_ASSOC);
+
+                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectDepartmentAdmins->execute([$department, $evaluator_id, $user_id]);
+                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($departmentAdmins) {
+                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name)
+                        VALUES (?, ?, ?, ?)
+                    ");
+                    foreach ($departmentAdmins as $admin) {
+                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'user_approved', 'approved', $evaluator_name]);
+                    }
+                }
+                
+                // Notify all Super Admins except the one who approved the user
+                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectSuperAdmins->execute([$evaluator_id, $user_id]);
+                $allSuperAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+
+                // Notify all Super Admins
+                if ($allSuperAdmins) {
+                    error_log("allSuperAdmins called");
+                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name)
+                        VALUES (?, ?, ?, ?)
+                    ");
+                    foreach ($allSuperAdmins as $superAdmin) {
+                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'user_approved', 'approved', $evaluator_name]);
+                    }
+                }
+
+                // Notify the new user that an admin approved them
                 $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name) VALUES (?, 'user_approved_by_admin', 'approved', ?)");
                 $stmt->execute([$user_id, $evaluator_name]);
+
+                // Update notification counts for Admins, Super Admins, and the evaluator
+                $stmtUpdateNotificationCounts = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE (user_type = 'Admin' AND department = ?) 
+                    OR user_type = 'Super Admin'
+                    OR user_id = ? OR user_id = ?
+                ");
+                $stmtUpdateNotificationCounts->execute([$department, $evaluator_id, $user_id]);
 
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('update_notification');
@@ -964,9 +1111,10 @@ class ContentHandler implements MessageComponentInterface
         else if (isset($data['action']) && $data['action'] === 'delete_user') {
             $userId = $data['user_id'];
             $evaluator_name = $data['full_name'];
+            $evaluator_message = $data['evaluator_message'];
 
             // Fetch user details before deletion
-            $stmtFetchUser = $this->pdo->prepare("SELECT full_name, department FROM users_tb WHERE user_id = ?");
+            $stmtFetchUser = $this->pdo->prepare("SELECT full_name, email, department FROM users_tb WHERE user_id = ?");
             $stmtFetchUser->execute([$userId]);
             $userDetails = $stmtFetchUser->fetch(PDO::FETCH_ASSOC);
         
@@ -996,7 +1144,12 @@ class ContentHandler implements MessageComponentInterface
                     'action' => 'user_deleted',
                     'success' => true,
                     'user_id' => $userId,
-                    'message' => 'Your account has been deleted. You will be logged out now.'
+                    'message' => 'Your account has been deleted. You will be logged out now.',
+                    'email' => $userDetails['email'],
+                    'full_name' => $userDetails['full_name'],
+                    'department' => $userDetails['department'],
+                    'evaluator_name' => $evaluator_name,
+                    'evaluator_message' => $evaluator_message
                 ];
         
                 // Find the connection for the deleted user
@@ -1017,7 +1170,12 @@ class ContentHandler implements MessageComponentInterface
                 $generalResponse = [
                     'action' => 'user_deleted',
                     'success' => true,
-                    'user_id' => $userId
+                    'user_id' => $userId,
+                    'email' => $userDetails['email'],
+                    'full_name' => $userDetails['full_name'],
+                    'department' => $userDetails['department'],
+                    'evaluator_name' => $evaluator_name,
+                    'evaluator_message' => $evaluator_message
                 ];
                 foreach ($this->clients as $client) {
                     if ($client !== $deletedUserConnection) {
@@ -1039,7 +1197,11 @@ class ContentHandler implements MessageComponentInterface
             $department = trim($data['department'] ?? '');
             $user_type = trim($data['user_type'] ?? '');
             $status = 'Approved';
+            $status_notification = 'approved';
             $evaluator_name = trim($data['evaluator_name'] ?? '');
+            $evaluator_id = $data['evaluator_id'];
+            $evaluator_type = $data['evaluator_type'];
+            $evaluator_department = $data['evaluator_department'];
 
             // Check for empty fields
             if (empty($full_name) || empty($email) || empty($password) || empty($department) || empty($user_type)) {
@@ -1116,12 +1278,72 @@ class ContentHandler implements MessageComponentInterface
                     $user_id = $this->pdo->lastInsertId();
 
                     // Notify the Admin or Super Admin who added the user
-                    $stmtNotifyUserCreator = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name) VALUES (?, 'user_added', 'added', ?)");
-                    $stmtNotifyUserCreator->execute([$user_id, $evaluator_name]);
+                    $stmtUserIdEvaluator = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_id = ?");
+                    $stmtUserIdEvaluator->execute([$evaluator_id]);
+                    $evaluatorId = $stmtUserIdEvaluator->fetchAll(PDO::FETCH_ASSOC);
+
+                    if ($evaluatorId) {
+                        // Notify the user who added the new user
+                        $stmtNotifyEvaluator = $this->pdo->prepare("
+                            INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, added_user_type, added_user_department, added_user_name)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        $stmtNotifyEvaluator->execute([$evaluator_id, 'user_added', 'approved', $evaluator_name, $user_type, $department, $full_name]);
+                    }
+
+                    $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                        SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                    ");
+                    $stmtSelectDepartmentAdmins->execute([$department, $evaluator_id, $user_id]);
+                    $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                    
+                    // Notify each Admin of the added user's department
+                    if ($departmentAdmins) {
+                        $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                            INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, added_user_type, added_user_department, added_user_name)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        foreach ($departmentAdmins as $admin) {
+                            $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'user_added', 'approved', $evaluator_name, $user_type, $department, $full_name]);
+                        }
+                    }
+                    
+                    // Notify all Super Admins except the one who added the user
+                    $stmtSelectSuperAdmins = $this->pdo->prepare("
+                        SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                    ");
+                    $stmtSelectSuperAdmins->execute([$evaluator_id, $user_id]);
+                    $allSuperAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+
+                    // Notify all Super Admins
+                    if ($allSuperAdmins) {
+                        error_log("allSuperAdmins called");
+                        $stmtNotifySuperAdmins = $this->pdo->prepare("
+                            INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, added_user_type, added_user_department, added_user_name)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        // $stmtNotifySuperAdmins->execute([$user_id, 'user_added', 'approved', $evaluator_name, $user_type, $department]);
+                        foreach ($allSuperAdmins as $superAdmin) {
+                            $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'user_added', 'approved', $evaluator_name, $user_type, $department, $full_name]);
+                        }
+                    }
 
                     // Notify the new user that an admin added them
-                    $stmtNotifyUser = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name) VALUES (?, 'user_added_by_admin', 'added', ?)");
-                    $stmtNotifyUser->execute([$user_id, $evaluator_name]);
+                    $stmtNotifyUser = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, added_user_type, added_user_department, added_user_name)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmtNotifyUser->execute([$user_id, 'user_added_by_admin', 'approved', $evaluator_name, $user_type, $department, $full_name]);
+
+                    // Update notification counts for Admins, Super Admins, and the evaluator
+                    $stmtUpdateNotificationCounts = $this->pdo->prepare("
+                        UPDATE users_tb 
+                        SET notification_count = notification_count + 1 
+                        WHERE (user_type = 'Admin' AND department = ?) 
+                        OR user_type = 'Super Admin'
+                        OR user_id = ? OR user_id = ?
+                    ");
+                    $stmtUpdateNotificationCounts->execute([$department, $evaluator_id, $user_id]);
 
                     // Broadcast new notification to all clients    
                     $this->broadcastNotification('new_notification');
@@ -1144,7 +1366,8 @@ class ContentHandler implements MessageComponentInterface
                         'data' => $responseData, 
                         'message' => 'User added successfully',
                         'messageType' => 'success',
-                        'evaluator_name' => $evaluator_name
+                        'evaluator_name' => $evaluator_name,
+                        'evaluator_id' => $evaluator_id
                     ];
                     $from->send(json_encode($response));
         
@@ -1192,6 +1415,7 @@ class ContentHandler implements MessageComponentInterface
             $addedCount = 0;
             $failedCount = 0;
             $errorMessages = [];
+            $addedUsers = [];
 
             // Check if the CSV file is empty
             if (count($lines) <= 1) { // Assuming the first line might be headers
@@ -1282,6 +1506,13 @@ class ContentHandler implements MessageComponentInterface
                     if ($success) {
                         $addedCount++;
                         // TODO: Send email to the new user with their temporary password
+                        $addedUsers[] = [
+                            'email' => $email,
+                            'password' => $password,
+                            'full_name' => $full_name,
+                            'department' => $department,
+                            'user_type' => $user_type
+                        ];
                     } else {
                         $failedCount++;
                         $errorMessages[] = "Line $lineNumber: Failed to add user: $full_name";
@@ -1299,7 +1530,8 @@ class ContentHandler implements MessageComponentInterface
                 "addedCount" => $addedCount,
                 "failedCount" => $failedCount,
                 "message" => "Multiple users processed. Added: $addedCount, Failed: $failedCount",
-                "errorMessages" => $errorMessages
+                "errorMessages" => $errorMessages,
+                "addedUsers" => $addedUsers
             ];
             $from->send(json_encode($response));
         

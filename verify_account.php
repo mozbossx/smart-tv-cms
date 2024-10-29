@@ -48,7 +48,7 @@ if (isset($_SESSION['mail'])) {
                 <br>
                 <p style="text-align: center; user-select: none">We want to make sure it is a valid USC email</p>
                 <div class="floating-label-container">
-                    <input type="text" name="otp_code" required placeholder=" " class="floating-label-input">
+                    <input type="text" maxlength="6" name="otp_code" required placeholder=" " class="floating-label-input" pattern="\d{6}">
                     <label for="otp_code" class="floating-label">6-digit OTP Code</label>
                 </div>
                 <div class="line-separator"></div>
@@ -81,10 +81,12 @@ if (isset($_SESSION['mail'])) {
             </div>
         </div>
     </div>
+    <?php include('misc/php/success_modal.php'); ?>
+    <?php include('misc/php/error_modal.php'); ?>
     <script>
         // Handle form submission via WebSocket
         const form = document.getElementById('pendingUserForm');
-        const ws = new WebSocket('ws://192.168.1.30:8081?email=<?php echo urlencode($email); ?>');
+        const ws = new WebSocket('ws://192.168.1.10:8081?email=<?php echo urlencode($email); ?>');
         
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -107,13 +109,26 @@ if (isset($_SESSION['mail'])) {
             // Listen for messages from the WebSocket server
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
-                if (message.success) {
+                if (message.success) {                    
                     // Unset the session mail variable
                     fetch('unset_session_mail.php')
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                console.log('Session mail unset successfully');
+                                // Display success modal
+                                document.getElementById('successMessageVersion2').textContent = "Registration successful!";
+                                document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                                document.getElementById('errorModal').style.display = 'none';
+
+                                document.getElementById('okayButton').addEventListener('click', function() {
+                                    if (message.user_type === 'TBD') {
+                                        // Show the faculty or staff modal
+                                        document.getElementById('facultyOrStaffModal').style.display = 'flex';
+                                    } else {
+                                        // Redirect the user to user_home.php if success
+                                        window.location.href = "index.php";
+                                    }
+                                });
                             } else {
                                 console.error('Failed to unset session mail');
                             }
@@ -121,17 +136,10 @@ if (isset($_SESSION['mail'])) {
                         .catch(error => {
                             console.error('Error:', error);
                         });
-
-                    if (message.user_type === 'TBD') {
-                        // Show the faculty or staff modal
-                        document.getElementById('facultyOrStaffModal').style.display = 'flex';
-                    } else {
-                        // Redirect the user to user_home.php if success
-                        window.location.href = "index.php";
-                    }
-                } else {
-                    // Display an error message
-                    console.error(message.message);
+                } else if (message.success == false) {
+                    // Display error modal
+                    document.getElementById('errorText').textContent = message.message || "Invalid OTP Code. Try Again.";
+                    document.getElementById('errorModal').style.display = 'flex';
                 }
             };
 

@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.30:8081');
+const Ws = new WebSocket('ws://192.168.1.10:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -51,11 +51,22 @@ let displayTimeIntervals = {
 };
 
 // Function to format date to "MM DD YYYY"
-const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const options = { year: 'numeric', month: 'long', day: '2-digit' };
-    return date.toLocaleDateString('en-US', options);
-};
+function formatDateTime(dateTimeString) {
+    const dateTime = new Date(dateTimeString);
+    const dateOptions = {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    };
+    const timeOptions = {
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+    };
+    const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(dateTime);
+    const formattedTime = new Intl.DateTimeFormat('en-US', timeOptions).format(dateTime);
+    return `${formattedDate} (${formattedTime})`;
+}
 
 // Function to format time to "01:00pm"
 const formatTime = (timeString) => {
@@ -74,11 +85,8 @@ const updateUI = (data, type) => {
         return;
     }
 
-    const formattedCreatedDate = formatDate(data.created_date);
-    const formattedCreatedTime = formatTime(data.created_time);
-    const formattedExpirationDate = formatDate(data.expiration_date);
-    const formattedExpirationTime = formatTime(data.expiration_time);
-    const id = data[`${type}_id`]; // Assuming the ID of the item to delete/archive is sent in the message
+    const formattedCreatedDateTime = formatDateTime(data.created_datetime);
+    const id = data[`${type}_id`]; 
 
     // const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const existingDiv = document.querySelector(`[data-${type}-id="${id}"]`);
@@ -103,7 +111,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -122,7 +130,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -141,7 +149,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -159,7 +167,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -179,7 +187,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -200,7 +208,7 @@ const updateUI = (data, type) => {
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
                         <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDate} at ${formattedCreatedTime}</small></p>
+                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
@@ -717,7 +725,7 @@ const fetchAndUpdateContents = (type) => {
 
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
-    if (data.action === 'delete_content' || data.action === 'archive') {
+    if (data.action === 'delete_content' || data.action === 'archive_content') {
         const type = data.type;
         const id = data[`${type}_id`]; 
 
@@ -738,7 +746,7 @@ Ws.addEventListener('message', function (event) {
             removeContent(type, id); // Call the helper function
         }
         
-    } else if (data.action === 'unarchive' || data.action === 'unarchive_and_update_expiration') {
+    } else if (data.action === 'restore_content' || data.action === 'restore_content_and_update_expiration') {
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');
         } else if (data.type === 'event') {

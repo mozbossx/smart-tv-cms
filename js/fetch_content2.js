@@ -1,15 +1,19 @@
 // Function to format date to "MM DD YYYY"
-function formatDate(dateTimeString) {
+function formatDateTime(dateTimeString) {
     const dateTime = new Date(dateTimeString);
-    const options = {
+    const dateOptions = {
         month: 'short',
         day: 'numeric',
-        year: 'numeric',
+        year: 'numeric'
+    };
+    const timeOptions = {
         hour: 'numeric',
         minute: 'numeric',
         hour12: true
     };
-    return new Intl.DateTimeFormat('en-US', options).format(dateTime);
+    const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(dateTime);
+    const formattedTime = new Intl.DateTimeFormat('en-US', timeOptions).format(dateTime);
+    return `${formattedDate} (${formattedTime})`;
 }
 
 // Utility function to create buttons
@@ -95,8 +99,8 @@ const updateUI = (data, type) => {
     if (data.status === 'Pending' || data.status === 'Draft' || data.isCancelled === 1 || !data[`${type}_id`]) return;
 
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
-    const formattedCreatedDateTime = formatDate(data.created_datetime);
-    const formattedExpirationDateTime = formatDate(data.expiration_datetime);
+    const formattedCreatedDateTime = formatDateTime(data.created_datetime);
+    const formattedExpirationDateTime = formatDateTime(data.expiration_datetime);
 
     let mediaContent = '';
     if (data.media_path) {
@@ -145,7 +149,7 @@ const updateUI = (data, type) => {
         `;
 
         const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name));
-        const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
+        const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name));
         const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
         if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
@@ -161,15 +165,30 @@ const updateUI = (data, type) => {
 };
 
 // Function to archive an item
-const archiveItem = (type, id) => {
+const archiveItem = (type, id, author_id, full_name) => {
+    const evaluatorMessageElement = document.getElementById('evaluator_message');
+    let evaluatorMessage = null;
+
+    if (evaluatorMessageElement) {
+        evaluatorMessage = evaluatorMessageElement.value;
+        if (!evaluatorMessage) {
+            alert('Evaluator message is required.');
+            return;
+        }
+    }
+
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
     const modal = document.getElementById(`confirmArchive${capitalizedType}Modal`);
     const data = {
-        action: 'archive',
+        action: 'archive_content',
         type: type,
-        [`${type}_id`]: id // Dynamically set the ID based on the type
+        [`${type}_id`]: id, // Dynamically set the ID based on the type
+        user_id: user_id,
+        author_id: author_id,
+        evaluator_name: full_name,
+        evaluator_message: evaluatorMessage
     };
-    console.log(data);
+    console.log("Archived Content Data: ", data);
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
@@ -261,23 +280,33 @@ const createModals = (contentTypes) => {
 };
 
 // Function to show archive modal
-const showArchiveModal = (id, type) => {
+const showArchiveModal = (id, type, author_id, full_name) => {
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
     const modal = document.getElementById(`confirmArchive${capitalizedType}Modal`);
     const modalContent = document.getElementById(`archive${capitalizedType}ModalContent`);
     modalContent.className = 'modal-content';
+    modalContent.style = `
+        padding: 15px;
+    `;
+
+    const evaluatorMessageHtml = user_id != author_id ? `
+        <div class="floating-label-container">
+            <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+            <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+        </div>
+        <br>
+    ` : '';
     
     modalContent.innerHTML = `
-        <div class="yellow-bar-vertical">
-            <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
-            <p id="deleteMessage" style="text-align: center">Proceed to archive?</p>
-            <br>
-            <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
-                <button type="button" class="yellow-button" onclick="archiveItem('${type}', '${id}')">Yes, Archive</button>
-            </div>
+        <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <br>
+        <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
+        <p id="deleteMessage" style="text-align: center">Proceed to archive?</p>
+        <br>
+        ${evaluatorMessageHtml}
+        <div style="text-align: right;">
+            <button type="button" class="grey-button" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="yellow-button" onclick="archiveItem('${type}', '${id}', '${author_id}', '${full_name}')">Yes, Archive</button>
         </div>
     `;
     
@@ -388,7 +417,7 @@ Ws.addEventListener('message', function(event) {
             console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been deleted.`);
             break;
 
-        case 'archive':
+        case 'archive_content':
             // Handle archiving confirmation
             const archivedDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
             if (archivedDiv) {
@@ -403,22 +432,22 @@ Ws.addEventListener('message', function(event) {
             if (updatedDiv) {
                 // Update the content of the existing item
                 fetchAndUpdate(data.type);
-                updatedDiv.querySelector('.content-container-con').innerHTML = createContentDiv(data, /* mediaContent */ '', formatDate(data.created_datetime), formatDate(data.expiration_datetime));
+                updatedDiv.querySelector('.content-container-con').innerHTML = createContentDiv(data, /* mediaContent */ '', formatDateTime(data.created_datetime), formatDateTime(data.expiration_datetime));
             } else {
                 fetchAndUpdate(data.type);
                 console.log(`Received update for non-existing ${data.type} with ID ${data[`${data.type}_id`]}.`);
             }
             break;
 
-        case 'unarchive':
+        case 'restore_content':
             // Handle unarchiving confirmation
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been unarchived.`);
+            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been restored.`);
             fetchAndUpdate(data.type);
             break;
         
-        case 'unarchive_and_update_expiration':
+        case 'restore_content_and_update_expiration':
             // Handle unarchiving confirmation
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been unarchived.`);
+            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been restored.`);
             fetchAndUpdate(data.type);
             break;
 

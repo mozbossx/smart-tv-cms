@@ -65,8 +65,8 @@ if (!$resultAllSmartTVs) {
                         <?php include('error_message.php'); ?>
                         <form class="search-form" style="width: 300px; max-width: 100%; margin: 0; margin-bottom: 10px;">
                             <div class="floating-label-container">
-                                <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchUsersTable()">
-                                <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search User Table</label>
+                                <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchSmartTVsTable()">
+                                <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search Smart TVs Table</label>
                                 <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
                                     <i class="fa fa-times" aria-hidden="true"></i>
                                 </button>
@@ -92,7 +92,7 @@ if (!$resultAllSmartTVs) {
     <script src="js/fetch_smart_tvs.js"></script>
     <script src="misc/js/scan_smart_tvs.js"></script>
     <script>
-        function searchUsersTable() {
+        function searchSmartTVsTable() {
             var input, filter, table, tr, td, i, txtValue;
             input = document.getElementById("searchInput");
             filter = input.value.toUpperCase();
@@ -125,7 +125,7 @@ if (!$resultAllSmartTVs) {
         // Add event listener for clear button
         document.getElementById("clearSearch").addEventListener("click", function() {
             document.getElementById("searchInput").value = "";
-            searchUsersTable();
+            searchSmartTVsTable();
         });
 
         function sortTable(columnIndex) {

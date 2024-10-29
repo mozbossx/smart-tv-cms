@@ -46,7 +46,7 @@ $stmt->close();
         height: 100%;
         background: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
         display: none;
-        z-index: 1; /* Ensure the overlay is on top of the main content */
+        z-index: 100; /* Ensure the overlay is on top of the main content */
     }
 
     .overlay.active-overlay {
@@ -57,20 +57,43 @@ $stmt->close();
 
 <div class="sidebar">
     <nav class="navbar">
+        <div style="display: flex;">
+            <button id="minimizeSidebarButton" style="background: none; border: none; height: 40px; width: 40px; margin-top: 10px"><i class="fa fa-angle-left" style="padding-right: 8px; color: white; font-size: 40px"></i></button>
+        </div>
+        <div class="line-separator"></div>
         <a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo ($current_page === 'user_home.php' || $current_page === 'edit_announcement.php' || $current_page === 'edit_event.php' || $current_page === 'edit_news.php' || $current_page === 'edit_promaterial.php' || $current_page === 'edit_peo.php') ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-home" style="padding-right: 8px"></i>Home</a>
         <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php' || $current_page === 'form_facilities.php' || $current_page === 'form_add_new_feature.php') ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-pencil-square" style="padding-right: 8px"></i>Create Post</a>
-        <a href="notifications.php?pageid=Notifications?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'notifications.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-bell" style="padding-right: 8px"></i>Notifications</a>
         <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'archives.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-archive" style="padding-right: 8px"></i>Archives</a>
-        <?php if ($user_type === 'Admin' || $user_type === 'Super Admin') { ?>
+        <?php if ($user_type === 'Admin') { ?>
             <a href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php'? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user-secret" style="padding-right: 8px"></i>Admin Options</a>
         <?php } ?>
-        <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'profile.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user" style="padding-right: 8px"></i>My Profile</a>
-        <a href="settings.php?pageid=Settings?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'settings.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-gear" style="padding-right: 8px"></i>Settings</a>
-        <a href="logout.php" style="margin-bottom: 80px"><i class="fa fa-sign-out" style="padding-right: 8px"></i>Logout</a>
+        <?php if ($user_type === 'Super Admin') { ?>
+            <a href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php'? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user-secret" style="padding-right: 8px"></i>Super Admin Options</a>
+        <?php } ?>
+        <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'profile.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user" style="padding-right: 8px"></i><?php echo $full_name; ?></a>
+        <div class="line-separator" style="margin-top: 20px"></div>
+        <button style="background: none; border: none; color: white; padding: 10px; width: 100%; text-align: left" onclick="openLogoutModal()"><i class="fa fa-sign-out" style="padding-right: 7px"></i>Logout</button>
+        <!-- <a href="logout.php" style="margin-bottom: 80px"><i class="fa fa-sign-out" style="padding-right: 8px"></i>Logout</a> -->
     </nav>
 </div>
 
 <div class="overlay" id="overlay"></div>
+
+<div id="logoutModal" class="modal">
+    <div class="modal-content">
+        <div class="red-bar-vertical">
+            <span class="close" onclick="closeLogoutModal()" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-sign-out" aria-hidden="true"></i></h1>
+            <p>Proceed to logout?</p>
+            <br>
+            <div style="align-items: right; text-align: right; right: 0">
+                <button class="grey-button" onclick="closeLogoutModal()">No</button>
+                <button class="red-button" style="margin: 0" onclick="logout()">Yes, I want to logout</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function () {
@@ -78,7 +101,18 @@ $stmt->close();
         const sidebar = document.querySelector('.sidebar');
         const logo = document.getElementById('logo');
         const mainContent = document.querySelector('.main-container');
-        const overlay = document.getElementById('overlay'); // Get the overlay element
+        const overlay = document.getElementById('overlay');
+        const minimizeSidebarButton = document.getElementById('minimizeSidebarButton');
+
+        // Click handler for minimize button
+        minimizeSidebarButton.addEventListener('click', function() {
+            // Remove active classes and reset UI state
+            sidebar.classList.remove('active');
+            toggleButton.classList.remove('active');
+            mainContent.classList.remove('blur-background');
+            overlay.classList.remove('active-overlay');
+            logo.classList.remove('hide-logo');
+        });
 
         toggleButton.addEventListener('click', function () {
             toggleButton.classList.toggle('active');
@@ -94,7 +128,7 @@ $stmt->close();
             }
         });
 
-        // Additional logic to close the sidebar on outside click
+        // Logic to close the sidebar on outside click
         overlay.addEventListener('click', function (event) {
             if (sidebar.classList.contains('active') && !sidebar.contains(event.target) && !toggleButton.contains(event.target)) {
                 sidebar.classList.remove('active');
@@ -104,8 +138,18 @@ $stmt->close();
                 logo.classList.remove('hide-logo');
             }
         });
-
-        
     });
+
+    function openLogoutModal() {
+        const logoutModal = document.getElementById('logoutModal').style.display = 'flex';
+    }
+
+    function closeLogoutModal() {
+        document.getElementById('logoutModal').style.display = 'none';
+    }
+
+    function logout() {
+        window.location.href = "logout.php";
+    }
 
 </script>

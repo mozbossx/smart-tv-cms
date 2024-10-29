@@ -25,18 +25,21 @@ function scanForSmartTVs() {
 function showLoadingIndicator() {
     // Add loading indicator to the page
     const loadingDiv = document.createElement('div');
+    const scanResultsModal = document.getElementById('scanResultsModal');
     loadingDiv.className = 'modal';
     loadingDiv.id = 'loadingIndicator';
     loadingDiv.innerHTML = `
         <div class="modal-content" style="text-align: center;">
             <h1><i class="fa fa-tv" style="color: #334b35; font-size: 50px;"></i></h1>
             <h2>Scanning for Smart TVs...</h2>
+            <p class="ann-author" style="color: #6E6E6E"><small>Make sure your Smart TV is connected to the same network as your phone or computer.</small></p>
             <div class="loader-container">
                 <div class="loader"></div>
             </div>
         </div>
     `;
     document.body.appendChild(loadingDiv);
+    scanResultsModal.style.display = 'none';
     loadingDiv.style = "display: flex; align-items: center; justify-content: center;";
 }
 function hideLoadingIndicator() {
@@ -52,8 +55,8 @@ function showScanResults(discoveredTVs) {
     if (discoveredTVs.length === 0) {
         content += `
             <h1><i class="fa fa-exclamation-triangle" style="font-size: 50px; color: #FFA500; margin-top: 20px;"></i></h1>
-            <p>No Smart TVs found on the local network.</p>
-            <button onclick="scanForSmartTVs()" class="green-button" style="background: none; color: black"><i class="fa fa-search" style="padding-right: 5px"></i>Scan Again</button>
+            <p style="font-weight: bold;">No Smart TVs found on the local network.</p>
+            <p class="ann-author" style="color: #6E6E6E"><small>Make sure your Smart TV is connected to the same network as your phone or computer.</small></p>
         `;
     } else {
         content += '<ul>';
@@ -68,6 +71,7 @@ function showScanResults(discoveredTVs) {
             ${content}
         </div>
         <div style="text-align: right;">
+            <button onclick="scanForSmartTVs()" class="green-button" style="background: none; color: black"><i class="fa fa-search" style="padding-right: 5px"></i>Scan Again</button>
             <button onclick="closeScanResultsModal()" class="green-button">Close</button>
         </div>
     </div>

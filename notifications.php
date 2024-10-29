@@ -55,16 +55,35 @@ $stmt->close();
             <div class="column1">
                 <div class="content-inside-form">
                     <div id="notificationsList" class="content-container" 
-                    style="height: 75.5vh; max-width: 600px;
-                    margin: 10px auto;
+                    style="height: auto; max-width: 600px;
+                    margin: auto;
+                    margin-bottom: 10px;
                     padding: 20px;
                     background-color: #f9f9f9;
                     border-radius: 8px;
                     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);">
                         <div class="scroll-div" style="height: auto; margin-bottom: 10px">
-                            <h1>Notifications</h1>
-                            <div id="ViewAllNotificationsContainer">
-                                 <!-- Latest notifications will be displayed here -->
+                            <h1 style="text-align: center;">Notifications</h1>
+                            <div id="ViewAllNotificationsContainer" class="view-all-notifications-container" style="margin-top: 5px">
+                                <!-- Latest notifications will be displayed here -->
+                                <div class="notifications-tab" style="overflow-x: auto;">
+                                    <button type="button" class="notifications-tablinks active" style="padding: 5px 10px" onclick="openNotificationsTab(event, 'allNotificationsList')">All <span class="all-notifications-count"></span></button>
+                                    <button type="button" class="notifications-tablinks" style="padding: 5px 10px" onclick="openNotificationsTab(event, 'pendingNotificationsList')">Pending <span class="pending-notifications-count"></span></button>
+                                    <button type="button" class="notifications-tablinks" style="padding: 5px 10px" onclick="openNotificationsTab(event, 'approvedNotificationsList')">Approved <span class="approved-notifications-count"></span></button>
+                                    <button type="button" class="notifications-tablinks" style="padding: 5px 10px" onclick="openNotificationsTab(event, 'rejectedNotificationsList')">Rejected <span class="rejected-notifications-count"></span></button>
+                                    <button type="button" class="notifications-tablinks" style="padding: 5px 10px" onclick="openNotificationsTab(event, 'restoredNotificationsList')">Restored <span class="restored-notifications-count"></span></button>
+                                    <button type="button" class="notifications-tablinks" style="padding: 5px 10px" onclick="openNotificationsTab(event, 'archivedNotificationsList')">Archived <span class="archived-notifications-count"></span></button>
+                                    <button type="button" class="notifications-tablinks" style="padding: 5px 10px" onclick="openNotificationsTab(event, 'deletedNotificationsList')">Deleted <span class="deleted-notifications-count"></span></button>
+                                    <button type="button" class="notifications-tablinks" style="padding: 5px 10px" onclick="openNotificationsTab(event, 'updatedNotificationsList')">Updated <span class="updated-notifications-count"></span></button>
+                                </div>
+                                <div id="allNotificationsList" class="notifications-tabcontent" style="display: block; height: 50vh; overflow-y: auto; border: none;"></div>
+                                <div id="pendingNotificationsList" class="notifications-tabcontent" style="height: 50vh; overflow-y: auto; border: none;"></div>
+                                <div id="approvedNotificationsList" class="notifications-tabcontent" style="height: 50vh; overflow-y: auto; border: none;"></div>
+                                <div id="rejectedNotificationsList" class="notifications-tabcontent" style="height: 50vh; overflow-y: auto; border: none;"></div>
+                                <div id="restoredNotificationsList" class="notifications-tabcontent" style="height: 50vh; overflow-y: auto; border: none;"></div>
+                                <div id="archivedNotificationsList" class="notifications-tabcontent" style="height: 50vh; overflow-y: auto; border: none;"></div>
+                                <div id="deletedNotificationsList" class="notifications-tabcontent" style="height: 50vh; overflow-y: auto; border: none;"></div>
+                                <div id="updatedNotificationsList" class="notifications-tabcontent" style="height: 50vh; overflow-y: auto; border: none;"></div>
                             </div>
                         </div>
                     </div>

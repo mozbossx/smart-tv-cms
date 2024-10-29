@@ -32,8 +32,11 @@ include 'get_session.php';
                 <!-- search form -->
                 <form class="search-form" style="width: 550px; max-width: 100%; margin: 0 auto; margin-bottom: 10px;">
                     <div class="floating-label-container">
-                        <input type="text" id="searchInput" required placeholder=" " class="floating-label-input">
+                        <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchTvs()">
                         <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search for TV Name, Brand, Department, or ID</label>
+                        <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                            <i class="fa fa-times" aria-hidden="true"></i>
+                        </button>
                     </div>
                 </form>
 
@@ -88,25 +91,34 @@ include 'get_session.php';
     </div>
     <script src="misc/js/tv_frames.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        function searchTvs() {
             const searchInput = document.getElementById('searchInput');
+            const clearSearchButton = document.getElementById('clearSearch');
             const tvContainers = document.querySelectorAll('.content-container');
+            const searchTerm = searchInput.value.toLowerCase().trim();
 
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
-
-                tvContainers.forEach(container => {
-                    const tvName = container.getAttribute('data-tv-name');
-                    const tvBrand = container.getAttribute('data-tv-brand');
-                    const tvId = container.getAttribute('data-tv-id');
-                    const tvDepartment = container.getAttribute('data-tv-department');
-                    if (tvName.includes(searchTerm) || tvBrand.includes(searchTerm) || tvId.includes(searchTerm) || tvDepartment.includes(searchTerm)) {
-                        container.style.display = '';
-                    } else {
-                        container.style.display = 'none';
-                    }
-                });
+            tvContainers.forEach(container => {
+                const tvName = container.getAttribute('data-tv-name');
+                const tvBrand = container.getAttribute('data-tv-brand');
+                const tvId = container.getAttribute('data-tv-id');
+                const tvDepartment = container.getAttribute('data-tv-department');
+                
+                if (tvName.includes(searchTerm) || tvBrand.includes(searchTerm) || tvId.includes(searchTerm) || tvDepartment.includes(searchTerm)) {
+                    container.style.display = '';
+                } else {
+                    container.style.display = 'none';
+                }
             });
+
+            // Show or hide the clear search button based on the input value
+            clearSearchButton.style.display = searchTerm ? 'block' : 'none';
+        }
+
+        // Add event listener for the clear search button
+        document.getElementById('clearSearch').addEventListener('click', function() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = '';
+            searchTvs(); // Reset the search results
         });
     </script>
 </body>

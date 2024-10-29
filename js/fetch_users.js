@@ -2,6 +2,7 @@ const userTableContainer = document.getElementById('userTableContainer');
 
 const loggedInUserId = document.getElementById('user-data').getAttribute('data-user-id');
 const loggedInUserType = document.getElementById('user-data').getAttribute('data-user-type');
+const loggedInUserDepartment = document.getElementById('user-data').getAttribute('data-user-department');
 
 const formatDateTime = (dateString) => {
     if (!dateString) return '';
@@ -129,7 +130,7 @@ const displayUserTable = (data) => {
                     <th onclick="sortTable(6)">Status</th>
                     <th onclick="sortTable(7)">Date Registered (MM/DD/YYYY)</th>
                     <th onclick="sortTable(8)">Date Approved (MM/DD/YYYY)</th>
-                    <th onclick="sortTable(9)">Evaluated By</th>
+                    <th onclick="sortTable(9)">Approved/Rejected By</th>
                     <th>Reject Message</th>
                     <th>Actions</th>
                 </tr>
@@ -360,18 +361,18 @@ const generateOperationsButtons = (userId, status, userType, loggedInUserType) =
     let buttons = '';
     if (status === 'Pending') {
         buttons = `
-            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showApproveUserModal(${userId}, '${full_name}')">Approve</button>
-            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showRejectUserModal(${userId}, '${full_name}')">Reject</button>
+            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showApproveUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Approve</button>
+            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showRejectUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Reject</button>
         `;
     } else if (status === 'Rejected') {
         buttons = `
-            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showApproveUserModal(${userId}, '${full_name}')">Approve</button>
-            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteUserModal(${userId}, '${full_name}')">Delete</button>
+            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showApproveUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Approve</button>
+            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Delete</button>
         `;
     } else {
         buttons = `
-            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showEditUserModal(${userId}, '${full_name}')">Edit</button>
-            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteUserModal(${userId}, '${full_name}')">Delete</button>
+            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showEditUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Edit</button>
+            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Delete</button>
         `;
     }
     return `<div style="display: flex; flex-direction: column; align-items: center;">${buttons}</div>`;
@@ -430,7 +431,7 @@ const insertApproveUserModalContent = (userId) => createModal('ApproveUserModal'
         <p id="approveMessage" style="text-align: center">Proceed to approve this user?</p>
         <br>
         <div style="text-align: right;">
-            <button id="cancelApproveUserModalButton" class="green-button" style="background: #334b353b; color: black" type="button">Cancel</button>
+            <button id="cancelApproveUserModalButton" class="grey-button" type="button">Cancel</button>
             <button id="approveUserButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, I want to approve</b></button>
         </div>
     </div>
@@ -449,7 +450,7 @@ const insertRejectUserModalContent = (userId) => createModal('RejectUserModal', 
         </div>
         <br>
         <div style="text-align: right;">
-            <button id="cancelRejectUserModalButton" class="red-button" style="background: #334b353b; color: black" type="button">Cancel</button>
+            <button id="cancelRejectUserModalButton" class="grey-button" type="button">Cancel</button>
             <button id="rejectUserButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, I want to reject</b></button>
         </div>
     </div>
@@ -468,25 +469,25 @@ const insertDeleteUserModalContent = (userId) => createModal('DeleteUserModal', 
         </div>
         <br>
         <div style="text-align: right;">
-            <button id="cancelDeleteUserModalButton" class="red-button" style="background: #334b353b; color: black" type="button">Cancel</button>
+            <button id="cancelDeleteUserModalButton" class="grey-button" type="button">Cancel</button>
             <button id="deleteUserButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, I want to delete</b></button>
         </div>
     </div>
 `);
 
-const showApproveUserModal = (userId, evaluatorName) => {
-    insertApproveUserModalContent(userId, evaluatorName);
-    showModal('ApproveUserModal', 'approveUserButton', () => approveTableUser(userId, evaluatorName));
+const showApproveUserModal = (userId, evaluatorName, department, evaluatorId) => {
+    insertApproveUserModalContent(userId, evaluatorName, department, evaluatorId);
+    showModal('ApproveUserModal', 'approveUserButton', () => approveTableUser(userId, evaluatorName, department, evaluatorId));
 };
 
-const showRejectUserModal = (userId, evaluatorName) => {
-    insertRejectUserModalContent(userId, evaluatorName);
-    showModal('RejectUserModal', 'rejectUserButton', () => rejectTableUser(userId, evaluatorName));
+const showRejectUserModal = (userId, evaluatorName, department, evaluatorId) => {
+    insertRejectUserModalContent(userId, evaluatorName, department, evaluatorId);
+    showModal('RejectUserModal', 'rejectUserButton', () => rejectTableUser(userId, evaluatorName, department, evaluatorId));
 };
 
-const showDeleteUserModal = (userId, evaluatorName) => {
-    insertDeleteUserModalContent(userId, evaluatorName);
-    showModal('DeleteUserModal', 'deleteUserButton', () => deleteTableUser(userId, evaluatorName));
+const showDeleteUserModal = (userId, evaluatorName, department, evaluatorId) => {
+    insertDeleteUserModalContent(userId, evaluatorName, department, evaluatorId);
+    showModal('DeleteUserModal', 'deleteUserButton', () => deleteTableUser(userId, evaluatorName, department, evaluatorId));
 };
 
 const showAddUserModal = (userId) => {
@@ -524,7 +525,7 @@ const showAddUserModal = (userId) => {
                     </div>
                     <br>
                     <div style="max-height: 150px; overflow: auto">
-                        <p style="font-size: 12px; color: #666; text-align: left; margin-top: 10px">CSV format example:</p>
+                        <p style="font-size: 12px; color: #666; text-align: left; margin-top: 10px">Correct .csv format example:</p>
                         <div class="table-container">
                             <table style="font-size: 12px">
                                 <tr style="user-select: none;">
@@ -576,7 +577,7 @@ const showAddUserModal = (userId) => {
                 </div>
                 <br>
                 <div style="text-align: right;">
-                    <button type="button" id="cancelAddUserModalButton" class="green-button" style="margin: 0; background: #334b353b; color: black">Cancel</button>
+                    <button type="button" id="cancelAddUserModalButton" class="grey-button">Cancel</button>
                     <button type="submit" id="addUserButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Add User(s)</b></button>
                 </div>
             </form>
@@ -667,6 +668,10 @@ const addUser = () => {
     
     if (document.querySelector('.tablinks.active').textContent === 'Multiple Users') {
         formData.append('action', 'add_multiple_users');
+        formData.append('evaluator_name', full_name);
+        formData.append('evaluator_id', user_id);
+        formData.append('evaluator_type', loggedInUserType);
+        formData.append('evaluator_department', loggedInUserDepartment);
         const csvFile = document.getElementById('csv_file').files[0];
         if (csvFile) {
             const reader = new FileReader();
@@ -681,8 +686,14 @@ const addUser = () => {
             return;
         }
     } else {
+        const password = Math.random().toString(36).slice(-8);
+
         formData.append('action', 'add_user');
         formData.append('evaluator_name', full_name);
+        formData.append('evaluator_id', user_id);
+        formData.append('evaluator_type', loggedInUserType);
+        formData.append('evaluator_department', loggedInUserDepartment);
+        formData.append('password', password);
         // Client-side validation
         const fullName = formData.get('full_name');
         const email = formData.get('email');
@@ -709,9 +720,7 @@ const addUser = () => {
             document.getElementById('errorModalVersion2').style.display = 'flex';
             return;
         }
-        // Generate a random password for single user
-        const password = Math.random().toString(36).slice(-8);
-        formData.append('password', password);
+        
         sendFormData(formData);
     }
 };
@@ -730,9 +739,12 @@ const sendFormData = (formData) => {
                 const message = JSON.parse(event.data);
                 if (message.action === 'add_user') {
                     if (message.success == true) {
+                        // Send email with temporary password
+                        sendTempPasswordEmail(formData.get('email'), formData.get('password'), formData.get('full_name'), formData.get('department'), full_name);
                         document.getElementById('successMessageVersion2').textContent = `User added successfully! The temporary password is sent to the user's email.`;
                         document.getElementById('AddUserModal').style.display = 'none';
                         document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                        console.log("Form Data: ", formData);
                     } else if (message.success == false) {
                         document.getElementById('errorTextVersion2').textContent = message.message;
                         document.getElementById('AddUserModal').style.display = 'none';
@@ -749,6 +761,13 @@ const sendFormData = (formData) => {
                         document.getElementById('successMessageVersion2').innerHTML = successMessage;
                         document.getElementById('AddUserModal').style.display = 'none';
                         document.getElementById('successMessageModalVersion2').style.display = 'flex';
+
+                        // Send temporary password emails for each successfully added user
+                        if (message.addedUsers && message.addedUsers.length > 0) {
+                            message.addedUsers.forEach(user => {
+                                sendTempPasswordEmail(user.email, user.password, user.full_name, user.department, formData.get('evaluator_name'));
+                            });
+                        }
                     } else if (message.success == false){
                         document.getElementById('errorTextVersion2').innerHTML = message.message;
                         document.getElementById('AddUserModal').style.display = 'none';
@@ -775,27 +794,73 @@ const sendFormData = (formData) => {
         });
 };
 
-const performUserAction = (action, userId, evaluatorName) => {
+const sendTempPasswordEmail = (email, password, full_name, department, evaluator_name) => {
+    fetch('send_temp_password_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&full_name=${encodeURIComponent(full_name)}&department=${encodeURIComponent(department)}&evaluator_name=${encodeURIComponent(evaluator_name)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Temporary password email sent successfully');
+        } else {
+            console.error('Failed to send temporary password email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending temporary password email:', error);
+    });
+};
+
+const sendDeletedUserEmail = (email, full_name, department, evaluator_name, evaluator_message) => {
+    fetch('send_deleted_user_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `email=${encodeURIComponent(email)}&full_name=${encodeURIComponent(full_name)}&department=${encodeURIComponent(department)}&evaluator_name=${encodeURIComponent(evaluator_name)}&evaluator_message=${encodeURIComponent(evaluator_message)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Deleted user email sent successfully');
+        } else {
+            console.error('Failed to send deleted user email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending deleted user email:', error);
+    });
+};
+
+const performUserAction = (action, userId, evaluatorName, department, evaluatorId) => {
     if (action === 'approve_user') {
         sendWebSocketMessage({
             action: action,
             user_id: userId,
-            full_name: evaluatorName
+            department: department,
+            full_name: evaluatorName,
+            evaluator_id: evaluatorId
         });
     } else {
         const evaluatedMessage = document.getElementById('evaluator_message').value;
         sendWebSocketMessage({
             action: action,
             user_id: userId,
+            department: department,
             full_name: evaluatorName,
+            evaluator_id: evaluatorId,
             evaluator_message: evaluatedMessage
         });
     }
 };
 
-const approveTableUser = (userId, evaluatorName) => performUserAction('approve_user', userId, evaluatorName);
-const rejectTableUser = (userId, evaluatorName) => performUserAction('reject_user', userId, evaluatorName);
-const deleteTableUser = (userId, evaluatorName) => performUserAction('delete_user', userId, evaluatorName);
+const approveTableUser = (userId, evaluatorName, department, evaluatorId) => performUserAction('approve_user', userId, evaluatorName, department, evaluatorId);
+const rejectTableUser = (userId, evaluatorName, department, evaluatorId) => performUserAction('reject_user', userId, evaluatorName, department, evaluatorId);
+const deleteTableUser = (userId, evaluatorName, department, evaluatorId) => performUserAction('delete_user', userId, evaluatorName, department, evaluatorId);
 
 /* ============== EDIT USER DETAILS ============== */
 // Function to populate the edit user modal with user data
@@ -825,7 +890,7 @@ const populateEditUserModal = (userId) => {
                 </div>
                 <br>
                 <div style="text-align: right;">
-                    <button type="button" id="cancelEditUserModalButton" class="green-button" style="margin: 0; background: #334b353b; color: black">Cancel</button>
+                    <button type="button" id="cancelEditUserModalButton" class="grey-button">Cancel</button>
                     <button type="submit" id="editUserButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Update</b></button>
                 </div>
             </form>
@@ -935,16 +1000,12 @@ const sendWebSocketMessage = (data) => {
                             document.getElementById('successMessageModalVersion2').style.display = 'flex';
                             break;
                         case 'delete_user':
-                            successMessage = 'User deleted successfully!';
-                            document.getElementById('DeleteUserModal').style.display = 'none';
-                            document.getElementById('successMessageVersion2').textContent = successMessage;
-                            document.getElementById('successMessageModalVersion2').style.display = 'flex';
-                            break;
                         case 'user_deleted':
                             successMessage = 'User deleted successfully!';
                             document.getElementById('DeleteUserModal').style.display = 'none';
                             document.getElementById('successMessageVersion2').textContent = successMessage;
                             document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                            sendDeletedUserEmail(message.email, message.full_name, message.department, message.evaluator_name, message.evaluator_message);
                             break;
                     }
                     refreshUserTable();

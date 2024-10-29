@@ -8,6 +8,8 @@ include 'get_session.php';
 
 include 'admin_access_only.php';
 
+// Send new user email here
+
 ?>
 
 <!DOCTYPE html>
@@ -50,7 +52,7 @@ include 'admin_access_only.php';
                                 <li class="breadcrumb-item active" aria-current="page">Manage Users</li>
                             </ol>
                         </nav>                        
-                        <div id="user-data" data-user-id="<?php echo $user_id; ?>" data-user-type="<?php echo $user_type; ?>"></div>
+                        <div id="user-data" data-user-id="<?php echo $user_id; ?>" data-user-type="<?php echo $user_type; ?>" data-user-department="<?php echo $department; ?>"></div>
                         <div style="display: flex; justify-content: flex-end;">
                             <button type="button" class="green-button" id="selectMultipleBtn" style="margin-right: 5px"><i class="fa fa-check-square" style="margin-right: 2px"></i> Select Multiple</button>
                             <button type="button" class="green-button" id="deleteSelectedBtn" style="margin-right: 5px; display: none"><i class="fa fa-user-times" style="margin-right: 2px"></i> Delete Selected</button>

@@ -240,7 +240,7 @@ const showArchiveAnnModal = (annId) => {
 // 4. archiveAnnouncement
 const archiveAnnouncement = (type, id) => {
     const data = {
-        action: 'archive',
+        action: 'archive_content',
         type: 'announcement',
         announcement_id : id
     };
@@ -554,7 +554,7 @@ const showArchiveEventModal = (eventId) => {
 // 4. archiveEvent
 const archiveEvent = (type, id) => {
     const data = {
-        action: 'archive',
+        action: 'archive_content',
         type: 'event',
         event_id : id
     };
@@ -856,7 +856,7 @@ const showArchiveNewsModal = (newsId) => {
 // 4. archiveNews
 const archiveNews = (type, id) => {
     const data = {
-        action: 'archive',
+        action: 'archive_content',
         type: 'news',
         news_id : id
     };
@@ -1146,7 +1146,7 @@ const showArchivePromaterialModal = (promaterialId) => {
 // 4. archivePromaterial
 const archivePromaterial = (type, id) => {
     const data = {
-        action: 'archive',
+        action: 'archive_content',
         type: 'promaterial',
         promaterial_id : id
     };
@@ -1433,7 +1433,7 @@ const showArchivePEOModal = (peoId) => {
 // 4. archivePEO
 const archivePEO = (type, id) => {
     const data = {
-        action: 'archive',
+        action: 'archive_content',
         type: 'peo',
         peo_id : id
     };
@@ -1720,7 +1720,7 @@ const showArchiveSOModal = (soId) => {
 // 4. archiveSO
 const archiveSO = (type, id) => {
     const data = {
-        action: 'archive',
+        action: 'archive_content',
         type: 'so',
         so_id : id
     };
@@ -1977,7 +1977,7 @@ const fetchAndUpdateSOs = () => {
 /* Web-Socket Server Connection */
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
-    if (data.action === 'delete' || data.action === 'archive') {
+    if (data.action === 'delete' || data.action === 'archive_content') {
         if (data.type === 'announcement' && data.success) {
             const announcementDiv = document.querySelector(`[data-ann-id="${data.announcement_id}"]`);
             if (announcementDiv) {

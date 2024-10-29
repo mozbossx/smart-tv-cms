@@ -185,7 +185,7 @@ $conn->close();
                     <div class="content-form">
                         <!-- Breadcrumb Navigation -->
                         <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb">
+                            <ol class="breadcrumb" style="width: 420px; overflow: auto">
                                 <?php 
                                     if ($user_type == 'Super Admin') {
                                         echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Super Admin Options</a></li>';

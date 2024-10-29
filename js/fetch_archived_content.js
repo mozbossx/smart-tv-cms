@@ -1,14 +1,18 @@
-function formatDate(dateTimeString) {
+function formatDateTime(dateTimeString) {
     const dateTime = new Date(dateTimeString);
-    const options = {
+    const dateOptions = {
         month: 'short',
         day: 'numeric',
-        year: 'numeric',
+        year: 'numeric'
+    };
+    const timeOptions = {
         hour: 'numeric',
         minute: 'numeric',
         hour12: true
     };
-    return new Intl.DateTimeFormat('en-US', options).format(dateTime);
+    const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(dateTime);
+    const formattedTime = new Intl.DateTimeFormat('en-US', timeOptions).format(dateTime);
+    return `${formattedDate} (${formattedTime})`;
 }
 
 // Utility function to create buttons
@@ -24,7 +28,7 @@ const createDeleteButton = (text, iconClass, onClick) => {
     return button;
 };
 
-const createArchiveButton = (text, iconClass, onClick) => {
+const createRestoreButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
     button.className = 'light-green-button';
@@ -96,8 +100,8 @@ const updateUI = async (data, type) => {
     console.log(tvInfo);
 
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
-    const formattedCreatedDateTime = formatDate(data.created_datetime);
-    const formattedExpirationDateTime = formatDate(data.expiration_datetime);
+    const formattedCreatedDateTime = formatDateTime(data.created_datetime);
+    const formattedExpirationDateTime = formatDateTime(data.expiration_datetime);
 
     let mediaContent = '';
     if (data.media_path) {
@@ -145,13 +149,13 @@ const updateUI = async (data, type) => {
             margin-top: 10px;
         `;
 
-        const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
-        const unarchiveButton = createArchiveButton('Unarchive', 'fa fa-arrow-circle-o-up', () => showUnarchiveModal(data[`${type}_id`], type));
+        const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name));
+        const restoreButton = createRestoreButton('Restore', 'fa fa-refresh', () => showRestoreModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.tv_id, data.expiration_datetime));
         const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
-        if (userType !== 'Student' && userType !== 'Faculty' || data[`${type}_author_id`] === userId) {
+        if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
             buttonContainer.appendChild(deleteButton);
-            buttonContainer.appendChild(unarchiveButton);
+            buttonContainer.appendChild(restoreButton);
             buttonContainer.appendChild(editButton);
         }
 
@@ -172,29 +176,87 @@ const fetchTVInfo = async (type, tv_id) => {
     }
 };
 
-// Function to unarchive an item
-const unarchiveItem = (type, id) => {
+// Function to restore an item
+const restoreItem = (type, id, author_id, full_name, tv_id, isExpired) => {
+    const evaluatorMessageElement = document.getElementById('evaluator_message');
+    let evaluatorMessage = null;
+
+    if (evaluatorMessageElement) {
+        evaluatorMessage = evaluatorMessageElement.value;
+        if (!evaluatorMessage) {
+            alert('Evaluator message is required.');
+            return;
+        }
+    }
+
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
-    const modal = document.getElementById(`confirmUnarchive${capitalizedType}Modal`);
-    const data = {
-        action: 'unarchive',
+    const modal = document.getElementById(`confirmRestore${capitalizedType}Modal`);
+    
+    let action = 'restore_content';
+    let data = {
+        action: action,
         type: type,
-        [`${type}_id`]: id // Dynamically set the ID based on the type
+        [`${type}_id`]: id,
+        user_id: user_id,
+        author_id: author_id,
+        evaluator_name: full_name,
+        evaluator_message: evaluatorMessage,
+        content_tv_id: tv_id
     };
-    console.log(data);
+
+    if (isExpired) {
+        const newExpirationDateTime = document.getElementById('new_expiration_datetime').value;
+        if (!newExpirationDateTime) {
+            alert('New expiration date and time is required.');
+            return;
+        }
+        
+        // Check if the new expiration date is in the past
+        const newExpirationDate = new Date(newExpirationDateTime);
+        const currentDate = new Date();
+        if (newExpirationDate < currentDate) {
+            const errorModal = document.getElementById('errorModalVersion2');
+            const errorMessage = document.getElementById('errorTextVersion2');
+            errorModal.style.display = 'flex';
+            errorMessage.textContent = 'The new expiration date cannot be in the past.';
+            return;
+        }
+
+        action = 'restore_content_and_update_expiration';
+        data.action = action;
+        data.expiration_datetime = newExpirationDateTime;
+    }
+
+    console.log("Restored Content Data: ", data);
     modal.style.display = 'none';
-    Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
+    Ws.send(JSON.stringify(data));
 };
 
 // Function to delete an item
-const deleteItem = (type, id) => {
+const deleteItem = (type, id, author_id, full_name) => {
+    const evaluatorMessageElement = document.getElementById('evaluator_message');
+    let evaluatorMessage = null;
+
+    if (evaluatorMessageElement) {
+        evaluatorMessage = evaluatorMessageElement.value;
+        if (!evaluatorMessage) {
+            alert('Evaluator message is required.');
+            return;
+        }
+    }
+    
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
     const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
     const data = {
         action: 'delete_content',
         type: type,
-        [`${type}_id`]: id // Dynamically set the ID based on the type
+        [`${type}_id`]: id, // Dynamically set the ID based on the type
+        user_id: user_id,
+        author_id: author_id,
+        evaluator_name: full_name,
+        evaluator_message: evaluatorMessage
     };
+    console.log("Deleted Content Data: ", data);
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
@@ -238,12 +300,12 @@ const createModals = (contentTypes) => {
     contentTypes.forEach(type => {
         const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
         
-        // Unarchive Modal
-        const unarchiveModal = document.createElement('div');
-        unarchiveModal.id = `confirmUnarchive${capitalizedType}Modal`;
-        unarchiveModal.className = 'modal';
-        unarchiveModal.innerHTML = `<div id="unarchive${capitalizedType}ModalContent"></div>`;
-        modalContainer.appendChild(unarchiveModal);
+        // Restore Modal
+        const restoreModal = document.createElement('div');
+        restoreModal.id = `confirmRestore${capitalizedType}Modal`;
+        restoreModal.className = 'modal';
+        restoreModal.innerHTML = `<div id="restore${capitalizedType}ModalContent"></div>`;
+        modalContainer.appendChild(restoreModal);
 
         // Delete Modal
         const deleteModal = document.createElement('div');
@@ -256,24 +318,47 @@ const createModals = (contentTypes) => {
     document.body.appendChild(modalContainer);
 };
 
-// Function to show unarchive modal
-const showUnarchiveModal = (id, type) => {
+// Function to show restore modal
+const showRestoreModal = (id, type, author_id, full_name, tv_id, expirationDateTime) => {
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
-    const modal = document.getElementById(`confirmUnarchive${capitalizedType}Modal`);
-    const modalContent = document.getElementById(`unarchive${capitalizedType}ModalContent`);
+    const modal = document.getElementById(`confirmRestore${capitalizedType}Modal`);
+    const modalContent = document.getElementById(`restore${capitalizedType}ModalContent`);
     modalContent.className = 'modal-content';
+    modalContent.style = `
+        padding: 15px;
+    `;
+
+    const currentDate = new Date();
+    const expirationDate = new Date(expirationDateTime);
+    const isExpired = expirationDate < currentDate;
+
+    const evaluatorMessageHtml = user_id != author_id ? `
+        <div class="floating-label-container">
+            <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+            <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+        </div>
+        <br>
+    ` : '';
+
+    const expirationDateHtml = isExpired ? `
+        <div class="floating-label-container">
+            <input type="datetime-local" id="new_expiration_datetime" name="new_expiration_datetime" required class="floating-label-input">
+            <label for="new_expiration_datetime" class="floating-label">New Expiration Date and Time</label>
+        </div>
+        <br>
+    ` : '';
     
     modalContent.innerHTML = `
-        <div class="yellow-bar-vertical">
-            <span class="close" onclick="document.getElementById('confirmUnarchive${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-arrow-circle-o-up" aria-hidden="true"></i></h1>
-            <p id="deleteMessage" style="text-align: center">Proceed to unarchive?</p>
-            <br>
-            <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="document.getElementById('confirmUnarchive${capitalizedType}Modal').style.display='none'">Cancel</button>
-                <button type="button" class="yellow-button" onclick="unarchiveItem('${type}', '${id}')">Yes, Unarchive</button>
-            </div>
+        <span class="close" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <br>
+        <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-arrow-circle-o-up" aria-hidden="true"></i></h1>
+        <p id="deleteMessage" style="text-align: center">Proceed to restore?</p>
+        <br>
+        ${evaluatorMessageHtml}
+        ${expirationDateHtml}
+        <div style="text-align: right;">
+            <button type="button" class="grey-button" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="yellow-button" onclick="restoreItem('${type}', '${id}', '${author_id}', '${full_name}', '${tv_id}', ${isExpired})">Yes, Restore</button>
         </div>
     `;
     
@@ -281,23 +366,32 @@ const showUnarchiveModal = (id, type) => {
 };
 
 // Function to show delete modal
-const showDeleteModal = (id, type) => {
+const showDeleteModal = (id, type, author_id, full_name) => {
     const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
     const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
     const modalContent = document.getElementById(`delete${capitalizedType}ModalContent`);
     modalContent.className = 'modal-content';
+    modalContent.style = `
+        padding: 15px;
+    `;
+
+    const evaluatorMessageHtml = user_id != author_id ? `
+        <div class="floating-label-container">
+            <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+            <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+        </div>
+        <br>
+    ` : '';
     
     modalContent.innerHTML = `        
-        <div class="red-bar-vertical">
-            <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-            <p id="deleteMessage" style="text-align: center">Proceed to delete?</p>
-            <br>
-            <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
-                <button type="button" class="red-button" onclick="deleteItem('${type}', '${id}')">Yes, Delete</button>
-            </div>
+        <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <br>
+        <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+        <p id="deleteMessage" style="text-align: center">Proceed to delete?</p>
+        <br>
+        <div style="text-align: right;">
+            <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="red-button" onclick="deleteItem('${type}', '${id}', '${author_id}', '${full_name}')">Yes, Delete</button>
         </div>
     `;
     
@@ -374,7 +468,7 @@ Ws.addEventListener('message', function(event) {
             console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been deleted.`);
             break;
 
-        case 'archive':
+        case 'archive_content':
             // Handle unarchiving confirmation
             console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been archived.`);
             fetchAndUpdate(data.type);
@@ -387,25 +481,25 @@ Ws.addEventListener('message', function(event) {
             if (updatedDiv) {
                 // Update the content of the existing item
                 fetchAndUpdate(data.type);
-                updatedDiv.querySelector('.content-container-con').innerHTML = createContentDiv(data, /* mediaContent */ '', formatDate(data.created_datetime), formatDate(data.expiration_datetime));
+                updatedDiv.querySelector('.content-container-con').innerHTML = createContentDiv(data, /* mediaContent */ '', formatDateTime(data.created_datetime), formatDateTime(data.expiration_datetime));
             } else {
                 fetchAndUpdate(data.type);
                 console.log(`Received update for non-existing ${data.type} with ID ${data[`${data.type}_id`]}.`);
             }
             break;
 
-        case 'unarchive':
+        case 'restore_content':
             // Handle archiving confirmation
-            const unarchivedDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
-            if (unarchivedDiv) {
-                unarchivedDiv.remove(); // Remove the unarchived item from the UI
+            const restoredDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
+            if (restoredDiv) {
+                restoredDiv.remove(); // Remove the restored item from the UI
             }
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been unarchived.`);
+            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been restored.`);
             break;
         
-        case 'unarchive_and_update_expiration':
+        case 'restore_content_and_update_expiration':
             // Handle unarchiving confirmation
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been unarchived.`);
+            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been restored.`);
             fetchAndUpdate(data.type);
             break;
 

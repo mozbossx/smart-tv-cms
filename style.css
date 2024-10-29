@@ -215,8 +215,25 @@ body {
     -ms-user-select: none;
 }
 
+.logo-header-container {
+    padding-left: 20px;
+    padding-top: 10px;
+}
+
 .logo-header {
     width: 300px;
+    height: auto;
+    cursor: pointer;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.logo-header-2 {
+    display: none;
+    width: 50px;
     height: auto;
     user-select: none;
     -moz-user-select: none;
@@ -1359,7 +1376,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     z-index: 1000;
     position: fixed;
     top: 5px;
-    right: 5px;
+    left: 5px;
     width: 50px;
     height: 50px;
     border-radius: 5px;
@@ -2101,6 +2118,47 @@ tr:nth-child(even) {
     border-top: none;
 }
 
+.view-all-notifications-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.notifications-tab {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+    user-select: none;
+    width: 120px;
+}
+
+.notifications-tablinks {
+    text-align: right;
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+
+.notifications-tablinks:hover {
+    background-color: #ddd;
+}
+
+.notifications-tablinks.active {
+    background-color: #ccc;
+}
+
+.notifications-tabcontent {
+    display: none;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
 .notification-count {
     display: none;
     background: red;
@@ -2113,6 +2171,42 @@ tr:nth-child(even) {
     position: absolute;
     left: 15px;
     top: 8px;
+}
+
+.notifications-button-mobile-container {
+    display: none;
+}
+
+.notification-count-mobile {
+    display: none;
+    background: red;
+    color: white;
+    padding: 5px;
+    border-radius: 3px;
+    border: rgb(171, 0, 0) 1px solid;
+    font-weight: bold;
+    font-size: 10px;
+    position: absolute;
+    right: 33px;
+    top: 30px;
+}
+
+.all-notifications-count, 
+.pending-notifications-count,
+.approved-notifications-count, 
+.rejected-notifications-count, 
+.restored-notifications-count, 
+.archived-notifications-count, 
+.deleted-notifications-count,
+.updated-notifications-count,
+.all-notifications-count-2 {
+    background: none;
+    color: rgb(123, 123, 123);
+    padding: 2px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 15px;
+    margin-left: 5px;
 }
 
 .evaluator-message-notification {
@@ -2150,7 +2244,12 @@ tr:nth-child(even) {
 
 .notifications-container {
     overflow-y: auto;
-    max-height: 300px;
+    height: 325px;
+}
+
+.notifications-container-mobile {
+    overflow-y: auto;
+    height: 325px;
 }
 
 .notification-details {
@@ -2159,6 +2258,13 @@ tr:nth-child(even) {
 }
 
 .notification-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.view-button-container {
     display: flex;
     flex-direction: row;
     gap: 5px;
@@ -2258,7 +2364,34 @@ tr:nth-child(even) {
     border-radius: 5px;
 }
 
+.notifications-button-mobile {
+    display: none;
+    width: 50px;
+    height: 50px;
+    color: #333333;
+    position: fixed;
+    right: 5px;
+    top: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
 .dropdown-notifications {
+    position: relative;
+    right: 0;
+    background-color: white;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    width: 450px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    border-radius: 10px;
+    transition: 0.5s ease;
+}
+
+.dropdown-notifications-mobile {
     position: relative;
     right: 0;
     background-color: white;
@@ -2279,6 +2412,19 @@ tr:nth-child(even) {
     left: 3px;
     height: 15px;
     width: 15px;
+    border-radius: 6px 0px 0px 0px;
+    transform: rotate(45deg);
+    background: white;
+    z-index: 100;
+}
+
+.triangle-mobile {
+    display: none; /* Initially hidden */
+    position: absolute;
+    top: 56px;
+    right: 15px;
+    height: 30px;
+    width: 30px;
     border-radius: 6px 0px 0px 0px;
     transform: rotate(45deg);
     background: white;
@@ -2334,7 +2480,7 @@ tr:nth-child(even) {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #222222; /* Optional: Add a background color */
+    background: #f0f0f0; /* Optional: Add a background color */
     cursor: grab;
     background-image: linear-gradient(rgba(79, 79, 79, 0.7) .1em, transparent .1em), linear-gradient(90deg, rgba(82, 82, 82, 0.7) .1em, transparent .1em);
     background-size: 3em 3em;
@@ -2695,6 +2841,31 @@ input[type=range]:focus::-ms-fill-upper {
         backdrop-filter: none;
     }
 
+    .logo-header-2 {
+        display: block;
+    }
+
+    .logo-header {
+        display: none;
+    }
+
+    .view-all-notifications-container {
+        flex-direction: column;
+    }
+
+    .notifications-tab {
+        display: block;
+        width: 99%;
+    }
+
+    .notifications-button-mobile-container {
+        display: block;
+    }
+
+    .notifications-button-mobile {
+        display: block;
+    }
+
     .soe-logo, .usc-logo {
         max-width: 100%; /* Ensure the USC icon doesn't overflow its container */
         height: auto;
@@ -2706,6 +2877,15 @@ input[type=range]:focus::-ms-fill-upper {
     .logo-flex{
         display: flex;
         flex-direction: row;
+    }
+
+    .logo-header-container {
+        padding-top: 8px;
+        padding-left: 0;
+    }
+    
+    .logo-header {
+        width: 200px;
     }
     
     .top {
@@ -2847,6 +3027,7 @@ input[type=range]:focus::-ms-fill-upper {
         display: flex;
         border-bottom: 5px solid #F8C021;
         padding-bottom: 0px;
+        justify-content: center;
     }
 
     #menu {
