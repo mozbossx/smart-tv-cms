@@ -7,9 +7,9 @@ session_start();
 include("config_connection.php");
 include 'get_session.php';
 
-$query = "SELECT n.*, COALESCE(u.full_name, n.deleted_user_name) as full_name, 
+$query = "SELECT n.*, COALESCE(u.full_name, n.action_user_name) as full_name, 
           COALESCE(u.user_type, 'Deleted') as user_type, 
-          COALESCE(u.department, n.deleted_user_department) as department
+          COALESCE(u.department, n.action_user_department) as department
           FROM notifications_tb n
           LEFT JOIN users_tb u ON n.user_id = u.user_id
           WHERE (u.user_type != 'TBD' OR u.user_type IS NULL) AND (";
@@ -17,81 +17,62 @@ $query = "SELECT n.*, COALESCE(u.full_name, n.deleted_user_name) as full_name,
 $params = [];
 $types = '';
 
-if ($user_type === 'Admin') {
+if ($user_type === 'Admin' || $user_type === 'Faculty' || $user_type === 'Student' || $user_type === 'Staff') {
     $query .= "
         (n.status = 'pending' AND u.department = ?) OR
-        (n.notification_type = 'content_approved' AND u.department = ?) OR
         (n.notification_type = 'user_approved' AND u.department = ?) OR
         (n.notification_type = 'user_approved_by_admin' AND u.department = ?) OR
         (n.notification_type = 'user_rejected' AND u.department = ?) OR
+        (n.notification_type = 'user_rejected_by_admin' AND u.department = ?) OR
+        (n.notification_type = 'user_edited' AND n.status = 'edited' AND u.department = ?) OR
+        (n.notification_type = 'user_edited_by_admin' AND n.status = 'edited' AND u.department = ?) OR
+        (n.notification_type = 'user_deleted' AND n.status = 'deleted' AND n.action_user_department = ?) OR
+        (n.notification_type = 'user_deleted_by_admin' AND n.status = 'deleted' AND n.action_user_department = ?) OR
+        (n.notification_type = 'user_added' AND n.status = 'approved' AND u.department = ?) OR
+        (n.notification_type = 'user_added_by_admin' AND n.status = 'approved' AND u.department = ?) OR
         (n.notification_type = 'content_post' AND n.status = 'approved' AND u.department = ?) OR
+        (n.notification_type = 'content_approved' AND u.department = ?) OR
+        (n.notification_type = 'content_approved_by_admin' AND u.department = ?) OR
         (n.notification_type = 'content_rejected' AND n.status = 'rejected' AND u.department = ?) OR
+        (n.notification_type = 'content_rejected_by_admin' AND n.status = 'rejected' AND u.department = ?) OR
         (n.notification_type = 'content_deleted' AND n.status = 'deleted' AND u.department = ?) OR
         (n.notification_type = 'content_deleted_by_admin' AND n.status = 'deleted' AND u.department = ?) OR
         (n.notification_type = 'content_archived' AND n.status = 'archived' AND u.department = ?) OR
         (n.notification_type = 'content_archived_by_admin' AND n.status = 'archived' AND u.department = ?) OR
         (n.notification_type = 'content_restored' AND n.status = 'restored' AND u.department = ?) OR
-        (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored' AND u.department = ?) OR
-        (n.notification_type = 'user_edited' AND n.status = 'edited' AND u.department = ?) OR
-        (n.notification_type = 'user_deleted' AND n.status = 'deleted' AND n.deleted_user_department = ?) OR
-        (n.notification_type = 'user_edited_by_admin' AND n.status = 'edited' AND u.department = ?) OR
-        (n.notification_type = 'user_added' AND n.status = 'approved' AND u.department = ?) OR
-        (n.notification_type = 'user_added_by_admin' AND n.status = 'approved' AND n.user_id = ?)
+        (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored' AND u.department = ?)
     ";
-    $params = array_fill(0, 17, $department);
-    $params[] = $user_id;
-    $types = str_repeat('s', 17) . 'i';
-} elseif ($user_type === 'Super Admin') {
+    $params = array_fill(0, 22, $department);
+    $types = str_repeat('s', 22);
+} else if ($user_type === 'Super Admin') {
     $query .= "
         n.status = 'pending' OR
-        n.notification_type = 'content_approved' OR
-        n.notification_type = 'user_approved' OR
-        n.notification_type = 'user_approved_by_admin' OR
-        n.notification_type = 'user_rejected' OR
+        (n.notification_type = 'user_approved' AND n.status = 'approved') OR
+        (n.notification_type = 'user_approved_by_admin' AND n.status = 'approved') OR
+        (n.notification_type = 'user_rejected' AND n.status = 'rejected') OR
+        (n.notification_type = 'user_rejected_by_admin' AND n.status = 'rejected') OR
+        (n.notification_type = 'user_edited' AND n.status = 'edited') OR
+        (n.notification_type = 'user_edited_by_admin' AND n.status = 'edited') OR
+        (n.notification_type = 'user_deleted' AND n.status = 'deleted') OR
+        (n.notification_type = 'user_deleted_by_admin' AND n.status = 'deleted') OR
+        (n.notification_type = 'user_added' AND n.status = 'approved') OR
+        (n.notification_type = 'user_added_by_admin' AND n.status = 'approved') OR
         (n.notification_type = 'content_post' AND n.status = 'approved') OR
+        (n.notification_type = 'content_approved' AND n.status = 'approved') OR
+        (n.notification_type = 'content_approved_by_admin' AND n.status = 'approved') OR
         (n.notification_type = 'content_rejected' AND n.status = 'rejected') OR
+        (n.notification_type = 'content_rejected_by_admin' AND n.status = 'rejected') OR
         (n.notification_type = 'content_deleted' AND n.status = 'deleted') OR
         (n.notification_type = 'content_deleted_by_admin' AND n.status = 'deleted') OR
         (n.notification_type = 'content_archived' AND n.status = 'archived') OR
         (n.notification_type = 'content_archived_by_admin' AND n.status = 'archived') OR
         (n.notification_type = 'content_restored' AND n.status = 'restored') OR
-        (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored') OR
-        (n.notification_type = 'user_edited' AND n.status = 'edited') OR
-        (n.notification_type = 'user_deleted' AND n.status = 'deleted') OR
-        (n.notification_type = 'user_edited_by_admin' AND n.status = 'edited' AND n.user_id = ?) OR
-        (n.notification_type = 'user_added' AND n.status = 'approved') OR
-        (n.notification_type = 'user_added_by_admin' AND n.status = 'approved' AND n.user_id = ?)
+        (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored')
     ";
-    $params = [$user_id, $user_id];
-    $types = 'ii';
-} else {
-    $query .= "
-        (n.user_id = ? AND n.status = 'pending') OR
-        (n.notification_type = 'content_approved' AND n.user_id = ?) OR
-        (n.notification_type = 'content_approved_by_admin' AND n.user_id = ?) OR
-        (n.notification_type = 'content_rejected_by_admin' AND n.user_id = ?) OR
-        (n.notification_type = 'content_deleted' AND n.user_id = ?) OR
-        (n.notification_type = 'content_deleted_by_admin' AND n.user_id = ?) OR
-        (n.notification_type = 'content_archived' AND n.user_id = ?) OR
-        (n.notification_type = 'content_archived_by_admin' AND n.user_id = ?) OR
-        (n.notification_type = 'content_restored' AND n.user_id = ?) OR
-        (n.notification_type = 'content_restored_by_admin' AND n.user_id = ?) OR
-        (n.notification_type = 'user_approved_by_admin' AND n.user_id = ?) OR
-        (n.notification_type = 'user_edited_by_admin' AND n.user_id = ?) OR
-        (n.notification_type = 'user_added_by_admin' AND n.user_id = ?)
-    ";
-    $params = array_fill(0, 13, $user_id);
-    $types = str_repeat('i', 13);
-}
-
+    $params = [];
+    $types = '';
+} 
 $query .= ") ORDER BY n.created_at DESC";
-
-error_log("User Type: " . $user_type);
-error_log("User ID: " . $user_id);
-error_log("Department: " . $department);
-error_log("Query: " . $query);
-error_log("Params: " . print_r($params, true));
-error_log("Types: " . $types);
 
 try {
     $stmt = $conn->prepare($query);

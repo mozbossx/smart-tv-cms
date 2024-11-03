@@ -4,7 +4,6 @@ const form = document.getElementById(`${contentType}Form`);
 if (contentType === 'announcement') {
     var announcementBodyQuill = new Quill('#announcement_body', {
         theme: 'snow', // 'snow' is the default theme
-        placeholder: 'Enter Announcement',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
@@ -16,7 +15,6 @@ if (contentType === 'announcement') {
 } else if (contentType === 'event') {
     var eventBodyQuill = new Quill('#event_body', {
         theme: 'snow', // 'snow' is the default theme
-        placeholder: 'Enter Event',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
@@ -28,7 +26,6 @@ if (contentType === 'announcement') {
 } else if (contentType === 'news') {
     var newsBodyQuill = new Quill('#news_body', {
         theme: 'snow', // 'snow' is the default theme
-        placeholder: 'Enter News',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
@@ -40,7 +37,6 @@ if (contentType === 'announcement') {
 } else if (contentType === 'peo') {
     var peoTitleQuill = new Quill('#peo_title', {
         theme: 'snow', // 'snow' is the default theme
-        placeholder: 'Enter PEO Title',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
@@ -52,7 +48,6 @@ if (contentType === 'announcement') {
 
     var peoDescriptionQuill = new Quill('#peo_description', {
         theme: 'snow', // 'snow' is the default theme
-        placeholder: 'Enter PEO Description',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
@@ -64,7 +59,6 @@ if (contentType === 'announcement') {
 
     var peoSubdescriptionQuill = new Quill('#peo_subdescription', {
         theme: 'snow', // 'snow' is the default theme
-        placeholder: 'Enter PEO Sub-Description',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
@@ -76,7 +70,6 @@ if (contentType === 'announcement') {
 } else if (contentType === 'so') {
     var soTitleQuill = new Quill('#so_title', {
         theme: 'snow', // 'snow' is the default theme
-        placeholder: 'Enter SO Title',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
@@ -88,7 +81,6 @@ if (contentType === 'announcement') {
 
     var soDescriptionQuill = new Quill('#so_description', {
         theme: 'snow', // 'snow' is the default theme
-        placeholder: 'Enter SO Description',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
@@ -100,7 +92,6 @@ if (contentType === 'announcement') {
 
     var soSubdescriptionQuill = new Quill('#so_subdescription', {
         theme: 'snow', // 'snow' is the default theme
-        placeholder: 'Enter SO Sub-Description',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],

@@ -11,7 +11,7 @@ include 'get_session.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['full_name']) || !isset($_SESSION['email'])) {
-    header('location: index.php');
+    header('location: login.php?pageid=Login');
     exit;
 }
 
@@ -61,18 +61,18 @@ $stmt->close();
             <button id="minimizeSidebarButton" style="background: none; border: none; height: 40px; width: 40px; margin-top: 10px"><i class="fa fa-angle-left" style="padding-right: 8px; color: white; font-size: 40px"></i></button>
         </div>
         <div class="line-separator"></div>
-        <a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo ($current_page === 'user_home.php' || $current_page === 'edit_announcement.php' || $current_page === 'edit_event.php' || $current_page === 'edit_news.php' || $current_page === 'edit_promaterial.php' || $current_page === 'edit_peo.php') ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-home" style="padding-right: 8px"></i>Home</a>
-        <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php' || $current_page === 'form_facilities.php' || $current_page === 'form_add_new_feature.php') ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-pencil-square" style="padding-right: 8px"></i>Create Post</a>
-        <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'archives.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-archive" style="padding-right: 8px"></i>Archives</a>
+        <a style="font-size: 17px" href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo ($current_page === 'user_home.php' || $current_page === 'edit_announcement.php' || $current_page === 'edit_event.php' || $current_page === 'edit_news.php' || $current_page === 'edit_promaterial.php' || $current_page === 'edit_peo.php') ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-home" style="padding-right: 8px"></i>Home</a>
+        <a style="font-size: 17px" href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php' || $current_page === 'form_facilities.php' || $current_page === 'form_add_new_feature.php') ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-pencil-square" style="padding-right: 8px"></i>Create Post</a>
+        <a style="font-size: 17px" href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'archives.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-archive" style="padding-right: 8px"></i>Archives</a>
         <?php if ($user_type === 'Admin') { ?>
-            <a href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php'? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user-secret" style="padding-right: 8px"></i>Admin Options</a>
+            <a style="font-size: 17px" href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php'? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user-secret" style="padding-right: 8px"></i>Admin Options</a>
         <?php } ?>
         <?php if ($user_type === 'Super Admin') { ?>
-            <a href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php'? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user-secret" style="padding-right: 8px"></i>Super Admin Options</a>
+            <a style="font-size: 17px" href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'admin_options.php' || $current_page === 'manage_users.php' || $current_page === 'manage_smart_tvs.php' || $current_page === 'manage_templates.php' || $current_page === 'edit_template.php' || $current_page === 'manage_posts.php'? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user-secret" style="padding-right: 8px"></i>Super Admin Options</a>
         <?php } ?>
-        <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'profile.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user" style="padding-right: 8px"></i><?php echo $full_name; ?></a>
+        <a style="font-size: 17px" href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'profile.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user" style="padding-right: 8px"></i>Profile</a>
         <div class="line-separator" style="margin-top: 20px"></div>
-        <button style="background: none; border: none; color: white; padding: 10px; width: 100%; text-align: left" onclick="openLogoutModal()"><i class="fa fa-sign-out" style="padding-right: 7px"></i>Logout</button>
+        <button style="font-size: 17px; background: none; border: none; color: white; padding: 10px; width: 100%; text-align: left" onclick="openLogoutModal()"><i class="fa fa-sign-out" style="padding-right: 7px"></i>Logout</button>
         <!-- <a href="logout.php" style="margin-bottom: 80px"><i class="fa fa-sign-out" style="padding-right: 8px"></i>Logout</a> -->
     </nav>
 </div>

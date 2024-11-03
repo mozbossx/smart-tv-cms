@@ -1,14 +1,6 @@
 <?php
-@include 'config_connection.php';
 session_start();
-
-// Github change
-// Check if the user has explicitly logged out
-if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
-    unset($_SESSION['full_name']);
-    header('location: index.php'); // Redirect to the login page
-    exit;
-}
+@include 'config_connection.php';
 
 // Check if the user is already logged in, redirect to user-home.php
 if (isset($_SESSION['full_name'])) {
@@ -16,59 +8,15 @@ if (isset($_SESSION['full_name'])) {
     exit;
 }
 
-if (isset($_POST['submit'])) {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-
-    // Check if email contains '@usc.edu.ph'
-    // if (strpos($email, '@usc.edu.ph') === false) {
-    //     $error[] = "Email must be a USC email address (must contain '@usc.edu.ph')";
-    // } else {
-        if (strlen($password) < 6) {
-            $error[] = "Password should be at least 6 characters long.";
-        } else {
-            $pass = md5($password);
-
-            // Use prepared statements to prevent SQL injection
-            $stmt = $conn->prepare("SELECT * FROM users_tb WHERE email = ? AND password = ?");
-            $stmt->bind_param("ss", $email, $pass);
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-
-                if ($row['status'] === 'Pending') {
-                    $error[] = 'Sorry, your registration status is still pending. Please wait for an Administrator to approve your status.';
-                } else if ($row['status'] === 'Rejected') {
-                    $error[] = 'Sorry, your registration status got rejected by '. $row['evaluated_by'] .' with a message: <br><br>'. $row['evaluated_message'];
-                } else {
-                    // Store user details in session
-                    $_SESSION['user_id'] = $row['user_id'];
-                    $_SESSION['full_name'] = $row['full_name'];
-                    $_SESSION['department'] = $row['department'];
-                    $_SESSION['user_type'] = $row['user_type'];
-                    $_SESSION['email'] = $row['email'];
-
-                    header('location: user_home.php?pageid=UserHome?userId=' .$row['user_id'].''.$row['full_name']);
-                    exit;
-                }
-            } else {
-                $error[] = 'These credentials do not match our records!';
-            }
-
-            $stmt->close();
-        }
-    // }
-} else {
-    $email = "";
-}
+// Get dynamic content from CMS/Database
+$welcomeMessage = "Smart TV Content Management System";
+$subheading = "Empowering Interactive Digital Displays for the University of San Carlos";
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
     <link rel="icon" type="image/png" href="images/usc_icon.png">
@@ -76,65 +24,75 @@ if (isset($_POST['submit'])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <title>Login</title>
+    <link rel="stylesheet" href="style_index.css">
+    <title>Smart TV CMS</title>
 </head>
-<body class="main-body">
-    <div class="container-body">
-        <div class="container-flex top">
-            <div class="logo-flex">
-                <div class="left">
-                    <img src="images/usc_icon.png" class="usc-logo">
-                </div>
-                <div class="right">
-                    <img src="images/soe_icon.png" class="soe-logo">
-                </div>
+<body>
+    <section class="hero-section">
+        <div class="nav-buttons">
+            <a href="login.php?pageid=Login" class="nav-button login-btn">Login</a>
+            <a href="create_account.php?pageid=CreateAccount" class="nav-button create-account-btn">Create Account</a>
+        </div>
+        <div class="hero-content">
+            <div style="display: flex; flex-direction: row">
+                <img src="images/usc_icon.png" class="usc-logo">
+                <img src="images/soe_icon.png" class="soe-logo">
+            </div>
+            
+            <h1 class="hero-title"><?php echo htmlspecialchars($welcomeMessage); ?></h1>
+            <p class="hero-subtitle"><?php echo htmlspecialchars($subheading); ?></p>
+        </div>
+    </section>
+
+    <section class="features-section">
+        <h2 class="section-title">Key Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3 class="feature-title">Mobile Control</h3>
+                <p class="feature-description">Control your Smart TV CMS directly from your smartphone. Post content, manage displays, and make updates on the go.</p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">Interactive Content Management</h3>
+                <p class="feature-description">Create and manage announcements, events, news, and promotional materials with an intuitive interface.</p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">Customizable Display</h3>
+                <p class="feature-description">Adjust content container sizes, fonts, colors, and backgrounds to match your school's branding and needs.</p>
             </div>
         </div>
-        <div class="container-flex bottom">
-            <form action="" method="post">
-                <p class="page-title">Sign In</p>
-                <?php include('error_message.php'); ?>
-                <div class="floating-label-container">
-                    <input type="email" name="email" required placeholder=" " class="floating-label-input" value="<?php echo $email; ?>">
-                    <label for="email" class="floating-label">USC Email</label>
-                </div>
-                <div class="floating-label-container">
-                    <input type="password" name="password" required placeholder=" " class="floating-label-input">
-                    <label for="password" class="floating-label">Password</label>
-                    <i id="togglePassword">Show</i>
-                </div>
-                <p style="text-align: right">
-                    <a href="forgot_password.php" class="forgot-password">Forgot password?</a>
-                </p>
-                <br>
-                <input type="submit" name="submit" value="Login" class=login-button>
-                <div class="line-separator"></div>
-                <p style="text-align: center; user-select: none">Not a member? <a href="create_account.php" class="create-account-link">Create Account</a></p>
-            </form>
+    </section>
+
+    <section class="user-roles">
+        <h2 class="section-title">User Roles & Capabilities</h2>
+        <div class="role-cards">
+            <div class="role-card">
+                <h3 class="role-title">Faculty, Staff, and Students</h3>
+                <ul class="role-features">
+                    <li>Post content for approval</li>
+                    <li>Manage personal profile</li>
+                    <li>Access content archives</li>
+                    <li>Track submission status</li>
+                </ul>
+            </div>
+            <div class="role-card">
+                <h3 class="role-title">Administrator</h3>
+                <ul class="role-features">
+                    <li>Direct content submission</li>
+                    <li>Manage departmental users</li>
+                    <li>Customize TV templates</li>
+                    <li>Control display settings</li>
+                </ul>
+            </div>
+            <div class="role-card">
+                <h3 class="role-title">Super Administrator</h3>
+                <ul class="role-features">
+                    <li>Cross-department management</li>
+                    <li>System-wide control</li>
+                    <li>Advanced customization</li>
+                    <li>User role management</li>
+                </ul>
+            </div>
         </div>
-    </div>
-    <script>
-        // JavaScript to toggle password visibility and show/hide labels
-        const togglePassword = document.querySelector("#togglePassword");
-        const password = document.querySelector("[name='password']");
-        const floatingInput = document.querySelector(".floating-label-input");
-
-        togglePassword.addEventListener("click", function () {
-            // Toggle the type attribute
-            const type = password.getAttribute("type") === "password" ? "text" : "password";
-            password.setAttribute("type", type);
-            // Toggle the text of the toggle button
-            this.textContent = type === "password" ? "Show" : "Hide";
-        });
-
-        floatingInput.addEventListener("input", function () {
-            // Trigger the focus event when the input value is not empty
-            if (this.value.trim() !== "") {
-                this.focus();
-            }
-        });
-    </script>
-
+    </section>
 </body>
 </html>

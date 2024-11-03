@@ -14,7 +14,7 @@ header("Pragma: no-cache");
 
 // Check if the user is not logged in, redirect to the login page
 if (!isset($_SESSION['full_name'])) {
-    header('location: index.php');
+    header('location: login.php?pageid=Login');
     exit;
 }
 

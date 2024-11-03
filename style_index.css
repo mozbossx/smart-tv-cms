@@ -1,0 +1,253 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Questrial", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: #f5f5f5;
+}
+
+.hero-section {
+    /* background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%); */
+    background-color: transparent;
+    color: white;
+    padding: 16rem 4rem;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 10px solid #00ff87;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('images/cpe_hallway.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: brightness(0.5);
+    z-index: 1;
+}
+
+.nav-buttons {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    z-index: 3;
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-button {
+    padding: 0.8rem 1.5rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.login-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.login-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.create-account-btn {
+    background: #00ff87;
+    color: #1a1a1a;
+}
+
+.create-account-btn:hover {
+    background: #00cc6a;
+    transform: translateY(-2px);
+}
+
+.hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 4.0vw;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    animation: slideIn 0.8s ease-out;
+}
+
+.hero-subtitle {
+    font-size: 2.0vw;
+    margin-bottom: 2rem;
+    animation: fadeIn 1s ease-out 0.5s forwards;
+    opacity: 0;
+}
+
+.stats-container {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 3rem;
+}
+
+.stat-box {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+    animation: scaleIn 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+.features-section {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.feature-description {
+    color: #666;
+    line-height: 1.6;
+}
+
+.user-roles {
+    background: #f8f9fa;
+    padding: 4rem 2rem;
+}
+
+.role-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.role-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.role-card:hover {
+    transform: translateY(-5px);
+}
+
+.role-title {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #00ff87;
+    padding-bottom: 0.5rem;
+}
+
+.role-features {
+    list-style: none;
+}
+
+.role-features li {
+    margin-bottom: 0.5rem;
+    color: #666;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.role-features li::before {
+    content: "•";
+    color: #00ff87;
+    position: absolute;
+    left: 0;
+}
+
+.soe-logo, .usc-logo {
+    max-width: 100%; /* Ensure the USC icon doesn't overflow its container */
+    height: auto;
+    width: 60px;
+    padding: 0;
+    margin: 0;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.stat-box:nth-child(1) { animation-delay: 0.8s; }
+.stat-box:nth-child(2) { animation-delay: 1s; }
+.stat-box:nth-child(3) { animation-delay: 1.2s; }
+
+@media screen and (max-width: 768px) {
+    .hero-section {
+        padding: 7rem 2rem;
+    }
+
+    .hero-title {
+        font-size: 10vw;
+    }
+
+    .hero-subtitle {
+        font-size: 5vw;
+    }
+}

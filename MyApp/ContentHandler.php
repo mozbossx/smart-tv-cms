@@ -78,21 +78,21 @@ class ContentHandler implements MessageComponentInterface
 
             $table = $validTypes[$type]['table'];
             $idField = $validTypes[$type]['idField'];
-            $id = $data[$idField];
+            $content_id = $data[$idField];
             $user_id = $data['user_id']; // logged-in user's ID
             $author_id = $data['author_id']; // author's ID
             $evaluator_message = $data['evaluator_message'];
             $evaluator_name = $data['evaluator_name'];
             
             $stmt = $this->pdo->prepare("DELETE FROM {$table} WHERE {$idField} = ?");
-            $stmt->execute([$id]);
+            $stmt->execute([$content_id]);
                 
             $deleted = $stmt->rowCount() > 0;
             if ($deleted) {               
                 // Insert notification for the user who owns the content
                 if ($user_id == $user_id) {
                     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted', 'deleted', ?, ?)");
-                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+                    $stmt->execute([$content_id, $user_id, $type, $evaluator_message, $evaluator_name]);
 
                     $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
                     $stmtUpdateUser1->execute([$author_id]);
@@ -101,7 +101,7 @@ class ContentHandler implements MessageComponentInterface
                 // Insert notification for the user who doesn't own the content
                 if ($author_id != $user_id) {
                     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted_by_admin', 'deleted', ?, ?)");
-                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+                    $stmt->execute([$content_id, $user_id, $type, $evaluator_message, $evaluator_name]);
 
                     $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
                     $stmtUpdateUser2->execute([$user_id]);
@@ -110,7 +110,13 @@ class ContentHandler implements MessageComponentInterface
                 // Broadcast new notification to all clients
                 $this->broadcastNotification('new_notification');
 
-                $response = ['action' => 'delete_content', 'success' => $deleted, 'type' => $type, $idField => $id];
+                $response = [
+                    'action' => 'delete_content', 
+                    'success' => $deleted, 
+                    'type' => $type, 
+                    $idField => $content_id
+                ];
+                
                 echo "{$type} deleted!\n";
 
                 // Notify the client who sent the request and all connected clients
@@ -834,20 +840,20 @@ class ContentHandler implements MessageComponentInterface
                         $data['datetime_registered'] = $datetime_registered;
 
                         // Insert notification for new user registration
-                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status) VALUES (?, 'user_registration', 'pending')");
-                        $stmt->execute([$user_id]);
+                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, action_user_email, action_user_name, action_user_type, action_user_department) VALUES (?, 'user_registration', 'pending', ?, ?, ?, ?)");
+                        $stmt->execute([$user_id, $email, $full_name, $user_type, $department]);
 
-                        // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                        // Increase the notification count of the Super Admin and notify them that a student or faculty posted new content
                         $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin'");
                         $stmtUpdateSuperAdminNotificationCount->execute();
 
-                        // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                        // Increase the notification count of the Admin and notify them that a student or faculty posted new content
                         $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ?");
                         $stmtUpdateAdminNotificationCount->execute([$department]);
 
                         // Increase the notification count of the student or faculty
-                        $stmtUpdateUserWhoRegisteredNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                        $stmtUpdateUserWhoRegisteredNotificationCount->execute([$user_id]);
+                        // $stmtUpdateUserWhoRegisteredNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        // $stmtUpdateUserWhoRegisteredNotificationCount->execute([$user_id]);
                 
                         // Broadcast new notification to all clients
                         $this->broadcastNotification('new_notification');
@@ -892,8 +898,11 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'approve_user') {
             $user_id = $data['user_id'];
+            $email = $data['email'];
+            $full_name = $data['full_name'];
+            $user_type = $data['user_type'];
             $department = $data['department'];
-            $evaluator_name = $data['full_name'];
+            $evaluator_name = $data['evaluator_name'];
             $evaluator_id = $data['evaluator_id'];
         
             // Perform the deletion from the database
@@ -904,8 +913,8 @@ class ContentHandler implements MessageComponentInterface
 
             if ($approve_user) {
                 // Update notification status
-                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'approved', evaluator_name = ?, notification_type = 'user_approved', created_at = NOW() WHERE user_id = ? AND notification_type = 'user_registration'");
-                $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $user_id]);
+                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'approved', evaluator_name = ?, action_user_email = ?, action_user_name = ?, action_user_type = ?, action_user_department = ?, notification_type = 'user_approved', created_at = NOW() WHERE user_id = ? AND notification_type = 'user_registration'");
+                $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $email, $full_name, $user_type, $department, $user_id]);
 
                 // Notify the Admin or Super Admin who approved the user
                 $stmtUserIdEvaluator = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_id = ?");
@@ -921,11 +930,11 @@ class ContentHandler implements MessageComponentInterface
                 // Notify each Admin of the approved user's department
                 if ($departmentAdmins) {
                     $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name)
-                        VALUES (?, ?, ?, ?)
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_email, action_user_name, action_user_type, action_user_department)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     foreach ($departmentAdmins as $admin) {
-                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'user_approved', 'approved', $evaluator_name]);
+                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'user_approved', 'approved', $evaluator_name, $email, $full_name, $user_type, $department]);
                     }
                 }
                 
@@ -940,17 +949,18 @@ class ContentHandler implements MessageComponentInterface
                 if ($allSuperAdmins) {
                     error_log("allSuperAdmins called");
                     $stmtNotifySuperAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name)
-                        VALUES (?, ?, ?, ?)
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_email, action_user_name, action_user_type, action_user_department)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     foreach ($allSuperAdmins as $superAdmin) {
-                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'user_approved', 'approved', $evaluator_name]);
+                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'user_approved', 'approved', $evaluator_name, $email, $full_name, $user_type, $department]);
                     }
                 }
 
                 // Notify the new user that an admin approved them
-                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name) VALUES (?, 'user_approved_by_admin', 'approved', ?)");
-                $stmt->execute([$user_id, $evaluator_name]);
+                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_email, action_user_name, action_user_type, action_user_department) 
+                                             VALUES (?, 'user_approved_by_admin', 'approved', ?, ?, ?, ?, ?)");
+                $stmt->execute([$user_id, $evaluator_name, $email, $full_name, $user_type, $department]);
 
                 // Update notification counts for Admins, Super Admins, and the evaluator
                 $stmtUpdateNotificationCounts = $this->pdo->prepare("
@@ -965,7 +975,12 @@ class ContentHandler implements MessageComponentInterface
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('update_notification');
 
-                $response = ['action' => 'approve_user', 'success' => true, 'user_id' => $user_id];
+                $response = [
+                    'action' => 'approve_user', 
+                    'success' => true, 
+                    'user_id' => $user_id,
+                    'email' => $email
+                ];
                 echo "User approved and evaluated by: {$evaluator_name}\n";
             } else {
                 $response = ['action' => 'approve_user', 'success' => false];
@@ -976,21 +991,80 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'reject_user') {
             $user_id = $data['user_id'];
+            $email = $data['email'];
+            $full_name = $data['full_name'];
+            $user_type = $data['user_type'];
+            $department = $data['department'];
+            $evaluator_name = $data['evaluator_name'];
+            $evaluator_id = $data['evaluator_id'];
             $evaluator_message = isset($data['evaluator_message']) ? htmlspecialchars($data['evaluator_message']) : '';
-
-            // Retrieve full_name from session
-            $evaluator_name = $data['full_name'];
         
             // Perform the deletion from the database
             $stmt = $this->pdo->prepare("UPDATE users_tb SET status = 'Rejected', evaluated_by = ?, evaluator_message = ? WHERE user_id = ?");
             $stmt->execute([$evaluator_name, $evaluator_message, $user_id]);
             
-            $user = $stmt->rowCount() > 0;
+            $reject_user = $stmt->rowCount() > 0;
 
-            if ($user) {
+            if ($reject_user) {
                 // Update notification status
-                $stmt = $this->pdo->prepare("UPDATE notifications_tb SET status = 'rejected', evaluator_name = ? WHERE user_id = ? AND notification_type = 'user_registration'");
-                $stmt->execute([$evaluator_name, $user_id]);
+                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'rejected', evaluator_name = ?, action_user_email = ?, action_user_name = ?, action_user_type = ?, action_user_department = ?, evaluator_message = ?, notification_type = 'user_rejected', created_at = NOW() WHERE user_id = ? AND notification_type = 'user_registration'");
+                $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $email, $full_name, $user_type, $department, $evaluator_message, $user_id]);
+
+                // Notify the Admin or Super Admin who rejected the user
+                $stmtUserIdEvaluator = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_id = ?");
+                $stmtUserIdEvaluator->execute([$evaluator_id]);
+                $evaluatorId = $stmtUserIdEvaluator->fetchAll(PDO::FETCH_ASSOC);
+
+                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectDepartmentAdmins->execute([$department, $evaluator_id, $user_id]);
+                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the rejected user's department
+                if ($departmentAdmins) {
+                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_email, action_user_name, action_user_type, action_user_department, evaluator_message)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($departmentAdmins as $admin) {
+                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'user_rejected', 'rejected', $evaluator_name, $email, $full_name, $user_type, $department, $evaluator_message]);
+                    }
+                }
+                
+                // Notify all Super Admins except the one who rejected the user
+                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectSuperAdmins->execute([$evaluator_id, $user_id]);
+                $allSuperAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+
+                // Notify all Super Admins
+                if ($allSuperAdmins) {
+                    error_log("allSuperAdmins called");
+                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_email, action_user_name, action_user_type, action_user_department, evaluator_message)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($allSuperAdmins as $superAdmin) {
+                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'user_rejected', 'rejected', $evaluator_name, $email, $full_name, $user_type, $department, $evaluator_message]);
+                    }
+                }
+
+                // Notify the new user that an admin rejected them
+                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_email, action_user_name, action_user_type, action_user_department, evaluator_message) 
+                                             VALUES (?, 'user_rejected_by_admin', 'rejected', ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$user_id, $evaluator_name, $email, $full_name, $user_type, $department, $evaluator_message]);
+
+                // Update notification counts for Admins, Super Admins, and the evaluator
+                $stmtUpdateNotificationCounts = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE (user_type = 'Admin' AND department = ?) 
+                    OR user_type = 'Super Admin'
+                    OR user_id = ? OR user_id = ?
+                ");
+                $stmtUpdateNotificationCounts->execute([$department, $evaluator_id, $user_id]);
 
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('update_notification');
@@ -1006,9 +1080,12 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'edit_user') {
             $userId = $data['user_id'];
+            $email = $data['email'];
+            $full_name = $data['full_name'];
             $newUserType = $data['user_type'];
             $newDepartment = $data['department'];
-            $evaluator_name = $data['full_name'];
+            $evaluator_name = $data['evaluator_name'];
+            $evaluator_id = $data['evaluator_id'];
 
             // Fetch the current user data
             $stmtFetchUser = $this->pdo->prepare("SELECT user_type, department FROM users_tb WHERE user_id = ?");
@@ -1034,11 +1111,11 @@ class ContentHandler implements MessageComponentInterface
                 $notificationFields = [];
                 $notificationValues = [];
                 if (in_array('user_type', $changedFields)) {
-                    $notificationFields[] = 'edited_user_type';
+                    $notificationFields[] = 'action_user_type';
                     $notificationValues[] = $newUserType;
                 }
                 if (in_array('department', $changedFields)) {
-                    $notificationFields[] = 'edited_user_department';
+                    $notificationFields[] = 'action_user_department';
                     $notificationValues[] = $newDepartment;
                 }
 
@@ -1046,12 +1123,12 @@ class ContentHandler implements MessageComponentInterface
                 $placeholders = implode(', ', array_fill(0, count($notificationFields), '?'));
 
                 // Notify the Admin or Super Admin who edited the user
-                $stmtInsertAdminOrSuperAdminNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, {$fieldString}) VALUES (?, 'user_edited', 'edited', ?, {$placeholders})");
-                $stmtInsertAdminOrSuperAdminNotificationTable->execute(array_merge([$userId, $evaluator_name], $notificationValues));
+                $stmtInsertAdminOrSuperAdminNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, {$fieldString}, action_user_name) VALUES (?, 'user_edited', 'edited', ?, {$placeholders}, ?)");
+                $stmtInsertAdminOrSuperAdminNotificationTable->execute(array_merge([$evaluator_id, $evaluator_name], $notificationValues, [$full_name]));
 
                 // Notify the student or faculty that their account has been edited
-                $stmtInsertStudentOrFacultyNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, {$fieldString}) VALUES (?, 'user_edited_by_admin', 'edited', ?, {$placeholders})");
-                $stmtInsertStudentOrFacultyNotificationTable->execute(array_merge([$userId, $evaluator_name], $notificationValues));
+                $stmtInsertStudentOrFacultyNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, {$fieldString}, action_user_name) VALUES (?, 'user_edited_by_admin', 'edited', ?, {$placeholders}, ?)");
+                $stmtInsertStudentOrFacultyNotificationTable->execute(array_merge([$userId, $evaluator_name], $notificationValues, [$full_name]));
 
                 // Increase the notification count of the Admin or Super Admin
                 $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
@@ -1109,32 +1186,85 @@ class ContentHandler implements MessageComponentInterface
         }
 
         else if (isset($data['action']) && $data['action'] === 'delete_user') {
-            $userId = $data['user_id'];
-            $evaluator_name = $data['full_name'];
-            $evaluator_message = $data['evaluator_message'];
+            $user_id = $data['user_id'];
+            $full_name = $data['full_name'];
+            $user_type = $data['user_type'];
+            $department = $data['department'];
+            $evaluator_name = $data['evaluator_name'];
+            $evaluator_id = $data['evaluator_id'];
+            $evaluator_message = isset($data['evaluator_message']) ? htmlspecialchars($data['evaluator_message']) : '';
 
             // Fetch user details before deletion
             $stmtFetchUser = $this->pdo->prepare("SELECT full_name, email, department FROM users_tb WHERE user_id = ?");
-            $stmtFetchUser->execute([$userId]);
+            $stmtFetchUser->execute([$user_id]);
             $userDetails = $stmtFetchUser->fetch(PDO::FETCH_ASSOC);
         
             // Perform the deletion in the database
             $stmt = $this->pdo->prepare("DELETE FROM users_tb WHERE user_id = ?");
-            $stmt->execute([$userId]);
+            $stmt->execute([$user_id]);
         
             $user = $stmt->rowCount() > 0;
         
             if ($user) {
-                // Insert a notification for the Admin or Super Admin
-                $stmtInsertNotification = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, deleted_user_name, deleted_user_department) VALUES (?, 'user_deleted', 'deleted', ?, ?, ?)");
-                $stmtInsertNotification->execute([$userId, $evaluator_name, $userDetails['full_name'], $userDetails['department']]);
+                // Notify the Admin or Super Admin who deleted the user
+                $stmtUserIdEvaluator = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_id = ?");
+                $stmtUserIdEvaluator->execute([$evaluator_id]);
+                $evaluatorId = $stmtUserIdEvaluator->fetchAll(PDO::FETCH_ASSOC);
 
-                $stmtInsertNotification = $this->pdo->prepare("UPDATE notifications_tb SET deleted_user_name = ?, deleted_user_department = ? WHERE user_id = ? AND evaluator_name = ?");
-                $stmtInsertNotification->execute([$userDetails['full_name'], $userDetails['department'], $userId, $evaluator_name]);
+                if ($evaluatorId) {
+                    $stmtUpdateEvaluatorNotification = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_name, action_user_type, action_user_department, evaluator_message) VALUES (?, 'user_deleted', 'deleted', ?, ?, ?, ?, ?)");
+                    $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $full_name, $user_type, $department, $evaluator_message]);
+                }
 
-                // Increase the notification count for the Admin or Super Admin
-                $stmtUpdateNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
-                $stmtUpdateNotificationCount->execute([$evaluator_name]);
+                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectDepartmentAdmins->execute([$department, $evaluator_id, $user_id]);
+                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the deleted user's department
+                if ($departmentAdmins) {
+                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_name, action_user_type, action_user_department, evaluator_message)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($departmentAdmins as $admin) {
+                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'user_deleted', 'deleted', $evaluator_name, $full_name, $user_type, $department, $evaluator_message]);
+                    }
+                }
+                
+                // Notify all Super Admins except the one who deleted the user
+                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectSuperAdmins->execute([$evaluator_id, $user_id]);
+                $allSuperAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+
+                // Notify all Super Admins
+                if ($allSuperAdmins) {
+                    error_log("allSuperAdmins called");
+                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_name, action_user_type, action_user_department, evaluator_message)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($allSuperAdmins as $superAdmin) {
+                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'user_deleted', 'deleted', $evaluator_name, $full_name, $user_type, $department, $evaluator_message]);
+                    }
+                }
+
+                // Notify the new user that an admin deleted them
+                // $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_name, action_user_type, action_user_department, evaluator_message) VALUES (?, 'user_deleted_by_admin', 'deleted', ?, ?, ?, ?, ?)");
+                // $stmt->execute([$user_id, $evaluator_name, $full_name, $user_type, $department, $evaluator_message]);
+
+                // Update notification counts for Admins, Super Admins, and the evaluator
+                $stmtUpdateNotificationCounts = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE (user_type = 'Admin' AND department = ?) 
+                    OR user_type = 'Super Admin'
+                    OR user_id = ? OR user_id = ?
+                ");
+                $stmtUpdateNotificationCounts->execute([$department, $evaluator_id, $user_id]);
 
                 // Broadcast new notification to all clients
                 $this->broadcastNotification('new_notification');
@@ -1143,7 +1273,7 @@ class ContentHandler implements MessageComponentInterface
                 $response = [
                     'action' => 'user_deleted',
                     'success' => true,
-                    'user_id' => $userId,
+                    'user_id' => $user_id,
                     'message' => 'Your account has been deleted. You will be logged out now.',
                     'email' => $userDetails['email'],
                     'full_name' => $userDetails['full_name'],
@@ -1155,7 +1285,7 @@ class ContentHandler implements MessageComponentInterface
                 // Find the connection for the deleted user
                 $deletedUserConnection = null;
                 foreach ($this->clients as $client) {
-                    if ($client->user_id == $userId) {
+                    if ($client->user_id == $user_id) {
                         $deletedUserConnection = $client;
                         break;
                     }
@@ -1170,7 +1300,7 @@ class ContentHandler implements MessageComponentInterface
                 $generalResponse = [
                     'action' => 'user_deleted',
                     'success' => true,
-                    'user_id' => $userId,
+                    'user_id' => $user_id,
                     'email' => $userDetails['email'],
                     'full_name' => $userDetails['full_name'],
                     'department' => $userDetails['department'],
@@ -1183,7 +1313,7 @@ class ContentHandler implements MessageComponentInterface
                     }
                 }
         
-                echo "User deleted for user_id: {$userId}\n";
+                echo "User deleted for user_id: {$user_id}\n";
             } else {
                 $from->send(json_encode(['action' => 'delete_user', 'success' => false]));
             }
@@ -1285,7 +1415,7 @@ class ContentHandler implements MessageComponentInterface
                     if ($evaluatorId) {
                         // Notify the user who added the new user
                         $stmtNotifyEvaluator = $this->pdo->prepare("
-                            INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, added_user_type, added_user_department, added_user_name)
+                            INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_type, action_user_department, action_user_name)
                             VALUES (?, ?, ?, ?, ?, ?, ?)
                         ");
                         $stmtNotifyEvaluator->execute([$evaluator_id, 'user_added', 'approved', $evaluator_name, $user_type, $department, $full_name]);
@@ -1300,7 +1430,7 @@ class ContentHandler implements MessageComponentInterface
                     // Notify each Admin of the added user's department
                     if ($departmentAdmins) {
                         $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
-                            INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, added_user_type, added_user_department, added_user_name)
+                            INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_type, action_user_department, action_user_name)
                             VALUES (?, ?, ?, ?, ?, ?, ?)
                         ");
                         foreach ($departmentAdmins as $admin) {
@@ -1319,7 +1449,7 @@ class ContentHandler implements MessageComponentInterface
                     if ($allSuperAdmins) {
                         error_log("allSuperAdmins called");
                         $stmtNotifySuperAdmins = $this->pdo->prepare("
-                            INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, added_user_type, added_user_department, added_user_name)
+                            INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_type, action_user_department, action_user_name)
                             VALUES (?, ?, ?, ?, ?, ?, ?)
                         ");
                         // $stmtNotifySuperAdmins->execute([$user_id, 'user_added', 'approved', $evaluator_name, $user_type, $department]);
@@ -1330,7 +1460,7 @@ class ContentHandler implements MessageComponentInterface
 
                     // Notify the new user that an admin added them
                     $stmtNotifyUser = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, added_user_type, added_user_department, added_user_name)
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_type, action_user_department, action_user_name)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                     ");
                     $stmtNotifyUser->execute([$user_id, 'user_added_by_admin', 'approved', $evaluator_name, $user_type, $department, $full_name]);
@@ -1364,6 +1494,7 @@ class ContentHandler implements MessageComponentInterface
                         'action' => 'add_user', 
                         'success' => true, 
                         'data' => $responseData, 
+                        'email' => $email,
                         'message' => 'User added successfully',
                         'messageType' => 'success',
                         'evaluator_name' => $evaluator_name,
@@ -1607,8 +1738,12 @@ class ContentHandler implements MessageComponentInterface
         else if (isset($data['action']) && $data['action'] === 'approve_post') {
             $content_id = $data['content_id'];
             $content_type = $data['content_type'];
+            $content_tv_id = $data['content_tv_id'];
             $user_id = $data['user_id'];
-            $evaluator_name = $data['full_name'];
+            $full_name = $data['full_name'];
+            $department = $data['department'];
+            $evaluator_name = $data['evaluator_name'];
+            $evaluator_id = $data['evaluator_id'];
 
             // Update the content status in the respective table
             if ($content_type === 'announcement' || $content_type === 'event' || $content_type === 'promaterial') {
@@ -1625,27 +1760,86 @@ class ContentHandler implements MessageComponentInterface
         
             if ($content_updated) {
                 // Update notification status
-                $stmtUpdateNotificationTable = $this->pdo->prepare("UPDATE notifications_tb SET status = 'approved', notification_type = 'content_approved', evaluator_name = ? WHERE user_id = ? AND content_id = ? AND content_type = ?");
-                $stmtUpdateNotificationTable->execute([$evaluator_name, $user_id, $content_id, $content_type]);
+                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'approved', notification_type = 'content_approved', evaluator_name = ? WHERE user_id = ? AND content_id = ?");
+                $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $user_id, $content_id]);
+
+                // Notify the Admin or Super Admin who approved the user
+                $stmtUserIdEvaluator = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_id = ?");
+                $stmtUserIdEvaluator->execute([$evaluator_id]);
+                $evaluatorId = $stmtUserIdEvaluator->fetchAll(PDO::FETCH_ASSOC);
+
+                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectDepartmentAdmins->execute([$department, $evaluator_id, $user_id]);
+                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($departmentAdmins) {
+                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($departmentAdmins as $admin) {
+                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
+                    }
+                }
+                
+                // Notify all Super Admins except the one who approved the user
+                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectSuperAdmins->execute([$evaluator_id, $user_id]);
+                $allSuperAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+
+                // Notify all Super Admins
+                if ($allSuperAdmins) {
+                    error_log("allSuperAdmins called");
+                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($allSuperAdmins as $superAdmin) {
+                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
+                    }
+                }
+
+                // Notify the new user that an admin approved them
+                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id) 
+                                             VALUES (?, 'content_approved_by_admin', ?, 'approved', ?, ?, ?, ?)");
+                $stmt->execute([$user_id, $content_type, $evaluator_name, $full_name, $department, $content_tv_id]);
+
+                // Update notification counts for Admins, Super Admins, and the evaluator
+                $stmtUpdateNotificationCounts = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE (user_type = 'Admin' AND department = ?) 
+                    OR user_type = 'Super Admin'
+                    OR user_id = ? OR user_id = ?
+                ");
+                $stmtUpdateNotificationCounts->execute([$department, $evaluator_id, $user_id]);
 
                 // Create a new notification for the user
-                $stmtInsertNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, evaluator_name) VALUES (?, ?, ?, 'content_approved_by_admin', 'approved', ?)");
-                $stmtInsertNotificationTable->execute([$user_id, $content_id, $content_type, $evaluator_name]);
+                // $stmtInsertNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, evaluator_name) VALUES (?, ?, ?, 'content_approved_by_admin', 'approved', ?)");
+                // $stmtInsertNotificationTable->execute([$user_id, $content_id, $content_type, $evaluator_name]);
 
-                // Increase the notification count of the Evaluator and notify them that a student or faculty posted new content
-                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
-                $stmtUpdateAdminOrSuperAdminNotificationCount->execute([$evaluator_name]);
+                // // Increase the notification count of the Evaluator and notify them that a student or faculty posted new content
+                // $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
+                // $stmtUpdateAdminOrSuperAdminNotificationCount->execute([$evaluator_name]);
+
+
+
 
                 // Check the current notification count of the student or faculty
-                $stmtCheckNotificationCount = $this->pdo->prepare("SELECT notification_count FROM users_tb WHERE user_id = ?");
-                $stmtCheckNotificationCount->execute([$user_id]);
-                $currentNotificationCount = $stmtCheckNotificationCount->fetchColumn();
+                // $stmtCheckNotificationCount = $this->pdo->prepare("SELECT notification_count FROM users_tb WHERE user_id = ?");
+                // $stmtCheckNotificationCount->execute([$user_id]);
+                // $currentNotificationCount = $stmtCheckNotificationCount->fetchColumn();
 
                 // Only update the notification count if it's currently 0
-                if ($currentNotificationCount == 0) {
-                    $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = 1 WHERE user_id = ?");
-                    $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
-                }
+                // if ($currentNotificationCount == 0) {
+                //     $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = 1 WHERE user_id = ?");
+                //     $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
+                // }
         
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('new_notification');
@@ -2276,28 +2470,32 @@ class ContentHandler implements MessageComponentInterface
 
                             if ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') {
                                 // Insert notification for new content post
-                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'pending')");
-                                $stmt->execute([$user_id, $data[$idField], $data['type']]);
+                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, action_user_name, action_user_department, content_tv_id) VALUES (?, ?, ?, 'content_post', 'pending', ?, ?, ?)");
+                                $stmt->execute([$user_id, $data[$idField], $data['type'], $full_name, $department, $tv_ids]);
 
                                 // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
-                                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' OR user_type = 'Super Admin'");
-                                $stmtUpdateAdminOrSuperAdminNotificationCount->execute();
+                                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ?");
+                                $stmtUpdateAdminNotificationCount->execute([$department]);
+
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin'");
+                                $stmtUpdateSuperAdminNotificationCount->execute();
 
                                 // Increase the notification count of the student or faculty
-                                $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                                $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
+                                $stmtUpdateUserWhoPosted = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                                $stmtUpdateUserWhoPosted->execute([$user_id]);
                     
                                 // Broadcast update notification to all clients
                                 $this->broadcastNotification('new_notification');
                                 echo "Notification sent to all clients\n";
                             } else if ($user_type == 'Admin' || $user_type == 'Super Admin') {
                                 // Insert notification for new content post
-                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'approved')");
-                                $stmt->execute([$user_id, $data[$idField], $data['type']]);
+                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, action_user_name, content_tv_id) VALUES (?, ?, ?, 'content_post', 'approved', ?, ?)");
+                                $stmt->execute([$user_id, $data[$idField], $data['type'], $full_name, $tv_ids]);
 
                                 // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
-                                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                                $stmtUpdateAdminOrSuperAdminNotificationCount->execute([$user_id]);
+                                $stmtUpdateUserWhoPosted = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                                $stmtUpdateUserWhoPosted->execute([$user_id]);
                     
                                 // Broadcast update notification to all clients
                                 $this->broadcastNotification('new_notification');

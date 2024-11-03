@@ -172,7 +172,7 @@ const displayUserTable = (data) => {
                 <td style="text-align:left;">${evaluator_message}</td>
                 <td style="text-align:center;">
                     <div style="display: flex; flex-direction: column; align-items: center;">
-                        ${generateOperationsButtons(user_id, status, user_type, loggedInUserType)}
+                        ${generateOperationsButtons(user_id, email, full_name, department, status, user_type, loggedInUserType)}
                     </div>
                 </td>
             </tr>`;
@@ -350,7 +350,7 @@ const deleteSelectedUsers = () => {
 
 };
 
-const generateOperationsButtons = (userId, status, userType, loggedInUserType) => {
+const generateOperationsButtons = (userId, email, fullName, department, status, userType, loggedInUserType) => {
     if (String(userId) === String(loggedInUserId)) return '';
 
     // If logged-in user is Admin and the user in the row is Super Admin, don't show edit/delete buttons
@@ -361,18 +361,18 @@ const generateOperationsButtons = (userId, status, userType, loggedInUserType) =
     let buttons = '';
     if (status === 'Pending') {
         buttons = `
-            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showApproveUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Approve</button>
-            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showRejectUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Reject</button>
+            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showApproveUserModal(${userId}, '${email}', '${fullName}', '${userType}', '${full_name}', '${department}', ${user_id})">Approve</button>
+            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showRejectUserModal(${userId}, '${email}', '${fullName}', '${userType}', '${full_name}', '${department}', ${user_id})">Reject</button>
         `;
     } else if (status === 'Rejected') {
         buttons = `
-            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showApproveUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Approve</button>
-            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Delete</button>
+            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showApproveUserModal(${userId}, '${email}', '${fullName}', '${userType}', '${full_name}', '${department}', ${user_id})">Approve</button>
+            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteUserModal(${userId}, '${email}', '${fullName}', '${userType}', '${full_name}', '${department}', ${user_id})">Delete</button>
         `;
     } else {
         buttons = `
-            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showEditUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Edit</button>
-            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteUserModal(${userId}, '${full_name}', '${department}', ${user_id})">Delete</button>
+            <button type="button" class="green-button" style="width: 100%; margin: 5px" onclick="showEditUserModal(${userId}, '${email}', '${fullName}', '${userType}', '${full_name}', '${department}', ${user_id})">Edit</button>
+            <button type="button" class="red-button" style="width: 100%; margin: 5px" onclick="showDeleteUserModal(${userId}, '${email}', '${fullName}', '${userType}', '${full_name}', '${department}', ${user_id})">Delete</button>
         `;
     }
     return `<div style="display: flex; flex-direction: column; align-items: center;">${buttons}</div>`;
@@ -475,19 +475,19 @@ const insertDeleteUserModalContent = (userId) => createModal('DeleteUserModal', 
     </div>
 `);
 
-const showApproveUserModal = (userId, evaluatorName, department, evaluatorId) => {
-    insertApproveUserModalContent(userId, evaluatorName, department, evaluatorId);
-    showModal('ApproveUserModal', 'approveUserButton', () => approveTableUser(userId, evaluatorName, department, evaluatorId));
+const showApproveUserModal = (userId, email, fullName, userType, evaluatorName, department, evaluatorId) => {
+    insertApproveUserModalContent(userId, email, fullName, userType, evaluatorName, department, evaluatorId);
+    showModal('ApproveUserModal', 'approveUserButton', () => approveTableUser(userId, email, fullName, userType, evaluatorName, department, evaluatorId));
 };
 
-const showRejectUserModal = (userId, evaluatorName, department, evaluatorId) => {
-    insertRejectUserModalContent(userId, evaluatorName, department, evaluatorId);
-    showModal('RejectUserModal', 'rejectUserButton', () => rejectTableUser(userId, evaluatorName, department, evaluatorId));
+const showRejectUserModal = (userId, email, fullName, userType, evaluatorName, department, evaluatorId) => {
+    insertRejectUserModalContent(userId, email, fullName, userType, evaluatorName, department, evaluatorId);
+    showModal('RejectUserModal', 'rejectUserButton', () => rejectTableUser(userId, email, fullName, userType, evaluatorName, department, evaluatorId));
 };
 
-const showDeleteUserModal = (userId, evaluatorName, department, evaluatorId) => {
-    insertDeleteUserModalContent(userId, evaluatorName, department, evaluatorId);
-    showModal('DeleteUserModal', 'deleteUserButton', () => deleteTableUser(userId, evaluatorName, department, evaluatorId));
+const showDeleteUserModal = (userId, email, fullName, userType, evaluatorName, department, evaluatorId) => {
+    insertDeleteUserModalContent(userId, email, fullName, userType, evaluatorName, department, evaluatorId);
+    showModal('DeleteUserModal', 'deleteUserButton', () => deleteTableUser(userId, email, fullName, userType, evaluatorName, department, evaluatorId));
 };
 
 const showAddUserModal = (userId) => {
@@ -777,8 +777,11 @@ const sendFormData = (formData) => {
                     document.getElementById('successMessageVersion2').innerHTML = 'User updated successfully!';
                     document.getElementById('EditUserModal').style.display = 'none';
                     document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                    console.log("Form Data Email: ", formData.get('email'));
+                    sendUpdatedUserEmail(formData.get('email'), formData.get('full_name'), formData.get('department'), formData.get('user_type'), full_name);
                 } 
                 refreshUserTable();
+                Ws.close();
             };
 
             Ws.onclose = function () {
@@ -836,31 +839,62 @@ const sendDeletedUserEmail = (email, full_name, department, evaluator_name, eval
     });
 };
 
-const performUserAction = (action, userId, evaluatorName, department, evaluatorId) => {
+const sendUpdatedUserEmail = (email, full_name, department, userType, evaluator_name) => {
+    fetch('send_updated_user_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `email=${encodeURIComponent(email)}&full_name=${encodeURIComponent(full_name)}&department=${encodeURIComponent(department)}&user_type=${encodeURIComponent(userType)}&evaluator_name=${encodeURIComponent(evaluator_name)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Temporary password email sent successfully');
+        } else {
+            console.error('Failed to send temporary password email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending temporary password email:', error);
+    });
+};
+
+const performUserAction = (action, userId, email, fullName, userType, evaluatorName, department, evaluatorId) => {
     if (action === 'approve_user') {
         sendWebSocketMessage({
             action: action,
             user_id: userId,
+            email: email,
+            full_name: fullName,
+            user_type: userType,
             department: department,
-            full_name: evaluatorName,
+            evaluator_name: evaluatorName,
             evaluator_id: evaluatorId
         });
     } else {
-        const evaluatedMessage = document.getElementById('evaluator_message').value;
+        const evaluatorMessage = document.getElementById('evaluator_message').value;
+        if (!evaluatorMessage.trim()) {
+            alert('Please enter a message for the users.');
+            return;
+        }
         sendWebSocketMessage({
             action: action,
             user_id: userId,
+            email: email,
+            full_name: fullName,
+            user_type: userType,
             department: department,
-            full_name: evaluatorName,
+            evaluator_name: evaluatorName,
             evaluator_id: evaluatorId,
-            evaluator_message: evaluatedMessage
+            evaluator_message: evaluatorMessage
         });
     }
 };
 
-const approveTableUser = (userId, evaluatorName, department, evaluatorId) => performUserAction('approve_user', userId, evaluatorName, department, evaluatorId);
-const rejectTableUser = (userId, evaluatorName, department, evaluatorId) => performUserAction('reject_user', userId, evaluatorName, department, evaluatorId);
-const deleteTableUser = (userId, evaluatorName, department, evaluatorId) => performUserAction('delete_user', userId, evaluatorName, department, evaluatorId);
+const approveTableUser = (userId, email, fullName, userType, evaluatorName, department, evaluatorId) => performUserAction('approve_user', userId, email, fullName, userType, evaluatorName, department, evaluatorId);
+const rejectTableUser = (userId, email, fullName, userType, evaluatorName, department, evaluatorId) => performUserAction('reject_user', userId, email, fullName, userType, evaluatorName, department, evaluatorId);
+const deleteTableUser = (userId, email, fullName, userType, evaluatorName, department, evaluatorId) => performUserAction('delete_user', userId, email, fullName, userType, evaluatorName, department, evaluatorId);
 
 /* ============== EDIT USER DETAILS ============== */
 // Function to populate the edit user modal with user data
@@ -961,17 +995,19 @@ const populateEditUserModal = (userId) => {
 };
 
 // Show edit user modal
-const showEditUserModal = (userId, evaluatorName) => {
-    populateEditUserModal(userId, evaluatorName);
-    showModal('EditUserModal', 'editUserButton', () => editUser(userId, evaluatorName));
+const showEditUserModal = (userId, email, fullName, userType, evaluatorName, department, evaluatorId) => {
+    populateEditUserModal(userId, email, fullName, userType, evaluatorName, department, evaluatorId);
+    showModal('EditUserModal', 'editUserButton', () => editUser(userId, email, fullName, userType, evaluatorName, department, evaluatorId));
 };
 
-const editUser = (userId, evaluatorName) => {
+const editUser = (userId, email, fullName, userType, evaluatorName, department, evaluatorId) => {
     const form = document.getElementById('editUserForm');
     const formData = new FormData(form);
     formData.append('user_id', userId);
     formData.append('action', 'edit_user');
-    formData.append('full_name', evaluatorName);
+    formData.append('full_name', fullName);
+    formData.append('evaluator_name', evaluatorName);
+    formData.append('evaluator_id', evaluatorId);
 
     sendFormData(formData);
 };

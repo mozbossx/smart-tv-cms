@@ -1,6 +1,13 @@
 <?php
 session_start();
 @include 'config_connection.php';
+
+// Check if the user is already logged in, redirect to user-home.php
+if (isset($_SESSION['full_name'])) {
+    header('location: user_home.php');
+    exit;
+}
+
 require 'phpmailer/vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -157,10 +164,10 @@ if (isset($_POST["submit"])) {
         <div class="container-flex top">
             <div class="logo-flex">
                 <div class="left">
-                    <img src="images/usc_icon.png" class="usc-logo">
+                    <img src="images/usc_icon.png" class="usc-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
                 </div>
                 <div class="right">
-                    <img src="images/soe_icon.png" class="soe-logo">
+                    <img src="images/soe_icon.png" class="soe-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
                 </div>
             </div>
         </div>
@@ -170,7 +177,7 @@ if (isset($_POST["submit"])) {
                 <?php include('error_message.php'); ?>
                 <input type="hidden" name="type" value="user">
                 <div class="floating-label-container">
-                    <input type="text" name="full_name" value="<?php echo $full_name; ?>" required placeholder=" " class="floating-label-input">
+                    <input type="text" name="full_name" value="<?php echo $full_name; ?>" required placeholder=" " class="floating-label-input" oninput="capitalizeWords(this)">
                     <label for="full_name" class="floating-label">Full Name</label>
                 </div>
                 <div class="floating-label-container">
@@ -203,7 +210,7 @@ if (isset($_POST["submit"])) {
                 <div class="line-separator"></div>
                 <div class="button-flex">
                     <div class="left-side-button">
-                        <a href="index.php" class="cancel-button-2">Cancel</a>
+                        <a href="login.php?pageid=Login" class="cancel-button-2">Cancel</a>
                     </div>
                     <div class="right-side-button">
                         <input type="submit" name="submit" value="Create Account" class="create-account-button">
@@ -247,6 +254,13 @@ if (isset($_POST["submit"])) {
             // Toggle the text of the toggle button
             this.textContent = type === "password" ? "Show" : "Hide";
         });
+
+        function capitalizeWords(input) {
+            // Convert the first character of each word to uppercase
+            input.value = input.value.replace(/(?:^|\s)\S/g, function(letter) {
+                return letter.toUpperCase();
+            });
+        }
     </script>
 </body>
 </html>

@@ -185,7 +185,7 @@ $conn->close();
                     <div class="content-form">
                         <!-- Breadcrumb Navigation -->
                         <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb" style="width: 420px; overflow: auto">
+                            <ol class="breadcrumb" style="overflow: auto">
                                 <?php 
                                     if ($user_type == 'Super Admin') {
                                         echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Super Admin Options</a></li>';
@@ -199,7 +199,7 @@ $conn->close();
                         </nav>
                         <?php include('error_message.php'); ?>
                         <!-- Content Area -->
-                        <div class="tv-frame-parent" style="height: 60vh; user-select: none; -moz-user-select: none; -webkit-user-drag: none; -webkit-user-select: none; -ms-user-select: none;">
+                        <div class="tv-frame-parent" style="margin: 0; margin-top: 10px; height: 60vh; user-select: none; -moz-user-select: none; -webkit-user-drag: none; -webkit-user-select: none; -ms-user-select: none;">
                             <!-- Display iframe based on tvId -->
                             <div class="tv-frame" id="tv-frame">
                                 <iframe id="tv-iframe" frameborder="0" src="tv2.php?tvId=<?php echo $tvId?>&isIframe=true" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>

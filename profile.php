@@ -6,9 +6,9 @@ include("config_connection.php");
 // Fetch user data for the currently logged-in user
 include 'get_session.php';
 
-// Check if the user is not logged in, redirect to the login page (index.php)
+// Check if the user is not logged in, redirect to the login page (login.php?pageid=Login)
 if (!isset($_SESSION['full_name']) || !isset($_SESSION['email'])) {
-    header('location: index.php');
+    header('location: login.php?pageid=Login');
     exit;
 }
 

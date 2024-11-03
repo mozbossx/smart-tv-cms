@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.10:8081');
+const Ws = new WebSocket('ws://192.168.1.3:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -686,8 +686,7 @@ const fetchAndUpdateContents = (type) => {
                         } else if (type === 'peo' || type === 'so') {
                             const filteredData = data.filter(item =>
                                 item.tv_id === parseInt(tvId, 10) &&
-                                item.isCancelled === 0 &&
-                                item.department === tvDepartment
+                                item.isCancelled === 0
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
@@ -701,8 +700,7 @@ const fetchAndUpdateContents = (type) => {
                             const filteredData = data.filter(item =>
                                 item.status === 'Approved' &&
                                 item.tv_id === parseInt(tvId, 10) &&
-                                item.isCancelled === 0 && 
-                                item.department === tvDepartment
+                                item.isCancelled === 0
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {

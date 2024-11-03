@@ -8,7 +8,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 // Check if the user is logged in
 if (!isset($_SESSION['full_name']) || !isset($_SESSION['email']) || !isset($_SESSION['user_type'])) {
-    header('location: index.php');
+    header('location: login.php?pageid=Login');
     exit;
 }
 

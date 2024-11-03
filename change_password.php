@@ -5,7 +5,7 @@ include 'get_session.php';
 
 // Check if the user is not logged in, redirect to the login page
 if (!isset($_SESSION['full_name']) || !isset($_SESSION['email'])) {
-    header('location: index.php');
+    header('location: login.php?pageid=Login');
     exit;
 }
 

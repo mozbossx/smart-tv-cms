@@ -5,7 +5,7 @@ session_start();
 if (isset($_SESSION['mail'])) {
     $email = $_SESSION['mail'];
 } else {
-    header('location: create_account.php');
+    header('location: create_account.php?pageid=CreateAccount');
     exit;
 }
 
@@ -86,7 +86,7 @@ if (isset($_SESSION['mail'])) {
     <script>
         // Handle form submission via WebSocket
         const form = document.getElementById('pendingUserForm');
-        const ws = new WebSocket('ws://192.168.1.10:8081?email=<?php echo urlencode($email); ?>');
+        const ws = new WebSocket('ws://192.168.1.3:8081?email=<?php echo urlencode($email); ?>');
         
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -126,7 +126,7 @@ if (isset($_SESSION['mail'])) {
                                         document.getElementById('facultyOrStaffModal').style.display = 'flex';
                                     } else {
                                         // Redirect the user to user_home.php if success
-                                        window.location.href = "index.php";
+                                        window.location.href = "login.php?pageid=Login";
                                     }
                                 });
                             } else {

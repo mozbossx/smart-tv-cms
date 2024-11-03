@@ -1,4 +1,82 @@
+<?php
+session_start();
+include("config_connection.php");
 
+// Check if the user has explicitly logged out
+if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
+    unset($_SESSION['email']);
+    header('location: login.php?pageid=Login'); // Redirect to the login page
+    exit;
+}
+
+// Check if the user is already logged in, redirect to user_home.php
+if (isset($_SESSION['email'])) {
+    header('location: user_home.php');
+    exit;
+}
+
+require 'phpmailer/vendor/autoload.php';
+use PHPMailer\PHPMailer\PHPMailer;
+
+if (isset($_POST["submit"])) {
+    $email = $_POST["email"];
+
+    // Prepare the SQL statement to check if the email exists in the database
+    $stmt = $conn->prepare("SELECT * FROM users_tb WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $count = $result->num_rows;
+
+    if ($count <= 0) {
+        $error[] = "Email not found in our records.";
+    } else if($count > 0) {
+        // The email exists in the database
+        $token = bin2hex(random_bytes(16)); // Generate a unique token
+        $_SESSION['reset_token'] = $token;
+        $_SESSION['reset_email'] = $email;
+
+        $passwordResetLink = "http://192.168.1.3:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
+
+        // Send an email to the user with the password reset link
+        $mail = new PHPMailer();
+
+        // Configure the PHPMailer instance here (set From, Subject, Body, etc.)
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->Port = 587;
+        $mail->SMTPAuth = true;
+        $mail->SMTPSecure = 'tls';
+
+        $mail->Username = 'usc.smarttvcms@gmail.com';   // Email to be used for sending OTP Code
+        $mail->Password = 'nrul yhwc mmrk hwdp';        // Password of the email (app password) yqph bmcj lztu djuf
+
+        // send by h-hotel email
+        $mail->setFrom('usc.smarttvcms@gmail.com', 'Password Reset');
+        // get email from input
+        $mail->addAddress($_POST["email"]);
+        //$mail->addReplyTo('mozarcompany@gmail.com');
+
+        // HTML body
+        $mail->isHTML(true);
+        $mail->addAddress($email); // Add the user's email here
+        $mail->Subject = 'Password Reset';
+        $mail->Body = "To reset your password, click this link: $passwordResetLink";
+        if ($mail->send()) {
+            header("Location: reset_link_success.php");
+            exit;
+        } else {
+            $error[] = "Failed to send the password reset link. Please try again.";
+        }
+    } else {
+        $error[] = "Email not found in our records.";
+    }
+
+} else {
+    // Initialize variables to store the form values
+    $email = "";
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,10 +96,10 @@
         <div class="container-flex top">
             <div class="logo-flex">
                 <div class="left">
-                    <img src="images/usc_icon.png" class="usc-logo">
+                    <img src="images/usc_icon.png" class="usc-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
                 </div>
                 <div class="right">
-                    <img src="images/soe_icon.png" class="soe-logo">
+                    <img src="images/soe_icon.png" class="soe-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
                 </div>
             </div>
         </div>
@@ -36,7 +114,7 @@
                 <div class="line-separator"></div>
                 <div class="button-flex">
                     <div class="left-side-button">
-                        <a href="index.php" class="cancel-button-2">Cancel</a>
+                        <a href="login.php?pageid=Login" class="cancel-button-2">Cancel</a>
                     </div>
                     <div class="right-side-button">
                         <input type="submit" name="submit" value="Search USC Email Address" class="create-account-button">

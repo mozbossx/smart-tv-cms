@@ -330,7 +330,7 @@ form {
     height: 100%;
 }
 
-.create-account-link{
+.create-account-link, .go-to-home-link {
     text-decoration: none; 
     color: #264b2b; 
     user-select: none;
@@ -988,7 +988,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     position: fixed; /* Keep the sidebar fixed */
     top: 0;
     left: -1000px;
-    width: 160px;
+    width: 200px;
     height: 100%;
     background-color: #264B2B;
     backdrop-filter: blur(10px);
@@ -1902,6 +1902,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     text-align: center;
     text-decoration: none;
     display: block; 
+    cursor: pointer;
 }
 
 .confirm-button {
@@ -2130,7 +2131,7 @@ tr:nth-child(even) {
     border: 1px solid #ccc;
     background-color: #f1f1f1;
     user-select: none;
-    width: 120px;
+    width: 145px;
 }
 
 .notifications-tablinks {
@@ -2199,7 +2200,8 @@ tr:nth-child(even) {
 .archived-notifications-count, 
 .deleted-notifications-count,
 .updated-notifications-count,
-.all-notifications-count-2 {
+.all-notifications-count-2,
+.all-notifications-count-mobile {
     background: none;
     color: rgb(123, 123, 123);
     padding: 2px;
@@ -2776,8 +2778,8 @@ input[type=range]:focus::-ms-fill-upper {
     padding: 10px;
     background: #e9e9e9;
     border-radius: 5px;
-    margin: 10px;
-    margin-bottom: 20px;
+    margin: 0;
+    margin-top: 20px;
 }
 
 /* left-side panel styling */

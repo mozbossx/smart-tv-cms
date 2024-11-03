@@ -11,7 +11,7 @@ include 'get_session.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['full_name']) || !isset($_SESSION['email'])) {
-    header('location: index.php');
+    header('location: login.php?pageid=Login');
     exit;
 }
 
@@ -114,7 +114,7 @@ $stmtNotificationCount->close();
             <span id="notificationCountMobile" class="notification-count-mobile"><?php echo $notificationCount; ?></span>
             <span id="triangleMobile" class="triangle-mobile"></span>
             <div id="notificationsDropdownMobile" class="dropdown-notifications-mobile" style="display: none; position: absolute; right: 5px; top: 65px; background-color: white; box-shadow: 0px 0px 16px 0px rgba(0,0,0,0.54); z-index: 1; width: 250px; height: 400px; max-height: 400px; overflow-y: auto; padding: 10px;">
-                <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Notifications <span class="all-notifications-count-2"></span></p>
+                <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Notifications <span class="all-notifications-count-mobile"></span></p>
                 <div id="notificationsContainerMobile" class="notifications-container-mobile">
                     <!-- Notifications will be dynamically inserted here -->
                 </div>

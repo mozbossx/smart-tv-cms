@@ -7,9 +7,9 @@ $department = $_SESSION['department'];
 $user_type = $_SESSION['user_type'];
 $email = $_SESSION['email'];
 
-// check if the user is not logged in, redirect to the login page (index.php)
+// check if the user is not logged in, redirect to the login page (login.php?pageid=Login)
 if (!isset($_SESSION['full_name']) || !isset($_SESSION['email'])) {
-    header('location: index.php');
+    header('location: login.php?pageid=Login');
     exit;
 }
 
@@ -24,7 +24,7 @@ $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     $user_data = $result->fetch_assoc();
 } else {
-    header('location: index.php');
+    header('location: login.php?pageid=Login');
     exit;
 }
 
