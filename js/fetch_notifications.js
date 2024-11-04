@@ -1,4 +1,21 @@
-const Ws = new WebSocket('ws://192.168.1.3:8081');
+const Ws = new WebSocket('ws://192.168.1.22:8081');
+
+function formatDateTime2(dateTimeString) {
+    const dateTime = new Date(dateTimeString);
+    const dateOptions = {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    };
+    const timeOptions = {
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+    };
+    const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(dateTime);
+    const formattedTime = new Intl.DateTimeFormat('en-US', timeOptions).format(dateTime);
+    return `${formattedDate} (${formattedTime})`;
+}
 
 function openNotificationsTab(evt, tabName) {
     const tabcontent = document.getElementsByClassName("notifications-tabcontent");
@@ -312,7 +329,7 @@ function createNotificationDiv(notification) {
                 </div>
                 <div class="notification-buttons">
                     <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Approve</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Reject</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Reject</button>
                     <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button>
                 </div>
             `;
@@ -592,7 +609,6 @@ function createNotificationDiv(notification) {
                 </div>
             `;
         }
-        
     } 
     
     if (notification.notification_type === 'content_approved_by_admin' && notification.status == 'approved' && notification.user_id == user_id) {
@@ -616,13 +632,24 @@ function createNotificationDiv(notification) {
                 </div>
             `;
         }
+
+        if (notification.evaluator_name != full_name) {
+            notificationDiv.classList.add('rejected-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">${notification.evaluator_name} rejected ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
     } 
 
     if (notification.notification_type === 'content_rejected_by_admin' && notification.status == 'rejected' && notification.user_id == user_id) {
         notificationDiv.classList.add('rejected-notification');
         content = `
             <div class="notification-details">
-                <p class="content-rejected-notification">Your ${notification.content_type} has been rejected by  ${notification.evaluator_name}.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} has been rejected by ${notification.evaluator_name}.</p>
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 <div class="notification-buttons">
@@ -830,7 +857,7 @@ function showConfirmApproveContentModal(contentId, contentType, fullName, depart
     modal.style.display = 'flex';
 }
 
-function showConfirmRejectContentModal(contentId, contentType, userId, fullName) {
+function showConfirmRejectContentModal(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId) {
     const viewContentModal = document.getElementById('viewContentModal');
     viewContentModal.style.display = 'none';
     const modal = document.getElementById('confirmRejectContentModal');
@@ -848,7 +875,7 @@ function showConfirmRejectContentModal(contentId, contentType, userId, fullName)
             <br>
             <div style="text-align: right;">
                 <button type="button" class="grey-button" onclick="closeModal('confirmRejectContent')">Cancel</button>
-                <button type="button" class="red-button" style="margin-right: 0" onclick="rejectContent(${contentId}, '${contentType}', ${userId}, '${fullName}')">Yes, Reject</button>
+                <button type="button" class="red-button" style="margin-right: 0" onclick="rejectContent(${contentId}, '${contentType}', '${fullName}', '${department}', ${userId}, ${contentTvId}, '${evaluatorName}', ${evaluatorId})">Yes, Reject</button>
             </div>
         </div>
     `;
@@ -924,7 +951,7 @@ function approveContent(contentId, contentType, fullName, department, userId, co
     closeModal('confirmApproveContent');
 }
 
-function rejectContent(contentId, contentType, userId, fullName) {
+function rejectContent(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId) {
     const evaluatorMessage = document.getElementById('evaluator_message').value;
     if (!evaluatorMessage) {
         alert('Evaluator message is required.');
@@ -936,6 +963,10 @@ function rejectContent(contentId, contentType, userId, fullName) {
         content_type: contentType,
         user_id: userId,
         full_name: fullName,
+        department: department,
+        content_tv_id: contentTvId,
+        evaluator_name: evaluatorName,
+        evaluator_id: evaluatorId, 
         evaluator_message: evaluatorMessage
     }));
     closeModal('confirmRejectContent');
@@ -1052,7 +1083,7 @@ Ws.addEventListener('message', function(event) {
                 const content = data.content;
                 console.log("Content: ",content);
                 const contentType = data.content_type;
-                const formattedExpirationDateTime = formatRelativeTime(content.expiration_datetime);
+                const formattedExpirationDateTime = formatDateTime2(content.expiration_datetime);
 
                 let mediaContent = '';
                 if (content.media_path) {

@@ -2826,6 +2826,22 @@ input[type=range]:focus::-ms-fill-upper {
     cursor: pointer;
 }
 
+.days-input {
+    width: 60px; 
+    border: none; 
+    background: none; 
+    box-shadow: none; 
+    text-align: center; 
+    font-size: 16px;
+}
+
+.days-input:focus {
+    outline: none;
+    border: none;
+    background: none;
+    box-shadow: none;
+}
+
 /* Media query for smaller screens */
 @media only screen and (max-width: 1000px) {
     .container-body {

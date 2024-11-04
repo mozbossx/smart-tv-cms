@@ -84,6 +84,11 @@ body {
     font-weight: 700;
     margin-bottom: 1rem;
     animation: slideIn 0.8s ease-out;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 }
 
 .hero-subtitle {
@@ -91,6 +96,11 @@ body {
     margin-bottom: 2rem;
     animation: fadeIn 1s ease-out 0.5s forwards;
     opacity: 0;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 }
 
 .stats-container {

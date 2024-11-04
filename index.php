@@ -2,6 +2,8 @@
 session_start();
 @include 'config_connection.php';
 
+include 'check_for_inactive_users.php';
+
 // Check if the user is already logged in, redirect to user-home.php
 if (isset($_SESSION['full_name'])) {
     header('location: user_home.php');
@@ -53,11 +55,11 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
             </div>
             <div class="feature-card">
                 <h3 class="feature-title">Interactive Content Management</h3>
-                <p class="feature-description">Create and manage announcements, events, news, and promotional materials with an intuitive interface.</p>
+                <p class="feature-description">Create and manage announcements, events, news, promotional materials, and more with an intuitive interface.</p>
             </div>
             <div class="feature-card">
                 <h3 class="feature-title">Customizable Display</h3>
-                <p class="feature-description">Adjust content container sizes, fonts, colors, and backgrounds to match your school's branding and needs.</p>
+                <p class="feature-description">Adjust content container sizes, fonts, colors, and backgrounds to match your department's needs.</p>
             </div>
         </div>
     </section>
@@ -70,7 +72,7 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
                 <ul class="role-features">
                     <li>Post content for approval</li>
                     <li>Manage personal profile</li>
-                    <li>Access content archives</li>
+                    <li>Access personal content archives</li>
                     <li>Track submission status</li>
                 </ul>
             </div>
@@ -81,6 +83,7 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
                     <li>Manage departmental users</li>
                     <li>Customize TV templates</li>
                     <li>Control display settings</li>
+                    <li>User role management within department</li>
                 </ul>
             </div>
             <div class="role-card">
@@ -89,7 +92,7 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
                     <li>Cross-department management</li>
                     <li>System-wide control</li>
                     <li>Advanced customization</li>
-                    <li>User role management</li>
+                    <li>User role management across departments</li>
                 </ul>
             </div>
         </div>

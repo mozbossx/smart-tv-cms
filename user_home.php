@@ -27,7 +27,7 @@ include 'get_session.php';
     <div class="main-section" id="all-content">
         <?php include('top_header.php'); ?>
         <?php include('sidebar.php'); ?>
-        <div class="main-container">
+        <div class="main-container" style="background: <?php $backgroundTheme?>">
             <div class="column1">
                 <!-- search form -->
                 <form class="search-form" style="width: 550px; max-width: 100%; margin: 0 auto; margin-bottom: 10px;">

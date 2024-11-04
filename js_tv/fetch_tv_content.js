@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.3:8081');
+const Ws = new WebSocket('ws://192.168.1.22:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -81,7 +81,11 @@ const updateUI = (data, type) => {
     const currentIndexKey = type;
     const contentsArray = contents[`${type}s`];
 
-    if (data.status === 'Pending' || data.status === 'Draft' || data.isCancelled === 1 || !data[`${type}_id`]) {
+    // if (data.status === 'Pending' || data.status === 'Draft' || data.isCancelled === 1 || !data[`${type}_id`]) {
+    //     return;
+    // }
+
+    if (data.status !== 'Approved' || data.isCancelled === 1 || !data[`${type}_id`]) {
         return;
     }
 
@@ -772,7 +776,7 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
         }
-    } else if (data.action === 'post_content' || data.action === 'approve_post') {
+    } else if (data.action === 'post_content') {
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');
         } else if (data.type === 'event') {
@@ -789,6 +793,13 @@ Ws.addEventListener('message', function (event) {
             console.log("Received new orgchart data:", data);
             fetchAndUpdateContents('orgchart');
         }
+    } else if (data.action === 'approve_post') {
+        const type = data.content_type || data.type;
+        
+        // Fetch and update the content immediately
+        setTimeout(() => {
+            fetchAndUpdateContents(type);
+        }, 500);
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVDetails();
         // location.reload();

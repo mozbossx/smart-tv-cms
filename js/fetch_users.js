@@ -19,6 +19,15 @@ const formatDateTime = (dateString) => {
     return `${month}/${day}/${year} | ${formattedHours}:${minutes} ${ampm}`;
 };
 
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+};
+
 let isMultiSelectMode = false;
 
 const showUserTableSummary = () => {
@@ -130,7 +139,8 @@ const displayUserTable = (data) => {
                     <th onclick="sortTable(6)">Status</th>
                     <th onclick="sortTable(7)">Date Registered (MM/DD/YYYY)</th>
                     <th onclick="sortTable(8)">Date Approved (MM/DD/YYYY)</th>
-                    <th onclick="sortTable(9)">Approved/Rejected By</th>
+                    <th onclick="sortTable(9)">Last Date of Activity (MM/DD/YYYY)</th>
+                    <th onclick="sortTable(10)">Approved/Rejected By</th>
                     <th>Reject Message</th>
                     <th>Actions</th>
                 </tr>
@@ -138,9 +148,10 @@ const displayUserTable = (data) => {
             <tbody>`;
 
     data.forEach(row => {
-        const { user_id, full_name, email, user_type, department, status, datetime_registered, datetime_approved, evaluated_by, evaluator_message } = row;
+        const { user_id, full_name, email, user_type, department, status, datetime_registered, datetime_approved, last_post_date, evaluated_by, evaluator_message } = row;
         const datetimeRegisteredFormatted = formatDateTime(datetime_registered);
         const datetimeApprovedFormatted = formatDateTime(datetime_approved);
+        const lastDateOfActivityFormatted = formatDate(last_post_date);
 
         // Dynamically build the status cell based on the status value
         let statusTd;
@@ -168,6 +179,7 @@ const displayUserTable = (data) => {
                 ${statusTd}
                 <td style="text-align:left;">${datetimeRegisteredFormatted}</td>
                 <td style="text-align:left;">${datetimeApprovedFormatted}</td>
+                <td style="text-align:left;">${lastDateOfActivityFormatted}</td>
                 <td style="text-align:center;">${evaluated_by}</td>
                 <td style="text-align:left;">${evaluator_message}</td>
                 <td style="text-align:center;">
@@ -490,6 +502,127 @@ const showDeleteUserModal = (userId, email, fullName, userType, evaluatorName, d
     showModal('DeleteUserModal', 'deleteUserButton', () => deleteTableUser(userId, email, fullName, userType, evaluatorName, department, evaluatorId));
 };
 
+const showAutoDeleteModal = () => {
+    fetch('database/fetch_auto_delete_settings.php')
+        .then(response => response.json())
+        .then(settings => {
+            // Filter departments based on user type
+            let departmentsToShow = {};
+            if (loggedInUserType === 'Admin') {
+                // Only show the admin's department
+                if (settings[loggedInUserDepartment]) {
+                    departmentsToShow[loggedInUserDepartment] = settings[loggedInUserDepartment];
+                }
+            } else if (loggedInUserType === 'Super Admin') {
+                // Show all departments
+                departmentsToShow = settings;
+            }
+            const modalContent = `
+                <div class="modal-content" style="padding: 15px">
+                    <span class="close" id="closeAutoDeleteModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+                    <br>
+                    <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-user-times" aria-hidden="true"></i></h1>
+                    <p style="text-align: center">Auto Delete User Due to Inactivity</p>
+                    <p style="text-align: center; font-size: 13px; color: #6E6E6E">Set the number of days of inactivity before auto-deletion</p>
+                    <form id="autoDeleteForm">
+                        <div class="table-container">
+                            <table style="font-size: 13px">
+                                <thead>
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Faculty (Days)</th>
+                                        <th>Staff (Days)</th>
+                                        <th>Student (Days)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${Object.entries(departmentsToShow).map(([dept, data]) => `
+                                        <tr>
+                                            <td>${dept}</td>
+                                            <td><input type="number" min="1" value="${data.faculty_days}" class="days-input" name="faculty_${dept}"></td>
+                                            <td><input type="number" min="1" value="${data.staff_days}" class="days-input" name="staff_${dept}"></td>
+                                            <td><input type="number" min="1" value="${data.student_days}" class="days-input" name="student_${dept}"></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <br>
+                        <div style="text-align: right;">
+                            <button type="button" id="cancelAutoDeleteButton" class="grey-button">Cancel</button>
+                            <button type="submit" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Update All</b></button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            const modal = createModal('AutoDeleteModal', modalContent);
+            modal.style.display = 'flex';
+
+            // Add event listeners
+            document.getElementById('closeAutoDeleteModalButton').onclick = () => {
+                modal.style.display = 'none';
+            };
+
+            document.getElementById('cancelAutoDeleteButton').onclick = () => {
+                modal.style.display = 'none';
+            };
+
+            document.getElementById('autoDeleteForm').onsubmit = (e) => {
+                e.preventDefault();
+                updateAllInactivityDays();
+            };
+        })
+        .catch(error => console.error('Error fetching auto-delete settings:', error));
+};
+
+const updateAllInactivityDays = () => {
+    const formData = {};
+    const inputs = document.querySelectorAll('.days-input');
+    let hasEmptyFields = false;
+
+    inputs.forEach(input => {
+        if (!input.value || input.value < 1) {
+            hasEmptyFields = true;
+            return;
+        }
+
+        const [role, dept] = input.name.split('_');
+        if (!formData[dept]) {
+            formData[dept] = {};
+        }
+        formData[dept][`${role}_days`] = parseInt(input.value);
+    });
+
+    if (hasEmptyFields) {
+        alert('Please fill in all fields with valid numbers (minimum 1 day).');
+        return;
+    }
+
+    fetch('database/update_auto_delete_settings.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ settings: formData })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('successMessageVersion2').textContent = 'Auto-delete settings updated successfully!';
+            document.getElementById('AutoDeleteModal').style.display = 'none';
+            document.getElementById('successMessageModalVersion2').style.display = 'flex';
+        } else {
+            throw new Error(data.message || 'Failed to update settings');
+        }
+    })
+    .catch(error => {
+        document.getElementById('errorTextVersion2').textContent = error.message;
+        document.getElementById('AutoDeleteModal').style.display = 'none';
+        document.getElementById('errorModalVersion2').style.display = 'flex';
+    });
+};
+
 const showAddUserModal = (userId) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px">
@@ -672,6 +805,7 @@ const addUser = () => {
         formData.append('evaluator_id', user_id);
         formData.append('evaluator_type', loggedInUserType);
         formData.append('evaluator_department', loggedInUserDepartment);
+        
         const csvFile = document.getElementById('csv_file').files[0];
         if (csvFile) {
             const reader = new FileReader();
@@ -750,6 +884,7 @@ const sendFormData = (formData) => {
                         document.getElementById('AddUserModal').style.display = 'none';
                         document.getElementById('errorModalVersion2').style.display = 'flex';
                     }
+                    Ws.close();
                 } else if (message.action === 'add_multiple_users') {
                     if (message.success == true) {
                         let successMessage = `${message.addedCount} users added successfully! ${message.failedCount} users failed to add.`;
@@ -765,7 +900,16 @@ const sendFormData = (formData) => {
                         // Send temporary password emails for each successfully added user
                         if (message.addedUsers && message.addedUsers.length > 0) {
                             message.addedUsers.forEach(user => {
-                                sendTempPasswordEmail(user.email, user.password, user.full_name, user.department, formData.get('evaluator_name'));
+                                // Add a small delay between emails to prevent overwhelming the server
+                                setTimeout(() => {
+                                    sendTempPasswordEmail(
+                                        user.email,
+                                        user.password,
+                                        user.full_name,
+                                        user.department,
+                                        formData.get('evaluator_name')
+                                    );
+                                }, 500); // 500ms delay between each email
                             });
                         }
                     } else if (message.success == false){
@@ -773,15 +917,16 @@ const sendFormData = (formData) => {
                         document.getElementById('AddUserModal').style.display = 'none';
                         document.getElementById('errorModalVersion2').style.display = 'flex';
                     }
+                    Ws.close();
                 } else if (message.action === 'edit_user' || message.action === 'user_edited') {
                     document.getElementById('successMessageVersion2').innerHTML = 'User updated successfully!';
                     document.getElementById('EditUserModal').style.display = 'none';
                     document.getElementById('successMessageModalVersion2').style.display = 'flex';
                     console.log("Form Data Email: ", formData.get('email'));
                     sendUpdatedUserEmail(formData.get('email'), formData.get('full_name'), formData.get('department'), formData.get('user_type'), full_name);
+                    Ws.close();
                 } 
                 refreshUserTable();
-                Ws.close();
             };
 
             Ws.onclose = function () {
@@ -850,13 +995,13 @@ const sendUpdatedUserEmail = (email, full_name, department, userType, evaluator_
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Temporary password email sent successfully');
+            console.log('Update user email sent successfully');
         } else {
-            console.error('Failed to send temporary password email:', data.message);
+            console.error('Failed to send update user email:', data.message);
         }
     })
     .catch(error => {
-        console.error('Error sending temporary password email:', error);
+        console.error('Error sending update user email:', error);
     });
 };
 

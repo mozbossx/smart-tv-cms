@@ -10,6 +10,44 @@ include 'admin_access_only.php';
 
 // Send new user email here
 
+// Fetch inactivity settings
+// $queryAutoDelete = "SELECT * FROM auto_delete_user_inactivity_tb";
+// $resultAutoDelete = $conn->query($queryAutoDelete);
+
+// $inactivitySettings = [];
+// while ($row = $resultAutoDelete->fetch_assoc()) {
+//     $inactivitySettings[$row['department']] = [
+//         'faculty_days' => $row['faculty_days'],
+//         'staff_days' => $row['staff_days'],
+//         'student_days' => $row['student_days']
+//     ];
+// }
+
+// // Fetch users and check inactivity
+// $queryUsers = "SELECT user_id, user_type, department, last_post_date FROM users_tb";
+// $resultUsers = $conn->query($queryUsers);
+
+// $currentDate = new DateTime();
+// if ($user['user_type'] != 'Admin' || $user['user_type'] != 'Super Admin') {
+
+//     while ($user = $resultUsers->fetch_assoc()) {
+//         $lastPostDate = new DateTime($user['last_post_date']);
+//         $daysInactive = $currentDate->diff($lastPostDate)->days;
+//             $roleKey = strtolower($user['user_type']) . '_days';
+//             $maxDaysInactive = $inactivitySettings[$user['department']][$roleKey];
+
+//             if ($daysInactive > $maxDaysInactive) {
+//                 // Delete user
+//                 $deleteQuery = "DELETE FROM users_tb WHERE user_id = ?";
+//                 $stmt = $conn->prepare($deleteQuery);
+//                 $stmt->bind_param("i", $user['user_id']);
+//                 $stmt->execute();
+//                 $stmt->close();
+//             }
+//     }
+// }
+// $conn->close();
+
 ?>
 
 <!DOCTYPE html>
@@ -57,6 +95,7 @@ include 'admin_access_only.php';
                             <button type="button" class="green-button" id="selectMultipleBtn" style="margin-right: 5px"><i class="fa fa-check-square" style="margin-right: 2px"></i> Select Multiple</button>
                             <button type="button" class="green-button" id="deleteSelectedBtn" style="margin-right: 5px; display: none"><i class="fa fa-user-times" style="margin-right: 2px"></i> Delete Selected</button>
                             <button type="button" class="green-button" style="margin-right: 5px;" onclick="showAddUserModal(<?php echo $user_id?>)"><i class="fa fa-user-plus" style="margin-right: 2px"></i> Add User</button>
+                            <button type="button" class="green-button" style="margin-right: 5px;" onclick="showAutoDeleteModal()"><i class="fa fa-user-times" style="margin-right: 2px"></i> Auto Delete</button>
                             <button type="button" class="green-button" style="margin-right: 0;" onclick="showUserTableSummary()"><i class="fa fa-table" style="margin-right: 2px"></i> Table Summary</button>
                         </div>
                         <div class="error-message" style="display: none; margin-top: 10px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div>

@@ -2,6 +2,8 @@
 @include 'config_connection.php';
 session_start();
 
+include 'check_for_inactive_users.php';
+
 // Check if the user has explicitly logged out
 if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
     unset($_SESSION['full_name']);
