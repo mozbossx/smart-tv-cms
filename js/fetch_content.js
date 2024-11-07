@@ -23,7 +23,7 @@ const formatTime = (timeString) => {
 // 1. updateAnnouncementUI
 const updateAnnouncementUI = (data) => {
     // Check if the status is 'Pending' and return early if true
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data.announcement_id) {
+    if (data.status === 'Pending' || data.isArchived === 1 || !data.announcement_id) {
         return;
     }
 
@@ -325,7 +325,7 @@ const displayNoAnnouncementsMessage = () => {
 // 1. updateEventUI
 const updateEventUI = (data) => {
     // Check if the status is 'Pending' and return early if true
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data.event_id) {
+    if (data.status === 'Pending' || data.isArchived === 1 || !data.event_id) {
         return;
     }
 
@@ -639,7 +639,7 @@ const displayNoEventsMessage = () => {
 // 1. updateNewsUI
 const updateNewsUI = (data) => {
     // Check if the status is 'Pending' and return early if true
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data.news_id) {
+    if (data.status === 'Pending' || data.isArchived === 1 || !data.news_id) {
         return;
     }
 
@@ -941,7 +941,7 @@ const displayNoNewsMessage = () => {
 // 1. updatePromaterialUI
 const updatePromaterialUI = (data) => {
     // Check if the status is 'Pending' and return early if true
-    if (data.status === 'Pending' || data.isCancelled === 1 || !data.promaterial_id) {
+    if (data.status === 'Pending' || data.isArchived === 1 || !data.promaterial_id) {
         return;
     }
 
@@ -1231,7 +1231,7 @@ const displayNoPromaterialMessage = () => {
 // 1. updatePEOUI
 const updatePEOUI = (data) => {
     // Check if the necessary fields are present and non-empty
-    if (data.isCancelled === 1 || !data.peo_id) {
+    if (data.isArchived === 1 || !data.peo_id) {
         return;
     }
 
@@ -1518,7 +1518,7 @@ const displayNoPEOMessage = () => {
 // 1. updateSOUI
 const updateSOUI = (data) => {
     // Check if the necessary fields are present and non-empty
-    if (data.isCancelled === 1 || !data.so_id) {
+    if (data.isArchived === 1 || !data.so_id) {
         return;
     }
 
@@ -1808,7 +1808,7 @@ const fetchAndUpdateAnnouncements = () => {
         .then(data => {
             const filteredData = data.filter(announcement =>
                 announcement.status !== 'Pending' &&
-                announcement.isCancelled === 0
+                announcement.isArchived === 0
             );
             // Clear existing announcements
             annCarouselContainer.innerHTML = '';
@@ -1837,7 +1837,7 @@ const fetchAndUpdateEvents = () => {
         .then(data => {
             const filteredData = data.filter(event =>
                 event.status !== 'Pending' &&
-                event.isCancelled === 0
+                event.isArchived === 0
             );
             // Clear existing events
             eveCarouselContainer.innerHTML = '';
@@ -1866,7 +1866,7 @@ const fetchAndUpdateNews = () => {
         .then(data => {
             const filteredData = data.filter(news =>
                 news.status !== 'Pending' &&
-                news.isCancelled === 0
+                news.isArchived === 0
             );
             // Clear existing news
             newsCarouselContainer.innerHTML = '';
@@ -1895,7 +1895,7 @@ const fetchAndUpdatePromaterials = () => {
         .then(data => {
             const filteredData = data.filter(promaterial =>
                 promaterial.status !== 'Pending' &&
-                promaterial.isCancelled === 0
+                promaterial.isArchived === 0
             );
             // Clear existing promaterial
             promaterialsCarouselContainer.innerHTML = '';
@@ -1923,7 +1923,7 @@ const fetchAndUpdatePEOs = () => {
         .then(response => response.json())
         .then(data => {
             const filteredData = data.filter(peo =>
-                peo.isCancelled === 0
+                peo.isArchived === 0
             );
             // Clear existing peo
             peoCarouselContainer.innerHTML = '';
@@ -1951,7 +1951,7 @@ const fetchAndUpdateSOs = () => {
         .then(response => response.json())
         .then(data => {
             const filteredData = data.filter(so =>
-                so.isCancelled === 0
+                so.isArchived === 0
             );
             // Clear existing so
             soCarouselContainer.innerHTML = '';

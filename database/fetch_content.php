@@ -28,12 +28,12 @@ $authorIdField = "{$type}_author_id";
 
 try {
     // Fetch content with author names
-    $query = "SELECT c.*, u.full_name as author_name 
+    $query = "SELECT c.*, u.full_name as author_name, u.user_type as author_user_type, u.department as author_department
               FROM {$tableName} c 
               LEFT JOIN users_tb u ON c.{$authorIdField} = u.user_id
-              WHERE c.isCancelled = :isCancelled";
+              WHERE c.isArchived = :isArchived";
     
-    $params = [':isCancelled' => $archived ? 1 : 0];
+    $params = [':isArchived' => $archived ? 1 : 0];
 
     $statement = $pdo->prepare($query);
     $statement->execute($params);

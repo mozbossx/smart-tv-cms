@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.22:8081');
+const Ws = new WebSocket('ws://192.168.1.2:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -81,11 +81,11 @@ const updateUI = (data, type) => {
     const currentIndexKey = type;
     const contentsArray = contents[`${type}s`];
 
-    // if (data.status === 'Pending' || data.status === 'Draft' || data.isCancelled === 1 || !data[`${type}_id`]) {
+    // if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 1 || !data[`${type}_id`]) {
     //     return;
     // }
 
-    if (data.status !== 'Approved' || data.isCancelled === 1 || !data[`${type}_id`]) {
+    if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) {
         return;
     }
 
@@ -690,7 +690,8 @@ const fetchAndUpdateContents = (type) => {
                         } else if (type === 'peo' || type === 'so') {
                             const filteredData = data.filter(item =>
                                 item.tv_id === parseInt(tvId, 10) &&
-                                item.isCancelled === 0
+                                item.isArchived === 0 &&
+                                item.isTrashed === 0
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
@@ -704,7 +705,8 @@ const fetchAndUpdateContents = (type) => {
                             const filteredData = data.filter(item =>
                                 item.status === 'Approved' &&
                                 item.tv_id === parseInt(tvId, 10) &&
-                                item.isCancelled === 0
+                                item.isArchived === 0 &&
+                                item.isTrashed === 0
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {

@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.22:8081');
+const Ws = new WebSocket('ws://192.168.1.2:8081');
 
 function formatDateTime2(dateTimeString) {
     const dateTime = new Date(dateTimeString);
@@ -54,6 +54,8 @@ function filterNotifications(tabName) {
             document.getElementById('notificationsHeader').textContent = 'Deleted Notifications';
         } else if (tabName === 'updatedNotificationsList') {
             document.getElementById('notificationsHeader').textContent = 'Updated Notifications';
+        } else if (tabName === 'trashedNotificationsList') {
+            document.getElementById('notificationsHeader').textContent = 'Trashed Notifications';
         }
     }
 
@@ -67,6 +69,7 @@ function filterNotifications(tabName) {
         archived: 0,
         deleted: 0,
         edited: 0,
+        trashed: 0,
     };
 
     notifications.forEach(notification => {
@@ -81,6 +84,7 @@ function filterNotifications(tabName) {
             else if (notificationDiv.classList.contains('archived-notification')) counts.archived++;
             else if (notificationDiv.classList.contains('deleted-notification')) counts.deleted++;
             else if (notificationDiv.classList.contains('edited-notification')) counts.edited++;
+            else if (notificationDiv.classList.contains('trashed-notification')) counts.trashed++;
 
             switch (tabName) {
                 case 'allNotificationsList':
@@ -106,6 +110,9 @@ function filterNotifications(tabName) {
                     break;
                 case 'updatedNotificationsList':
                     if (notificationDiv.classList.contains('edited-notification')) filteredNotifications.push(notification);
+                    break;
+                case 'trashedNotificationsList':
+                    if (notificationDiv.classList.contains('trashed-notification')) filteredNotifications.push(notification);
                     break;
             }
         }
@@ -140,6 +147,9 @@ function updateTabCounts(counts) {
     
     const updatedCount = document.querySelector('.updated-notifications-count');
     if (updatedCount) updatedCount.textContent = `(${counts.edited})`;
+
+    const trashedCount = document.querySelector('.trashed-notifications-count');
+    if (trashedCount) trashedCount.textContent = `(${counts.trashed})`;
     
     // Always update the all-notifications-count-2 in the top header
     const allNotificationsCount2 = document.querySelector('.all-notifications-count-2');
@@ -340,7 +350,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('pending-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-post-notification">Your ${notification.content_type} is  pending for approval.</p>
+                    <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your ${notification.content_type} is pending for approval.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                     <div class="notification-buttons" style="margin-top: 0;"></div>
                 </div>
@@ -653,67 +663,106 @@ function createNotificationDiv(notification) {
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 <div class="notification-buttons">
-                    <!-- <button type="button" class="green-button" style="margin: 0;" onclick="showEditContentContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Edit</button> -->
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmDeleteContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Delete Content</button>
+                    <button type="button" class="green-button" style="margin: 0;" onclick="showEditContentContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Edit</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmDeleteContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}', '${notification.action_user_name}', '${notification.action_user_type}', '${notification.action_user_department}', ${notification.content_tv_id})">Delete Content</button>
                 </div>
             </div>
         `;
     }
     
     if (notification.notification_type === 'content_deleted' && notification.status == 'deleted' && notification.user_id == user_id) {
-        if (notification.action_user_name == full_name && notification.evaluator_name != full_name) {
+        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
             notificationDiv.classList.add('deleted-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You deleted your ${notification.content_type}.</p>
+                    <p class="content-approved-notification">You deleted your ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        } 
+
+        if (notification.action_user_name != full_name && notification.evaluator_name == full_name) {
+            notificationDiv.classList.add('deleted-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You deleted ${notification.action_user_name}'s ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
         }
 
-        if (notification.evaluator_name == full_name && notification.action_user_name != full_name) {
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name) {
             notificationDiv.classList.add('deleted-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You deleted ${notification.action_user_name}'s ${notification.content_type}</p>
-                    <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} deleted ${notification.action_user_name}'s ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
-        }  
+        }
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name == notification.action_user_name) {
+            notificationDiv.classList.add('deleted-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">${notification.evaluator_name} deleted his/her ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
     } 
     
     if (notification.notification_type === 'content_deleted_by_admin' && notification.status == 'deleted' && notification.user_id == user_id) {
         notificationDiv.classList.add('deleted-notification');
         content = `
             <div class="notification-details">
-                <p class="content-approved-notification">Your ${notification.content_type} has been deleted by ${notification.action_user_name}.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} has been deleted by ${notification.evaluator_name} in TV with ID: ${notification.content_tv_id}.</p>
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
             </div>
         `;
-    } 
-    
+    }
+
     if (notification.notification_type === 'content_archived' && notification.status == 'archived' && notification.user_id == user_id) {
-        if (notification.action_user_name == full_name && notification.evaluator_name != full_name) {
+        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
             notificationDiv.classList.add('archived-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You archived your ${notification.content_type}.</p>
+                    <p class="content-approved-notification">You archived your ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
-                <div class="view-button-container">
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='archives.php?pageid=Archives?userId=${user_id}%27%27${full_name}';">View</button>
+            `;
+        } 
+
+        if (notification.action_user_name != full_name && notification.evaluator_name == full_name) {
+            notificationDiv.classList.add('archived-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You archived ${notification.action_user_name}'s ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
         }
 
-        if (notification.evaluator_name == full_name && notification.action_user_name != full_name) {
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name) {
             notificationDiv.classList.add('archived-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You archived ${notification.action_user_name}'s ${notification.content_type}</p>
-                    <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} archived ${notification.action_user_name}'s ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name == notification.action_user_name) {
+            notificationDiv.classList.add('archived-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">${notification.evaluator_name} archived his/her ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -724,59 +773,124 @@ function createNotificationDiv(notification) {
         notificationDiv.classList.add('archived-notification');
         content = `
             <div class="notification-details">
-                <p class="content-approved-notification">Your ${notification.content_type} has been archived by ${notification.evaluator_name}.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} has been archived by ${notification.evaluator_name} in TV with ID: ${notification.content_tv_id}.</p>
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
             </div>
         `;
-    } 
-    
-    if (notification.notification_type === 'content_restored' && notification.status == 'restored' && notification.user_id == user_id) {
-        if (notification.evaluator_name == full_name) {
-            notificationDiv.classList.add('restored-notification');
-            content = `
-                <div class="notification-details">
-                    <p class="content-approved-notification">You restored your ${notification.content_type}.</p>
-                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                </div>
-                <div class="view-button-container">
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="viewTvContent(${notification.content_tv_id})">View</button>
-                </div>
-            `;
-        }
-    } 
-    
-    if (notification.notification_type === 'content_restored_by_admin' && notification.status == 'restored') {
-        if (notification.evaluator_name != full_name) {
-            notificationDiv.classList.add('restored-notification');
-            content = `
-                <div class="notification-details">
-                    <p class="content-approved-notification">Your ${notification.content_type} has been restored by ${notification.evaluator_name}.</p>
-                    <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
-                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                </div>
-                <div class="view-button-container">
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="viewTvContent(${notification.content_tv_id})">View</button>
-                </div>
-            `;
-        }
+    }
 
-        if (notification.evaluator_name == full_name) {
-            notificationDiv.classList.add('restored-notification');
+    if (notification.notification_type === 'content_trashed' && notification.status == 'trashed' && notification.user_id == user_id) {
+        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
+            notificationDiv.classList.add('trashed-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You restored ${notification.action_user_name}'s ${notification.content_type}</p>
+                    <p class="content-approved-notification">You moved your ${notification.content_type} to Trash.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        } 
+
+        if (notification.action_user_name != full_name && notification.evaluator_name == full_name) {
+            notificationDiv.classList.add('trashed-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You moved ${notification.action_user_name}'s ${notification.content_type} to Trash.</p>
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
-                <div class="view-button-container">
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="viewTvContent(${notification.content_tv_id})">View</button>
+            `;
+        }
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name) {
+            notificationDiv.classList.add('trashed-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">${notification.evaluator_name} moved ${notification.action_user_name}'s ${notification.content_type} to Trash.</p>
+                    <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
         }
-        
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name == notification.action_user_name) {
+            notificationDiv.classList.add('trashed-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">${notification.evaluator_name} moved his/her ${notification.content_type} to Trash.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+    } 
+    
+    if (notification.notification_type === 'content_trashed_by_admin' && notification.status == 'trashed' && notification.user_id == user_id) {
+        notificationDiv.classList.add('trashed-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">Your ${notification.content_type} has been moved to Trash by ${notification.evaluator_name}.</p>
+                <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
     }
 
+    // CONTENT RESTORED
+    if (notification.notification_type === 'content_restored' && notification.status == 'restored' && notification.user_id == user_id) {
+        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
+            notificationDiv.classList.add('restored-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You restored your ${notification.content_type} to TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        } 
+
+        if (notification.action_user_name != full_name && notification.evaluator_name == full_name) {
+            notificationDiv.classList.add('restored-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">You restored ${notification.action_user_name}'s ${notification.content_type} to TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name) {
+            notificationDiv.classList.add('restored-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">${notification.evaluator_name} restored ${notification.action_user_name}'s ${notification.content_type} to TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name == notification.action_user_name) {
+            notificationDiv.classList.add('restored-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">${notification.evaluator_name} restored his/her ${notification.content_type} to TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+    } 
+    
+    if (notification.notification_type === 'content_restored_by_admin' && notification.status == 'restored' && notification.user_id == user_id) {
+        notificationDiv.classList.add('restored-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">Your ${notification.content_type} has been restored by ${notification.evaluator_name} to TV with ID: ${notification.content_tv_id}.</p>
+                <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
+    
     // If content is still empty, it means no condition was met
     if (content == '') {
         return null;
@@ -838,8 +952,6 @@ function showConfirmRejectModal(userId, email, fullName, userType, evaluatorName
 }
 
 function showConfirmApproveContentModal(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId) {
-    const viewContentModal = document.getElementById('viewContentModal');
-    viewContentModal.style.display = 'none';
     const modal = document.getElementById('confirmApproveContentModal');
     modal.innerHTML = `
         <div class="modal-content" style="padding: 10px;">
@@ -858,8 +970,6 @@ function showConfirmApproveContentModal(contentId, contentType, fullName, depart
 }
 
 function showConfirmRejectContentModal(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId) {
-    const viewContentModal = document.getElementById('viewContentModal');
-    viewContentModal.style.display = 'none';
     const modal = document.getElementById('confirmRejectContentModal');
     modal.innerHTML = `
         <div class="modal-content" style="padding: 10px;">
@@ -882,8 +992,17 @@ function showConfirmRejectContentModal(contentId, contentType, fullName, departm
     modal.style.display = 'flex';
 }
 
-function showConfirmDeleteContentModal(contentId, contentType, userId, fullName) {
+function showConfirmDeleteContentModal(contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) {
     const confirmDeleteContentModal = document.getElementById('confirmDeleteContentModal');
+
+    const evaluatorMessageHtml = user_id != authorId ? `
+        <div class="floating-label-container">
+            <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+            <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+        </div>
+        <br>
+    ` : '';
+
     confirmDeleteContentModal.innerHTML = `
         <div class="modal-content">
             <span class="close" onclick="closeModal('confirmDeleteContent')" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
@@ -891,9 +1010,10 @@ function showConfirmDeleteContentModal(contentId, contentType, userId, fullName)
             <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
             <p>Proceed to delete this ${contentType}?</p>
             <br>
+            ${evaluatorMessageHtml}
             <div style="text-align: right;">
                 <button type="button" class="grey-button" onclick="closeModal('confirmDeleteContent')">Cancel</button>
-                <button type="button" class="red-button" style="margin-right: 0" onclick="deleteContent(${contentId}, '${contentType}', ${userId}, '${fullName}')">Yes, Delete</button>
+                <button type="button" class="red-button" style="margin-right: 0" onclick="deleteContent(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, Delete</button>
             </div>
         </div>
     `;
@@ -972,13 +1092,34 @@ function rejectContent(contentId, contentType, fullName, department, userId, con
     closeModal('confirmRejectContent');
 }
 
-function deleteContent(contentId, contentType, userId, fullName) {
+function deleteContent(contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) {
+    const evaluatorMessageElement = document.getElementById('evaluator_message');
+    let evaluatorMessage = null;
+
+    if (evaluatorMessageElement) {
+        evaluatorMessage = evaluatorMessageElement.value;
+        if (!evaluatorMessage) {
+            alert('Evaluator message is required.');
+            return;
+        }
+    }
+    
     Ws.send(JSON.stringify({
+        // action: 'delete_content',
+        // [`${contentType}_id`]: contentId,
+        // type: contentType,
+        // user_id: userId,
+        // evaluator_name: fullName
         action: 'delete_content',
-        [`${contentType}_id`]: contentId,
         type: contentType,
-        user_id: userId,
-        evaluator_name: fullName
+        [`${contentType}_id`]: contentId, // Dynamically set the ID based on the type
+        user_id: user_id,
+        author_id: authorId,
+        author_name: authorName,
+        author_user_type: authorUserType,
+        author_department: authorDepartment,
+        evaluator_name: loggedInFullName,
+        tv_id: tvId
     }));
     closeModal('confirmDeleteContent');
 }
@@ -1117,7 +1258,7 @@ Ws.addEventListener('message', function(event) {
                         // For new features, dynamically add all fields
                         for (let key in content) {
                             if (key !== `${contentType}_id` && key !== 'created_datetime' && key !== 'expiration_datetime' 
-                                && key !== 'display_time' && key !== 'status' && key !== 'isCancelled' 
+                                && key !== 'display_time' && key !== 'status' && key !== 'isArchived' 
                                 && key !== 'tv_id' && key !== `${contentType}_author_id` && key !== 'type' && key !== 'department' 
                                 && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name') {
                                     contentHtml += `<p>${content[key]}</p>`;

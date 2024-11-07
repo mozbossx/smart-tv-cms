@@ -17,7 +17,7 @@ function formatDateTime(dateTimeString) {
 }
 
 // Utility function to create buttons
-const createDeleteButton = (text, iconClass, onClick) => {
+const createTrashButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
     button.className = 'light-green-button';
@@ -75,7 +75,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
             // For new features, dynamically add all fields
             for (let key in data) {
                 if (key !== `${type}_id` && key !== 'created_datetime' && key !== 'expiration_datetime' 
-                    && key !== 'display_time' && key !== 'status' && key !== 'isCancelled' 
+                    && key !== 'display_time' && key !== 'status' && key !== 'isArchived' && key !== 'isTrashed'
                     && key !== 'tv_id' && key !== `${type}_author_id` && key !== 'type' && key !== 'department' 
                     && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name') {
                         contentHtml += `<p>${data[key]}</p>`;
@@ -96,7 +96,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
 
 // Function to update UI for announcement, event, news, etc.
 const updateUI = (data, type) => {
-    if (data.status === 'Pending' || data.status === 'Draft' || data.isCancelled === 1 || !data[`${type}_id`]) return;
+    if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) return;
 
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
@@ -148,12 +148,12 @@ const updateUI = (data, type) => {
             margin-top: 10px;
         `;
 
-        const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name));
-        const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name));
+        const trashButton = createTrashButton('Trash', 'fa fa-trash', () => showTrashModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
+        const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
         const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
         if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
-            buttonContainer.appendChild(deleteButton);
+            buttonContainer.appendChild(trashButton);
             buttonContainer.appendChild(archiveButton);
             buttonContainer.appendChild(editButton);
         }
@@ -165,60 +165,103 @@ const updateUI = (data, type) => {
 };
 
 // Function to archive an item
-const archiveItem = (type, id, author_id, full_name) => {
-    const evaluatorMessageElement = document.getElementById('evaluator_message');
+const archiveItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
+    const evaluatorMessageArchive = document.getElementById('evaluator_message_archive');
     let evaluatorMessage = null;
 
-    if (evaluatorMessageElement) {
-        evaluatorMessage = evaluatorMessageElement.value;
+    if (evaluatorMessageArchive) {
+        evaluatorMessage = evaluatorMessageArchive.value;
         if (!evaluatorMessage) {
             alert('Evaluator message is required.');
             return;
         }
     }
 
-    const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+    const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
     const modal = document.getElementById(`confirmArchive${capitalizedType}Modal`);
     const data = {
         action: 'archive_content',
-        type: type,
-        [`${type}_id`]: id, // Dynamically set the ID based on the type
+        type: contentType,
+        [`${contentType}_id`]: contentId, // Dynamically set the ID based on the type
         user_id: user_id,
-        author_id: author_id,
-        evaluator_name: full_name,
-        evaluator_message: evaluatorMessage
+        author_id: authorId,
+        author_name: authorName,
+        author_user_type: authorUserType,
+        author_department: authorDepartment,
+        evaluator_name: loggedInFullName,
+        evaluator_message: evaluatorMessage,
+        tv_id: tvId
     };
     console.log("Archived Content Data: ", data);
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
-// Function to delete an item
-const deleteItem = (type, id, author_id, full_name) => {
-    const evaluatorMessageElement = document.getElementById('evaluator_message');
+// Function to trash an item
+const trashItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
+    const evaluatorMessageTrash = document.getElementById('evaluator_message_trash');
     let evaluatorMessage = null;
 
-    if (evaluatorMessageElement) {
-        evaluatorMessage = evaluatorMessageElement.value;
+    if (evaluatorMessageTrash) {
+        evaluatorMessage = evaluatorMessageTrash.value;
         if (!evaluatorMessage) {
             alert('Evaluator message is required.');
             return;
         }
     }
 
-    const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
-    const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
+    const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
+    const confirmTrashModal = document.getElementById(`confirmTrash${capitalizedType}Modal`);
+    const data = {
+        action: 'trash_content',
+        type: contentType,
+        [`${contentType}_id`]: contentId, // Dynamically set the ID based on the type
+        user_id: user_id,
+        author_id: authorId,
+        author_name: authorName,
+        author_user_type: authorUserType,
+        author_department: authorDepartment,
+        evaluator_name: loggedInFullName,
+        evaluator_message: evaluatorMessage,
+        tv_id: tvId
+    };
+    console.log("Trashed Content Data: ", data);
+    confirmTrashModal.style.display = 'none';
+    Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
+};
+
+// Function to delete an item
+const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
+    const evaluatorMessageDeleteForever = document.getElementById('evaluator_message_delete');
+    let evaluatorMessage = null;
+
+    if (evaluatorMessageDeleteForever) {
+        evaluatorMessage = evaluatorMessageDeleteForever.value;
+        if (!evaluatorMessage) {
+            alert('Evaluator message is required.');
+            return;
+        }
+    }
+
+    const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
+    const confirmTrashModal = document.getElementById(`confirmTrash${capitalizedType}Modal`);
+    const confirmDeleteModal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
     const data = {
         action: 'delete_content',
-        type: type,
-        [`${type}_id`]: id, // Dynamically set the ID based on the type
+        type: contentType,
+        [`${contentType}_id`]: contentId, // Dynamically set the ID based on the type
         user_id: user_id,
-        author_id: author_id,
-        evaluator_name: full_name,
-        evaluator_message: evaluatorMessage
+        author_id: authorId,
+        author_name: authorName,
+        author_user_type: authorUserType,
+        author_department: authorDepartment,
+        evaluator_name: loggedInFullName,
+        evaluator_message: evaluatorMessage,
+        tv_id: tvId
     };
     console.log("Deleted Content Data: ", data);
-    modal.style.display = 'none';
+    confirmTrashModal.style.display = 'none';
+    confirmDeleteModal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
@@ -268,6 +311,13 @@ const createModals = (contentTypes) => {
         archiveModal.innerHTML = `<div id="archive${capitalizedType}ModalContent"></div>`;
         modalContainer.appendChild(archiveModal);
 
+        // Trash Modal
+        const trashModal = document.createElement('div');
+        trashModal.id = `confirmTrash${capitalizedType}Modal`;
+        trashModal.className = 'modal';
+        trashModal.innerHTML = `<div id="trash${capitalizedType}ModalContent"></div>`;
+        modalContainer.appendChild(trashModal);
+
         // Delete Modal
         const deleteModal = document.createElement('div');
         deleteModal.id = `confirmDelete${capitalizedType}Modal`;
@@ -280,8 +330,8 @@ const createModals = (contentTypes) => {
 };
 
 // Function to show archive modal
-const showArchiveModal = (id, type, author_id, full_name) => {
-    const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+const showArchiveModal = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
+    const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
     const modal = document.getElementById(`confirmArchive${capitalizedType}Modal`);
     const modalContent = document.getElementById(`archive${capitalizedType}ModalContent`);
     modalContent.className = 'modal-content';
@@ -289,10 +339,10 @@ const showArchiveModal = (id, type, author_id, full_name) => {
         padding: 15px;
     `;
 
-    const evaluatorMessageHtml = user_id != author_id ? `
+    const evaluatorMessageHtml = user_id != authorId ? `
         <div class="floating-label-container">
-            <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-            <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+            <textarea name="evaluator_message_archive" id="evaluator_message_archive" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+            <label for="evaluator_message_archive" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
         </div>
         <br>
     ` : '';
@@ -301,12 +351,49 @@ const showArchiveModal = (id, type, author_id, full_name) => {
         <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
         <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to archive?</p>
+        <p id="trashMessage" style="text-align: center">Proceed to archive?</p>
+        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for 120 days before being moved to Trash.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
             <button type="button" class="grey-button" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
-            <button type="button" class="yellow-button" onclick="archiveItem('${type}', '${id}', '${author_id}', '${full_name}')">Yes, Archive</button>
+            <button type="button" class="yellow-button" onclick="archiveItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, Archive</button>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+};
+
+// Function to show trash modal
+const showTrashModal = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
+    const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
+    const modal = document.getElementById(`confirmTrash${capitalizedType}Modal`);
+    const modalContent = document.getElementById(`trash${capitalizedType}ModalContent`);
+    modalContent.className = 'modal-content';
+    modalContent.style = `
+        padding: 15px;
+    `;
+
+    const evaluatorMessageHtml = user_id != authorId ? `
+        <div class="floating-label-container">
+            <textarea name="evaluator_message_trash" id="evaluator_message_trash" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+            <label for="evaluator_message_trash" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+        </div>
+        <br>
+    ` : '';
+    
+    modalContent.innerHTML = `
+        <span class="close" onclick="document.getElementById('confirmTrash${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <br>
+        <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+        <p id="trashMessage" style="text-align: center">Proceed to move to Trash?</p>
+        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for 30 days before being permanently deleted.</p>
+        <br>
+        ${evaluatorMessageHtml}
+        <div style="text-align: right;">
+            <!-- <button type="button" class="grey-button" onclick="document.getElementById('confirmTrash${capitalizedType}Modal').style.display='none'">Cancel</button> -->
+            <button type="button" class="grey-button" onclick="showDeleteModal(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Delete Forever</button>
+            <button type="button" class="red-button" onclick="trashItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, move to Trash</button>
         </div>
     `;
     
@@ -314,8 +401,8 @@ const showArchiveModal = (id, type, author_id, full_name) => {
 };
 
 // Function to show delete modal
-const showDeleteModal = (id, type, author_id, full_name) => {
-    const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
+    const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
     const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
     const modalContent = document.getElementById(`delete${capitalizedType}ModalContent`);
     modalContent.className = 'modal-content';
@@ -323,10 +410,10 @@ const showDeleteModal = (id, type, author_id, full_name) => {
         padding: 15px;
     `;
 
-    const evaluatorMessageHtml = user_id != author_id ? `
+    const evaluatorMessageHtml = user_id != authorId ? `
         <div class="floating-label-container">
-            <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-            <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+            <textarea name="evaluator_message_delete" id="evaluator_message_delete" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+            <label for="evaluator_message_delete" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
         </div>
         <br>
     ` : '';
@@ -335,12 +422,13 @@ const showDeleteModal = (id, type, author_id, full_name) => {
         <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
         <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to delete?</p>
+        <p id="deleteMessage" style="text-align: center">Proceed to delete forever?</p>
+        <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Permanently deleted items cannot be recovered.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
             <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
-            <button type="button" class="red-button" onclick="deleteItem('${type}', '${id}', '${author_id}', '${full_name}')">Yes, Delete</button>
+            <button type="button" class="red-button" onclick="deleteItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, delete forever</button>
         </div>
     `;
     
@@ -373,12 +461,12 @@ function fetchAndUpdate(type) {
             let filteredData;
             if (Array.isArray(data)) {
                 filteredData = data.filter(item => {
-                    return item.tv_id === parseInt(tvId, 10) && item.isCancelled === 0 && item.status === 'Approved';
+                    return item.tv_id === parseInt(tvId, 10) && item.isArchived === 0 && item.isTrashed === 0 && item.status === 'Approved';
                 });
             } else if (typeof data === 'object' && data !== null) {
                 // If data is a single object, wrap it in an array
                 filteredData = [data].filter(item => {
-                    return item.tv_id === parseInt(tvId, 10) && item.isCancelled === 0 && item.status === 'Approved';
+                    return item.tv_id === parseInt(tvId, 10) && item.isArchived === 0 && item.isTrashed === 0 && item.status === 'Approved';
                 });
             } else {
                 console.error(`Unexpected data format for ${type}:`, data);
@@ -415,6 +503,19 @@ Ws.addEventListener('message', function(event) {
                 deletedDiv.remove(); // Remove the deleted item from the UI
             }
             console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been deleted.`);
+            break;
+        
+        case 'trash_content':
+            // Handle deletion confirmation
+            const trashMessageDiv = document.getElementById(`no-${data.type}-message`);
+            if (trashMessageDiv) {
+                trashMessageDiv.remove(); // Remove the "No items" message if it exists
+            }
+            const trashDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
+            if (trashDiv) {
+                trashDiv.remove(); // Remove the trashed item from the UI
+            }
+            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been moved to Trash.`);
             break;
 
         case 'archive_content':

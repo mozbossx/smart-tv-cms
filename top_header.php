@@ -58,7 +58,12 @@ $stmtNotificationCount->close();
                         <li><a href="form_event.php?pageid=EventForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Event</a></li>
                         <li><a href="form_news.php?pageid=NewsForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">News</a></li>
                         <li><a href="form_promotional_material.php?pageid=PromotionalMaterialsForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Promotional Material</a></li>
-                        <li><a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">General Information</a></li>
+                        <?php 
+                            if ($user_type === 'Admin' || $user_type === 'Super Admin') {
+                                echo '<li><a href="general_info.php?pageid=GeneralInformationForm?userId=' . $user_id . '\'\'' . $full_name . '">General Information</a></li>';
+                                echo '<li><a href="form_add_new_feature.php?pageid=AddNewFeatureForm?userId=' . $user_id . '\'\'' . $full_name . '">Add New Feature</a></li>';
+                            }
+                        ?>
                     </ul>
                 </li>
                 <li style="float: right; margin-right: 5px; margin-top: 3px;">
@@ -80,6 +85,10 @@ $stmtNotificationCount->close();
                 <li>
                     <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
                     <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives</a>
+                </li>
+                <li>
+                    <a href="trash.php?pageid=Trash?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                    <?php echo $current_page === 'trash.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Trash</a>
                 </li>
                 <?php if ($user_type === 'Admin') { ?>
                 <li>
@@ -113,7 +122,7 @@ $stmtNotificationCount->close();
             <button id="notifications-button-mobile" class="notifications-button-mobile" <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="border-radius: 20px;"' : ''; ?>" onclick="toggleNotificationsDropdown(true)"><i class="fa fa-bell" style="font-size: 35px; margin-top: 5px;"></i></button>
             <span id="notificationCountMobile" class="notification-count-mobile"><?php echo $notificationCount; ?></span>
             <span id="triangleMobile" class="triangle-mobile"></span>
-            <div id="notificationsDropdownMobile" class="dropdown-notifications-mobile" style="display: none; position: absolute; right: 5px; top: 65px; background-color: white; box-shadow: 0px 0px 16px 0px rgba(0,0,0,0.54); z-index: 1; width: 250px; height: 400px; max-height: 400px; overflow-y: auto; padding: 10px;">
+            <div id="notificationsDropdownMobile" class="dropdown-notifications-mobile" style="display: none; position: absolute; right: 5px; top: 65px; background-color: white; box-shadow: 0px 0px 16px 0px rgba(0,0,0,0.54); z-index: 1; width: 285px; height: 400px; max-height: 400px; overflow-y: auto; padding: 10px;">
                 <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Notifications <span class="all-notifications-count-mobile"></span></p>
                 <div id="notificationsContainerMobile" class="notifications-container-mobile">
                     <!-- Notifications will be dynamically inserted here -->
@@ -130,8 +139,8 @@ $stmtNotificationCount->close();
 </div>
 <div id="confirmApproveUserModal" class="modal"></div>
 <div id="confirmRejectUserModal" class="modal"></div>
-<div id="confirmApproveContentModal" class="modal"></div>
-<div id="confirmRejectContentModal" class="modal"></div>
+<div id="confirmApproveContentModal" class="modal" style="z-index: 10000;"></div>
+<div id="confirmRejectContentModal" class="modal" style="z-index: 10000;"></div>
 <div id="viewContentModal" class="modal"></div>
 <div id="confirmDeleteContentModal" class="modal"></div>
     <!-- Modal content will be dynamically inserted here -->

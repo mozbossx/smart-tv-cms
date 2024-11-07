@@ -128,7 +128,7 @@ function createPostDiv(data, type) {
             // For new features, dynamically add all fields
             for (let key in data) {
                 if (key !== `${type}_id` && key !== 'created_datetime' && key !== 'expiration_datetime' 
-                    && key !== 'display_time' && key !== 'status' && key !== 'isCancelled' 
+                    && key !== 'display_time' && key !== 'status' && key !== 'isArchived' 
                     && key !== 'tv_id' && key !== `${type}_author_id` && key !== 'type' && key !== 'department' 
                     && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name') {
                         contentHtml += `<p>${data[key]}</p>`;
@@ -157,10 +157,10 @@ function createPostDiv(data, type) {
     // Create buttons
     const deleteButton = createButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type));
     buttonContainer.appendChild(deleteButton);
-    if(data.isCancelled === 0){
+    if(data.isArchived === 0){
         const archiveButton = createButton('archive_content', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type));
         buttonContainer.appendChild(archiveButton);
-    } else if (data.isCancelled === 1){
+    } else if (data.isArchived === 1){
         const unarchiveButton = createButton('Unarchive', 'fa fa-archive', () => showUnarchiveModal(data[`${type}_id`], type));
         buttonContainer.appendChild(unarchiveButton);
     }

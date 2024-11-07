@@ -63,27 +63,18 @@ if (!$resultAllSmartTVs) {
                             <button type="button" id="scanTVsButton" class="green-button" style="width: auto; margin-right: 0;"  ><i class="fa fa-search" style="padding-right: 5px"></i>Scan for Smart TVs</button>
                         </div>
                         <?php include('error_message.php'); ?>
-                        <div class="tab" style="margin-top: 10px;">
-                            <button type="button" class="tablinks active" onclick="openTab(event, 'ContainerView')">Container View</button>
-                            <button type="button" class="tablinks" onclick="openTab(event, 'TableView')">Table View</button>
-                        </div>
-                        <div id="ContainerView" class="tabcontent" style="display: block;">
-                            <!-- Container View will be displayed here -->
-                        </div>
-                        <div id="TableView" class="tabcontent">
-                            <form class="search-form" style="width: 300px; max-width: 100%; margin: 0; margin-bottom: 10px;">
-                                <div class="floating-label-container">
-                                    <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchSmartTVsTable()">
-                                    <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search Smart TVs Table</label>
-                                    <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
-                                        <i class="fa fa-times" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </form>
-                            <div class="table-container">
-                                <div id="smartTVTableContainer">
-                                    <!-- Latest table of smart TVs will be displayed here -->
-                                </div>
+                        <form class="search-form" style="width: 300px; max-width: 100%; margin: 0; margin-bottom: 10px;">
+                            <div class="floating-label-container">
+                                <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchSmartTVsTable()">
+                                <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search Smart TVs Table</label>
+                                <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                                    <i class="fa fa-times" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </form>
+                        <div class="table-container" id="smartTVsTableContainerParent" style="max-height: 55vh">
+                            <div id="smartTVTableContainer">
+                                <!-- Latest table of smart TVs will be displayed here -->
                             </div>
                         </div>
                     </div>

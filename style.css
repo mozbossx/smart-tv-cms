@@ -670,6 +670,7 @@ nav a{
     align-items: center; /* Center vertically */
     user-select: none;
     text-align: center;
+    word-break: break-word;
 }
 
 .input-label {
@@ -2052,6 +2053,30 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     margin-top: 10px;
 }
 
+#usersTable, #smartTVsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#usersTable thead, #smartTVsTable thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #dadada; /* Match your table header background color */
+}
+
+#usersTable th, #smartTVsTable th {
+    background-color: #dadada; /* Match your table header background color */
+}
+
+#userTableContainerParent::-webkit-scrollbar-thumb, #smartTVsTableContainerParent::-webkit-scrollbar-thumb {
+    background-color: #bcbcbc;
+}
+
+#userTableContainerParent::-webkit-scrollbar-track, #smartTVsTableContainerParent::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -2122,6 +2147,7 @@ tr:nth-child(even) {
 .view-all-notifications-container {
     display: flex;
     flex-direction: row;
+    word-break: break-word;
 }
 
 .notifications-tab {
@@ -2200,6 +2226,7 @@ tr:nth-child(even) {
 .archived-notifications-count, 
 .deleted-notifications-count,
 .updated-notifications-count,
+.trashed-notifications-count,
 .all-notifications-count-2,
 .all-notifications-count-mobile {
     background: none;
@@ -2247,11 +2274,13 @@ tr:nth-child(even) {
 .notifications-container {
     overflow-y: auto;
     height: 325px;
+    word-break: break-word;
 }
 
 .notifications-container-mobile {
     overflow-y: auto;
     height: 325px;
+    word-break: break-word;
 }
 
 .notification-details {

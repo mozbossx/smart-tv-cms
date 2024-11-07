@@ -8,7 +8,20 @@ include 'get_session.php';
 
 // Fetch all features from the database
 $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
-$stmtNewFeatures = $pdo->query("SELECT * FROM features_tb");
+
+if ($user_type == 'Super Admin') {
+    $stmtNewFeatures = $pdo->query("SELECT * FROM features_tb");
+} else {
+    $stmtNewFeatures = $pdo->prepare("
+        SELECT DISTINCT f.* 
+        FROM features_tb f
+        LEFT JOIN feature_user_types fut ON f.feature_id = fut.feature_id
+        WHERE (f.department = :department AND (fut.user_type = :user_type OR :user_type = 'Admin'))
+           OR :user_type = 'Super Admin'
+    ");
+    $stmtNewFeatures->execute([':department' => $department, ':user_type' => $user_type]);
+}
+
 $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
@@ -48,30 +61,37 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 // Loop through each content type
                 foreach ($contentTypes as $type) {
                     echo "<div id='{$type}List' class='content-container'>";
+    
+                    // Handle all content titles in one unified section
                     if ($type == 'announcement') {
                         echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements</h1>";
-                    } else if ($type == 'event') {
+                    } 
+                    else if ($type == 'event') {
                         echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-calendar-check-o' style='margin-right: 6px' aria-hidden='true'></i>Events</h1>";
-                    } else if ($type == 'news') {
+                    } 
+                    else if ($type == 'news') {
                         echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-newspaper-o' style='margin-right: 6px' aria-hidden='true'></i>News</h1>";
-                    } else if ($type == 'promaterial') {
+                    } 
+                    else if ($type == 'promaterial') {
                         echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-object-group' style='margin-right: 6px' aria-hidden='true'></i>Promotional Materials</h1>";
-                    } else if ($type == 'peo') {
+                    } 
+                    else if ($type == 'peo' && ($user_type == 'Admin' || $user_type == 'Super Admin')) {
                         echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO)</h1>";
-                    } else if ($type == 'so') {
+                    } 
+                    else if ($type == 'so' && ($user_type == 'Admin' || $user_type == 'Super Admin')) {
                         echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO)</h1>";
-                    } else {
-                        // For new features
+                    }
+                    // For new features
+                    else {
                         $feature = array_filter($featuresNewFeatures, function($f) use ($type) {
                             return strtolower(str_replace(' ', '_', $f['feature_name'])) === $type;
                         });
                         $feature = reset($feature);
                         if ($feature) {
                             echo "<h1 class='content-title' style='text-align: center;'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']}</h1>";
-                        } else {
-                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . "</h1>";
                         }
                     }
+
                     echo "<div class='scroll-div'>";
                     echo "<div id='{$type}CarouselContainer'>";
 
@@ -84,6 +104,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
+    <?php include('misc/php/error_modal.php'); ?>
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_archived_content.js"></script>
 </body>

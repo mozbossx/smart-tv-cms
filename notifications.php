@@ -75,6 +75,7 @@ $stmt->close();
                                     <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'archivedNotificationsList')">Archived <span class="archived-notifications-count"></span></button>
                                     <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'deletedNotificationsList')">Deleted <span class="deleted-notifications-count"></span></button>
                                     <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'updatedNotificationsList')">Updated <span class="updated-notifications-count"></span></button>
+                                    <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'trashedNotificationsList')">Trashed <span class="trashed-notifications-count"></span></button>
                                 </div>
                                 <div id="allNotificationsList" class="notifications-tabcontent" style="display: block; height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
                                 <div id="pendingNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
@@ -84,6 +85,7 @@ $stmt->close();
                                 <div id="archivedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
                                 <div id="deletedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
                                 <div id="updatedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="trashedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
                             </div>
                         </div>
                     </div>

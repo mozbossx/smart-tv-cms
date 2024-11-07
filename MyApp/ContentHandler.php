@@ -78,30 +78,103 @@ class ContentHandler implements MessageComponentInterface
 
             $table = $validTypes[$type]['table'];
             $idField = $validTypes[$type]['idField'];
+            
             $content_id = $data[$idField];
             $user_id = $data['user_id']; // logged-in user's ID
             $author_id = $data['author_id']; // author's ID
-            $evaluator_message = $data['evaluator_message'];
+            $author_name = $data['author_name'];
+            $author_user_type = $data['author_user_type'];
+            $author_department = $data['author_department'];
+            $evaluator_message = $data['evaluator_message'] ?? null;
             $evaluator_name = $data['evaluator_name'];
-            
+            $content_tv_id = $data['tv_id'];
+
+            /*
+                $user_id = $data['user_id'];
+                $email = $data['email'];
+                $full_name = $data['full_name'];
+                $user_type = $data['user_type'];
+                $department = $data['department'];
+                $evaluator_name = $data['evaluator_name'];
+                $evaluator_id = $data['evaluator_id'];
+            */
+
             $stmt = $this->pdo->prepare("DELETE FROM {$table} WHERE {$idField} = ?");
             $stmt->execute([$content_id]);
                 
             $deleted = $stmt->rowCount() > 0;
-            if ($deleted) {               
-                // Insert notification for the user who owns the content
-                if ($user_id == $user_id) {
-                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted', 'deleted', ?, ?)");
-                    $stmt->execute([$content_id, $user_id, $type, $evaluator_message, $evaluator_name]);
+            if ($deleted) {
+                $stmtSearchForRejectedByAdminNotification = $this->pdo->prepare("SELECT * FROM notifications_tb WHERE user_id = ? AND content_id = ? AND notification_type = 'content_rejected_by_admin'");
+                $stmtSearchForRejectedByAdminNotification->execute([$user_id, $content_id]);
+                $rejectedByAdminNotification = $stmtSearchForRejectedByAdminNotification->fetchAll(PDO::FETCH_ASSOC);
 
-                    $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                    $stmtUpdateUser1->execute([$author_id]);
+                if ($rejectedByAdminNotification) {
+                    $stmtDeleteRejectedByAdminNotification = $this->pdo->prepare("DELETE FROM notifications_tb WHERE user_id = ? AND content_id = ? AND notification_type = 'content_rejected_by_admin'");
+                    $stmtDeleteRejectedByAdminNotification->execute([$user_id, $content_id]);
                 }
 
-                // Insert notification for the user who doesn't own the content
+                // Insert notification for the user who deleted his own content
+                if ($author_id == $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$content_id, $user_id, $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser1->execute([$user_id]);
+                } 
+
+                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectDepartmentAdmins->execute([$author_department, $author_id, $user_id]);
+                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($departmentAdmins) {
+                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($departmentAdmins as $admin) {
+                        $stmtNotifyDepartmentAdmins->execute([$content_id, $admin['user_id'], $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtUpdateDepartmentAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateDepartmentAdmin->execute([$admin['user_id']]);
+                    }
+                }
+
+                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectSuperAdmins->execute([$author_id, $user_id]);
+                $superAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($superAdmins) {
+                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($superAdmins as $superAdmin) {
+                        $stmtNotifySuperAdmins->execute([$content_id, $superAdmin['user_id'], $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+                        
+                        $stmtUpdateSuperAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateSuperAdmin->execute([$superAdmin['user_id']]);
+                    }
+                }
+                
+                // Insert notification for the user own the content but got deleted by admin
                 if ($author_id != $user_id) {
-                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_deleted_by_admin', 'deleted', ?, ?)");
-                    $stmt->execute([$content_id, $user_id, $type, $evaluator_message, $evaluator_name]);
+                    $stmtNotifyUser = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtNotifyUser->execute([$content_id, $user_id, $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtNotifyUser2 = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtNotifyUser2->execute([$content_id, $author_id, $type, 'content_deleted_by_admin', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser2->execute([$author_id]);
 
                     $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
                     $stmtUpdateUser2->execute([$user_id]);
@@ -119,6 +192,158 @@ class ContentHandler implements MessageComponentInterface
                 
                 echo "{$type} deleted!\n";
 
+                // Notify the client who sent the request and all connected clients
+                $from->send(json_encode($response));
+                foreach ($this->clients as $client) {
+                    if ($client !== $from) {
+                        $client->send(json_encode($response));
+                    }
+                }
+            }
+        }
+
+        else if (isset($data['action']) && $data['action'] === 'trash_content') {
+            $validTypes = [
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
+                'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id'],
+                'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
+                'so' => ['table' => 'so_tb', 'idField' => 'so_id']
+            ];
+            $type = $data['type'] ?? null;
+
+            if (!isset($validTypes[$type])) {
+                // If it's not a default type, check if it's a new feature
+                $stmt = $this->pdo->prepare("SELECT * FROM features_tb WHERE type = ?");
+                $stmt->execute([strtolower($type)]);
+                $feature = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+                if ($feature) {
+                    // It's a new feature, so we need to determine its table and id field
+                    $validTypes[$type] = [
+                        'table' => strtolower($feature['type']) . '_tb',
+                        'idField' => strtolower($feature['type']) . '_id'
+                    ];
+                } else {
+                    // If it's neither a default type nor a new feature, it's invalid
+                    $response = ['action' => 'trash_content', 'success' => false, 'message' => 'Invalid type specified'];
+                    echo "Invalid type specified\n";
+                    $from->send(json_encode($response));
+                    return;
+                }
+            }
+
+            $table = $validTypes[$type]['table'];
+            $idField = $validTypes[$type]['idField'];
+
+            $content_id = $data[$idField];
+            $user_id = $data['user_id']; // logged-in user's ID
+            $author_id = $data['author_id']; // author's ID
+            $author_name = $data['author_name'];
+            $author_user_type = $data['author_user_type'];
+            $author_department = $data['author_department'];
+            $evaluator_message = $data['evaluator_message'] ?? null;
+            $evaluator_name = $data['evaluator_name'];
+            $content_tv_id = $data['tv_id'];
+                
+            // Update isTrashed to 1
+            $stmt = $this->pdo->prepare("UPDATE {$table} SET isTrashed = 1, isArchived = 0, datetime_trashed = NOW(), datetime_archived = NULL WHERE {$idField} = ?");
+            $stmt->execute([$content_id]);
+
+            $trashed = $stmt->rowCount() > 0;
+
+            if ($trashed) {
+                // Insert notification for the user who trashed his own content
+                if ($author_id == $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$content_id, $user_id, $type, 'content_trashed', 'trashed', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser1->execute([$user_id]);
+                } 
+
+                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectDepartmentAdmins->execute([$author_department, $author_id, $user_id]);
+                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($departmentAdmins) {
+                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($departmentAdmins as $admin) {
+                        $stmtNotifyDepartmentAdmins->execute([$content_id, $admin['user_id'], $type, 'content_trashed', 'trashed', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtUpdateDepartmentAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateDepartmentAdmin->execute([$admin['user_id']]);
+                    }
+                }
+
+                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectSuperAdmins->execute([$author_id, $user_id]);
+                $superAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($superAdmins) {
+                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($superAdmins as $superAdmin) {
+                        $stmtNotifySuperAdmins->execute([$content_id, $superAdmin['user_id'], $type, 'content_trashed', 'trashed', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+                        
+                        $stmtUpdateSuperAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateSuperAdmin->execute([$superAdmin['user_id']]);
+                    }
+                }
+                
+                // Insert notification for the user own the content but got trashed by admin
+                if ($author_id != $user_id) {
+                    $stmtNotifyUser = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtNotifyUser->execute([$content_id, $user_id, $type, 'content_trashed', 'trashed', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtNotifyUser2 = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtNotifyUser2->execute([$content_id, $author_id, $type, 'content_trashed_by_admin', 'trashed', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser2->execute([$author_id]);
+
+                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser2->execute([$user_id]);
+                }
+                // // Insert notification for the user who owns the content
+                // if ($user_id == $user_id) {
+                //     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_trashed', 'trashed', ?, ?)");
+                //     $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+
+                //     $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                //     $stmtUpdateUser1->execute([$author_id]);
+                // }
+
+                // // Insert notification for the user who doesn't own the content
+                // if ($author_id != $user_id) {
+                //     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_trashed_by_admin', 'trashed', ?, ?)");
+                //     $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+
+                //     $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                //     $stmtUpdateUser2->execute([$user_id]);
+                // }
+        
+                // Broadcast new notification to all clients
+                $this->broadcastNotification('new_notification');
+
+                $response = ['action' => 'trash_content', 'success' => $trashed, 'type' => $type, $idField => $content_id];
+                echo "{$type} trashed!\n";
+                
                 // Notify the client who sent the request and all connected clients
                 $from->send(json_encode($response));
                 foreach ($this->clients as $client) {
@@ -160,44 +385,115 @@ class ContentHandler implements MessageComponentInterface
                     return;
                 }
             }
-            
+
             $table = $validTypes[$type]['table'];
             $idField = $validTypes[$type]['idField'];
-            $id = $data[$idField];
+
+            $content_id = $data[$idField];
             $user_id = $data['user_id']; // logged-in user's ID
             $author_id = $data['author_id']; // author's ID
-            $evaluator_message = $data['evaluator_message'];
+            $author_name = $data['author_name'];
+            $author_user_type = $data['author_user_type'];
+            $author_department = $data['author_department'];
+            $evaluator_message = $data['evaluator_message'] ?? null;
             $evaluator_name = $data['evaluator_name'];
+            $content_tv_id = $data['tv_id'];
                 
-            // Update isCancelled to 1
-            $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = 1 WHERE {$idField} = ?");
-            $stmt->execute([$id]);
+            // Update isArchived to 1
+            $stmt = $this->pdo->prepare("UPDATE {$table} SET isArchived = 1, isTrashed = 0, datetime_archived = NOW(), datetime_trashed = NULL WHERE {$idField} = ?");
+            $stmt->execute([$content_id]);
 
             $archived = $stmt->rowCount() > 0;
 
             if ($archived) {
-                // Insert notification for the user who owns the content
-                if ($user_id == $user_id) {
-                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_archived', 'archived', ?, ?)");
-                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+                // Insert notification for the user who archived his own content
+                if ($author_id == $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$content_id, $user_id, $type, 'content_archived', 'archived', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
 
                     $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                    $stmtUpdateUser1->execute([$author_id]);
+                    $stmtUpdateUser1->execute([$user_id]);
+                } 
+
+                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectDepartmentAdmins->execute([$author_department, $author_id, $user_id]);
+                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($departmentAdmins) {
+                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($departmentAdmins as $admin) {
+                        $stmtNotifyDepartmentAdmins->execute([$content_id, $admin['user_id'], $type, 'content_archived', 'archived', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtUpdateDepartmentAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateDepartmentAdmin->execute([$admin['user_id']]);
+                    }
                 }
 
-                // Insert notification for the user who doesn't own the content
+                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectSuperAdmins->execute([$author_id, $user_id]);
+                $superAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($superAdmins) {
+                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($superAdmins as $superAdmin) {
+                        $stmtNotifySuperAdmins->execute([$content_id, $superAdmin['user_id'], $type, 'content_archived', 'archived', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+                        
+                        $stmtUpdateSuperAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateSuperAdmin->execute([$superAdmin['user_id']]);
+                    }
+                }
+                
+                // Insert notification for the user own the content but got archived by admin
                 if ($author_id != $user_id) {
-                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_archived_by_admin', 'archived', ?, ?)");
-                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+                    $stmtNotifyUser = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtNotifyUser->execute([$content_id, $user_id, $type, 'content_archived', 'archived', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtNotifyUser2 = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtNotifyUser2->execute([$content_id, $author_id, $type, 'content_archived_by_admin', 'archived', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser2->execute([$author_id]);
 
                     $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
                     $stmtUpdateUser2->execute([$user_id]);
                 }
+                // // Insert notification for the user who owns the content
+                // if ($user_id == $user_id) {
+                //     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_archived', 'archived', ?, ?)");
+                //     $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+
+                //     $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                //     $stmtUpdateUser1->execute([$author_id]);
+                // }
+
+                // // Insert notification for the user who doesn't own the content
+                // if ($author_id != $user_id) {
+                //     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name) VALUES (?, ?, ?, 'content_archived_by_admin', 'archived', ?, ?)");
+                //     $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name]);
+
+                //     $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                //     $stmtUpdateUser2->execute([$user_id]);
+                // }
         
                 // Broadcast new notification to all clients
                 $this->broadcastNotification('new_notification');
 
-                $response = ['action' => 'archive_content', 'success' => $archived, 'type' => $type, $idField => $id];
+                $response = ['action' => 'archive_content', 'success' => $archived, 'type' => $type, $idField => $content_id];
                 echo "{$type} archived!\n";
                 
                 // Notify the client who sent the request and all connected clients
@@ -244,41 +540,113 @@ class ContentHandler implements MessageComponentInterface
             
             $table = $validTypes[$type]['table'];
             $idField = $validTypes[$type]['idField'];
-            $id = $data[$idField];
+
+            $content_id = $data[$idField];
             $user_id = $data['user_id']; // logged-in user's ID
             $author_id = $data['author_id']; // author's ID
-            $evaluator_message = $data['evaluator_message'];
+            $author_name = $data['author_name'];
+            $author_user_type = $data['author_user_type'];
+            $author_department = $data['author_department'];
+            $evaluator_message = $data['evaluator_message'] ?? null;
             $evaluator_name = $data['evaluator_name'];
-            $content_tv_id = $data['content_tv_id'];
-            // Update isCancelled to 1
-            $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = 0 WHERE {$idField} = ?");
-            $stmt->execute([$id]);
+            $content_tv_id = $data['tv_id'];
+
+            // Update isArchived to 1 and isTrashed to 0
+            $stmt = $this->pdo->prepare("UPDATE {$table} SET isArchived = 0, isTrashed = 0, datetime_archived = NULL, datetime_trashed = NULL WHERE {$idField} = ?");
+            $stmt->execute([$content_id]);
 
             $restored = $stmt->rowCount() > 0;
 
             if ($restored) {
-                // Insert notification for the user who owns the content
-                if ($user_id == $user_id) {
-                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored', 'restored', ?, ?, ?)");
-                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+                // Insert notification for the user who restored his own content
+                if ($author_id == $user_id) {
+                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$content_id, $user_id, $type, 'content_restored', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
 
                     $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                    $stmtUpdateUser1->execute([$author_id]);
+                    $stmtUpdateUser1->execute([$user_id]);
+                } 
+
+                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectDepartmentAdmins->execute([$author_department, $author_id, $user_id]);
+                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($departmentAdmins) {
+                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($departmentAdmins as $admin) {
+                        $stmtNotifyDepartmentAdmins->execute([$content_id, $admin['user_id'], $type, 'content_restored', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtUpdateDepartmentAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateDepartmentAdmin->execute([$admin['user_id']]);
+                    }
                 }
 
-                // Insert notification for the user who doesn't own the content
+                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectSuperAdmins->execute([$author_id, $user_id]);
+                $superAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($superAdmins) {
+                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($superAdmins as $superAdmin) {
+                        $stmtNotifySuperAdmins->execute([$content_id, $superAdmin['user_id'], $type, 'content_restored', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+                        
+                        $stmtUpdateSuperAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateSuperAdmin->execute([$superAdmin['user_id']]);
+                    }
+                }
+                
+                // Insert notification for the user own the content but got restored by admin
                 if ($author_id != $user_id) {
-                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored_by_admin', 'restored', ?, ?, ?)");
-                    $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+                    $stmtNotifyUser = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtNotifyUser->execute([$content_id, $user_id, $type, 'content_restored', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtNotifyUser2 = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtNotifyUser2->execute([$content_id, $author_id, $type, 'content_restored_by_admin', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateUser2->execute([$author_id]);
 
                     $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
                     $stmtUpdateUser2->execute([$user_id]);
                 }
+
+                // Insert notification for the user who owns the content
+                // if ($user_id == $user_id) {
+                //     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored', 'restored', ?, ?, ?)");
+                //     $stmt->execute([$content_id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                //     $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                //     $stmtUpdateUser1->execute([$author_id]);
+                // }
+
+                // // Insert notification for the user who doesn't own the content
+                // if ($author_id != $user_id) {
+                //     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored_by_admin', 'restored', ?, ?, ?)");
+                //     $stmt->execute([$content_id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                //     $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                //     $stmtUpdateUser2->execute([$user_id]);
+                // }
         
                 // Broadcast new notification to all clients
                 $this->broadcastNotification('new_notification');
                 
-                $response = ['action' => 'restore_content', 'success' => $restored, 'type' => $type, $idField => $id];
+                $response = ['action' => 'restore_content', 'success' => $restored, 'type' => $type, $idField => $content_id];
                 echo "{$type} restored!\n";
                 
                 // Notify the client who sent the request and all connected clients
@@ -303,49 +671,116 @@ class ContentHandler implements MessageComponentInterface
             if (isset($validTypes[$type])) {
                 $table = $validTypes[$type]['table'];
                 $idField = $validTypes[$type]['idField'];
-                $id = $data[$idField];
+                
+                $content_id = $data[$idField];
                 $user_id = $data['user_id']; // logged-in user's ID
                 $author_id = $data['author_id']; // author's ID
-                $evaluator_message = $data['evaluator_message'];
+                $author_name = $data['author_name'];
+                $author_user_type = $data['author_user_type'];
+                $author_department = $data['author_department'];
+                $evaluator_message = $data['evaluator_message'] ?? null;
                 $evaluator_name = $data['evaluator_name'];
-                $content_tv_id = $data['content_tv_id'];
+                $content_tv_id = $data['tv_id'];
         
-                $isCancelled = 0;
                 $expirationDateTime = $data['expiration_datetime'] ?? null;
                 
                 // Prepare the update query
-                $stmt = $this->pdo->prepare("UPDATE {$table} SET isCancelled = ?, expiration_datetime = ? WHERE {$idField} = ?");
-                
-                // Bind parameters and execute query
-                $stmt->execute([$isCancelled, $expirationDateTime, $id]);
+                $stmt = $this->pdo->prepare("UPDATE {$table} SET isArchived = 0, isTrashed = 0, datetime_archived = NULL, datetime_trashed = NULL, expiration_datetime = ? WHERE {$idField} = ?");
+                $stmt->execute([$expirationDateTime, $content_id]);
                 
                 $restored = $stmt->rowCount() > 0;
         
                 if ($restored) {
-                    // Insert notification for the user who owns the content
-                    if ($user_id == $user_id) {
-                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored', 'restored', ?, ?, ?)");
-                        $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
-        
+                    // Insert notification for the user who restored his own content
+                    if ($author_id == $user_id) {
+                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$content_id, $user_id, $type, 'content_restored', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
                         $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                        $stmtUpdateUser1->execute([$author_id]);
+                        $stmtUpdateUser1->execute([$user_id]);
+                    } 
+
+                    $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                        SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                    ");
+                    $stmtSelectDepartmentAdmins->execute([$author_department, $author_id, $user_id]);
+                    $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                    
+                    // Notify each Admin of the approved user's department
+                    if ($departmentAdmins) {
+                        $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                            INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        foreach ($departmentAdmins as $admin) {
+                            $stmtNotifyDepartmentAdmins->execute([$content_id, $admin['user_id'], $type, 'content_restored', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                            $stmtUpdateDepartmentAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                            $stmtUpdateDepartmentAdmin->execute([$admin['user_id']]);
+                        }
                     }
-        
-                    // Insert notification for the user who doesn't own the content
+
+                    $stmtSelectSuperAdmins = $this->pdo->prepare("
+                        SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                    ");
+                    $stmtSelectSuperAdmins->execute([$author_id, $user_id]);
+                    $superAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+                    
+                    // Notify each Admin of the approved user's department
+                    if ($superAdmins) {
+                        $stmtNotifySuperAdmins = $this->pdo->prepare("
+                            INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        foreach ($superAdmins as $superAdmin) {
+                            $stmtNotifySuperAdmins->execute([$content_id, $superAdmin['user_id'], $type, 'content_restored', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+                            
+                            $stmtUpdateSuperAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                            $stmtUpdateSuperAdmin->execute([$superAdmin['user_id']]);
+                        }
+                    }
+                    
+                    // Insert notification for the user own the content but got restored by admin
                     if ($author_id != $user_id) {
-                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored_by_admin', 'restored', ?, ?, ?)");
-                        $stmt->execute([$id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
-        
+                        $stmtNotifyUser = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmtNotifyUser->execute([$content_id, $user_id, $type, 'content_restored', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtNotifyUser2 = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmtNotifyUser2->execute([$content_id, $author_id, $type, 'content_restored_by_admin', 'restored', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateUser2->execute([$author_id]);
+
                         $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
                         $stmtUpdateUser2->execute([$user_id]);
                     }
+                    // Insert notification for the user who owns the content
+                    // if ($user_id == $user_id) {
+                    //     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored', 'restored', ?, ?, ?)");
+                    //     $stmt->execute([$content_id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+        
+                    //     $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    //     $stmtUpdateUser1->execute([$author_id]);
+                    // }
+        
+                    // // Insert notification for the user who doesn't own the content
+                    // if ($author_id != $user_id) {
+                    //     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, evaluator_message, evaluator_name, content_tv_id) VALUES (?, ?, ?, 'content_restored_by_admin', 'restored', ?, ?, ?)");
+                    //     $stmt->execute([$content_id, $author_id, $type, $evaluator_message, $evaluator_name, $content_tv_id]);
+        
+                    //     $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    //     $stmtUpdateUser2->execute([$user_id]);
+                    // }
             
                     // Broadcast new notification to all clients
                     $this->broadcastNotification('new_notification');
                     
                     // Fetch updated data
                     $stmt = $this->pdo->prepare("SELECT * FROM {$table} WHERE {$idField} = ?");
-                    $stmt->execute([$id]);
+                    $stmt->execute([$content_id]);
                     $postData = $stmt->fetch(PDO::FETCH_ASSOC);
                     
                     if ($postData) {
@@ -1834,7 +2269,7 @@ class ContentHandler implements MessageComponentInterface
         
             if ($content_updated) {
                 // Update notification status
-                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'approved', notification_type = 'content_approved', evaluator_name = ? WHERE user_id = ? AND content_id = ?");
+                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'approved', notification_type = 'content_approved', evaluator_name = ?, created_at = NOW() WHERE user_id = ? AND content_id = ?");
                 $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $user_id, $content_id]);
 
                 // Notify the Admin or Super Admin who approved the user
@@ -1973,7 +2408,7 @@ class ContentHandler implements MessageComponentInterface
         
             if ($content_updated) {
                 // Update notification status
-                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'rejected', notification_type = 'content_rejected', evaluator_name = ?, evaluator_message = ? WHERE user_id = ? AND content_id = ?");
+                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'rejected', notification_type = 'content_rejected', evaluator_name = ?, evaluator_message = ?, created_at = NOW() WHERE user_id = ? AND content_id = ?");
                 $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $evaluator_message, $user_id, $content_id]);
 
                 // Notify the Admin or Super Admin who rejected the user
@@ -1990,11 +2425,11 @@ class ContentHandler implements MessageComponentInterface
                 // Notify each Admin of the rejected user's department
                 if ($departmentAdmins) {
                     $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, evaluator_message, action_user_name, action_user_department, content_tv_id)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO notifications_tb (content_id, user_id, notification_type, content_type, status, evaluator_name, evaluator_message, action_user_name, action_user_department, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     foreach ($departmentAdmins as $admin) {
-                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'content_rejected', $content_type, 'rejected', $evaluator_name, $evaluator_message, $full_name, $department, $content_tv_id]);
+                        $stmtNotifyDepartmentAdmins->execute([$content_id, $admin['user_id'], 'content_rejected', $content_type, 'rejected', $evaluator_name, $evaluator_message, $full_name, $department, $content_tv_id]);
                     }
                 }
                 
@@ -2009,18 +2444,18 @@ class ContentHandler implements MessageComponentInterface
                 if ($allSuperAdmins) {
                     error_log("allSuperAdmins called");
                     $stmtNotifySuperAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, evaluator_message, action_user_name, action_user_department, content_tv_id)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO notifications_tb (content_id, user_id, notification_type, content_type, status, evaluator_name, evaluator_message, action_user_name, action_user_department, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     foreach ($allSuperAdmins as $superAdmin) {
-                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'content_rejected', $content_type, 'rejected', $evaluator_name, $evaluator_message, $full_name, $department, $content_tv_id]);
+                        $stmtNotifySuperAdmins->execute([$content_id, $superAdmin['user_id'], 'content_rejected', $content_type, 'rejected', $evaluator_name, $evaluator_message, $full_name, $department, $content_tv_id]);
                     }
                 }
 
                 // Notify the new user that an admin rejected them
-                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, evaluator_message, action_user_name, action_user_department, content_tv_id) 
-                                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$user_id, 'content_rejected_by_admin', $content_type, 'rejected', $evaluator_name, $evaluator_message, $full_name, $department, $content_tv_id]);
+                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, notification_type, content_type, status, evaluator_name, evaluator_message, action_user_name, action_user_department, content_tv_id) 
+                                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$content_id, $user_id, 'content_rejected_by_admin', $content_type, 'rejected', $evaluator_name, $evaluator_message, $full_name, $department, $content_tv_id]);
 
                 // Update notification counts for Admins, Super Admins, and the evaluator
                 $stmtUpdateNotificationCounts = $this->pdo->prepare("
@@ -2159,7 +2594,7 @@ class ContentHandler implements MessageComponentInterface
                         default => 'Unknown'
                     };
 
-                    $isCancelled = 0;
+                    $isArchived = 0;
 
                     // Determine media folder
                     $mediaFolder = match ($data['type']) {
@@ -2207,11 +2642,11 @@ class ContentHandler implements MessageComponentInterface
                     // Common fields for all types
                     $fields = [
                         'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                        'category', 'isCancelled', 'status'
+                        'category', 'isArchived', 'status'
                     ];
                     $values = [
                         $department, $user_type, $user_id, $tv_ids, $data['display_time'] ?? null,
-                        $category, $isCancelled, $status
+                        $category, $isArchived, $status
                     ];
 
                     // Add type-specific fields
@@ -2309,7 +2744,7 @@ class ContentHandler implements MessageComponentInterface
                     default => 'Unknown'
                 };
 
-                $isCancelled = 0;
+                $isArchived = 0;
 
                 // Determine media folder
                 $mediaFolder = match ($data['type']) {
@@ -2357,11 +2792,11 @@ class ContentHandler implements MessageComponentInterface
                 // Common fields for all types
                 $fields = [
                     'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                    'category', 'isCancelled', 'status'
+                    'category', 'isArchived', 'status'
                 ];
                 $values = [
                     $department, $user_type, $user_id, null, $data['display_time'] ?? null,
-                    $category, $isCancelled, $status
+                    $category, $isArchived, $status
                 ];
 
                 // Add type-specific fields
@@ -2500,7 +2935,7 @@ class ContentHandler implements MessageComponentInterface
                             default => 'Unknown'
                         };
                     
-                        $isCancelled = 0;
+                        $isArchived = 0;
                     
                         // Determine media folder
                         $mediaFolder = match ($data['type']) {
@@ -2548,11 +2983,11 @@ class ContentHandler implements MessageComponentInterface
                         // Common fields for all types
                         $fields = [
                             'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                            'category', 'isCancelled'
+                            'category', 'isArchived'
                         ];
                         $values = [
                             $department, $user_type, $user_id, $tv_ids, $data['display_time'],
-                            $category, $isCancelled
+                            $category, $isArchived
                         ];
     
                         if ($data['type'] !== 'peo' && $data['type'] !== 'so') {
@@ -2688,7 +3123,7 @@ class ContentHandler implements MessageComponentInterface
                         $status = ($user_type == 'Admin' || $user_type == 'Super Admin') ? 'Approved' : 'Pending';
                         $category = ucfirst($type); // Capitalize the first letter of the type
             
-                        $isCancelled = 0;
+                        $isArchived = 0;
             
                         // Determine media folder
                         $mediaFolder = $type . '_media';
@@ -2703,13 +3138,13 @@ class ContentHandler implements MessageComponentInterface
                         // Common fields for all types
                         $fields = [
                             'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                            'category', 'isCancelled', 'status',
+                            'category', 'isArchived', 'status',
                             'expiration_datetime', 'type'
                         ];
 
                         $values = [
                             $department, $user_type, $user_id, $tv_ids, $data['display_time'],
-                            $category, $isCancelled, $status,
+                            $category, $isArchived, $status,
                             $expiration_datetime, $type
                         ];
 
@@ -2890,7 +3325,7 @@ class ContentHandler implements MessageComponentInterface
                     display_time INT(100) NOT NULL,
                     tv_id INT(100) NOT NULL,
                     category VARCHAR(255) NOT NULL,
-                    isCancelled TINYINT(1) DEFAULT 0,
+                    isArchived TINYINT(1) DEFAULT 0,
                     created_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (tv_id) REFERENCES smart_tvs_tb(tv_id),
                     FOREIGN KEY ({$featureId}_author_id) REFERENCES users_tb(user_id)

@@ -109,7 +109,7 @@ include 'admin_access_only.php';
                                 </button>
                             </div>
                         </form>
-                        <div class="table-container">
+                        <div class="table-container" id="userTableContainerParent" style="max-height: 55vh">
                             <div id="userTableContainer">
                                 <!-- Latest table of users will be displayed here -->
                             </div>

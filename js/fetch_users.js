@@ -141,7 +141,6 @@ const displayUserTable = (data) => {
                     <th onclick="sortTable(8)">Date Approved (MM/DD/YYYY)</th>
                     <th onclick="sortTable(9)">Last Date of Activity (MM/DD/YYYY)</th>
                     <th onclick="sortTable(10)">Approved/Rejected By</th>
-                    <th>Reject Message</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -181,7 +180,6 @@ const displayUserTable = (data) => {
                 <td style="text-align:left;">${datetimeApprovedFormatted}</td>
                 <td style="text-align:left;">${lastDateOfActivityFormatted}</td>
                 <td style="text-align:center;">${evaluated_by}</td>
-                <td style="text-align:left;">${evaluator_message}</td>
                 <td style="text-align:center;">
                     <div style="display: flex; flex-direction: column; align-items: center;">
                         ${generateOperationsButtons(user_id, email, full_name, department, status, user_type, loggedInUserType)}
