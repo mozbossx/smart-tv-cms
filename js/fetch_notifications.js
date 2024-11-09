@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.2:8081');
+const Ws = new WebSocket('ws://192.168.1.7:8081');
 
 function formatDateTime2(dateTimeString) {
     const dateTime = new Date(dateTimeString);
@@ -1189,6 +1189,75 @@ function viewContent(contentId, contentType, userId, fullName) {
     }));
 }
 
+// Function to update archives count
+function updateArchivesCount(count) {
+    const archivesCountElement = document.getElementById('archivesContentCount');
+    if (archivesCountElement) {
+        archivesCountElement.textContent = count > 0 ? count : '';
+        archivesCountElement.style.display = count > 0 ? 'inline' : 'none';
+    }
+}
+
+// Function to fetch archives count
+function fetchArchivesCount() {
+    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+    if (userType === 'Admin' || userType === 'Super Admin') {
+        contentTypes.push('peo', 'so');
+    }
+
+    Promise.all(contentTypes.map(type =>
+        fetch(`database/fetch_content.php?type=${type}&archived=true`)
+            .then(response => response.json())
+    ))
+    .then(results => {
+        const totalCount = results.reduce((count, data) => {
+            return count + data.filter(item => 
+                item.isArchived === 1 && 
+                item.isTrashed === 0 && 
+                (item.type === 'peo' || item.type === 'so' || item.status === 'Approved')
+            ).length;
+        }, 0);
+        updateArchivesCount(totalCount);
+    })
+    .catch(error => {
+        console.error('Error fetching archives count:', error);
+    });
+}
+
+// Function to update trash count
+function updateTrashCount(count) {
+    const trashCountElement = document.getElementById('trashContentCount');
+    if (trashCountElement) {
+        trashCountElement.textContent = count > 0 ? count : '';
+        trashCountElement.style.display = count > 0 ? 'inline' : 'none';
+    }
+}
+
+// Function to fetch trash count
+function fetchTrashCount() {
+    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+    if (userType === 'Admin' || userType === 'Super Admin') {
+        contentTypes.push('peo', 'so');
+    }
+
+    Promise.all(contentTypes.map(type =>
+        fetch(`database/fetch_content.php?type=${type}&trashed=true`)
+            .then(response => response.json())
+    ))
+    .then(results => {
+        const totalCount = results.reduce((count, data) => {
+            return count + data.filter(item => 
+                item.isArchived === 0 && 
+                item.isTrashed === 1
+            ).length;
+        }, 0);
+        updateTrashCount(totalCount);
+    })
+    .catch(error => {
+        console.error('Error fetching trash count:', error);
+    });
+}
+
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
     switch (data.action) {
@@ -1196,6 +1265,8 @@ Ws.addEventListener('message', function(event) {
         case 'update_notification':
             fetchNotifications();
             fetchNotificationCount();
+            fetchArchivesCount();
+            fetchTrashCount();
             break;
         case 'delete_notification':
             fetchNotifications();
@@ -1346,6 +1417,8 @@ document.addEventListener('click', function(event) {
 document.addEventListener('DOMContentLoaded', function() {
     fetchNotifications();
     fetchNotificationCount();
+    fetchArchivesCount();
+    fetchTrashCount();
     const tabLinksActive = document.querySelector('.notifications-tablinks.active');
     if (tabLinksActive) {
         tabLinksActive.click();

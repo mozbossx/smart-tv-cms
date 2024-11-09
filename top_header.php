@@ -84,11 +84,11 @@ $stmtNotificationCount->close();
                 </li>
                 <li>
                     <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives</a>
+                    <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives <span id="archivesContentCount" class="archives-content-count"></span></a>
                 </li>
                 <li>
                     <a href="trash.php?pageid=Trash?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'trash.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Trash</a>
+                    <?php echo $current_page === 'trash.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Trash <span id="trashContentCount" class="trash-content-count"></span></a>
                 </li>
                 <?php if ($user_type === 'Admin') { ?>
                 <li>

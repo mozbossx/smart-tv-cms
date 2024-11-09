@@ -85,9 +85,16 @@ body {
     padding: 20px; /* Adjust padding for smaller screens */
 }
 
-.logo-flex{
+.logo-flex {
     display: flex;
     flex-direction: column;
+}
+
+.archives-buttons-flex, .trash-buttons-flex {
+    display: flex;
+    flex-direction: row;
+    padding-left: 10px;
+    padding-right: 20px;
 }
 
 .button-flex, .link-flex {
@@ -2144,13 +2151,14 @@ tr:nth-child(even) {
     border-top: none;
 }
 
-.view-all-notifications-container {
+.view-all-notifications-container, .view-all-archives-container {
     display: flex;
     flex-direction: row;
     word-break: break-word;
+    height: 95%;
 }
 
-.notifications-tab {
+.notifications-tab, .archives-tab {
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -2160,7 +2168,7 @@ tr:nth-child(even) {
     width: 145px;
 }
 
-.notifications-tablinks {
+.notifications-tablinks, .archives-tablinks {
     text-align: right;
     background-color: inherit;
     float: left;
@@ -2171,15 +2179,15 @@ tr:nth-child(even) {
     transition: 0.3s;
 }
 
-.notifications-tablinks:hover {
+.notifications-tablinks:hover, .archives-tablinks:hover {
     background-color: #ddd;
 }
 
-.notifications-tablinks.active {
+.notifications-tablinks.active, .archives-tablinks.active {
     background-color: #ccc;
 }
 
-.notifications-tabcontent {
+.notifications-tabcontent, .archives-tabcontent {
     display: none;
     padding: 12px;
     border: 1px solid #ccc;
@@ -2236,6 +2244,17 @@ tr:nth-child(even) {
     font-weight: bold;
     font-size: 15px;
     margin-left: 5px;
+}
+
+.archives-content-count, .trash-content-count {
+    background: none;
+    color: rgb(133, 178, 117);
+    padding: 2px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 18px;
+    margin-left: 5px;
+    margin-top: 2px;
 }
 
 .evaluator-message-notification {
@@ -2896,13 +2915,20 @@ input[type=range]:focus::-ms-fill-upper {
         display: none;
     }
 
-    .view-all-notifications-container {
+    .view-all-notifications-container, .view-all-archives-container {
         flex-direction: column;
     }
 
-    .notifications-tab {
+    .notifications-tab, .archives-tab {
         display: block;
         width: 99%;
+        display: -webkit-inline-box;
+        margin-bottom: 10px;
+        height: 50px;
+    }
+
+    .notifications-tab::-webkit-scrollbar, .archives-tab::-webkit-scrollbar {
+        display: none;
     }
 
     .notifications-button-mobile-container {
@@ -2924,6 +2950,12 @@ input[type=range]:focus::-ms-fill-upper {
     .logo-flex{
         display: flex;
         flex-direction: row;
+    }
+
+    .archives-buttons-flex, .trash-buttons-flex {
+        flex-direction: column;
+        padding-left: 0;
+        padding-right: 0;
     }
 
     .logo-header-container {

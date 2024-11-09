@@ -24,19 +24,119 @@ const calculateDaysRemaining = (archivedDate) => {
     return Math.max(0, remaining); // Ensure we don't return negative days
 };
 
-// Utility function to create buttons
-const createDaysRemainingButton = (text, iconClass) => {
-    const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
-    button.style = `
-        margin-top: 10px;
-        margin-right: 5px;
-        background: none;
-        border: none;
-        margin-right: 10px;
-    `;
-    return button;
-};
+// Function to search archives
+function searchArchives() {
+    const searchInput = document.getElementById('searchInput');
+    const clearButton = document.getElementById('clearSearch');
+    const keyword = searchInput.value.toLowerCase();
+    const contentType = document.getElementById('contentType').value;
+    
+    // Show/hide clear button
+    clearButton.style.display = keyword ? 'block' : 'none';
+
+    const archivedItems = document.querySelectorAll('#archivesContainer > div');
+    let hasVisibleItems = false;
+
+    // Remove any existing "no results" message first
+    const existingNoResultsMsg = document.getElementById('noResultsMessage');
+    if (existingNoResultsMsg) {
+        existingNoResultsMsg.remove();
+    }
+
+    archivedItems.forEach(item => {
+        // Skip the noResultsMessage div if it exists
+        if (item.id === 'noResultsMessage') return;
+
+        const textContent = item.textContent.toLowerCase();
+        const itemType = item.querySelector('.content-type-label')?.textContent.toLowerCase();
+        
+        if (!itemType) return; // Skip if not a content item
+
+        const matchesKeyword = keyword === '' || textContent.includes(keyword);
+        const matchesType = contentType === 'all' || itemType.includes(contentType.toLowerCase());
+        
+        item.style.display = (matchesKeyword && matchesType) ? 'block' : 'none';
+        if (matchesKeyword && matchesType) hasVisibleItems = true;
+    });
+
+    // Show "no results" message if needed
+    if (!hasVisibleItems && archivedItems.length > 0) {
+        const msg = document.createElement('div');
+        msg.id = 'noResultsMessage';
+        msg.style = `
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 20px;
+        `;
+        msg.textContent = 'No archived items match your search';
+        document.getElementById('archivesContainer').appendChild(msg);
+    }
+}
+
+// Function to clear search
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const clearButton = document.getElementById('clearSearch');
+    searchInput.value = '';
+    clearButton.style.display = 'none';
+    searchArchives();
+}
+
+// Function to populate content type dropdown
+function populateContentTypeDropdown() {
+    const select = document.getElementById('contentType');
+    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+    
+    if (userType === 'Admin' || userType === 'Super Admin') {
+        contentTypes.push('peo', 'so');
+    }
+
+    // Clear existing options except "All"
+    while (select.options.length > 1) {
+        select.remove(1);
+    }
+
+    // Fetch counts for all content types
+    Promise.all(contentTypes.map(type =>
+        fetch(`database/fetch_content.php?type=${type}&archived=true`)
+            .then(response => response.json())
+    ))
+    .then(results => {
+        let totalCount = 0;
+        const typeCounts = {};
+
+        // Calculate counts for each type
+        results.forEach((data, index) => {
+            const type = contentTypes[index];
+            const count = data.filter(item => 
+                item.isArchived === 1 && 
+                item.isTrashed === 0 && 
+                (type === 'peo' || type === 'so' || item.status === 'Approved')
+            ).length;
+            
+            typeCounts[type] = count;
+            totalCount += count;
+        });
+
+        // Update "All" option with total count
+        select.options[0].textContent = `All (${totalCount})`;
+
+        // Add options for each content type with counts
+        contentTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = `${formatContentType(type)} (${typeCounts[type]})`;
+            select.appendChild(option);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching content type counts:', error);
+    });
+
+    // Add change event listener
+    select.addEventListener('change', searchArchives);
+}
 
 const createTrashButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
@@ -119,7 +219,7 @@ const updateUI = async (data, type) => {
     if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 0 || !data[`${type}_id`]) return;
 
     const tvInfo = await fetchTVInfo(type, data[`tv_id`]);
-    console.log(tvInfo);
+    const archivesContainer = document.getElementById('archivesContainer');
 
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
@@ -140,56 +240,111 @@ const updateUI = async (data, type) => {
         existingDiv.querySelector('.content-container-con').innerHTML = contentDiv;
     } else {
         const containerDiv = document.createElement('div');
-        const buttonContainer = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
         containerDiv.setAttribute(`data-${type}-id`, data[`${type}_id`]);
-        containerDiv.innerHTML = contentDiv;
-
-        containerDiv.style = `
-            background: #dffce5;
-            height: auto;
-            width: auto;
-            margin-bottom: 10px;
-            margin-right: 8px;
+        
+        // Create type label
+        const typeLabel = document.createElement('div');
+        typeLabel.className = 'content-type-label';
+        typeLabel.innerHTML = `<i class="fa ${getTypeIcon(type)}" aria-hidden="true"></i> ${formatContentType(type)}`;
+        typeLabel.style = `
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: rgb(227 227 227);
+            border: 1px solid black;
+            color: black;
             border-radius: 15px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 15px;
+            font-size: 0.8em;
+            margin-bottom: 10px;
         `;
 
-        contentDiv.style = `
-            border: none;
+        // Create days remaining label
+        const daysRemainingLabel = document.createElement('div');
+        daysRemainingLabel.className = 'days-remaining-label';
+        daysRemainingLabel.innerHTML = `<i class="fa fa-clock-o" aria-hidden="true"></i> ${calculateDaysRemaining(data.datetime_archived)} days left`;
+        daysRemainingLabel.style = `
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: rgb(227 227 227);
+            color: black;
             border-radius: 15px;
-            padding: 20px;;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+            margin-left: 10px;
+            background: #aad3b0;
+        `;
+
+        // Create content container
+        const contentContainer = document.createElement('div');
+        contentContainer.className = 'content-container-con';
+        contentContainer.innerHTML = contentDiv;
+        contentContainer.style = `
+            background: #dffce5;
+            border-radius: 15px;
+            padding: 15px;
             color: black;
             height: auto;
             text-align: left;
-            bottom: 0;
         `;
 
+        // Create button container
+        const buttonContainer = document.createElement('div');
         buttonContainer.style = `
             display: flex;
             justify-content: flex-end;
             margin-top: 10px;
         `;
 
-        const daysRemaining = calculateDaysRemaining(data.datetime_archived);
-        const daysRemainingButton = createDaysRemainingButton(`${daysRemaining} days left`, 'fa fa-calendar');
         const trashButton = createTrashButton('Trash', 'fa fa-trash', () => showTrashModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
         const restoreButton = createRestoreButton('Restore', 'fa fa-refresh', () => showRestoreModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id, data.expiration_datetime));
-        // const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
 
         if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
-            buttonContainer.appendChild(daysRemainingButton);
             buttonContainer.appendChild(trashButton);
             buttonContainer.appendChild(restoreButton);
-            // buttonContainer.appendChild(editButton);
         }
 
-        // Append the button container to the main container
-        containerDiv.appendChild(buttonContainer);
+        // Set main container styles
+        containerDiv.style = `
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            background: rgb(223, 252, 229);
+        `;
 
-        document.getElementById(`${type}CarouselContainer`).insertBefore(containerDiv, document.getElementById(`${type}CarouselContainer`).firstChild);
+        // Append elements in the correct order
+        containerDiv.appendChild(typeLabel);
+        containerDiv.appendChild(daysRemainingLabel);
+        containerDiv.appendChild(contentContainer);
+        containerDiv.appendChild(buttonContainer);
+        archivesContainer.appendChild(containerDiv);
     }
+};
+
+// Helper function to get icon for content type
+const getTypeIcon = (type) => {
+    const icons = {
+        announcement: 'fa-bullhorn',
+        event: 'fa-calendar-check-o',
+        news: 'fa-newspaper-o',
+        promaterial: 'fa-object-group',
+        peo: 'fa-map',
+        so: 'fa-graduation-cap'
+    };
+    return icons[type] || 'fa-file';
+};
+
+// Helper function to format content type for display
+const formatContentType = (type) => {
+    const formats = {
+        announcement: 'Announcement',
+        event: 'Event',
+        news: 'News',
+        promaterial: 'Promotional Material',
+        peo: 'PEO',
+        so: 'SO'
+    };
+    return formats[type] || type;
 };
 
 const fetchTVInfo = async (type, tv_id) => {
@@ -361,7 +516,7 @@ const displayNoMessage = (type) => {
 };
 
 // Array of default content types
-const defaultContentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
+// const defaultContentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
 
 // Function to create modals dynamically
 const createModals = (contentTypes) => {
@@ -527,111 +682,86 @@ const getFeatureInfo = async (type) => {
 };
 
 // Function to fetch and update content for all types
-const fetchAndUpdate = async (type) => {
+const fetchAndUpdateAll = async () => {
+    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+    if (userType === 'Admin' || userType === 'Super Admin') {
+        contentTypes.push('peo', 'so');
+    }
+
     try {
-        let requireApproval = true; // Default to requiring approval
-
-        // Only check for require_approval if it's not a default content type
-        if (!defaultContentTypes.includes(type)) {
-            const featureInfo = await getFeatureInfo(type);
-            if (featureInfo) {
-                requireApproval = featureInfo.require_approval === 'yes';
-            }
+        const archivesContainer = document.getElementById('archivesContainer');
+        if (!archivesContainer) {
+            console.error('Archives container not found');
+            return;
         }
 
-        const response = await fetch(`database/fetch_content.php?type=${type}&archived=true`);
-        const data = await response.json();
+        // Clear existing content
+        archivesContainer.innerHTML = '';
 
-        const filteredData = data.filter(item => {
-            const baseConditions = item.isArchived === 1 && item.isTrashed === 0;
-            if (type === 'peo' || type === 'so') {
-                return baseConditions;
-            } else {
-                return requireApproval ? (baseConditions && item.status === 'Approved') : baseConditions;
-            }
-        });
-
-        const carouselContainer = document.getElementById(`${type}CarouselContainer`);
-        if (carouselContainer) {
-            carouselContainer.innerHTML = '';
-            if (filteredData.length === 0) {
-                displayNoMessage(type);
-            } else {
-                filteredData.forEach(item => updateUI(item, type));
-            }
-        } else {
-            console.error(`Element with ID ${type}CarouselContainer not found.`);
+        // Fetch all content types
+        const allContent = [];
+        for (const type of contentTypes) {
+            const response = await fetch(`database/fetch_content.php?type=${type}&archived=true`);
+            const data = await response.json();
+            const filteredData = data.filter(item => 
+                item.isArchived === 1 && 
+                item.isTrashed === 0 && 
+                (type === 'peo' || type === 'so' || item.status === 'Approved')
+            );
+            
+            // Add content type to each item
+            filteredData.forEach(item => {
+                item.contentType = type;
+                allContent.push(item);
+            });
         }
+
+        // Sort all content by archived datetime
+        allContent.sort((a, b) => 
+            new Date(b.datetime_archived) - new Date(a.datetime_archived)
+        );
+
+        if (allContent.length === 0) {
+            archivesContainer.innerHTML = `
+                <div style="text-align: center; font-size: 1.2em; color: #666; margin-top: 5px;">
+                    No archived items to display
+                </div>
+            `;
+            return;
+        }
+
+        // Display all content
+        for (const item of allContent) {
+            await updateUI(item, item.contentType);
+        }
+
+        // Update the content type dropdown with new counts
+        populateContentTypeDropdown();
+
     } catch (error) {
-        console.error(`Error fetching ${type}:`, error);
+        console.error('Error fetching archived content:', error);
     }
 };
 
-/* Web-Socket Server Connection */
+// Update WebSocket event listener
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
     switch (data.action) {
         case 'delete_content':
-            // Handle deletion confirmation
-            const deleteMessageDiv = document.getElementById(`no-${data.type}-message`);
-            if (deleteMessageDiv) {
-                deleteMessageDiv.remove(); // Remove the "No items" message if it exists
-            }
-            const deletedDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
-            if (deletedDiv) {
-                deletedDiv.remove(); // Remove the deleted item from the UI
-            }
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been deleted.`);
-            break;
-
         case 'archive_content':
-            // Handle unarchiving confirmation
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been archived.`);
-            fetchAndUpdate(data.type);
+        case 'restore_content':
+        case 'restore_content_and_update_expiration':
+        case 'trash_content':
+        case 'post_content':
+            // Refresh all content for any change
+            fetchAndUpdateAll();
+            populateContentTypeDropdown();
             break;
-            
 
         case 'update':
             // Handle updates to existing items
-            const updatedDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
-            if (updatedDiv) {
-                // Update the content of the existing item
-                fetchAndUpdate(data.type);
-                updatedDiv.querySelector('.content-container-con').innerHTML = createContentDiv(data, /* mediaContent */ '', formatDateTime(data.created_datetime), formatDateTime(data.expiration_datetime), formatDateTime(data.datetime_archived));
-            } else {
-                fetchAndUpdate(data.type);
-                console.log(`Received update for non-existing ${data.type} with ID ${data[`${data.type}_id`]}.`);
-            }
-            break;
-
-        case 'restore_content':
-            // Handle restoring confirmation
-            const restoredDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
-            if (restoredDiv) {
-                restoredDiv.remove(); // Remove the restored item from the UI
-            }
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been restored.`);
-            break;
-        
-        case 'restore_content_and_update_expiration':
-            // Handle restoring confirmation
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been restored.`);
-            fetchAndUpdate(data.type);
-            break;
-
-        case 'trash_content':
-            // Handle trashing confirmation
-            const trashedDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
-            if (trashedDiv) {
-                trashedDiv.remove(); // Remove the trashed item from the UI
-            }
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been moved to Trash.`);
-            break;
-
-        case 'post_content':
-            // Handle new content being posted
-            console.log(`New ${data.type} posted:`, data);
-            fetchAndUpdate(data.type);
+            fetchAndUpdateAll();
+            populateContentTypeDropdown();
             break;
 
         default:
@@ -640,23 +770,18 @@ Ws.addEventListener('message', function(event) {
     }
 });
 
-// Call fetchAndUpdate for each type
+// Update the document ready event listener
 document.addEventListener('DOMContentLoaded', () => {
-    // Get all content types from the DOM
-    const contentTypes = Array.from(document.querySelectorAll('.content-container'))
-        .map(container => container.id.replace('List', ''));
-    
     // Create modals for all content types
+    const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
     createModals(contentTypes);
 
-    // Fetch and update content for each type
-    contentTypes.forEach(type => fetchAndUpdate(type));
+    // Initialize search functionality
+    populateContentTypeDropdown();
+    
+    // Add clear button click handler
+    document.getElementById('clearSearch').addEventListener('click', clearSearch);
 
-    // Remove PEO and SO containers if user is not Admin or Super Admin
-    if (userType !== 'Admin' && userType !== 'Super Admin') {
-        const peoContainer = document.getElementById('peoList');
-        const soContainer = document.getElementById('soList');
-        if (peoContainer) peoContainer.remove();
-        if (soContainer) soContainer.remove();
-    }
+    // Fetch and update all content
+    fetchAndUpdateAll();
 });

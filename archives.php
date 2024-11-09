@@ -39,6 +39,21 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        #scrollDiv {
+            height: calc(100vh - 330px); 
+        }
+        /* Media query for smaller screens */
+        @media only screen and (max-width: 1000px) {
+            #searchByKeywordsForm, #searchByContentTypeForm {
+                margin: 0 auto;
+            }
+
+            #scrollDiv {
+                height: calc(100vh - 400px);
+            }
+        }
+    </style>
     <title>Archives</title>
 </head>
 <body>
@@ -47,65 +62,44 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
         <?php include('sidebar.php'); ?>
         <div class="main-container">
             <div class="column1">
-                <div class="content-grid-container">
-                <?php
-                // Array of content types
-                $contentTypes = ['announcement', 'event',  'news', 'promaterial', 'peo', 'so'];
-                // echo '<p>'; print_r($contentTypes); echo '</p>';
+                <div class="content-inside-form">
+                    <div id="archivesList" class="content-container" style="height: calc(100vh - 160px); overflow: hidden;">
+                        <h1 class="content-title" style="text-align: center;">
+                            <i class="fa fa-archive" style="margin-right: 6px" aria-hidden="true"></i>Archives
+                            <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for 120 days before being moved to Trash.</p>
+                        </h1>
+                        <div class="archives-buttons-flex">
+                            <!-- search form -->
+                            <form class="search-form" id="searchByKeywordsForm" style="width: 300px; max-width: 100%; margin-bottom: 10px;">
+                                <div class="floating-label-container">
+                                    <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchArchives()">
+                                    <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search for keywords</label>
+                                    <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                                        <i class="fa fa-times" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </form>
 
-                // Add new features to the content types array
-                foreach ($featuresNewFeatures as $feature) {
-                    $contentTypes[] = strtolower(str_replace(' ', '_', $feature['feature_name']));
-                }
-
-                // Loop through each content type
-                foreach ($contentTypes as $type) {
-                    echo "<div id='{$type}List' class='content-container'>";
-    
-                    // Handle all content titles in one unified section
-                    if ($type == 'announcement') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements</h1>";
-                    } 
-                    else if ($type == 'event') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-calendar-check-o' style='margin-right: 6px' aria-hidden='true'></i>Events</h1>";
-                    } 
-                    else if ($type == 'news') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-newspaper-o' style='margin-right: 6px' aria-hidden='true'></i>News</h1>";
-                    } 
-                    else if ($type == 'promaterial') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-object-group' style='margin-right: 6px' aria-hidden='true'></i>Promotional Materials</h1>";
-                    } 
-                    else if ($type == 'peo' && ($user_type == 'Admin' || $user_type == 'Super Admin')) {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO)</h1>";
-                    } 
-                    else if ($type == 'so' && ($user_type == 'Admin' || $user_type == 'Super Admin')) {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO)</h1>";
-                    }
-                    // For new features
-                    else {
-                        $feature = array_filter($featuresNewFeatures, function($f) use ($type) {
-                            return strtolower(str_replace(' ', '_', $f['feature_name'])) === $type;
-                        });
-                        $feature = reset($feature);
-                        if ($feature) {
-                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']}</h1>";
-                        }
-                    }
-
-                    echo "<div class='scroll-div'>";
-                    echo "<div id='{$type}CarouselContainer'>";
-
-                    echo "</div>"; // Close carousel container
-                    echo "</div>"; // Close scroll div
-                    echo "</div>"; // Close content container
-                }
-                ?>
+                            <!-- Search by Content Type form -->
+                            <form class="search-form" id="searchByContentTypeForm" style="width: 300px; max-width: 100%; margin-left: auto; margin-bottom: 10px;">
+                                <div class="floating-label-container">
+                                    <select id="contentType" class="floating-label-input">
+                                        <option value="all">All</option>
+                                        <!-- foreach content type -->
+                                    </select>
+                                    <label for="contentType" class="floating-label">Show by Content Type</label>
+                                </div>
+                            </form>
+                        </div>
+                        <div id="scrollDiv" class="scroll-div" style="padding: 10px">
+                            <div id="archivesContainer" style="margin-right: 10px;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <?php include('misc/php/error_modal.php'); ?>
-    <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_archived_content.js"></script>
 </body>
 </html>

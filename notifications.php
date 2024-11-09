@@ -55,15 +55,15 @@ $stmt->close();
             <div class="column1">
                 <div class="content-inside-form">
                     <div id="notificationsList" class="content-container" 
-                    style="height: auto; max-width: 600px;
+                    style="height: 75vh; max-width: 100%;
                     margin: auto;
                     margin-bottom: 10px;
-                    padding: 20px;
                     background-color: #f9f9f9;
                     border-radius: 8px;
+                    overflow: hidden;
                     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);">
-                        <div class="scroll-div" style="height: auto; margin-bottom: 10px">
-                            <h1 id="notificationsHeader" style="text-align: center;"></h1>
+                        <div class="scroll-div" style="height: 95%; margin-bottom: 10px; overflow: hidden">
+                            <h1 id="notificationsHeader" style="text-align: center; font-size: 25px;"></h1>
                             <div id="ViewAllNotificationsContainer" class="view-all-notifications-container" style="margin-top: 5px">
                                 <!-- Latest notifications will be displayed here -->
                                 <div class="notifications-tab" style="overflow-x: auto;">
@@ -77,15 +77,15 @@ $stmt->close();
                                     <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'updatedNotificationsList')">Updated <span class="updated-notifications-count"></span></button>
                                     <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'trashedNotificationsList')">Trashed <span class="trashed-notifications-count"></span></button>
                                 </div>
-                                <div id="allNotificationsList" class="notifications-tabcontent" style="display: block; height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
-                                <div id="pendingNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
-                                <div id="approvedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
-                                <div id="rejectedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
-                                <div id="restoredNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
-                                <div id="archivedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
-                                <div id="deletedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
-                                <div id="updatedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
-                                <div id="trashedNotificationsList" class="notifications-tabcontent" style="height: 50vh; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="allNotificationsList" class="notifications-tabcontent" style="display: block; height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="pendingNotificationsList" class="notifications-tabcontent" style="height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="approvedNotificationsList" class="notifications-tabcontent" style="height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="rejectedNotificationsList" class="notifications-tabcontent" style="height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="restoredNotificationsList" class="notifications-tabcontent" style="height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="archivedNotificationsList" class="notifications-tabcontent" style="height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="deletedNotificationsList" class="notifications-tabcontent" style="height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="updatedNotificationsList" class="notifications-tabcontent" style="height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
+                                <div id="trashedNotificationsList" class="notifications-tabcontent" style="height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
                             </div>
                         </div>
                     </div>
