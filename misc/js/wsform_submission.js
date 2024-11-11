@@ -1,22 +1,22 @@
 function getQuillEditorContent(contentType) {
     switch (contentType) {
         case 'announcement':
-            return announcementBodyQuill.root.innerHTML;
+            return quillEditors.announcementBodyQuill.root.innerHTML;
         case 'event':
-            return eventBodyQuill.root.innerHTML;
+            return quillEditors.eventBodyQuill.root.innerHTML;
         case 'news':
-            return newsBodyQuill.root.innerHTML;
+            return quillEditors.newsBodyQuill.root.innerHTML;
         case 'peo':
             return {
-                title: peoTitleQuill.root.innerHTML,
-                description: peoDescriptionQuill.root.innerHTML,
-                subdescription: peoSubdescriptionQuill.root.innerHTML
+                title: quillEditors.peoTitleQuill.root.innerHTML,
+                description: quillEditors.peoDescriptionQuill.root.innerHTML,
+                subdescription: quillEditors.peoSubdescriptionQuill.root.innerHTML
             };
         case 'so':
             return {
-                title: soTitleQuill.root.innerHTML,
-                description: soDescriptionQuill.root.innerHTML,
-                subdescription: soSubdescriptionQuill.root.innerHTML
+                title: quillEditors.soTitleQuill.root.innerHTML,
+                description: quillEditors.soDescriptionQuill.root.innerHTML,
+                subdescription: quillEditors.soSubdescriptionQuill.root.innerHTML
             };
         default:
             return '';
@@ -27,6 +27,7 @@ function submitFormViaWebSocket() {
     isFormDirty = false;
     const contentType = document.querySelector('[name="type"]').value;
     const form = document.getElementById(`${contentType}Form`);
+    const isEditMode = form.querySelector('input[name="action_value"]')?.value === 'edit';
 
     // Use the existing hidden input element to store the editor content
     const quillEditorContent = getQuillEditorContent(contentType);
@@ -98,9 +99,24 @@ function submitFormViaWebSocket() {
 
     const formData = new FormData(form);
     const data = { 
-        action: 'post_content',
-        tv_ids: formData.getAll('tv_id[]') // Collect all tv_id[] values
+        // Set action based on edit mode
+        action: isEditMode ? 'update_content' : 'post_content',
+        tv_ids: formData.getAll('tv_id[]')
     };
+
+    // If in edit mode, add the content ID
+    if (isEditMode) {
+        // Add hidden input for content ID if it doesn't exist
+        let contentIdInput = form.querySelector(`input[name="${contentType}_id"]`);
+        if (!contentIdInput) {
+            contentIdInput = document.createElement('input');
+            contentIdInput.setAttribute('type', 'hidden');
+            contentIdInput.setAttribute('name', `${contentType}_id`);
+            contentIdInput.value = new URLSearchParams(window.location.search).get(`${contentType}_id`);
+            form.appendChild(contentIdInput);
+        }
+        data[`${contentType}_id`] = contentIdInput.value;
+    }
 
     // Only include schedule_datetime if it has a value
     const scheduleDateTime = formData.get('schedule_datetime');
@@ -147,23 +163,21 @@ function submitFormViaWebSocket() {
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
         if (message.success) {
+            const action = isEditMode ? 'updated' : 'processed';
             if (contentType === 'peo') {
-                document.getElementById('successMessage').textContent = "Program Educational Objective was successfully processed!";                        
+                document.getElementById('successMessage').textContent = `Program Educational Objective was successfully ${action}!`;                        
             } else if (contentType === 'so') {
-                document.getElementById('successMessage').textContent = "Student Outcome was successfully processed!";                        
+                document.getElementById('successMessage').textContent = `Student Outcome was successfully ${action}!`;                        
             } else if (userType === 'Student' || userType === 'Faculty') {
-                document.getElementById('successMessage').textContent = "Your post will still be in pending mode until an admin approves it.";
+                document.getElementById('successMessage').textContent = isEditMode 
+                    ? `Your post has been updated and will be reviewed by an admin.`
+                    : "Your post will still be in pending mode until an admin approves it.";
             } else {
-                document.getElementById('successMessage').textContent = capitalizeFirstLetter(contentType) + " was successfully processed!";                        
+                document.getElementById('successMessage').textContent = `${capitalizeFirstLetter(contentType)} was successfully ${action}!`;                        
             }
             document.getElementById('successMessageModal').style.display = 'flex';
             isFormDirty = false;
         } 
-        // else {
-        //     // Display an error modal
-        //     document.getElementById('errorText').textContent = "Error processing " + contentType + ". Try again later";
-        //     document.getElementById('errorModal').style.display = 'flex';
-        // }
     };
 }
 
@@ -191,13 +205,17 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function resetFormAndGoHome() {
-    // Get the form by content type
     const contentType = document.querySelector('[name="type"]').value;
     const form = document.getElementById(`${contentType}Form`);
+    const isEditMode = form.querySelector('input[name="action"]')?.value === 'edit';
 
-    // Reset all the form fields to null
-    form.reset();
-
-    // Navigate to the home page
-    location.href = 'user_home.php?pageid=UserHome&userId=<?php echo $user_id; ?>&fullName=<?php echo $full_name; ?>';
+    if (isEditMode) {
+        // If in edit mode, go back to the TV contents page
+        const tvId = form.querySelector('input[name="tv_id"]').value;
+        location.href = `tv_contents.php?tvId=${tvId}&isIframe=true`;
+    } else {
+        // If in create mode, go to home page
+        form.reset();
+        location.href = `user_home.php?pageid=UserHome&userId=${user_id}&fullName=${full_name}`;
+    }
 }

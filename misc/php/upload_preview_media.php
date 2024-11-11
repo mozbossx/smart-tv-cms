@@ -1,3 +1,9 @@
+<?php
+
+$mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['media_path'] : '';
+
+?>
+
 <div class="right-flex">
     <div class="rounded-container-media">
         <p class="input-container-label">Upload Media (Optional)</p>
@@ -9,6 +15,27 @@
             <video id="video-preview" width="100%" height="350px" controls style="display:none; border-radius: 5px; background: #000;"></video>
             <img id="image-preview" style="display:none; max-width: 100%; max-height: 100%;">
         </div>
+        <?php if ($isEditMode && $mediaPath): ?>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const previewMedia = document.querySelector('.preview-media');
+            const videoPreview = document.getElementById('video-preview');
+            const imagePreview = document.getElementById('image-preview');
+            const cancelMediaButton = document.getElementById('cancelMediaButton');
+            
+            previewMedia.style.display = 'flex';
+            cancelMediaButton.style.display = 'inline-block';
+            
+            <?php if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $mediaPath)): ?>
+            imagePreview.src = 'servers/announcement_media/<?php echo $mediaPath; ?>';
+            imagePreview.style.display = 'block';
+            <?php else: ?>
+            videoPreview.src = 'servers/announcement_media/<?php echo $mediaPath; ?>';
+            videoPreview.style.display = 'block';
+            <?php endif; ?>
+        });
+        </script>
+        <?php endif; ?>
     </div>
 </div>
 

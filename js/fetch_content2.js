@@ -185,7 +185,15 @@ const updateUI = (data, type) => {
 
         const trashButton = createTrashButton('Trash', 'fa fa-trash', () => showTrashModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
         const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
-        const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => window.location.href = `edit_${type}.php?${type}_id=${data[`${type}_id`]}?=${data[`${type}_author_id`]}`);
+        const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => {
+            const queryParams = new URLSearchParams({
+                [`${type}_id`]: data[`${type}_id`],
+                type: type,
+                tv_id: data.tv_id,
+                action: 'edit'
+            }).toString();
+            window.location.href = `form_${type}.php?${queryParams}`;
+        });
 
         if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
             buttonContainer.appendChild(trashButton);
@@ -583,7 +591,7 @@ Ws.addEventListener('message', function(event) {
             }
             console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been archived.`);
             break;
-        case 'update':
+        case 'update_content':
         case 'restore_content':
         case 'restore_content_and_update_expiration':
         case 'post_content':

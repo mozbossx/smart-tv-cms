@@ -36,26 +36,27 @@
 
     function validateAndOpenPreviewModal() {
         const selectedType = document.querySelector('[name="type"]').value;
+        const isEditMode = document.querySelector('input[name="action_value"]')?.value === 'edit';
         let contentBody = "";
         
         // Get the content based on the type
         if (selectedType === 'announcement') {
-            contentBody = announcementBodyQuill.root.innerHTML.trim(); // Get content from Quill editor
+            contentBody = quillEditors.announcementBodyQuill.root.innerHTML.trim();
         } else if (selectedType === 'event') {
-            contentBody = eventBodyQuill.root.innerHTML.trim(); // Get content from Quill editor
+            contentBody = quillEditors.eventBodyQuill.root.innerHTML.trim();
         } else if (selectedType === 'news') {
-            contentBody = newsBodyQuill.root.innerHTML.trim(); // Get content from Quill editor
+            contentBody = quillEditors.newsBodyQuill.root.innerHTML.trim();
         } else if (selectedType === 'promaterial') {
             media = document.querySelector('[name="media"]').files[0];
         } else if (selectedType === 'peo') {
-            peoTitle = peoTitleQuill.root.innerHTML.trim(); // Get content from Quill editor
-            peoDescription = peoDescriptionQuill.root.innerHTML.trim(); // Get content from Quill editor
-            peoSubdescription = peoSubdescriptionQuill.root.innerHTML.trim(); // Get content from Quill editor
+            peoTitle = quillEditors.peoTitleQuill.root.innerHTML.trim();
+            peoDescription = quillEditors.peoDescriptionQuill.root.innerHTML.trim();
+            peoSubdescription = quillEditors.peoSubdescriptionQuill.root.innerHTML.trim();
         } else if (selectedType === 'so') {
-            soTitle = soTitleQuill.root.innerHTML.trim(); // Get content from Quill editor
-            soDescription = soDescriptionQuill.root.innerHTML.trim(); // Get content from Quill editor
-            soSubdescription = soSubdescriptionQuill.root.innerHTML.trim(); // Get content from Quill editor
-        } 
+            soTitle = quillEditors.soTitleQuill.root.innerHTML.trim();
+            soDescription = quillEditors.soDescriptionQuill.root.innerHTML.trim();
+            soSubdescription = quillEditors.soSubdescriptionQuill.root.innerHTML.trim();
+        }
 
         const displayTime = document.querySelector('[name="display_time"]').value;
         const tvDisplays = document.querySelectorAll('[name="tv_id[]"]:checked'); // Get all checked TV displays
@@ -64,13 +65,12 @@
         let expirationDateTime = null;
         let scheduleDateTime = null;
         
+        // If not PEO/SO, validate expiration and schedule dates/times
         if (selectedType !== 'peo' && selectedType !== 'so' && selectedType !== 'promaterial') {
             const expirationDateTime = document.querySelector('[name="expiration_datetime"]').value;
-            const scheduleDateTime = document.querySelector('[name="schedule_datetime"]').value;
             
             // Check if any of the required fields is empty
             if (contentBody === "<p><br></p>" || contentBody === "" || displayTime === "" || tvDisplays.length === 0 || expirationDateTime === "") {
-                // If conditions are not met, show error message and exit
                 errorModalMessage("Please fill the necessary fields and select at least one TV display.");
                 return;
             }
@@ -84,21 +84,23 @@
                 return;
             }
 
-            // If schedule date and time are provided, validate them
-            if (scheduleDateTime !== "") {
-                const scheduleDate = new Date(scheduleDateTime);
+            // Only validate schedule_datetime if NOT in edit mode
+            if (!isEditMode) {
+                const scheduleDateTime = document.querySelector('[name="schedule_datetime"]').value;
+                if (scheduleDateTime) {
+                    const scheduleDate = new Date(scheduleDateTime);
 
-                if (scheduleDate < currentDateTime) {
-                    errorModalMessage("Schedule date and time should not be in the past.");
-                    return;
-                } else if (expirationDate < scheduleDate) {
-                    errorModalMessage("Expiration date and time should not be before the schedule date and time.");
-                    return;
+                    if (scheduleDate < currentDateTime) {
+                        errorModalMessage("Schedule date and time should not be in the past.");
+                        return;
+                    } else if (expirationDate < scheduleDate) {
+                        errorModalMessage("Expiration date and time should not be before the schedule date and time.");
+                        return;
+                    }
                 }
             }
         } else if (selectedType === 'promaterial') {
             const expirationDateTime = document.querySelector('[name="expiration_datetime"]').value;
-            const scheduleDateTime = document.querySelector('[name="schedule_datetime"]').value;
             
             if (!media || displayTime === "" || tvDisplays.length === 0 || expirationDateTime === "") {
                 errorModalMessage("Please fill the necessary fields and select at least one TV display.");
@@ -114,16 +116,19 @@
                 return;
             }
 
-            // If schedule date and time are provided, validate them
-            if (scheduleDateTime !== "") {
-                const scheduleDate = new Date(scheduleDateTime);
+            // Only validate schedule_datetime if NOT in edit mode
+            if (!isEditMode) {
+                const scheduleDateTime = document.querySelector('[name="schedule_datetime"]').value;
+                if (scheduleDateTime) {
+                    const scheduleDate = new Date(scheduleDateTime);
 
-                if (scheduleDate < currentDateTime) {
-                    errorModalMessage("Schedule date and time should not be in the past.");
-                    return;
-                } else if (expirationDate < scheduleDate) {
-                    errorModalMessage("Expiration date and time should not be before the schedule date and time.");
-                    return;
+                    if (scheduleDate < currentDateTime) {
+                        errorModalMessage("Schedule date and time should not be in the past.");
+                        return;
+                    } else if (expirationDate < scheduleDate) {
+                        errorModalMessage("Expiration date and time should not be before the schedule date and time.");
+                        return;
+                    }
                 }
             }
         } else if (contentType === 'peo') {
@@ -147,6 +152,8 @@
     // Function to get the preview content
     function getPreviewContent() {
         const selectedType = document.querySelector('[name="type"]').value;
+        const isEditMode = document.querySelector('input[name="action_value"]')?.value === 'edit';
+
         // Function to format date and time
         function formatDateTime(dateTimeString) {
             const dateTime = new Date(dateTimeString);
@@ -167,7 +174,14 @@
         if (selectedType !== 'peo' && selectedType !== 'so') {
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
             previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_datetime"]').value) + '</p>';
-            previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + (document.querySelector('[name="schedule_datetime"]').value ? formatDateTime(document.querySelector('[name="schedule_datetime"]').value) : 'Not scheduled') + '</p>';
+            
+            // Only show schedule date/time in create mode
+            if (!isEditMode) {
+                previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + 
+                    (document.querySelector('[name="schedule_datetime"]').value ? 
+                        formatDateTime(document.querySelector('[name="schedule_datetime"]').value) : 
+                        'Not scheduled') + '</p>';
+            }
         } else {
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
         }
@@ -205,13 +219,27 @@
         // Determine the content based on the selected type
         switch (selectedType) {
             case 'announcement':
-                content = announcementBodyQuill.root.innerHTML;
+                content = quillEditors.announcementBodyQuill.root.innerHTML;
                 break;
             case 'event':
-                content = eventBodyQuill.root.innerHTML;
+                content = quillEditors.eventBodyQuill.root.innerHTML;
                 break;
             case 'news':
-                content = newsBodyQuill.root.innerHTML;
+                content = quillEditors.newsBodyQuill.root.innerHTML;
+                break;
+            case 'peo':
+                content = `
+                    <h2>${quillEditors.peoTitleQuill.root.innerHTML}</h2>
+                    <div>${quillEditors.peoDescriptionQuill.root.innerHTML}</div>
+                    <div>${quillEditors.peoSubdescriptionQuill.root.innerHTML}</div>
+                `;
+                break;
+            case 'so':
+                content = `
+                    <h2>${quillEditors.soTitleQuill.root.innerHTML}</h2>
+                    <div>${quillEditors.soDescriptionQuill.root.innerHTML}</div>
+                    <div>${quillEditors.soSubdescriptionQuill.root.innerHTML}</div>
+                `;
                 break;
             default:
                 content = 'Unknown content type';

@@ -1,28 +1,32 @@
+<?php
+$displayTime = ($isEditMode && isset($contentData['display_time'])) 
+    ? $contentData['display_time'] 
+    : '';
+
+// Fetch selected TVs if in edit mode
+$selectedTvs = [];
+if ($isEditMode && isset($contentData["{$type}_id"])) {
+    $stmt = $conn->prepare("SELECT tv_id FROM {$type}s_tb WHERE {$type}_id = ? AND tv_id = ?");
+    $stmt->bind_param("ii", $contentData["{$type}_id"], $contentData['tv_id']);
+    $stmt->execute();
+    $tvResult = $stmt->get_result();
+    while ($row = $tvResult->fetch_assoc()) {
+        $selectedTvs[] = $row['tv_id'];
+    }
+}
+?>
+
+
+
 <div class="form-column" style="flex: 1">
     <div class="floating-label-container" style="flex: 1">
         <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
             <option value="">Select Display Time</option>
-            <option value="10">10 seconds</option>
-            <option value="11">11 seconds</option>
-            <option value="12">12 seconds</option>
-            <option value="13">13 seconds</option>
-            <option value="14">14 seconds</option>
-            <option value="15">15 seconds</option>
-            <option value="16">16 seconds</option>
-            <option value="17">17 seconds</option>
-            <option value="18">18 seconds</option>
-            <option value="19">19 seconds</option>
-            <option value="20">20 seconds</option>
-            <option value="21">21 seconds</option>
-            <option value="22">22 seconds</option>
-            <option value="23">23 seconds</option>
-            <option value="24">24 seconds</option>
-            <option value="25">25 seconds</option>
-            <option value="26">26 seconds</option>
-            <option value="27">27 seconds</option>
-            <option value="28">28 seconds</option>
-            <option value="29">29 seconds</option>
-            <option value="30">30 seconds</option>
+            <?php for($i = 10; $i <= 30; $i++): ?>
+                <option value="<?php echo $i; ?>" <?php echo ($displayTime == $i) ? 'selected' : ''; ?>>
+                    <?php echo $i; ?> seconds
+                </option>
+            <?php endfor; ?>
         </select>
         <label for="display_time" class="floating-label">Display Time (seconds)</label>
     </div>
@@ -50,6 +54,30 @@
         </div>
     </div>
 </div>
+
+<?php if ($isEditMode): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Pre-select TVs
+    const selectedTvs = <?php echo json_encode($selectedTvs); ?>;
+    const selectedTvNames = [];
+    
+    selectedTvs.forEach(tvId => {
+        const checkbox = document.querySelector(`input[name="tv_id[]"][value="${tvId}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+            selectedTvNames.push(checkbox.getAttribute('data-tv-name'));
+        }
+    });
+
+    // Update the TV button text
+    const tvModalButton = document.getElementById('tvModalButton');
+    if (selectedTvNames.length > 0) {
+        tvModalButton.textContent = selectedTvNames.join(", ");
+    }
+});
+</script>
+<?php endif; ?>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {

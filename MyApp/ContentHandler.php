@@ -827,114 +827,157 @@ class ContentHandler implements MessageComponentInterface
             }
         }
 
-        else if (isset($data['action']) && $data['action'] === 'update') {
+        else if (isset($data['action']) && $data['action'] === 'update_content') {
+            $type = $data['type'];
+            $user_id = $from->user_id;
+            $full_name = $from->full_name;
+            $user_type = $from->user_type;
+            $department = $from->department;
+            // $user_id = $data['user_id'];
+            // $full_name = $data['full_name'];
+            // $department = $data['department'];
+            // $user_type = $data['user_type'];
+            
+            // Define valid content types and their table structures
             $validTypes = [
-                'announcement' => [
-                    'table' => 'announcements_tb',
-                    'idField' => 'announcement_id',
-                    'fields' => ['announcement_body', 'announcement_author_id', 'expiration_datetime', 'display_time', 'tv_id'],
-                    'mediaFolder' => 'announcement_media'
-                ],
-                'event' => [
-                    'table' => 'events_tb',
-                    'idField' => 'event_id',
-                    'fields' => ['event_body', 'event_author_id', 'expiration_datetime', 'display_time', 'tv_id'],
-                    'mediaFolder' => 'event_media'
-                ],
-                'news' => [
-                    'table' => 'news_tb',
-                    'idField' => 'news_id',
-                    'fields' => ['news_body', 'news_author_id', 'expiration_datetime', 'display_time', 'tv_id'],
-                    'mediaFolder' => 'news_media'
-                ],
-                'promaterial' => [
-                    'table' => 'promaterials_tb',
-                    'idField' => 'promaterial_id',
-                    'fields' => ['promaterial_author_id', 'expiration_datetime', 'display_time', 'tv_id'],
-                    'mediaFolder' => 'promaterial_media'
-                ],
-                'peo' => [
-                    'table' => 'peo_tb',
-                    'idField' => 'peo_id',
-                    'fields' => ['peo_title', 'peo_description', 'peo_subdescription', 'peo_author_id', 'display_time', 'tv_id']
-                ],
-                'so' => [
-                    'table' => 'so_tb',
-                    'idField' => 'so_id',
-                    'fields' => ['so_title', 'so_description', 'so_subdescription', 'so_author_id', 'display_time', 'tv_id']
-                ]
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id', 'bodyField' => 'announcement_body'],
+                'event' => ['table' => 'events_tb', 'idField' => 'event_id', 'bodyField' => 'event_body'],
+                'news' => ['table' => 'news_tb', 'idField' => 'news_id', 'bodyField' => 'news_body'],
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id', 'bodyField' => null],
+                'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id', 'bodyField' => null],
+                'so' => ['table' => 'so_tb', 'idField' => 'so_id', 'bodyField' => null]
             ];
-        
-            $type = $data['type'] ?? null;
         
             if (isset($validTypes[$type])) {
                 $table = $validTypes[$type]['table'];
                 $idField = $validTypes[$type]['idField'];
-                $id = $data[$idField];
-                $fields = $validTypes[$type]['fields'];
-                if ($data['type'] !== 'peo' && $data['type'] !== 'peo') {
-                    $mediaFolder = $validTypes[$type]['mediaFolder'];
-                }
-            
-                $mediaFilename = null;
-                if (isset($data['media']) && !empty($data['media'])) {
-                    $base64Data = $data['media'];
-                    $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
-                    $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
+                $bodyField = $validTypes[$type]['bodyField'];
+                $content_id = $data[$idField];
         
-                    if (!file_exists($mediaFolder)) {
-                        if (!mkdir($mediaFolder, 0777, true)) {
-                            error_log("Failed to create directory: $mediaFolder");
-                            $from->send(json_encode(['action' => 'update', 'success' => false, 'message' => 'Failed to create media folder']));
-                            return;
+                // Start building the update query
+                $updateFields = [];
+                $params = [];
+        
+                // Set status based on user type
+                $status = ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') ? 'Pending' : 'Approved';
+                $updateFields[] = "status = ?";
+                $params[] = $status;
+        
+                // Handle different content types
+                if ($bodyField) {
+                    // For announcement, event, news
+                    $updateFields[] = "$bodyField = ?";
+                    $params[] = $data["{$type}_body"];
+                } else if ($type === 'peo' || $type === 'so') {
+                    // For PEO and SO
+                    $updateFields[] = "title = ?, description = ?, subdescription = ?";
+                    $params[] = $data["{$type}_title"];
+                    $params[] = $data["{$type}_description"];
+                    $params[] = $data["{$type}_subdescription"];
+                }
+        
+                // Add common fields
+                if (isset($data['expiration_datetime'])) {
+                    $updateFields[] = "expiration_datetime = ?";
+                    $params[] = $data['expiration_datetime'];
+                }
+                if (isset($data['display_time'])) {
+                    $updateFields[] = "display_time = ?";
+                    $params[] = $data['display_time'];
+                }
+        
+                // Add content_id to params
+                $params[] = $content_id;
+        
+                // Build and execute update query
+                $updateQuery = "UPDATE $table SET " . implode(", ", $updateFields) . " WHERE $idField = ?";
+                $stmt = $this->pdo->prepare($updateQuery);
+                $success = $stmt->execute($params);
+        
+                if ($success) {
+                    // Create notifications based on user type
+                    if ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') {
+                        // Notify content owner
+                        $stmt = $this->pdo->prepare("
+                            INSERT INTO notifications_tb (
+                                content_id, user_id, content_type, notification_type, 
+                                status, action_user_name, action_user_department, 
+                                action_user_type
+                            ) VALUES (?, ?, ?, 'content_updated', 'pending', ?, ?, ?)
+                        ");
+                        $stmt->execute([
+                            $content_id, $user_id, $type, $full_name, 
+                            $department, $user_type
+                        ]);
+        
+                        // Notify department admins
+                        $stmtAdmins = $this->pdo->prepare("
+                            SELECT user_id FROM users_tb 
+                            WHERE user_type = 'Admin' 
+                            AND department = ? 
+                            AND user_id != ?
+                        ");
+                        $stmtAdmins->execute([$department, $user_id]);
+                        $admins = $stmtAdmins->fetchAll(PDO::FETCH_ASSOC);
+        
+                        foreach ($admins as $admin) {
+                            $stmt->execute([
+                                $content_id, $admin['user_id'], $type, 'content_updated',
+                                'pending', $full_name, $department, $user_type, $data['tv_id']
+                            ]);
                         }
+        
+                        // Notify super admins
+                        $stmtSuperAdmins = $this->pdo->prepare("
+                            SELECT user_id FROM users_tb 
+                            WHERE user_type = 'Super Admin' 
+                            AND user_id != ?
+                        ");
+                        $stmtSuperAdmins->execute([$user_id]);
+                        $superAdmins = $stmtSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+        
+                        foreach ($superAdmins as $superAdmin) {
+                            $stmt->execute([
+                                $content_id, $superAdmin['user_id'], $type, 'content_updated',
+                                'pending', $full_name, $department, $user_type, $data['tv_id']
+                            ]);
+                        }
+        
+                        // Update notification counts
+                        $this->pdo->prepare("
+                            UPDATE users_tb 
+                            SET notification_count = notification_count + 1 
+                            WHERE user_id IN (
+                                SELECT user_id FROM users_tb 
+                                WHERE (user_type = 'Admin' AND department = ?) 
+                                OR user_type = 'Super Admin'
+                            )
+                        ")->execute([$department]);
                     }
         
-                    $mediaFilename = "{$id}.{$fileExtension}";
-                    $mediaPath = "{$mediaFolder}/{$mediaFilename}";
+                    // Broadcast notification update
+                    $this->broadcastNotification('new_notification');
         
-                    if (!file_put_contents($mediaPath, $mediaData)) {
-                        error_log("Failed to save media file: $mediaPath");
-                        $from->send(json_encode(['action' => 'update', 'success' => false, 'message' => 'Failed to save media file']));
-                        return;
-                    }
-        
-                    $fields[] = 'media_path';
+                    $response = [
+                        'action' => 'update_content',
+                        'success' => true,
+                        'message' => ucfirst($type) . ' has been updated' . 
+                            ($status === 'Pending' ? ' and is pending approval' : ''),
+                        'type' => $type,
+                        $idField => $content_id,
+                        'data' => $data
+                    ];
+
+                    error_log("Content updated successfully!");
+                } else {
+                    $response = [
+                        'success' => false,
+                        'message' => 'Failed to update ' . $type
+                    ];
+                    error_log("Failed to update content!");
                 }
         
-                $params = array_map(fn($field) => $data[$field] ?? null, $fields);
-                if ($mediaFilename) {
-                    $params[array_search('media_path', $fields)] = $mediaFilename;
-                }
-                $params[] = $id;
-        
-                $fieldAssignments = implode(', ', array_map(fn($field) => "$field = ?", $fields));
-                $stmt = $this->pdo->prepare("UPDATE {$table} SET {$fieldAssignments} WHERE {$idField} = ?");
-                if (!$stmt->execute($params)) {
-                    error_log("Failed to execute update query: " . implode(", ", $stmt->errorInfo()));
-                    $from->send(json_encode(['action' => 'update', 'success' => false, 'message' => 'Failed to execute update query']));
-                    return;
-                }
-        
-                $success = $stmt->rowCount() > 0;
-                $response = ['action' => 'update', 'success' => $success, 'type' => $type, $idField => $id];
-                echo $success ? "{$type} updated!\n" : "{$type} updated!\n";
-        
-                $notificationMethod = "send" . ucfirst($type) . "UpdateNotification";
-                $notificationParams = array_merge([$from], $params);
-                if (method_exists($this, $notificationMethod)) {
-                    $this->$notificationMethod(...$notificationParams);
-                }
-            } else {
-                $response = ['action' => 'update', 'success' => false, 'message' => 'Invalid type specified'];
-                echo "Invalid type specified\n";
-            }
-        
-            $from->send(json_encode($response));
-            foreach ($this->clients as $client) {
-                if ($client !== $from) {
-                    $client->send(json_encode($response));
-                }
+                $from->send(json_encode($response));
             }
         }
 
@@ -3092,15 +3135,15 @@ class ContentHandler implements MessageComponentInterface
                                 $stmt = $this->pdo->prepare("INSERT INTO notifications_tb ($notificationFields) VALUES ($notificationValues)");
                                 $stmt->execute($params);
 
-                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
-                                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ?");
-                                $stmtUpdateAdminNotificationCount->execute([$department]);
+                                // Increase the notification count of the Admin of the department
+                                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ? AND user_id != ?");
+                                $stmtUpdateAdminNotificationCount->execute([$department, $user_id]);
 
-                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
-                                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin'");
-                                $stmtUpdateSuperAdminNotificationCount->execute();
+                                // Increase the notification count of the Super Admin 
+                                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin' AND user_id != ?");
+                                $stmtUpdateSuperAdminNotificationCount->execute([$user_id]);
 
-                                // Increase the notification count of the student or faculty
+                                // Increase the notification count of the user who posted the content
                                 $stmtUpdateUserWhoPosted = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1, last_post_date = CURRENT_TIMESTAMP WHERE user_id = ?");
                                 $stmtUpdateUserWhoPosted->execute([$user_id]);
                     
@@ -3191,9 +3234,17 @@ class ContentHandler implements MessageComponentInterface
                                     }
                                 }
 
-                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                // Increase the notification count of the user who posted the content
                                 $stmtUpdateUserWhoPosted = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1, last_post_date = CURRENT_TIMESTAMP WHERE user_id = ?");
                                 $stmtUpdateUserWhoPosted->execute([$user_id]);
+
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ? AND user_id != ?");
+                                $stmtUpdateAdminNotificationCount->execute([$department, $user_id]);
+
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin' AND user_id != ?");
+                                $stmtUpdateSuperAdminNotificationCount->execute([$user_id]);
                     
                                 // Broadcast update notification to all clients
                                 $this->broadcastNotification('new_notification');
@@ -3404,12 +3455,43 @@ class ContentHandler implements MessageComponentInterface
                 // Update the notification type from scheduled to post
                 $updateNotification = $this->pdo->prepare("
                     UPDATE notifications_tb 
-                    SET notification_type = 'content_post',
-                        content_schedule_datetime = NULL 
+                    SET notification_type = 'content_scheduled_posted',
+                        content_schedule_datetime = NULL,
+                        created_at = CURRENT_TIMESTAMP
                     WHERE content_id = ? 
                     AND content_type = ?
+                    AND notification_type = 'content_scheduled'
                 ");
                 $updateNotification->execute([$content_id, $type]);
+                
+                // Update notification counts for all relevant parties
+                // For content owner
+                $stmtUpdateUserWhoPosted = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1, 
+                        last_post_date = CURRENT_TIMESTAMP 
+                    WHERE user_id = ?
+                ");
+                $stmtUpdateUserWhoPosted->execute([$user_id]);
+
+                // For department admins
+                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE user_type = 'Admin' 
+                    AND department = ? 
+                    AND user_id != ?
+                ");
+                $stmtUpdateAdminNotificationCount->execute([$department, $user_id]);
+
+                // For super admins
+                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE user_type = 'Super Admin' 
+                    AND user_id != ?
+                ");
+                $stmtUpdateSuperAdminNotificationCount->execute([$user_id]);
         
                 // Broadcast notification update
                 $this->broadcastNotification('new_notification');
@@ -3421,16 +3503,6 @@ class ContentHandler implements MessageComponentInterface
                     'type' => $type,
                     $idField => $content_id
                 ];
-
-                // Broadcast new notification to all clients
-                // $this->broadcastNotification('new_notification');
-
-                // $response = [
-                //     'action' => 'post_now_content', 
-                //     'success' => $deleted, 
-                //     'type' => $type, 
-                //     $idField => $content_id
-                // ];
                 
                 echo ucfirst($type) . " posted immediately!\n";
             } else {
@@ -3447,7 +3519,6 @@ class ContentHandler implements MessageComponentInterface
                     $client->send(json_encode($response));
                 }
             }
-
         }
         
         // For Viewing Content

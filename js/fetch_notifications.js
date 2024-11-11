@@ -628,7 +628,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('approved-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-post-notification">${notification.action_user_name} (${notification.action_user_type}) in posted ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
+                    <p class="content-post-notification">${notification.action_user_name} (${notification.action_user_type}) posted ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -987,6 +987,28 @@ function createNotificationDiv(notification) {
             content = `
                 <div class="notification-details">
                     <p class="content-post-notification">${notification.action_user_name} scheduled his/her ${notification.content_type} in the Scheduled Posts section.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+    } 
+
+    if (notification.notification_type === 'content_scheduled_posted' && notification.status == 'approved' && notification.user_id == user_id) {
+        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
+            notificationDiv.classList.add('approved-notification');
+            content = `
+            <div class="notification-details">
+                <p class="content-post-notification">Your scheduled ${notification.content_type} has been posted in ${notification.content_tv_name}.</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+            `;
+        } 
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name) {
+            notificationDiv.classList.add('approved-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-post-notification">${notification.action_user_name}'s scheduled ${notification.content_type} is posted in ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;

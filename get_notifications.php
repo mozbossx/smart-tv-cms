@@ -36,6 +36,7 @@ if ($user_type === 'Admin' || $user_type === 'Faculty' || $user_type === 'Studen
         (n.notification_type = 'user_added_by_admin' AND n.status = 'approved' AND u.department = ?) OR
         (n.notification_type = 'content_post' AND n.status = 'approved' AND u.department = ?) OR
         (n.notification_type = 'content_scheduled' AND n.status = 'approved' AND u.department = ?) OR
+        (n.notification_type = 'content_scheduled_posted' AND n.status = 'approved' AND u.department = ?) OR
         (n.notification_type = 'content_approved' AND u.department = ?) OR
         (n.notification_type = 'content_approved_by_admin' AND u.department = ?) OR
         (n.notification_type = 'content_rejected' AND n.status = 'rejected' AND u.department = ?) OR
@@ -51,8 +52,8 @@ if ($user_type === 'Admin' || $user_type === 'Faculty' || $user_type === 'Studen
         (n.notification_type = 'content_restored' AND n.status = 'restored' AND u.department = ?) OR
         (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored' AND u.department = ?)
     ";
-    $params = array_fill(0, 28, $department);
-    $types = str_repeat('s', 28);
+    $params = array_fill(0, 29, $department);
+    $types = str_repeat('s', 29);
 } else if ($user_type === 'Super Admin') {
     $query .= "
         n.status = 'pending' OR
@@ -69,6 +70,7 @@ if ($user_type === 'Admin' || $user_type === 'Faculty' || $user_type === 'Studen
         (n.notification_type = 'user_added_by_admin' AND n.status = 'approved') OR
         (n.notification_type = 'content_post' AND n.status = 'approved') OR
         (n.notification_type = 'content_scheduled' AND n.status = 'approved') OR
+        (n.notification_type = 'content_scheduled_posted' AND n.status = 'approved') OR
         (n.notification_type = 'content_approved' AND n.status = 'approved') OR
         (n.notification_type = 'content_approved_by_admin' AND n.status = 'approved') OR
         (n.notification_type = 'content_rejected' AND n.status = 'rejected') OR
