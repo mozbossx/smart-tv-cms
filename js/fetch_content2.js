@@ -16,6 +16,41 @@ function formatDateTime(dateTimeString) {
     return `${formattedDate} (${formattedTime})`;
 }
 
+// Function to update content count
+const updateContentCount = (type, count) => {
+    const countElement = document.getElementById(`${type}Count`);
+    if (countElement) {
+        countElement.textContent = count > 0 ? `(${count})` : '(0)';
+    }
+};
+
+let currentArchiveDays = 120; // Default value, will be updated from database
+let currentTrashDays = 30; // Default value, will be updated from database
+
+// Function to fetch archive days
+const fetchArchiveDays = async () => {
+    try {
+        const response = await fetch('database/fetch_archive_days.php');
+        const data = await response.json();
+        currentArchiveDays = data.archive_days;
+    } catch (error) {
+        console.error('Error fetching archive days:', error);
+        return 120; // Default fallback
+    }
+};
+
+// Function to fetch trash days
+const fetchTrashDays = async () => {
+    try {
+        const response = await fetch('database/fetch_trash_days.php');
+        const data = await response.json();
+        currentTrashDays = data.trash_days;
+    } catch (error) {
+        console.error('Error fetching trash days:', error);
+        return 30; // Default fallback
+    }
+};
+
 // Utility function to create buttons
 const createTrashButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
@@ -96,7 +131,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
 
 // Function to update UI for announcement, event, news, etc.
 const updateUI = (data, type) => {
-    if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) return;
+    if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 1 || data.isTrashed === 1 || data.schedule_datetime !== null || !data[`${type}_id`]) return;
 
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
@@ -192,7 +227,6 @@ const archiveItem = (contentId, contentType, authorId, loggedInFullName, authorN
         evaluator_message: evaluatorMessage,
         tv_id: tvId
     };
-    console.log("Archived Content Data: ", data);
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
@@ -225,7 +259,6 @@ const trashItem = (contentId, contentType, authorId, loggedInFullName, authorNam
         evaluator_message: evaluatorMessage,
         tv_id: tvId
     };
-    console.log("Trashed Content Data: ", data);
     confirmTrashModal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
@@ -259,7 +292,6 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
         evaluator_message: evaluatorMessage,
         tv_id: tvId
     };
-    console.log("Deleted Content Data: ", data);
     confirmTrashModal.style.display = 'none';
     confirmDeleteModal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
@@ -352,7 +384,7 @@ const showArchiveModal = (contentId, contentType, authorId, loggedInFullName, au
         <br>
         <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
         <p id="trashMessage" style="text-align: center">Proceed to archive?</p>
-        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for 120 days before being moved to Trash.</p>
+        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for ${currentArchiveDays} days before being moved to Trash.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
@@ -387,7 +419,7 @@ const showTrashModal = (contentId, contentType, authorId, loggedInFullName, auth
         <br>
         <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
         <p id="trashMessage" style="text-align: center">Proceed to move to Trash?</p>
-        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for 30 days before being permanently deleted.</p>
+        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for ${currentTrashDays} days before being permanently deleted.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
@@ -461,17 +493,20 @@ function fetchAndUpdate(type) {
             let filteredData;
             if (Array.isArray(data)) {
                 filteredData = data.filter(item => {
-                    return item.tv_id === parseInt(tvId, 10) && item.isArchived === 0 && item.isTrashed === 0 && item.status === 'Approved';
+                    return item.tv_id === parseInt(tvId, 10) && item.isArchived === 0 && item.isTrashed === 0 && item.schedule_datetime === null && item.status === 'Approved';
                 });
             } else if (typeof data === 'object' && data !== null) {
                 // If data is a single object, wrap it in an array
                 filteredData = [data].filter(item => {
-                    return item.tv_id === parseInt(tvId, 10) && item.isArchived === 0 && item.isTrashed === 0 && item.status === 'Approved';
+                    return item.tv_id === parseInt(tvId, 10) && item.isArchived === 0 && item.isTrashed === 0 && item.schedule_datetime === null && item.status === 'Approved';
                 });
             } else {
                 console.error(`Unexpected data format for ${type}:`, data);
                 return;
             }
+
+            // Update the count for this content type
+            updateContentCount(type, filteredData.length);
 
             const carouselContainer = document.getElementById(`${type}CarouselContainer`);
             if (carouselContainer) {
@@ -485,12 +520,16 @@ function fetchAndUpdate(type) {
         })
         .catch(error => {
             console.error(`Error fetching ${type} of TV ${tvId}:`, error);
+            // Set count to 0 if there's an error
+            updateContentCount(type, 0);
         });
 }
 
 /* Web-Socket Server Connection */
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
+    const type = data.type || data.content_type;
+
     switch (data.action) {
         case 'delete_content':
             // Handle deletion confirmation
@@ -501,6 +540,12 @@ Ws.addEventListener('message', function(event) {
             const deletedDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
             if (deletedDiv) {
                 deletedDiv.remove(); // Remove the deleted item from the UI
+            }
+            // After removing content, update the count
+            const deletedContainer = document.getElementById(`${type}CarouselContainer`);
+            if (deletedContainer) {
+                const remainingItems = deletedContainer.querySelectorAll(`[data-${type}-id]`).length;
+                updateContentCount(type, Math.max(0, remainingItems));
             }
             console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been deleted.`);
             break;
@@ -515,6 +560,12 @@ Ws.addEventListener('message', function(event) {
             if (trashDiv) {
                 trashDiv.remove(); // Remove the trashed item from the UI
             }
+            // After removing content, update the count
+            const trashedContainer = document.getElementById(`${type}CarouselContainer`);
+            if (trashedContainer) {
+                const remainingItems = trashedContainer.querySelectorAll(`[data-${type}-id]`).length;
+                updateContentCount(type, Math.max(0, remainingItems));
+            }
             console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been moved to Trash.`);
             break;
 
@@ -524,55 +575,30 @@ Ws.addEventListener('message', function(event) {
             if (archivedDiv) {
                 archivedDiv.remove(); // Remove the archived item from the UI
             }
+            // After removing content, update the count
+            const archivedContainer = document.getElementById(`${type}CarouselContainer`);
+            if (archivedContainer) {
+                const remainingItems = archivedContainer.querySelectorAll(`[data-${type}-id]`).length;
+                updateContentCount(type, Math.max(0, remainingItems));
+            }
             console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been archived.`);
             break;
-
         case 'update':
-            // Handle updates to existing items
-            const updatedDiv = document.querySelector(`[data-${data.type}-id="${data[`${data.type}_id`]}"]`);
-            if (updatedDiv) {
-                // Update the content of the existing item
-                fetchAndUpdate(data.type);
-                updatedDiv.querySelector('.content-container-con').innerHTML = createContentDiv(data, /* mediaContent */ '', formatDateTime(data.created_datetime), formatDateTime(data.expiration_datetime));
-            } else {
-                fetchAndUpdate(data.type);
-                console.log(`Received update for non-existing ${data.type} with ID ${data[`${data.type}_id`]}.`);
-            }
-            break;
-
         case 'restore_content':
-            // Handle unarchiving confirmation
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been restored.`);
-            fetchAndUpdate(data.type);
-            break;
-        
         case 'restore_content_and_update_expiration':
-            // Handle unarchiving confirmation
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been restored.`);
-            fetchAndUpdate(data.type);
-            break;
-
         case 'post_content':
-            // Handle new content being posted
-            console.log(`New ${data.type} posted:`, data);
-            fetchAndUpdate(data.type);
-            break;
-        
+        case 'post_now_content':
         case 'approve_post':
-            // Handle new approved content being posted
-            if (data.content_type) {
-                console.log(`New Approved ${data.content_type} posted:`, data);
-                fetchAndUpdate(data.content_type);
-            } else if (data.type) {
-                console.log(`New Approved ${data.type} posted:`, data);
-                fetchAndUpdate(data.type);
-            }
+            // For these cases, fetchAndUpdate will handle the count update
+            fetchAndUpdate(type);
             break;
     }
 });
 
 // Call fetchAndUpdate for each type
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchArchiveDays();
+    await fetchTrashDays();
     // Get all content types from the DOM
     const contentTypes = Array.from(document.querySelectorAll('.content-container'))
         .map(container => container.id.replace('List', ''));

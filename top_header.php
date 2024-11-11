@@ -90,6 +90,10 @@ $stmtNotificationCount->close();
                     <a href="trash.php?pageid=Trash?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
                     <?php echo $current_page === 'trash.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Trash <span id="trashContentCount" class="trash-content-count"></span></a>
                 </li>
+                <li>
+                    <a href="scheduled_posts.php?pageid=ScheduledPosts?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                    <?php echo $current_page === 'scheduled_posts.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Scheduled Posts <span id="scheduleContentCount" class="schedule-content-count"></span></a>
+                </li>
                 <?php if ($user_type === 'Admin') { ?>
                 <li>
                     <a id="dropdown-arrow" href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"

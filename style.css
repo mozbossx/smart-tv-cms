@@ -90,7 +90,7 @@ body {
     flex-direction: column;
 }
 
-.archives-buttons-flex, .trash-buttons-flex {
+.archives-buttons-flex, .trash-buttons-flex, .scheduled-posts-buttons-flex {
     display: flex;
     flex-direction: row;
     padding-left: 10px;
@@ -2246,7 +2246,7 @@ tr:nth-child(even) {
     margin-left: 5px;
 }
 
-.archives-content-count, .trash-content-count {
+.archives-content-count, .trash-content-count, .schedule-content-count{
     background: none;
     color: rgb(133, 178, 117);
     padding: 2px;
@@ -2255,6 +2255,8 @@ tr:nth-child(even) {
     font-size: 18px;
     margin-left: 5px;
     margin-top: 2px;
+    position: relative; 
+    top: 1px;
 }
 
 .evaluator-message-notification {
@@ -2890,6 +2892,14 @@ input[type=range]:focus::-ms-fill-upper {
     box-shadow: none;
 }
 
+.button-container-mobile {
+    display: none;
+}
+
+.button-container-desktop {
+    display: -webkit-inline-box;
+}
+
 /* Media query for smaller screens */
 @media only screen and (max-width: 1000px) {
     .container-body {
@@ -2952,7 +2962,7 @@ input[type=range]:focus::-ms-fill-upper {
         flex-direction: row;
     }
 
-    .archives-buttons-flex, .trash-buttons-flex {
+    .archives-buttons-flex, .trash-buttons-flex, .scheduled-posts-buttons-flex {
         flex-direction: column;
         padding-left: 0;
         padding-right: 0;
@@ -3181,6 +3191,14 @@ input[type=range]:focus::-ms-fill-upper {
         transition: background-color 0.3s ease;
         align-items: baseline;
         gap: 10px;
+    }
+
+    .button-container-mobile {
+        display: -webkit-inline-box;;
+    }
+
+    .button-container-desktop {
+        display: none;
     }
     
 }

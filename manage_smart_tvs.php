@@ -59,19 +59,23 @@ if (!$resultAllSmartTVs) {
                                 <li class="breadcrumb-item active" aria-current="page">Manage Smart TVs</li>
                             </ol>
                         </nav>
-                        <div style="display: flex; justify-content: flex-end;">
-                            <button type="button" id="scanTVsButton" class="green-button" style="width: auto; margin-right: 0;"  ><i class="fa fa-search" style="padding-right: 5px"></i>Scan for Smart TVs</button>
+                        <div class="button-container-mobile">
+                            <button type="button" id="scanTVsButtonMobile" class="green-button" style="width: auto; margin-right: 0;"><i class="fa fa-search" style="padding-right: 5px"></i>Scan for Smart TVs</button>
                         </div>
                         <?php include('error_message.php'); ?>
-                        <form class="search-form" style="width: 300px; max-width: 100%; margin: 0; margin-bottom: 10px;">
-                            <div class="floating-label-container">
-                                <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchSmartTVsTable()">
-                                <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search Smart TVs Table</label>
-                                <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
-                                    <i class="fa fa-times" aria-hidden="true"></i>
-                                </button>
+                        <div style="display: flex; justify-content: space-between;">
+                            <form class="search-form" style="width: 300px; max-width: 100%; margin: 0;">
+                                <div class="floating-label-container" style="margin-top: 10px;">
+                                    <input type="text" id="searchInput" required class="floating-label-input" style="height: 35px; padding-top: 8px; padding-bottom: 8px" onkeyup="searchSmartTVsTable()" placeholder="Search Smart TVs Table">
+                                    <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                                        <i class="fa fa-times" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </form>
+                            <div class="button-container-desktop">
+                                <button type="button" id="scanTVsButton" class="green-button" style="width: auto; margin-right: 0; height: 35px"><i class="fa fa-search" style="padding-right: 5px"></i>Scan for Smart TVs</button>
                             </div>
-                        </form>
+                        </div>
                         <div class="table-container" id="smartTVsTableContainerParent" style="max-height: 55vh">
                             <div id="smartTVTableContainer">
                                 <!-- Latest table of smart TVs will be displayed here -->
@@ -212,6 +216,7 @@ if (!$resultAllSmartTVs) {
 
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('scanTVsButton').addEventListener('click', scanForSmartTVs);
+            document.getElementById('scanTVsButtonMobile').addEventListener('click', scanForSmartTVs);
         });
     </script>
 </body>

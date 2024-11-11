@@ -204,7 +204,9 @@ const toggleMultiSelectMode = () => {
         isMultiSelectMode = true;
         const checkboxColumns = document.querySelectorAll('.checkbox-column');
         const selectMultipleBtn = document.getElementById('selectMultipleBtn');
+        const selectMultipleBtnMobile = document.getElementById('selectMultipleBtnMobile');
         const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        const deleteSelectedBtnMobile = document.getElementById('deleteSelectedBtnMobile');
 
         checkboxColumns.forEach(col => {
             col.style.display = ''; // Display all checkbox columns
@@ -222,15 +224,22 @@ const toggleMultiSelectMode = () => {
         selectMultipleBtn.innerHTML = '<i class="fa fa-times" style="margin-right: 2px"></i> Cancel';
         selectMultipleBtn.style.backgroundColor = '#334b353b';
         selectMultipleBtn.style.color = 'black';
+
+        selectMultipleBtnMobile.innerHTML = '<i class="fa fa-times" style="margin-right: 2px"></i> Cancel';
+        selectMultipleBtnMobile.style.backgroundColor = '#334b353b';
+        selectMultipleBtnMobile.style.color = 'black';
         deleteSelectedBtn.style.display = '';
+        deleteSelectedBtnMobile.style.display = '';
     }
     updateDeleteSelectedButton();
 };
 
 const updateDeleteSelectedButton = () => {
     const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const deleteSelectedBtnMobile = document.getElementById('deleteSelectedBtnMobile');
     const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
     deleteSelectedBtn.disabled = checkedBoxes.length === 0;
+    deleteSelectedBtnMobile.disabled = checkedBoxes.length === 0;
 };
 
 const showDeleteConfirmModal = (userCount, evaluatorName) => {
@@ -281,7 +290,9 @@ const resetMultiSelectMode = () => {
     isMultiSelectMode = false;
     const checkboxColumns = document.querySelectorAll('.checkbox-column');
     const selectMultipleBtn = document.getElementById('selectMultipleBtn');
+    const selectMultipleBtnMobile = document.getElementById('selectMultipleBtnMobile');
     const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const deleteSelectedBtnMobile = document.getElementById('deleteSelectedBtnMobile');
 
     checkboxColumns.forEach(col => {
         col.style.display = 'none';
@@ -295,7 +306,11 @@ const resetMultiSelectMode = () => {
     selectMultipleBtn.innerHTML = '<i class="fa fa-check-square" style="margin-right: 2px"></i> Select Multiple';
     selectMultipleBtn.style.backgroundColor = ''; // Reset to default
     selectMultipleBtn.style.color = ''; // Reset to default
+    selectMultipleBtnMobile.innerHTML = '<i class="fa fa-check-square" style="margin-right: 2px"></i> Select Multiple';
+    selectMultipleBtnMobile.style.backgroundColor = '';
+    selectMultipleBtnMobile.style.color = '';
     deleteSelectedBtn.style.display = 'none';
+    deleteSelectedBtnMobile.style.display = 'none';
 
     // Clear all checkboxes
     // document.querySelectorAll('.user-checkbox').forEach(checkbox => {
@@ -1223,8 +1238,12 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => console.error('Error fetching users:', error));
 
     const selectMultipleBtn = document.getElementById('selectMultipleBtn');
+    const selectMultipleBtnMobile = document.getElementById('selectMultipleBtnMobile');
     const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const deleteSelectedBtnMobile = document.getElementById('deleteSelectedBtnMobile');
 
     selectMultipleBtn.addEventListener('click', toggleMultiSelectMode);
+    selectMultipleBtnMobile.addEventListener('click', toggleMultiSelectMode);
     deleteSelectedBtn.addEventListener('click', deleteSelectedUsers);
+    deleteSelectedBtnMobile.addEventListener('click', deleteSelectedUsers);
 });

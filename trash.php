@@ -66,7 +66,13 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     <div id="trashList" class="content-container" style="height: calc(100vh - 160px); overflow: hidden;">
                         <h1 class="content-title" style="text-align: center;">
                             <i class="fa fa-trash" style="margin-right: 6px" aria-hidden="true"></i>Trash
-                            <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for 30 days before being permanently deleted.</p>
+                            <?php
+                                if ($user_type == 'Super Admin') {
+                                    echo '<p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for <button type="button" id="trashDaysButton" style="background: none; border: none; color: #264B2B; font-weight: bold; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="changeNumberOfTrashDays()"></button> before being permanently deleted.</p>';
+                                } else {
+                                    echo '<p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for <span id="trashDaysSpan" style="background: none; border: none; color: #264B2B; font-weight: bold; font-size: 13px;"></span> before being permanently deleted.</p>';
+                                }
+                            ?>
                         </h1>
                         <div class="trash-buttons-flex">
                             <!-- search form -->
@@ -83,11 +89,11 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                             <!-- Search by Content Type form -->
                             <form class="search-form" id="searchByContentTypeForm" style="width: 300px; max-width: 100%; margin-left: auto; margin-bottom: 10px;">
                                 <div class="floating-label-container">
-                                    <select id="contentTypeTrash" class="floating-label-input">
+                                    <select id="contentType" class="floating-label-input">
                                         <option value="all">All</option>
                                         <!-- foreach content type -->
                                     </select>
-                                    <label for="contentTypeTrash" class="floating-label">Show by Content Type</label>
+                                    <label for="contentType" class="floating-label">Show by Content Type</label>
                                 </div>
                             </form>
                         </div>
@@ -99,6 +105,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
+    <?php include('misc/php/success_modal.php'); ?>
     <?php include('misc/php/error_modal.php'); ?>
     <script src="js/fetch_trash_content.js"></script>
 </body>

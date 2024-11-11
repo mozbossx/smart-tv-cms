@@ -91,24 +91,32 @@ include 'admin_access_only.php';
                             </ol>
                         </nav>                        
                         <div id="user-data" data-user-id="<?php echo $user_id; ?>" data-user-type="<?php echo $user_type; ?>" data-user-department="<?php echo $department; ?>"></div>
-                        <div style="display: -webkit-inline-box">
-                            <button type="button" class="green-button" id="selectMultipleBtn" style="margin-right: 5px"><i class="fa fa-check-square" style="margin-right: 2px"></i> Select Multiple</button>
-                            <button type="button" class="green-button" id="deleteSelectedBtn" style="margin-right: 5px; display: none"><i class="fa fa-user-times" style="margin-right: 2px"></i> Delete Selected</button>
+                        <div class="button-container-mobile">
+                            <button type="button" class="green-button" id="selectMultipleBtnMobile" style="margin-right: 5px"><i class="fa fa-check-square" style="margin-right: 2px"></i> Select Multiple</button>
+                            <button type="button" class="green-button" id="deleteSelectedBtnMobile" style="margin-right: 5px; display: none"><i class="fa fa-user-times" style="margin-right: 2px"></i> Delete Selected</button>
                             <button type="button" class="green-button" style="margin-right: 5px;" onclick="showAddUserModal(<?php echo $user_id?>)"><i class="fa fa-user-plus" style="margin-right: 2px"></i> Add User</button>
                             <button type="button" class="green-button" style="margin-right: 5px;" onclick="showAutoDeleteModal()"><i class="fa fa-user-times" style="margin-right: 2px"></i> Auto Delete</button>
                             <button type="button" class="green-button" style="margin-right: 0;" onclick="showUserTableSummary()"><i class="fa fa-table" style="margin-right: 2px"></i> Table Summary</button>
                         </div>
                         <div class="error-message" style="display: none; margin-top: 10px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div>
                         <div class="success-message" style="display: none; margin-top: 10px"><i class="fa fa-check-circle" aria-hidden="true"></i></div>
-                        <form class="search-form" style="width: 300px; max-width: 100%; margin: 0; margin-bottom: 10px;">
-                            <div class="floating-label-container">
-                                <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchUsersTable()">
-                                <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search User Table</label>
-                                <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
-                                    <i class="fa fa-times" aria-hidden="true"></i>
-                                </button>
+                        <div style="display: flex; justify-content: space-between;">
+                            <form class="search-form" style="width: 300px; max-width: 100%; margin: 0;">
+                                <div class="floating-label-container" style="margin-top: 10px;">
+                                    <input type="text" id="searchInput" required class="floating-label-input" style="height: 35px; padding-top: 8px; padding-bottom: 8px" onkeyup="searchUsersTable()" placeholder="Search User Table">
+                                    <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                                        <i class="fa fa-times" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </form>
+                            <div class="button-container-desktop">
+                                <button type="button" class="green-button" id="selectMultipleBtn" style="margin-right: 5px; height: 35px;"><i class="fa fa-check-square" style="margin-right: 2px"></i> Select Multiple</button>
+                                <button type="button" class="green-button" id="deleteSelectedBtn" style="margin-right: 5px; display: none; height: 35px;"><i class="fa fa-user-times" style="margin-right: 2px"></i> Delete Selected</button>
+                                <button type="button" class="green-button" style="margin-right: 5px; height: 35px;" onclick="showAddUserModal(<?php echo $user_id?>)"><i class="fa fa-user-plus" style="margin-right: 2px"></i> Add User</button>
+                                <button type="button" class="green-button" style="margin-right: 5px; height: 35px;" onclick="showAutoDeleteModal()"><i class="fa fa-user-times" style="margin-right: 2px"></i> Auto Delete</button>
+                                <button type="button" class="green-button" style="margin-right: 0; height: 35px;" onclick="showUserTableSummary()"><i class="fa fa-table" style="margin-right: 2px"></i> Table Summary</button>
                             </div>
-                        </form>
+                        </div>
                         <div class="table-container" id="userTableContainerParent" style="max-height: 55vh">
                             <div id="userTableContainer">
                                 <!-- Latest table of users will be displayed here -->

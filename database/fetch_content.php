@@ -14,6 +14,8 @@ try {
 $type = $_GET['type'] ?? '';
 $archived = isset($_GET['archived']) && $_GET['archived'] === 'true';
 $trashed = isset($_GET['trashed']) && $_GET['trashed'] === 'true';
+$scheduled = isset($_GET['scheduled']) && $_GET['scheduled'] === 'true';
+
 // Sanitize the type to prevent SQL injection
 $type = preg_replace('/[^a-z_]/', '', strtolower($type));
 
@@ -32,8 +34,20 @@ try {
               FROM {$tableName} c 
               LEFT JOIN users_tb u ON c.{$authorIdField} = u.user_id
               WHERE c.isArchived = :isArchived AND c.isTrashed = :isTrashed";
+
+    // Schedule_datetime condition if scheduled parameter is true
+    if ($scheduled) {
+        $query .= " AND c.schedule_datetime IS NOT NULL";
+    }
+
+    if ($scheduled) {
+        $query .= " ORDER BY c.schedule_datetime ASC";
+    }
     
-    $params = [':isArchived' => $archived ? 1 : 0, ':isTrashed' => $trashed ? 1 : 0];
+    $params = [
+        ':isArchived' => $archived ? 1 : 0, 
+        ':isTrashed' => $trashed ? 1 : 0
+    ];
 
     $statement = $pdo->prepare($query);
     $statement->execute($params);

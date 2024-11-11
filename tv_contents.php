@@ -123,17 +123,17 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($contentTypes as $type) {
                     echo "<div id='{$type}List' class='content-container'>";
                     if ($type == 'announcement') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements</h1>";
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements <span id='announcementCount' style='color: #6E6E6E;'></span></h1>";
                     } else if ($type == 'event') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-calendar-check-o' style='margin-right: 6px' aria-hidden='true'></i>Events</h1>";
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-calendar-check-o' style='margin-right: 6px' aria-hidden='true'></i>Events <span id='eventCount' style='color: #6E6E6E;'></span></h1>";
                     } else if ($type == 'news') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-newspaper-o' style='margin-right: 6px' aria-hidden='true'></i>News</h1>";
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-newspaper-o' style='margin-right: 6px' aria-hidden='true'></i>News <span id='newsCount' style='color: #6E6E6E;'></span></h1>";
                     } else if ($type == 'promaterial') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-object-group' style='margin-right: 6px' aria-hidden='true'></i>Promotional Materials</h1>";
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-object-group' style='margin-right: 6px' aria-hidden='true'></i>Promotional Materials <span id='promaterialCount' style='color: #6E6E6E;'></span></h1>";
                     } else if ($type == 'peo') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO)</h1>";
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO) <span id='peoCount' style='color: #6E6E6E;'></span></h1>";
                     } else if ($type == 'so') {
-                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO)</h1>";
+                        echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO) <span id='soCount' style='color: #6E6E6E;'></span></h1>";
                     } else {
                         // For new features
                         $feature = array_filter($featuresNewFeatures, function($f) use ($type) {
@@ -141,9 +141,9 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         });
                         $feature = reset($feature);
                         if ($feature) {
-                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']}</h1>";
+                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']} <span id='{$type}Count' style='color: #6E6E6E;'></span></h1>";
                         } else {
-                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . "</h1>";
+                            echo "<h1 class='content-title' style='text-align: center;'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . " <span id='{$type}Count' style='color: #6E6E6E;'></span></h1>";
                         }
                     }
                     echo "<div class='scroll-div'>";

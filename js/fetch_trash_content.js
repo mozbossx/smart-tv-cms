@@ -15,13 +15,192 @@ function formatDateTime(dateTimeString) {
     return `${formattedDate} (${formattedTime})`;
 }
 
-// Function to calculate days remaining
+let currentArchiveDays = 120; // Default value, will be updated from database
+let currentTrashDays = 30; // Default value, will be updated from database
+
+// Function to fetch archive days
+const fetchArchiveDays = async () => {
+    try {
+        const response = await fetch('database/fetch_archive_days.php');
+        const data = await response.json();
+        currentArchiveDays = parseInt(data.archive_days);
+        if (userType === 'Super Admin') {
+            document.getElementById('archiveDaysButton').textContent = `${currentArchiveDays} days`;
+        } else {
+            document.getElementById('archiveDaysSpan').textContent = `${currentArchiveDays} days`;
+        }
+        return currentArchiveDays;
+    } catch (error) {
+        console.error('Error fetching archive days:', error);
+        return 120; // Default fallback
+    }
+};
+
+// Function to fetch trash days
+const fetchTrashDays = async () => {
+    try {
+        const response = await fetch('database/fetch_trash_days.php');
+        const data = await response.json();
+        currentTrashDays = parseInt(data.trash_days);
+        if (userType === 'Super Admin') {
+            document.getElementById('trashDaysButton').textContent = `${currentTrashDays} days`;
+        } else {
+            document.getElementById('trashDaysSpan').textContent = `${currentTrashDays} days`;
+        }
+        return currentTrashDays;
+    } catch (error) {
+        console.error('Error fetching trash days:', error);
+        return 120; // Default fallback
+    }
+};
+
+const checkAndTrashExpiredItems = async () => {
+    try {
+        const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+        if (userType === 'Admin' || userType === 'Super Admin') {
+            contentTypes.push('peo', 'so');
+        }
+
+        for (const type of contentTypes) {
+            const response = await fetch(`database/fetch_content.php?type=${type}&trashed=true`);
+            const data = await response.json();
+            
+            // Filter for trashed items that aren't already trashed
+            const trashedItems = data.filter(item => 
+                item.isArchived === 0 && 
+                item.isTrashed === 1
+            );
+
+            // Check each item's remaining days
+            trashedItems.forEach(item => {
+                const daysRemaining = calculateDaysRemaining(item.datetime_trashed);
+                
+                if (daysRemaining <= 0) {
+                    // Automatically trash the item
+                    deleteItem(
+                        item[`${type}_id`],
+                        type,
+                        item[`${type}_author_id`],
+                        'System', // System is moving it to trash
+                        item.author_name,
+                        item.author_user_type,
+                        item.author_department,
+                        item.tv_id
+                    );
+                    // fetchAndUpdateAll();
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error checking expired items:', error);
+    }
+};
+
+// Function to create trash days modal
+const createTrashDaysModal = () => {
+    // Remove existing modal if it exists
+    const existingModal = document.getElementById('changeTrashDaysModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'changeTrashDaysModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content" style="padding: 15px;">
+            <span class="close" onclick="document.getElementById('changeTrashDaysModal').style.display='none'" style="color: #264B2B">
+                <i class="fa fa-times-circle" aria-hidden="true"></i>
+            </span>
+            <br>
+            <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-clock-o" aria-hidden="true"></i></h1>
+            <p style="text-align: center">Change number of days before trashed items are permanently deleted</p>
+            <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Minimum number of days is 10.</p>
+            <br>
+            <div class="floating-label-container">
+                <input type="number" id="newTrashDays" required placeholder=" " class="floating-label-input" min="1">
+                <label for="newTrashDays" class="floating-label">Number of Days</label>
+            </div>
+            <br>
+            <div style="text-align: right;">
+                <button type="button" class="grey-button" onclick="document.getElementById('changeTrashDaysModal').style.display='none'">Cancel</button>
+                <button type="button" class="green-button" onclick="updateTrashDays()">Update</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    return modal;
+};
+
+const changeNumberOfTrashDays = () => {
+    if (userType !== 'Super Admin') {
+        const errorModal = document.getElementById('errorModalVersion2');
+        const errorMessage = document.getElementById('errorTextVersion2');
+        errorModal.style.display = 'flex';
+        errorMessage.textContent = 'Only Super Admin can change the number of trash days.';
+        return;
+    }
+
+    const modal = createTrashDaysModal();
+    const input = document.getElementById('newTrashDays');
+    input.value = currentTrashDays;
+    modal.style.display = 'flex';
+};
+
+// Function to update trash days
+const updateTrashDays = async () => {
+    const newDays = parseInt(document.getElementById('newTrashDays').value);
+    
+    if (!newDays || newDays < 10) {
+        alert('Please enter a valid number of days (minimum 10).');
+        return;
+    }
+
+    try {
+        const response = await fetch('database/update_trash_days.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                trash_days: newDays,
+                user_id: user_id
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('changeTrashDaysModal').style.display = 'none';
+            // Update the current trash days and refresh the display
+            currentTrashDays = newDays;
+            if (userType === 'Super Admin') {
+                document.getElementById('trashDaysButton').textContent = `${newDays} days`;
+            } else {
+                document.getElementById('trashDaysSpan').textContent = `${newDays} days`;
+            }
+            const successModal = document.getElementById('successMessageModalVersion2');
+            const successMessage = document.getElementById('successMessageVersion2');
+            successModal.style.display = 'flex';
+            successMessage.textContent = `Trash days updated to ${newDays} days.`;
+            // Refresh all content to update the days remaining
+            fetchAndUpdateAll();
+        } else {
+            alert('Failed to update trash days: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error updating trash days:', error);
+        alert('Failed to update trash days. Please try again.');
+    }
+};
+
+// Update the calculateDaysRemaining function
 const calculateDaysRemaining = (trashedDate) => {
     const trashed = new Date(trashedDate);
-    const expiryDate = new Date(trashed.getTime() + (30 * 24 * 60 * 60 * 1000)); // 120 days in milliseconds
+    const expiryDate = new Date(trashed.getTime() + (currentTrashDays * 24 * 60 * 60 * 1000));
     const today = new Date();
     const remaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-    return Math.max(0, remaining); // Ensure we don't return negative days
+    return Math.max(0, remaining);
 };
 
 // Function to search trash
@@ -29,12 +208,12 @@ function searchTrash() {
     const searchInput = document.getElementById('searchInput');
     const clearButton = document.getElementById('clearSearch');
     const keyword = searchInput.value.toLowerCase();
-    const contentTypeTrash = document.getElementById('contentTypeTrash').value;
+    const contentType = document.getElementById('contentType').value;
     
     // Show/hide clear button
     clearButton.style.display = keyword ? 'block' : 'none';
 
-    const trashItems = document.querySelectorAll('#trashContainer > div');
+    const trashedItems = document.querySelectorAll('#trashContainer > div');
     let hasVisibleItems = false;
 
     // Remove any existing "no results" message first
@@ -43,7 +222,7 @@ function searchTrash() {
         existingNoResultsMsg.remove();
     }
 
-    trashItems.forEach(item => {
+    trashedItems.forEach(item => {
         // Skip the noResultsMessage div if it exists
         if (item.id === 'noResultsMessage') return;
 
@@ -53,14 +232,14 @@ function searchTrash() {
         if (!itemType) return; // Skip if not a content item
 
         const matchesKeyword = keyword === '' || textContent.includes(keyword);
-        const matchesType = contentTypeTrash === 'all' || itemType.includes(contentTypeTrash.toLowerCase());
+        const matchesType = contentType === 'all' || itemType.includes(contentType.toLowerCase());
         
         item.style.display = (matchesKeyword && matchesType) ? 'block' : 'none';
         if (matchesKeyword && matchesType) hasVisibleItems = true;
     });
 
     // Show "no results" message if needed
-    if (!hasVisibleItems && trashItems.length > 0) {
+    if (!hasVisibleItems && trashedItems.length > 0) {
         const msg = document.createElement('div');
         msg.id = 'noResultsMessage';
         msg.style = `
@@ -85,7 +264,7 @@ function clearSearch() {
 
 // Function to populate content type dropdown
 function populateContentTypeDropdown() {
-    const select = document.getElementById('contentTypeTrash');
+    const select = document.getElementById('contentType');
     const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
     
     if (userType === 'Admin' || userType === 'Super Admin') {
@@ -111,7 +290,9 @@ function populateContentTypeDropdown() {
             const type = contentTypes[index];
             const count = data.filter(item => 
                 item.isArchived === 0 && 
-                item.isTrashed === 1
+                item.isTrashed === 1 && 
+                (type === 'peo' || type === 'so' || item.status === 'Approved') &&
+                hasPermissionToView({ ...item, contentType: type })
             ).length;
             
             typeCounts[type] = count;
@@ -133,9 +314,21 @@ function populateContentTypeDropdown() {
         console.error('Error fetching content type counts:', error);
     });
 
-    // Change event listener
+    // Add change event listener
     select.addEventListener('change', searchTrash);
 }
+
+const createRestoreButton = (text, iconClass, onClick) => {
+    const button = document.createElement('button');
+    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.className = 'green-button';
+    button.style = `
+        margin-top: 10px;
+        margin-right: 5px;
+    `;
+    button.onclick = onClick;
+    return button;
+};
 
 const createDeleteButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
@@ -161,18 +354,6 @@ const createArchiveButton = (text, iconClass, onClick) => {
     return button;
 };
 
-const createRestoreButton = (text, iconClass, onClick) => {
-    const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
-    button.className = 'green-button';
-    button.style = `
-        margin-top: 10px;
-        margin-right: 5px;
-    `;
-    button.onclick = onClick;
-    return button;
-};
-
 // const createEditButton = (text, iconClass, onClick) => {
 //     const button = document.createElement('button');
 //     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
@@ -182,7 +363,7 @@ const createRestoreButton = (text, iconClass, onClick) => {
 // };
 
 // Function to create content div
-const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, formattedTrashedDateTime, type, tvDisplay) => {
+const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, formattedTrashDateTime, type, tvDisplay) => {
     let contentHtml = `
         <div class="content-container-con">
             ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
@@ -228,6 +409,10 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
 
 // Function to update UI for announcement, event, news, etc.
 const updateUI = async (data, type) => {
+    if (!hasPermissionToView(data)) {
+        return;
+    }
+
     if (data.status === 'Pending' || data.status === 'Draft' || data.isTrashed === 0 || !data[`${type}_id`]) return;
 
     const tvInfo = await fetchTVInfo(type, data[`tv_id`]);
@@ -236,7 +421,7 @@ const updateUI = async (data, type) => {
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
     const formattedExpirationDateTime = formatDateTime(data.expiration_datetime);
-    const formattedTrashedDateTime = formatDateTime(data.datetime_trashed);
+    const formattedTrashDateTime = formatDateTime(data.datetime_trashed);
 
     let mediaContent = '';
     if (data.media_path) {
@@ -246,7 +431,7 @@ const updateUI = async (data, type) => {
             isVideo ? `<video width="100%" height="100%" controls style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
-    const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, formattedTrashedDateTime, type, tvInfo.tv_display);
+    const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, formattedTrashDateTime, type, tvInfo.tv_display);
     
     if (existingDiv) {
         existingDiv.querySelector('.content-container-con').innerHTML = contentDiv;
@@ -307,13 +492,13 @@ const updateUI = async (data, type) => {
             margin-top: 10px;
         `;
 
-        const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
         const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
+        const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
         const restoreButton = createRestoreButton('Restore', 'fa fa-refresh', () => showRestoreModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id, data.expiration_datetime));
 
         if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
-            buttonContainer.appendChild(archiveButton);
             buttonContainer.appendChild(deleteButton);
+            buttonContainer.appendChild(archiveButton);
             buttonContainer.appendChild(restoreButton);
         }
 
@@ -333,6 +518,26 @@ const updateUI = async (data, type) => {
         containerDiv.appendChild(buttonContainer);
         trashContainer.appendChild(containerDiv);
     }
+};
+
+// Permission check function
+const hasPermissionToView = (content) => {
+    // Super Admin can see everything
+    if (userType === 'Super Admin') {
+        return true;
+    }
+
+    // Admin can see content from their department
+    if (userType === 'Admin') {
+        return content.author_department === department;
+    }
+
+    // Students, Faculty, and Staff can only see their own content
+    if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+        return parseInt(content[`${content.contentType}_author_id`]) === parseInt(user_id);
+    }
+
+    return false;
 };
 
 // Helper function to get icon for content type
@@ -361,13 +566,21 @@ const formatContentType = (type) => {
     return formats[type] || type;
 };
 
+// Include tv_name
 const fetchTVInfo = async (type, tv_id) => {
     try {
         const response = await fetch(`database/fetch_tv_info.php?type=${type}&tvId=${tv_id}`);
-        return await response.json();
+        const data = await response.json();
+        return {
+            tv_display: data.tv_display,
+            tv_name: data.tv_name // Add this line
+        };
     } catch (error) {
         console.error('Error fetching TV info:', error);
-        return { tv_display: 'Error fetching TV info' };
+        return { 
+            tv_display: 'Error fetching TV info',
+            tv_name: 'Unknown TV' // Add this line
+        };
     }
 };
 
@@ -428,21 +641,26 @@ const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorN
         data.expiration_datetime = newExpirationDateTime;
     }
 
-    console.log("Restored Content Data: ", data);
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data));
 };
 
 // Function to trash an item
 const trashItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
-    const evaluatorMessageTrash = document.getElementById('evaluator_message_trash');
-    let evaluatorMessage = null;
+    let evaluatorMessage;
 
-    if (evaluatorMessageTrash) {
-        evaluatorMessage = evaluatorMessageTrash.value;
-        if (!evaluatorMessage) {
-            alert('Evaluator message is required.');
-            return;
+    if (loggedInFullName === 'System') {
+        // Automatic system-generated message
+        evaluatorMessage = `Content automatically moved to Trash after ${currentTrashDays} days in Trash`;
+    } else {
+        // Manual trash by user
+        const evaluatorMessageTrash = document.getElementById('evaluator_message_trash');
+        if (evaluatorMessageTrash) {
+            evaluatorMessage = evaluatorMessageTrash.value;
+            if (!evaluatorMessage) {
+                alert('Evaluator message is required.');
+                return;
+            }
         }
     }
 
@@ -461,21 +679,34 @@ const trashItem = (contentId, contentType, authorId, loggedInFullName, authorNam
         evaluator_message: evaluatorMessage,
         tv_id: tvId
     };
-    console.log("Trashed Content Data: ", data);
     confirmTrashModal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
+const startExpirationChecker = () => {
+    // Check immediately when the page loads
+    checkAndTrashExpiredItems();
+
+    // Then check every minute
+    setInterval(checkAndTrashExpiredItems, 60000);
+};
+
 // Function to delete an item
 const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
-    const evaluatorMessageDeleteForever = document.getElementById('evaluator_message_delete');
-    let evaluatorMessage = null;
+    let evaluatorMessage;
 
-    if (evaluatorMessageDeleteForever) {
-        evaluatorMessage = evaluatorMessageDeleteForever.value;
-        if (!evaluatorMessage) {
-            alert('Evaluator message is required.');
-            return;
+    if (loggedInFullName === 'System') {
+        // Automatic system-generated message
+        evaluatorMessage = `Content automatically deleted after ${currentTrashDays} days in Trash`;
+    } else {
+        // Manual trash by user
+        const evaluatorMessageDeleteForever = document.getElementById('evaluator_message_delete');
+        if (evaluatorMessageDeleteForever) {
+            evaluatorMessage = evaluatorMessageDeleteForever.value;
+            if (!evaluatorMessage) {
+                alert('Evaluator message is required.');
+                return;
+            }
         }
     }
 
@@ -495,7 +726,6 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
         evaluator_message: evaluatorMessage,
         tv_id: tvId
     };
-    console.log("Deleted Content Data: ", data);
     confirmTrashModal.style.display = 'none';
     confirmDeleteModal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
@@ -529,10 +759,40 @@ const archiveItem = (contentId, contentType, authorId, loggedInFullName, authorN
         evaluator_message: evaluatorMessage,
         tv_id: tvId
     };
-    console.log("Archived Content Data: ", data);
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
+
+// Function to display a "No items to be displayed" message
+const displayNoMessage = (type) => {
+    const messageDiv = document.createElement('div');
+    messageDiv.id = `no-${type}-message`;
+    messageDiv.style = `
+        text-align: center;
+        font-size: 1.2em;
+        color: #666;
+        margin-top: 5px;
+    `;
+    if (type === 'promaterial') {
+        messageDiv.textContent = `No trashed promotional materials to be displayed`;
+    } else if (type === 'peo') {
+        messageDiv.textContent = `No trashed Program Education Objective (PEO) to be displayed`;
+    } else if (type === 'so') {
+        messageDiv.textContent = `No trashed Student Outcome (SO) to be displayed`;
+    } else {
+        messageDiv.textContent = `No trashed ${type} to be displayed`;
+    }
+    
+    const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+    if (carouselContainer) {
+        carouselContainer.appendChild(messageDiv);
+    } else {
+        console.error(`Carousel container for ${type} not found.`);
+    }
+};
+
+// Array of default content types
+// const defaultContentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
 
 // Function to create modals dynamically
 const createModals = (contentTypes) => {
@@ -575,7 +835,10 @@ const createModals = (contentTypes) => {
 };
 
 // Function to show restore modal
-const showRestoreModal = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId, expirationDateTime) => {
+const showRestoreModal = async (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId, expirationDateTime) => {
+    // Fetch TV info first
+    const tvInfo = await fetchTVInfo(contentType, tvId);
+
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
     const modal = document.getElementById(`confirmRestore${capitalizedType}Modal`);
     const modalContent = document.getElementById(`restore${capitalizedType}ModalContent`);
@@ -605,16 +868,17 @@ const showRestoreModal = (contentId, contentType, authorId, loggedInFullName, au
     ` : '';
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'" style="color: #316038"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-refresh" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to restore this ${contentType} to TV with ID: ${tvId}?</p>
+        <h1 style="color: #316038; font-size: 50px"><i class="fa fa-refresh" aria-hidden="true"></i></h1>
+        <p id="deleteMessage" style="text-align: center">Proceed to restore this ${contentType} to TV: ${tvInfo.tv_display}?</p>
+        <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Restored items will be displayed in the TV.</p>
         <br>
         ${evaluatorMessageHtml}
         ${expirationDateHtml}
         <div style="text-align: right;">
             <button type="button" class="grey-button" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'">Cancel</button>
-            <button type="button" class="yellow-button" onclick="restoreItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId}, ${isExpired})">Yes, Restore</button>
+            <button type="button" class="green-button" onclick="restoreItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId}, ${isExpired})">Yes, Restore</button>
         </div>
     `;
     
@@ -679,7 +943,7 @@ const showArchiveModal = (contentId, contentType, authorId, loggedInFullName, au
         <br>
         <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
         <p id="trashMessage" style="text-align: center">Proceed to archive?</p>
-        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for 120 days before being moved to Trash.</p>
+        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for ${currentArchiveDays} days before being moved to Trash.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
@@ -728,7 +992,8 @@ const fetchAndUpdateAll = async () => {
             const filteredData = data.filter(item => 
                 item.isArchived === 0 && 
                 item.isTrashed === 1 && 
-                (type === 'peo' || type === 'so' || item.status === 'Approved')
+                (type === 'peo' || type === 'so' || item.status === 'Approved') &&
+                hasPermissionToView({ ...item, contentType: type })
             );
             
             // Add content type to each item
@@ -756,10 +1021,6 @@ const fetchAndUpdateAll = async () => {
         for (const item of allContent) {
             await updateUI(item, item.contentType);
         }
-
-        // Update the content type dropdown with new counts
-        populateContentTypeDropdown();
-
     } catch (error) {
         console.error('Error fetching trashed content:', error);
     }
@@ -775,9 +1036,11 @@ Ws.addEventListener('message', function(event) {
         case 'restore_content_and_update_expiration':
         case 'trash_content':
         case 'post_content':
+        case 'update_archive_days':
             // Refresh all content for any change
-            fetchAndUpdateAll();
+            console.log('Action received:', data.action);
             populateContentTypeDropdown();
+            fetchAndUpdateAll();
             break;
 
         case 'update':
@@ -785,24 +1048,27 @@ Ws.addEventListener('message', function(event) {
             fetchAndUpdateAll();
             populateContentTypeDropdown();
             break;
-
-        default:
-            console.warn(`Unknown action: ${data.action}`);
-            break;
     }
 });
 
 // Update the document ready event listener
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Fetch trash days first
+    await fetchTrashDays();
+    await fetchArchiveDays();
+
     // Create modals for all content types
     const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
     createModals(contentTypes);
 
     // Initialize search functionality
     populateContentTypeDropdown();
-
+    
     // Add clear button click handler
     document.getElementById('clearSearch').addEventListener('click', clearSearch);
+
+    // Start the expiration checker
+    startExpirationChecker();
 
     // Fetch and update all content
     fetchAndUpdateAll();

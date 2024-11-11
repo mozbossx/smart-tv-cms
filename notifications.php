@@ -67,15 +67,60 @@ $stmt->close();
                             <div id="ViewAllNotificationsContainer" class="view-all-notifications-container" style="margin-top: 5px">
                                 <!-- Latest notifications will be displayed here -->
                                 <div class="notifications-tab" style="overflow-x: auto;">
-                                    <button type="button" class="notifications-tablinks active" style="padding: 10px" onclick="openNotificationsTab(event, 'allNotificationsList')">All <span class="all-notifications-count"></span></button>
-                                    <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'pendingNotificationsList')">Pending <span class="pending-notifications-count"></span></button>
-                                    <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'approvedNotificationsList')">Approved <span class="approved-notifications-count"></span></button>
-                                    <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'rejectedNotificationsList')">Rejected <span class="rejected-notifications-count"></span></button>
-                                    <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'restoredNotificationsList')">Restored <span class="restored-notifications-count"></span></button>
-                                    <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'archivedNotificationsList')">Archived <span class="archived-notifications-count"></span></button>
-                                    <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'deletedNotificationsList')">Deleted <span class="deleted-notifications-count"></span></button>
-                                    <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'updatedNotificationsList')">Updated <span class="updated-notifications-count"></span></button>
-                                    <button type="button" class="notifications-tablinks" style="padding: 10px" onclick="openNotificationsTab(event, 'trashedNotificationsList')">Trashed <span class="trashed-notifications-count"></span></button>
+                                    <button type="button" class="notifications-tablinks active" 
+                                            data-display-name="All Notifications"
+                                            style="padding: 10px" 
+                                            onclick="openNotificationsTab(event, 'allNotificationsList')">
+                                        All <span class="all-notifications-count"></span>
+                                    </button>
+                                    <button type="button" class="notifications-tablinks" 
+                                            data-display-name="Pending Notifications"
+                                            style="padding: 10px" 
+                                            onclick="openNotificationsTab(event, 'pendingNotificationsList')">
+                                        Pending <span class="pending-notifications-count"></span>
+                                    </button>
+                                    <button type="button" class="notifications-tablinks" 
+                                            data-display-name="Approved Notifications"
+                                            style="padding: 10px" 
+                                            onclick="openNotificationsTab(event, 'approvedNotificationsList')">
+                                        Approved <span class="approved-notifications-count"></span>
+                                    </button>
+                                    <button type="button" class="notifications-tablinks" 
+                                            data-display-name="Rejected Notifications"
+                                            style="padding: 10px" 
+                                            onclick="openNotificationsTab(event, 'rejectedNotificationsList')">
+                                        Rejected <span class="rejected-notifications-count"></span>
+                                    </button>
+                                    <button type="button" class="notifications-tablinks" 
+                                            data-display-name="Restored Notifications"
+                                            style="padding: 10px" 
+                                            onclick="openNotificationsTab(event, 'restoredNotificationsList')">
+                                        Restored <span class="restored-notifications-count"></span>
+                                    </button>
+                                    <button type="button" class="notifications-tablinks" 
+                                            data-display-name="Archived Notifications"
+                                            style="padding: 10px" 
+                                            onclick="openNotificationsTab(event, 'archivedNotificationsList')">
+                                        Archived <span class="archived-notifications-count"></span>
+                                    </button>
+                                    <button type="button" class="notifications-tablinks" 
+                                            data-display-name="Deleted Notifications"
+                                            style="padding: 10px" 
+                                            onclick="openNotificationsTab(event, 'deletedNotificationsList')">
+                                        Deleted <span class="deleted-notifications-count"></span>
+                                    </button>
+                                    <button type="button" class="notifications-tablinks" 
+                                            data-display-name="Updated Notifications"
+                                            style="padding: 10px" 
+                                            onclick="openNotificationsTab(event, 'updatedNotificationsList')">
+                                        Updated <span class="updated-notifications-count"></span>
+                                    </button>
+                                    <button type="button" class="notifications-tablinks" 
+                                            data-display-name="Trashed Notifications"
+                                            style="padding: 10px" 
+                                            onclick="openNotificationsTab(event, 'trashedNotificationsList')">
+                                        Trashed <span class="trashed-notifications-count"></span>
+                                    </button>
                                 </div>
                                 <div id="allNotificationsList" class="notifications-tabcontent" style="display: block; height: 90%; width: 90%; overflow-y: auto; border: none;"></div>
                                 <div id="pendingNotificationsList" class="notifications-tabcontent" style="height: 90%; width: 90%; overflow-y: auto; border: none;"></div>

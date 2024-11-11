@@ -89,6 +89,84 @@ function checkAndDeleteInactiveUsers($conn) {
                 );
             }
             $stmt->close();
+
+            $evaluator_message = "User automatically deleted after ${maxInactiveDays} days of inactivity";
+            $notification_type = 'user_deleted_by_system';
+            $status = 'deleted';
+            $evaluator_name = 'System';
+            $action_user_name = $user['full_name'];
+            $action_user_type = $user['user_type'];
+            $action_user_department = $user['department'];
+            
+            // For department admins
+            $stmtSelectDepartmentAdmins = $conn->prepare("
+                SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ?
+            ");
+            $stmtSelectDepartmentAdmins->bind_param("s", $action_user_department);
+            $stmtSelectDepartmentAdmins->execute();
+            $departmentAdmins = $stmtSelectDepartmentAdmins->get_result()->fetch_all(MYSQLI_ASSOC);
+            
+            if ($departmentAdmins) {
+                $stmtNotifyDepartmentAdmins = $conn->prepare("
+                    INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_name, action_user_type, action_user_department, evaluator_message)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+                foreach ($departmentAdmins as $admin) {
+                    $admin_id = $admin['user_id'];
+                    $stmtNotifyDepartmentAdmins->bind_param("isssssss", 
+                        $admin_id,
+                        $notification_type,
+                        $status,
+                        $evaluator_name,
+                        $action_user_name,
+                        $action_user_type,
+                        $action_user_department,
+                        $evaluator_message
+                    );
+                    $stmtNotifyDepartmentAdmins->execute();
+                }
+            }
+            
+            // For super admins
+            $stmtSelectSuperAdmins = $conn->prepare("
+                SELECT * FROM users_tb WHERE user_type = 'Super Admin'
+            ");
+            $stmtSelectSuperAdmins->execute();
+            $allSuperAdmins = $stmtSelectSuperAdmins->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            if ($allSuperAdmins) {
+                $stmtNotifySuperAdmins = $conn->prepare("
+                    INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_name, action_user_type, action_user_department, evaluator_message)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+                foreach ($allSuperAdmins as $superAdmin) {
+                    $super_admin_id = $superAdmin['user_id'];
+                    $stmtNotifySuperAdmins->bind_param("isssssss",
+                        $super_admin_id,
+                        $notification_type,
+                        $status,
+                        $evaluator_name,
+                        $action_user_name,
+                        $action_user_type,
+                        $action_user_department,
+                        $evaluator_message
+                    );
+                    $stmtNotifySuperAdmins->execute();
+                }
+            }
+
+            // Update notification counts
+            $stmtUpdateNotificationCounts = $conn->prepare("
+                UPDATE users_tb 
+                SET notification_count = notification_count + 1 
+                WHERE (user_type = 'Admin' AND department = ?) 
+                OR user_type = 'Super Admin'
+            ");
+            $department = $user['department'];  // Create a variable to pass by reference
+            $stmtUpdateNotificationCounts->bind_param("s", $department);
+            $stmtUpdateNotificationCounts->execute();
+
+            error_log("User deleted automatically due to inactivity");
         }
     }
 }
@@ -114,7 +192,7 @@ function shouldRunInactivityCheck($conn) {
     
     // Only run check once per hour to prevent too frequent runs and performance issues
     // 3600 seconds = 1 hour
-    if ($currentTime - $lastCheck >= 3600) {
+    if ($currentTime - $lastCheck >= 10) {
         $conn->query("UPDATE system_settings SET setting_value = '$currentTime', updated_at = CURRENT_TIMESTAMP WHERE setting_name = 'last_inactivity_check'");
         return true;
     }

@@ -66,7 +66,13 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     <div id="archivesList" class="content-container" style="height: calc(100vh - 160px); overflow: hidden;">
                         <h1 class="content-title" style="text-align: center;">
                             <i class="fa fa-archive" style="margin-right: 6px" aria-hidden="true"></i>Archives
-                            <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for 120 days before being moved to Trash.</p>
+                            <?php
+                                if ($user_type == 'Super Admin') {
+                                    echo '<p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for <button type="button" id="archiveDaysButton" style="background: none; border: none; color: #264B2B; font-weight: bold; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="changeNumberOfArchiveDays()"></button> before being moved to Trash.</p>';
+                                } else {
+                                    echo '<p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for <span id="archiveDaysSpan" style="background: none; border: none; color: #264B2B; font-weight: bold; font-size: 13px;"></span> before being moved to Trash.</p>';
+                                }
+                            ?>
                         </h1>
                         <div class="archives-buttons-flex">
                             <!-- search form -->
@@ -99,6 +105,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
+    <?php include('misc/php/success_modal.php'); ?>
     <?php include('misc/php/error_modal.php'); ?>
     <script src="js/fetch_archived_content.js"></script>
 </body>

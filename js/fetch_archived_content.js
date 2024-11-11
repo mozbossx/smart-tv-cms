@@ -15,13 +15,186 @@ function formatDateTime(dateTimeString) {
     return `${formattedDate} (${formattedTime})`;
 }
 
-// Function to calculate days remaining
+let currentArchiveDays = 120; // Default value, will be updated from database
+let currentTrashDays = 30; // Default value, will be updated from database
+
+// Function to fetch archive days
+const fetchArchiveDays = async () => {
+    try {
+        const response = await fetch('database/fetch_archive_days.php');
+        const data = await response.json();
+        currentArchiveDays = parseInt(data.archive_days);
+        if (userType === 'Super Admin') {
+            document.getElementById('archiveDaysButton').textContent = `${currentArchiveDays} days`;
+        } else {
+            document.getElementById('archiveDaysSpan').textContent = `${currentArchiveDays} days`;
+        }
+        return currentArchiveDays;
+    } catch (error) {
+        console.error('Error fetching archive days:', error);
+        return 120; // Default fallback
+    }
+};
+
+// Function to fetch trash days
+const fetchTrashDays = async () => {
+    try {
+        const response = await fetch('database/fetch_trash_days.php');
+        const data = await response.json();
+        currentTrashDays = data.trash_days;
+    } catch (error) {
+        console.error('Error fetching trash days:', error);
+        return 30; // Default fallback
+    }
+};
+
+const checkAndTrashExpiredItems = async () => {
+    try {
+        const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+        if (userType === 'Admin' || userType === 'Super Admin') {
+            contentTypes.push('peo', 'so');
+        }
+
+        for (const type of contentTypes) {
+            const response = await fetch(`database/fetch_content.php?type=${type}&archived=true`);
+            const data = await response.json();
+            
+            // Filter for archived items that aren't already trashed
+            const archivedItems = data.filter(item => 
+                item.isArchived === 1 && 
+                item.isTrashed === 0
+            );
+
+            // Check each item's remaining days
+            archivedItems.forEach(item => {
+                const daysRemaining = calculateDaysRemaining(item.datetime_archived);
+                
+                if (daysRemaining <= 0) {
+                    // Automatically trash the item
+                    trashItem(
+                        item[`${type}_id`],
+                        type,
+                        item[`${type}_author_id`],
+                        'System', // System is moving it to trash
+                        item.author_name,
+                        item.author_user_type,
+                        item.author_department,
+                        item.tv_id
+                    );
+                    // fetchAndUpdateAll();
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error checking expired items:', error);
+    }
+};
+
+// Function to create archive days modal
+const createArchiveDaysModal = () => {
+    // Remove existing modal if it exists
+    const existingModal = document.getElementById('changeArchiveDaysModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'changeArchiveDaysModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content" style="padding: 15px;">
+            <span class="close" onclick="document.getElementById('changeArchiveDaysModal').style.display='none'" style="color: #264B2B">
+                <i class="fa fa-times-circle" aria-hidden="true"></i>
+            </span>
+            <br>
+            <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-clock-o" aria-hidden="true"></i></h1>
+            <p style="text-align: center">Change number of days before archived items are moved to Trash</p>
+            <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Minimum number of days is 10.</p>
+            <br>
+            <div class="floating-label-container">
+                <input type="number" id="newArchiveDays" required placeholder=" " class="floating-label-input" min="1">
+                <label for="newArchiveDays" class="floating-label">Number of Days</label>
+            </div>
+            <br>
+            <div style="text-align: right;">
+                <button type="button" class="grey-button" onclick="document.getElementById('changeArchiveDaysModal').style.display='none'">Cancel</button>
+                <button type="button" class="green-button" onclick="updateArchiveDays()">Update</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    return modal;
+};
+
+const changeNumberOfArchiveDays = () => {
+    if (userType !== 'Super Admin') {
+        const errorModal = document.getElementById('errorModalVersion2');
+        const errorMessage = document.getElementById('errorTextVersion2');
+        errorModal.style.display = 'flex';
+        errorMessage.textContent = 'Only Super Admin can change the number of archive days.';
+        return;
+    }
+
+    const modal = createArchiveDaysModal();
+    const input = document.getElementById('newArchiveDays');
+    input.value = currentArchiveDays;
+    modal.style.display = 'flex';
+};
+
+// Function to update archive days
+const updateArchiveDays = async () => {
+    const newDays = parseInt(document.getElementById('newArchiveDays').value);
+    
+    if (!newDays || newDays < 10) {
+        alert('Please enter a valid number of days (minimum 10).');
+        return;
+    }
+
+    try {
+        const response = await fetch('database/update_archive_days.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                archive_days: newDays,
+                user_id: user_id
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('changeArchiveDaysModal').style.display = 'none';
+            // Update the current archive days and refresh the display
+            currentArchiveDays = newDays;
+            if (userType === 'Super Admin') {
+                document.getElementById('archiveDaysButton').textContent = `${newDays} days`;
+            } else {
+                document.getElementById('archiveDaysSpan').textContent = `${newDays} days`;
+            }
+            const successModal = document.getElementById('successMessageModalVersion2');
+            const successMessage = document.getElementById('successMessageVersion2');
+            successModal.style.display = 'flex';
+            successMessage.textContent = `Archive days updated to ${newDays} days.`;
+            // Refresh all content to update the days remaining
+            fetchAndUpdateAll();
+        } else {
+            alert('Failed to update archive days: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error updating archive days:', error);
+        alert('Failed to update archive days. Please try again.');
+    }
+};
+
+// Update the calculateDaysRemaining function
 const calculateDaysRemaining = (archivedDate) => {
     const archived = new Date(archivedDate);
-    const expiryDate = new Date(archived.getTime() + (120 * 24 * 60 * 60 * 1000)); // 120 days in milliseconds
+    const expiryDate = new Date(archived.getTime() + (currentArchiveDays * 24 * 60 * 60 * 1000));
     const today = new Date();
     const remaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-    return Math.max(0, remaining); // Ensure we don't return negative days
+    return Math.max(0, remaining);
 };
 
 // Function to search archives
@@ -112,7 +285,8 @@ function populateContentTypeDropdown() {
             const count = data.filter(item => 
                 item.isArchived === 1 && 
                 item.isTrashed === 0 && 
-                (type === 'peo' || type === 'so' || item.status === 'Approved')
+                (type === 'peo' || type === 'so' || item.status === 'Approved') &&
+                hasPermissionToView({ ...item, contentType: type })
             ).length;
             
             typeCounts[type] = count;
@@ -205,6 +379,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
     }
 
     contentHtml += `
+            <div class="line-separator"></div>
             <p class="ann-author" style="color: #6E6E6E; margin-top: 10px"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
             <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDateTime}</small></p>
             <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs  |  <i class="fa fa-tv" aria-hidden="true" style="margin-left: 5px"></i> ${tvDisplay}</p>
@@ -216,6 +391,10 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
 
 // Function to update UI for announcement, event, news, etc.
 const updateUI = async (data, type) => {
+    if (!hasPermissionToView(data)) {
+        return;
+    }
+
     if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 0 || !data[`${type}_id`]) return;
 
     const tvInfo = await fetchTVInfo(type, data[`tv_id`]);
@@ -321,6 +500,26 @@ const updateUI = async (data, type) => {
     }
 };
 
+// Permission check function
+const hasPermissionToView = (content) => {
+    // Super Admin can see everything
+    if (userType === 'Super Admin') {
+        return true;
+    }
+
+    // Admin can see content from their department
+    if (userType === 'Admin') {
+        return content.author_department === department;
+    }
+
+    // Students, Faculty, and Staff can only see their own content
+    if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+        return parseInt(content[`${content.contentType}_author_id`]) === parseInt(user_id);
+    }
+
+    return false;
+};
+
 // Helper function to get icon for content type
 const getTypeIcon = (type) => {
     const icons = {
@@ -347,13 +546,21 @@ const formatContentType = (type) => {
     return formats[type] || type;
 };
 
+// Include tv_name
 const fetchTVInfo = async (type, tv_id) => {
     try {
         const response = await fetch(`database/fetch_tv_info.php?type=${type}&tvId=${tv_id}`);
-        return await response.json();
+        const data = await response.json();
+        return {
+            tv_display: data.tv_display,
+            tv_name: data.tv_name // Add this line
+        };
     } catch (error) {
         console.error('Error fetching TV info:', error);
-        return { tv_display: 'Error fetching TV info' };
+        return { 
+            tv_display: 'Error fetching TV info',
+            tv_name: 'Unknown TV' // Add this line
+        };
     }
 };
 
@@ -414,21 +621,26 @@ const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorN
         data.expiration_datetime = newExpirationDateTime;
     }
 
-    console.log("Restored Content Data: ", data);
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data));
 };
 
 // Function to trash an item
 const trashItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
-    const evaluatorMessageTrash = document.getElementById('evaluator_message_trash');
-    let evaluatorMessage = null;
+    let evaluatorMessage;
 
-    if (evaluatorMessageTrash) {
-        evaluatorMessage = evaluatorMessageTrash.value;
-        if (!evaluatorMessage) {
-            alert('Evaluator message is required.');
-            return;
+    if (loggedInFullName === 'System') {
+        // Automatic system-generated message
+        evaluatorMessage = `Content automatically moved to Trash after ${currentArchiveDays} days in Archives`;
+    } else {
+        // Manual trash by user
+        const evaluatorMessageTrash = document.getElementById('evaluator_message_trash');
+        if (evaluatorMessageTrash) {
+            evaluatorMessage = evaluatorMessageTrash.value;
+            if (!evaluatorMessage) {
+                alert('Evaluator message is required.');
+                return;
+            }
         }
     }
 
@@ -447,9 +659,16 @@ const trashItem = (contentId, contentType, authorId, loggedInFullName, authorNam
         evaluator_message: evaluatorMessage,
         tv_id: tvId
     };
-    console.log("Trashed Content Data: ", data);
     confirmTrashModal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
+};
+
+const startExpirationChecker = () => {
+    // Check immediately when the page loads
+    checkAndTrashExpiredItems();
+
+    // Then check every minute
+    setInterval(checkAndTrashExpiredItems, 60000);
 };
 
 // Function to delete an item
@@ -481,7 +700,6 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
         evaluator_message: evaluatorMessage,
         tv_id: tvId
     };
-    console.log("Deleted Content Data: ", data);
     confirmTrashModal.style.display = 'none';
     confirmDeleteModal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
@@ -552,7 +770,10 @@ const createModals = (contentTypes) => {
 };
 
 // Function to show restore modal
-const showRestoreModal = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId, expirationDateTime) => {
+const showRestoreModal = async (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId, expirationDateTime) => {
+    // Fetch TV info first
+    const tvInfo = await fetchTVInfo(contentType, tvId);
+
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
     const modal = document.getElementById(`confirmRestore${capitalizedType}Modal`);
     const modalContent = document.getElementById(`restore${capitalizedType}ModalContent`);
@@ -582,16 +803,17 @@ const showRestoreModal = (contentId, contentType, authorId, loggedInFullName, au
     ` : '';
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'" style="color: #316038"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-refresh" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to restore this ${contentType} to TV with ID: ${tvId}?</p>
+        <h1 style="color: #316038; font-size: 50px"><i class="fa fa-refresh" aria-hidden="true"></i></h1>
+        <p id="deleteMessage" style="text-align: center">Proceed to restore this ${contentType} to TV: ${tvInfo.tv_display}?</p>
+        <p id="deleteMessage2" style="font-size: 13px; color: #316038;">Restored items will be displayed in the TV.</p>
         <br>
         ${evaluatorMessageHtml}
         ${expirationDateHtml}
         <div style="text-align: right;">
             <button type="button" class="grey-button" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'">Cancel</button>
-            <button type="button" class="yellow-button" onclick="restoreItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId}, ${isExpired})">Yes, Restore</button>
+            <button type="button" class="green-button" onclick="restoreItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId}, ${isExpired})">Yes, Restore</button>
         </div>
     `;
     
@@ -621,7 +843,7 @@ const showTrashModal = (contentId, contentType, authorId, loggedInFullName, auth
         <br>
         <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
         <p id="trashMessage" style="text-align: center">Proceed to move to Trash?</p>
-        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for 30 days before being permanently deleted.</p>
+        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for ${currentTrashDays} days before being permanently deleted.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
@@ -706,7 +928,8 @@ const fetchAndUpdateAll = async () => {
             const filteredData = data.filter(item => 
                 item.isArchived === 1 && 
                 item.isTrashed === 0 && 
-                (type === 'peo' || type === 'so' || item.status === 'Approved')
+                (type === 'peo' || type === 'so' || item.status === 'Approved') &&
+                hasPermissionToView({ ...item, contentType: type })
             );
             
             // Add content type to each item
@@ -734,10 +957,6 @@ const fetchAndUpdateAll = async () => {
         for (const item of allContent) {
             await updateUI(item, item.contentType);
         }
-
-        // Update the content type dropdown with new counts
-        populateContentTypeDropdown();
-
     } catch (error) {
         console.error('Error fetching archived content:', error);
     }
@@ -753,9 +972,11 @@ Ws.addEventListener('message', function(event) {
         case 'restore_content_and_update_expiration':
         case 'trash_content':
         case 'post_content':
+        case 'update_archive_days':
             // Refresh all content for any change
-            fetchAndUpdateAll();
+            console.log('Action received:', data.action);
             populateContentTypeDropdown();
+            fetchAndUpdateAll();
             break;
 
         case 'update':
@@ -763,15 +984,15 @@ Ws.addEventListener('message', function(event) {
             fetchAndUpdateAll();
             populateContentTypeDropdown();
             break;
-
-        default:
-            console.warn(`Unknown action: ${data.action}`);
-            break;
     }
 });
 
 // Update the document ready event listener
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Fetch archive days first
+    await fetchArchiveDays();
+    await fetchTrashDays();
+
     // Create modals for all content types
     const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
     createModals(contentTypes);
@@ -781,6 +1002,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add clear button click handler
     document.getElementById('clearSearch').addEventListener('click', clearSearch);
+
+    // Start the expiration checker
+    startExpirationChecker();
 
     // Fetch and update all content
     fetchAndUpdateAll();

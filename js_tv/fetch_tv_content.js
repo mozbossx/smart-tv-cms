@@ -85,7 +85,7 @@ const updateUI = (data, type) => {
     //     return;
     // }
 
-    if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) {
+    if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || data.schedule_datetime !== null || !data[`${type}_id`]) {
         return;
     }
 
@@ -691,7 +691,8 @@ const fetchAndUpdateContents = (type) => {
                             const filteredData = data.filter(item =>
                                 item.tv_id === parseInt(tvId, 10) &&
                                 item.isArchived === 0 &&
-                                item.isTrashed === 0
+                                item.isTrashed === 0 &&
+                                item.schedule_datetime === null
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
@@ -706,7 +707,8 @@ const fetchAndUpdateContents = (type) => {
                                 item.status === 'Approved' &&
                                 item.tv_id === parseInt(tvId, 10) &&
                                 item.isArchived === 0 &&
-                                item.isTrashed === 0
+                                item.isTrashed === 0 &&
+                                item.schedule_datetime === null
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
@@ -729,7 +731,7 @@ const fetchAndUpdateContents = (type) => {
 
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
-    if (data.action === 'delete_content' || data.action === 'archive_content') {
+    if (data.action === 'delete_content' || data.action === 'archive_content' || data.action === 'trash_content') {
         const type = data.type;
         const id = data[`${type}_id`]; 
 
@@ -778,7 +780,7 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
         }
-    } else if (data.action === 'post_content') {
+    } else if (data.action === 'post_content' || data.action === 'post_now_content') {
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');
         } else if (data.type === 'event') {

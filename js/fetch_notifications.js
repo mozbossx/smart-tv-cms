@@ -31,32 +31,23 @@ function openNotificationsTab(evt, tabName) {
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
 
+    // Get the display name from the data attribute
+    const displayName = evt.currentTarget.getAttribute('data-display-name');
+    document.getElementById('notificationsHeader').textContent = displayName;
+
     filterNotifications(tabName);
 }
 
 function filterNotifications(tabName) {
     const notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+    // Get the active tab and its display name
+    const activeTab = document.querySelector('.notifications-tablinks.active');
+    const displayName = activeTab ? activeTab.getAttribute('data-display-name') : 'All Notifications';
+    
+    // Set the header text without using the if-else conditions below
     const notificationsHeader = document.getElementById('notificationsHeader');
     if (notificationsHeader) {
-        if (tabName === 'allNotificationsList') {
-            document.getElementById('notificationsHeader').textContent = 'All Notifications';
-        } else if (tabName === 'pendingNotificationsList') {
-            document.getElementById('notificationsHeader').textContent = 'Pending Notifications';
-        } else if (tabName === 'approvedNotificationsList') {
-            document.getElementById('notificationsHeader').textContent = 'Approved Notifications';
-        } else if (tabName === 'rejectedNotificationsList') {
-            document.getElementById('notificationsHeader').textContent = 'Rejected Notifications';
-        } else if (tabName === 'restoredNotificationsList') {
-            document.getElementById('notificationsHeader').textContent = 'Restored Notifications';
-        } else if (tabName === 'archivedNotificationsList') {
-            document.getElementById('notificationsHeader').textContent = 'Archived Notifications';
-        } else if (tabName === 'deletedNotificationsList') {
-            document.getElementById('notificationsHeader').textContent = 'Deleted Notifications';
-        } else if (tabName === 'updatedNotificationsList') {
-            document.getElementById('notificationsHeader').textContent = 'Updated Notifications';
-        } else if (tabName === 'trashedNotificationsList') {
-            document.getElementById('notificationsHeader').textContent = 'Trashed Notifications';
-        }
+        notificationsHeader.textContent = displayName;
     }
 
     let filteredNotifications = [];
@@ -183,7 +174,6 @@ function fetchNotifications() {
             localStorage.setItem('notifications', JSON.stringify(data)); // Store notifications
             updateNotificationsUI(data);
             filterNotifications('allNotificationsList'); // This will update all counts, including all-notifications-count-2
-            console.log(data);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -194,7 +184,6 @@ function fetchNotificationCount() {
     fetch('get_notification_count.php')
         .then(response => response.json())
         .then(data => {
-            console.log("Notification Count Data:", data.count);
             updateNotificationCount(data.count);
         })
         .catch(error => {
@@ -334,7 +323,22 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('pending-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-post-notification">${notification.action_user_name} wants to post a ${notification.content_type} in the TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-post-notification">${notification.action_user_name} wants to post ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+                <div class="notification-buttons">
+                    <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Approve</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Reject</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button>
+                </div>
+            `;
+        }
+
+        if (notification.notification_type === 'content_scheduled' && notification.status == 'pending') {
+            notificationDiv.classList.add('pending-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-post-notification">${notification.action_user_name} wants to schedule ${notification.content_type} to be posted in ${formatDateTime2(notification.content_schedule_datetime)} in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
                 <div class="notification-buttons">
@@ -351,6 +355,17 @@ function createNotificationDiv(notification) {
             content = `
                 <div class="notification-details">
                     <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your ${notification.content_type} is pending for approval.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                    <div class="notification-buttons" style="margin-top: 0;"></div>
+                </div>
+            `;
+        } 
+
+        if (notification.notification_type === 'content_scheduled' && notification.status == 'pending' && notification.user_id == user_id) {
+            notificationDiv.classList.add('pending-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your scheduled ${notification.content_type} to be posted in ${formatDateTime2(notification.content_schedule_datetime)} is pending for approval.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                     <div class="notification-buttons" style="margin-top: 0;"></div>
                 </div>
@@ -541,6 +556,17 @@ function createNotificationDiv(notification) {
             `;
         }
     } 
+
+    if (notification.notification_type === 'user_deleted_by_system' && notification.status == 'deleted' && notification.user_id == user_id) {
+        notificationDiv.classList.add('deleted-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">The System deleted ${notification.action_user_name}'s account from ${notification.action_user_department} department due to inactivity.</p>
+                <p class="evaluator-message-notification">System-generated Message: "${notification.evaluator_message}"</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
     
     if (notification.notification_type === 'user_added' && notification.status == 'approved' && notification.user_id == user_id) {
         if (notification.evaluator_name == full_name) {
@@ -588,11 +614,21 @@ function createNotificationDiv(notification) {
     } 
     
     if (notification.notification_type === 'content_post' && notification.user_id == user_id) {
-        if (notification.status == 'approved') {
+        if (notification.status == 'approved' && notification.action_user_name == full_name) {
             notificationDiv.classList.add('approved-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-post-notification">You posted ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-post-notification">You posted ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+
+        if (notification.status == 'approved' && notification.action_user_name != full_name) {
+            notificationDiv.classList.add('approved-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-post-notification">${notification.action_user_name} (${notification.action_user_type}) in posted ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -604,7 +640,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('approved-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You approved ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">You approved ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -614,7 +650,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('approved-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">${notification.evaluator_name} approved ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} approved ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -625,7 +661,7 @@ function createNotificationDiv(notification) {
         notificationDiv.classList.add('approved-notification');
         content = `
             <div class="notification-details">
-                <p class="content-approved-notification">Your ${notification.content_type} has been approved by ${notification.evaluator_name} to be posted in the TV with ID: ${notification.content_tv_id}.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} has been approved by ${notification.evaluator_name} to be posted in the TV: ${notification.content_tv_name}.</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
             </div>
         `;
@@ -636,7 +672,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('rejected-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You rejected ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">You rejected ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
@@ -647,7 +683,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('rejected-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">${notification.evaluator_name} rejected ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} rejected ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
@@ -671,43 +707,54 @@ function createNotificationDiv(notification) {
     }
     
     if (notification.notification_type === 'content_deleted' && notification.status == 'deleted' && notification.user_id == user_id) {
-        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
+        if (notification.action_user_name == full_name && notification.evaluator_name == full_name && notification.evaluator_name != "System") {
             notificationDiv.classList.add('deleted-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You deleted your ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">You deleted your ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
         } 
 
-        if (notification.action_user_name != full_name && notification.evaluator_name == full_name) {
+        if (notification.action_user_name != full_name && notification.evaluator_name == full_name && notification.evaluator_name != "System") {
             notificationDiv.classList.add('deleted-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You deleted ${notification.action_user_name}'s ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">You deleted ${notification.action_user_name}'s ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
         }
 
-        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name) {
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name && notification.evaluator_name != "System") {
             notificationDiv.classList.add('deleted-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">${notification.evaluator_name} deleted ${notification.action_user_name}'s ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} deleted ${notification.action_user_name}'s ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
         }
 
-        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name == notification.action_user_name) {
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name && notification.evaluator_name == "System") {
+            notificationDiv.classList.add('trashed-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">The System deleted ${notification.action_user_name}'s ${notification.content_type}.</p>
+                    <p class="evaluator-message-notification">System-generated Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name == notification.action_user_name && notification.evaluator_name != "System") {
             notificationDiv.classList.add('deleted-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">${notification.evaluator_name} deleted his/her ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} deleted his/her ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -718,8 +765,19 @@ function createNotificationDiv(notification) {
         notificationDiv.classList.add('deleted-notification');
         content = `
             <div class="notification-details">
-                <p class="content-approved-notification">Your ${notification.content_type} has been deleted by ${notification.evaluator_name} in TV with ID: ${notification.content_tv_id}.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} has been deleted by ${notification.evaluator_name} in the TV: ${notification.content_tv_name}.</p>
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
+
+    if (notification.notification_type === 'content_deleted_by_system' && notification.status == 'deleted' && notification.user_id == user_id && notification.evaluator_name == "System") {
+        notificationDiv.classList.add('deleted-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">Your ${notification.content_type} has been permanently deleted by the System.</p>
+                <p class="evaluator-message-notification">System-generated Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
             </div>
         `;
@@ -730,7 +788,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('archived-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You archived your ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">You archived your ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -740,7 +798,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('archived-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You archived ${notification.action_user_name}'s ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">You archived ${notification.action_user_name}'s ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
@@ -751,7 +809,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('archived-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">${notification.evaluator_name} archived ${notification.action_user_name}'s ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} archived ${notification.action_user_name}'s ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
@@ -762,7 +820,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('archived-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">${notification.evaluator_name} archived his/her ${notification.content_type} in TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} archived his/her ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -773,7 +831,7 @@ function createNotificationDiv(notification) {
         notificationDiv.classList.add('archived-notification');
         content = `
             <div class="notification-details">
-                <p class="content-approved-notification">Your ${notification.content_type} has been archived by ${notification.evaluator_name} in TV with ID: ${notification.content_tv_id}.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} has been archived by ${notification.evaluator_name} in the TV: ${notification.content_tv_name}.</p>
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
             </div>
@@ -781,7 +839,7 @@ function createNotificationDiv(notification) {
     }
 
     if (notification.notification_type === 'content_trashed' && notification.status == 'trashed' && notification.user_id == user_id) {
-        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
+        if (notification.action_user_name == full_name && notification.evaluator_name == full_name && notification.evaluator_name != "System") {
             notificationDiv.classList.add('trashed-notification');
             content = `
                 <div class="notification-details">
@@ -791,7 +849,7 @@ function createNotificationDiv(notification) {
             `;
         } 
 
-        if (notification.action_user_name != full_name && notification.evaluator_name == full_name) {
+        if (notification.action_user_name != full_name && notification.evaluator_name == full_name && notification.evaluator_name != "System") {
             notificationDiv.classList.add('trashed-notification');
             content = `
                 <div class="notification-details">
@@ -802,7 +860,7 @@ function createNotificationDiv(notification) {
             `;
         }
 
-        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name) {
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name && notification.evaluator_name != "System") {
             notificationDiv.classList.add('trashed-notification');
             content = `
                 <div class="notification-details">
@@ -813,7 +871,18 @@ function createNotificationDiv(notification) {
             `;
         }
 
-        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name == notification.action_user_name) {
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name != notification.action_user_name && notification.evaluator_name == "System") {
+            notificationDiv.classList.add('trashed-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-approved-notification">The System moved ${notification.action_user_name}'s ${notification.content_type} to Trash.</p>
+                    <p class="evaluator-message-notification">System-generated Message: "${notification.evaluator_message}"</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name && notification.evaluator_name == notification.action_user_name && notification.evaluator_name != "System") {
             notificationDiv.classList.add('trashed-notification');
             content = `
                 <div class="notification-details">
@@ -835,13 +904,24 @@ function createNotificationDiv(notification) {
         `;
     }
 
+    if (notification.notification_type === 'content_trashed_by_system' && notification.status == 'trashed' && notification.user_id == user_id && notification.evaluator_name == "System") {
+        notificationDiv.classList.add('trashed-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">Your ${notification.content_type} has been moved to Trash by the System.</p>
+                <p class="evaluator-message-notification">System-generated Message: "${notification.evaluator_message}"</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
+
     // CONTENT RESTORED
     if (notification.notification_type === 'content_restored' && notification.status == 'restored' && notification.user_id == user_id) {
         if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
             notificationDiv.classList.add('restored-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You restored your ${notification.content_type} to TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">You restored your ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -851,7 +931,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('restored-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You restored ${notification.action_user_name}'s ${notification.content_type} to TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">You restored ${notification.action_user_name}'s ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
@@ -862,7 +942,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('restored-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">${notification.evaluator_name} restored ${notification.action_user_name}'s ${notification.content_type} to TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} restored ${notification.action_user_name}'s ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
@@ -873,7 +953,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('restored-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">${notification.evaluator_name} restored his/her ${notification.content_type} to TV with ID: ${notification.content_tv_id}.</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} restored his/her ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -884,12 +964,34 @@ function createNotificationDiv(notification) {
         notificationDiv.classList.add('restored-notification');
         content = `
             <div class="notification-details">
-                <p class="content-approved-notification">Your ${notification.content_type} has been restored by ${notification.evaluator_name} to TV with ID: ${notification.content_tv_id}.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} has been restored by ${notification.evaluator_name} in the TV: ${notification.content_tv_name}.</p>
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
             </div>
         `;
     }
+
+    if (notification.notification_type === 'content_scheduled' && notification.status == 'approved' && notification.user_id == user_id) {
+        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
+            notificationDiv.classList.add('approved-notification');
+            content = `
+            <div class="notification-details">
+                <p class="content-post-notification">Your scheduled ${notification.content_type} to be posted in ${formatDateTime2(notification.content_schedule_datetime)} is stored in the Scheduled Posts section.</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+            `;
+        } 
+
+        if (notification.action_user_name != full_name && notification.evaluator_name != full_name) {
+            notificationDiv.classList.add('approved-notification');
+            content = `
+                <div class="notification-details">
+                    <p class="content-post-notification">${notification.action_user_name} scheduled his/her ${notification.content_type} in the Scheduled Posts section.</p>
+                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                </div>
+            `;
+        }
+    } 
     
     // If content is still empty, it means no condition was met
     if (content == '') {
@@ -1168,11 +1270,29 @@ function sendRejectedUserEmail(email, fullName, department, evaluatorName, evalu
 
 function closeModal(modalId) {
     var modal = document.getElementById(modalId + 'Modal');
-    console.log(modal);
     modal.style.display = 'none';
 }
 
 function deleteNotification(notificationId) {
+    // First, remove the notification from localStorage
+    const notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+    const updatedNotifications = notifications.filter(notification => notification.notification_id !== notificationId);
+    localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+
+    // Get the currently active tab
+    const activeTab = document.querySelector('.notifications-tablinks.active');
+    const activeTabName = activeTab ? activeTab.textContent.trim().split(' ')[0].toLowerCase() + 'NotificationsList' : 'allNotificationsList';
+    
+    // Get the display name from the active tab
+    const displayName = activeTab ? activeTab.getAttribute('data-display-name') : 'All Notifications';
+    
+    // Update the UI for the current tab
+    filterNotifications(activeTabName);
+    
+    // Set the header text using the display name
+    document.getElementById('notificationsHeader').textContent = displayName;
+
+    // Send websocket message
     Ws.send(JSON.stringify({
         action: 'delete_notification',
         notification_id: notificationId
@@ -1192,9 +1312,14 @@ function viewContent(contentId, contentType, userId, fullName) {
 // Function to update archives count
 function updateArchivesCount(count) {
     const archivesCountElement = document.getElementById('archivesContentCount');
+    const archivesCountMobileElement = document.getElementById('archivesContentCountMobile');
     if (archivesCountElement) {
-        archivesCountElement.textContent = count > 0 ? count : '';
-        archivesCountElement.style.display = count > 0 ? 'inline' : 'none';
+        archivesCountElement.textContent = count > 0 ? count : '0';
+        archivesCountElement.style.display = count > 0 ? 'inline' : 'inline';
+    }
+    if (archivesCountMobileElement) {
+        archivesCountMobileElement.textContent = count > 0 ? count : '0';
+        archivesCountMobileElement.style.display = count > 0 ? 'inline' : 'inline';
     }
 }
 
@@ -1210,12 +1335,25 @@ function fetchArchivesCount() {
             .then(response => response.json())
     ))
     .then(results => {
-        const totalCount = results.reduce((count, data) => {
-            return count + data.filter(item => 
-                item.isArchived === 1 && 
-                item.isTrashed === 0 && 
-                (item.type === 'peo' || item.type === 'so' || item.status === 'Approved')
-            ).length;
+        const totalCount = results.reduce((count, data, index) => {
+            return count + data.filter(item => {
+                // Basic archive conditions
+                const basicConditions = item.isArchived === 1 && 
+                    item.isTrashed === 0 && 
+                    (contentTypes[index] === 'peo' || contentTypes[index] === 'so' || item.status === 'Approved');
+
+                // Permission conditions
+                let hasPermission = false;
+                if (userType === 'Super Admin') {
+                    hasPermission = true;
+                } else if (userType === 'Admin') {
+                    hasPermission = item.author_department === department;
+                } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+                    hasPermission = parseInt(item[`${contentTypes[index]}_author_id`]) === parseInt(user_id);
+                }
+
+                return basicConditions && hasPermission;
+            }).length;
         }, 0);
         updateArchivesCount(totalCount);
     })
@@ -1227,9 +1365,28 @@ function fetchArchivesCount() {
 // Function to update trash count
 function updateTrashCount(count) {
     const trashCountElement = document.getElementById('trashContentCount');
+    const trashCountMobileElement = document.getElementById('trashContentCountMobile');
     if (trashCountElement) {
-        trashCountElement.textContent = count > 0 ? count : '';
-        trashCountElement.style.display = count > 0 ? 'inline' : 'none';
+        trashCountElement.textContent = count > 0 ? count : '0';
+        trashCountElement.style.display = count > 0 ? 'inline' : 'inline';
+    }
+    if (trashCountMobileElement) {
+        trashCountMobileElement.textContent = count > 0 ? count : '0';
+        trashCountMobileElement.style.display = count > 0 ? 'inline' : 'inline';
+    }
+}
+
+// Function to update scheduled posts count
+function updateScheduledPostsCount(count) {
+    const scheduleCountElement = document.getElementById('scheduleContentCount');
+    const scheduleCountMobileElement = document.getElementById('scheduleContentCountMobile');
+    if (scheduleCountElement) {
+        scheduleCountElement.textContent = count > 0 ? count : '0';
+        scheduleCountElement.style.display = count > 0 ? 'inline' : 'inline';
+    }
+    if (scheduleCountMobileElement) {
+        scheduleCountMobileElement.textContent = count > 0 ? count : '0';
+        scheduleCountMobileElement.style.display = count > 0 ? 'inline' : 'inline';
     }
 }
 
@@ -1245,13 +1402,59 @@ function fetchTrashCount() {
             .then(response => response.json())
     ))
     .then(results => {
-        const totalCount = results.reduce((count, data) => {
-            return count + data.filter(item => 
-                item.isArchived === 0 && 
-                item.isTrashed === 1
-            ).length;
+        const totalCount = results.reduce((count, data, index) => {
+            return count + data.filter(item => {
+                // Basic trash conditions
+                const basicConditions = item.isArchived === 0 && item.isTrashed === 1;
+
+                // Permission conditions
+                let hasPermission = false;
+                if (userType === 'Super Admin') {
+                    hasPermission = true;
+                } else if (userType === 'Admin') {
+                    hasPermission = item.author_department === department;
+                } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+                    hasPermission = parseInt(item[`${contentTypes[index]}_author_id`]) === parseInt(user_id);
+                }
+
+                return basicConditions && hasPermission;
+            }).length;
         }, 0);
         updateTrashCount(totalCount);
+    })
+    .catch(error => {
+        console.error('Error fetching trash count:', error);
+    });
+}
+
+// Function to fetch trash count
+function fetchScheduledPostsCount() {
+    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+
+    Promise.all(contentTypes.map(type =>
+        fetch(`database/fetch_content.php?type=${type}&scheduled=true`)
+            .then(response => response.json())
+    ))
+    .then(results => {
+        const totalCount = results.reduce((count, data, index) => {
+            return count + data.filter(item => {
+                // Basic trash conditions
+                const basicConditions = item.isArchived === 0 && item.isTrashed === 0 && item.schedule_datetime;
+
+                // Permission conditions
+                let hasPermission = false;
+                if (userType === 'Super Admin') {
+                    hasPermission = true;
+                } else if (userType === 'Admin') {
+                    hasPermission = item.author_department === department;
+                } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+                    hasPermission = parseInt(item[`${contentTypes[index]}_author_id`]) === parseInt(user_id);
+                }
+
+                return basicConditions && hasPermission;
+            }).length;
+        }, 0);
+        updateScheduledPostsCount(totalCount);
     })
     .catch(error => {
         console.error('Error fetching trash count:', error);
@@ -1267,6 +1470,7 @@ Ws.addEventListener('message', function(event) {
             fetchNotificationCount();
             fetchArchivesCount();
             fetchTrashCount();
+            fetchScheduledPostsCount();
             break;
         case 'delete_notification':
             fetchNotifications();
@@ -1290,10 +1494,8 @@ Ws.addEventListener('message', function(event) {
             break;
         case 'view_content':
             if (data.success) {
-                console.log("View Content Data: ",data);
                 const modal = document.getElementById('viewContentModal');
                 const content = data.content;
-                console.log("Content: ",content);
                 const contentType = data.content_type;
                 const formattedExpirationDateTime = formatDateTime2(content.expiration_datetime);
 
@@ -1419,6 +1621,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchNotificationCount();
     fetchArchivesCount();
     fetchTrashCount();
+    fetchScheduledPostsCount();
     const tabLinksActive = document.querySelector('.notifications-tablinks.active');
     if (tabLinksActive) {
         tabLinksActive.click();
