@@ -117,7 +117,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             $_SESSION['tv_id'] = $row['tv_id'];
 
             // Fetch background color from the database
-            $backgroundColorQuery = "SELECT background_hex_color FROM background_tv_tb WHERE tv_id = ?";
+            $backgroundColorQuery = "SELECT * FROM background_tv_tb WHERE tv_id = ?";
             $stmtBgColor = $conn->prepare($backgroundColorQuery);
             $stmtBgColor->bind_param("i", $tvId);
             $stmtBgColor->execute();
@@ -150,6 +150,10 @@ if ($result && mysqli_num_rows($result) > 0) {
                 $containersData = $resultContainersQuery->fetch_assoc();
                 $backgroundColor = $bgColorData['background_hex_color'];
                 $topbarColor = $topbarColorData['topbar_hex_color'];
+
+                $isStaticBackground = $bgColorData['isStaticBackground'];
+                $isImageBackground = $bgColorData['isImageBackground'];
+                $backgroundImagePath = $bgColorData['background_image_path'];
 
                 $topbarTvNameColor = $topbarColorData['topbar_tvname_font_color'];
                 $topbarTvNameFontStyle = $topbarColorData['topbar_tvname_font_style'];

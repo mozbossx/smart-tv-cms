@@ -29,6 +29,9 @@ $topbarDateColor = '';
 $topbarDateFontStyle = '';
 $topbarDateFontFamily = '';
 
+$isStaticBackground = '';
+$isImageBackground = '';
+$backgroundImagePath = '';
 // Check if tvId is set in the URL
 if (isset($_GET['tvId'])) {
     $tvId = $_GET['tvId'];
@@ -63,7 +66,7 @@ if (isset($_GET['tvId'])) {
     $tvStmt1->close();
 
     // Fetch background color from the database
-    $backgroundColorQuery = "SELECT background_hex_color FROM background_tv_tb WHERE tv_id = ?";
+    $backgroundColorQuery = "SELECT background_hex_color, isStaticBackground, isImageBackground, background_image_path FROM background_tv_tb WHERE tv_id = ?";
     $stmtBgColor = $conn->prepare($backgroundColorQuery);
     $stmtBgColor->bind_param("i", $tvId);
     $stmtBgColor->execute();
@@ -72,6 +75,9 @@ if (isset($_GET['tvId'])) {
     if ($resultBgColorQuery->num_rows > 0) {
         $bgColorData = $resultBgColorQuery->fetch_assoc();
         $backgroundColor = $bgColorData['background_hex_color'];
+        $isStaticBackground = $bgColorData['isStaticBackground'];
+        $isImageBackground = $bgColorData['isImageBackground'];
+        $backgroundImagePath = $bgColorData['background_image_path'];
     }
 
     $stmtBgColor->close();
@@ -209,8 +215,11 @@ $conn->close();
                             <!-- Sidebar -->
                             <div class="left-sidebar" id="leftSidebar">
                                 <div class="content-container" style="margin-top: 0; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
+                                    <div class="panel-close-btn">
+                                        <button onclick="closeLeftSidebar()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
+                                    </div>
                                     <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Show/Hide Content Containers</b></p>
-                                    <form id="visibilitySettingsForm" style="padding: 8px; height: 45vh; overflow-y: auto;">
+                                    <form id="visibilitySettingsForm" style="padding: 8px; height: 42vh; overflow-y: auto;">
                                         <?php foreach ($containers as $container): ?>
                                             <label class="option-div">
                                                 <input type="checkbox" id="container_<?php echo $container['container_id']; ?>" name="container_<?php echo $container['container_id']; ?>" <?php echo $container['visible'] ? 'checked' : ''; ?> style="margin-right: 10px;">
@@ -222,7 +231,6 @@ $conn->close();
                             </div>
                             <div class="scale-buttons-2">
                                 <button type="button" id="openSidebarButton" class="open-sidebar-button open" onclick="openSidebar()"><i class="fa fa-angle-right"></i></button>
-                                <button type="button" id="closeSidebarButton" class="close-sidebar-button" onclick="closeSidebar()"><i class="fa fa-angle-left"></i></button>
                                 <button type="button" id="updateTemplateButton" style="display: none;"><i class="fa fa-floppy-o"></i></button>
                             </div>
                             <!-- Top Bar Customization Left-side panel -->
@@ -231,8 +239,8 @@ $conn->close();
                                     <div class="panel-close-btn">
                                         <button onclick="closeTopbarLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
-                                    <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Customize Top Bar</b></p>
-                                    <form id="editTopBarColorForm" enctype="multipart/form-data" style="height: 44vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">
+                                    <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: center;"><b>Top Bar</b></p>
+                                    <form id="editTopBarColorForm" enctype="multipart/form-data" style="height: 45vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">
                                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
                                             <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 60px; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
                                             <label for="topbar_color" class="floating-label">Top Bar Color</label>
@@ -358,11 +366,36 @@ $conn->close();
                                     <div class="panel-close-btn">
                                         <button onclick="closeBackgroundLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
-                                    <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Customize Background</b></p>
-                                    <form id="editBackgroundColorForm" enctype="multipart/form-data" style="height: 44vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">                                        
-                                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
-                                            <input type="color" id="background_color" name="background_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($backgroundColor); ?>">
-                                            <label for="background_color" class="floating-label">TV Background Color</label>
+                                    <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: center;"><b>Background</b></p>
+                                    <form id="editBackgroundColorForm" enctype="multipart/form-data" style="height: 42vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">                                        
+                                        <div style="display: flex; background: #f3f3f3; flex-direction: column; border-radius: 5px; padding: 10px;">
+                                            <div style="display: flex; align-items: center; margin-bottom: 10px; gap: 5px;">
+                                                <input type="checkbox" id="static_background_choice" name="static_background_choice" 
+                                                    style="background: none; box-shadow: none; padding-right: 12px" 
+                                                    <?php echo $isStaticBackground ? 'checked' : ''; ?>>
+                                                <label for="static_background_choice">Static Background</label><br>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 5px;">
+                                                <input type="checkbox" id="image_background_choice" name="image_background_choice" 
+                                                    style="background: none; box-shadow: none; padding-right: 12px" 
+                                                    <?php echo $isImageBackground ? 'checked' : ''; ?>>
+                                                <label for="image_background_choice">Image Background</label><br>
+                                            </div>
+                                        </div>
+                                        <div class="line-separator"></div>
+                                        <div id="static_background_section" style="display: <?php echo $isStaticBackground ? 'block' : 'none'; ?>;">
+                                            <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
+                                                <input type="color" id="background_color" name="background_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($backgroundColor); ?>">
+                                                <label for="background_color" class="floating-label">TV Background Color</label>
+                                            </div>
+                                        </div>
+                                        <div id="image_background_section" style="display: <?php echo $isImageBackground ? 'block' : 'none'; ?>;">
+                                            <div class="rounded-container-media" style="background: #f3f3f3; margin-top: 0; margin-bottom: 10px; border: none; box-shadow: none;">
+                                                <p class="input-container-label">Upload Image Background</p>
+                                                <br>
+                                                <input type="file" name="media" id="media" accept="video/*, image/*" hidden>
+                                                <label for="media" class="green-button">Choose File (.jpg, .png)</label>
+                                            </div>
                                         </div>
                                     </form>
                                 </div>
@@ -373,25 +406,40 @@ $conn->close();
                                     <div class="panel-close-btn">
                                         <button onclick="closeContainerLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
-                                    <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Customize Containers</b></p>
-                                    <form id="editContentContainerForm" enctype="multipart/form-data" style="height: 44vh; overflow: hidden;">
+                                    <form id="editContentContainerForm" enctype="multipart/form-data" style="height: 50vh; overflow: hidden;">
                                         <!-- Dynamic content will be added here -->
                                     </form>
                                 </div>
                             </div>
                         </div>
                         <div class="scale-control" style="margin-right: 0">
-                            <input type="range" min="0.1" max="2" step="0.1" value="1" class="scale-slider">
+                            <input type="range" min="0.1" max="2" step="0.001" value="1" class="scale-slider">
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+        <div id="floatingMenu" class="floating-menu" style="display: none;">
+            <button onclick="handleEditClick()">
+                <span id="editContainerText" style="display: none;">Edit Container</span>
+                <span id="editBackgroundText" style="display: none;">Edit Background</span>
+                <span id="editTopbarText" style="display: none;">Edit Topbar</span>
+            </button>
         </div>
     </div>
     <script>
         let ws;
         var containers = <?php echo json_encode($containers); ?>;
         const contentContainerForm = document.getElementById('editContentContainerForm');
+        let currentTarget = null;
+
+        function closeLeftSidebar() {
+            leftSidebar.classList.remove('open');
+            const scaleButtons = document.querySelector('.scale-buttons-2');
+            scaleButtons.classList.remove('open');
+            const openSidebarButton = document.querySelector('.open-sidebar-button');
+            openSidebarButton.classList.add('open');
+        }
 
         function closeTopbarLeftSidePanel() {
             topbarLeftSidePanel.classList.remove('open');
@@ -399,8 +447,6 @@ $conn->close();
             scaleButtons.classList.remove('open');
             const openSidebarButton = document.querySelector('.open-sidebar-button');
             openSidebarButton.classList.add('open');
-            const closeSidebarButton = document.querySelector('.close-sidebar-button');
-            closeSidebarButton.classList.remove('open');
         }
 
         function closeBackgroundLeftSidePanel() {
@@ -409,8 +455,6 @@ $conn->close();
             scaleButtons.classList.remove('open');
             const openSidebarButton = document.querySelector('.open-sidebar-button');
             openSidebarButton.classList.add('open');
-            const closeSidebarButton = document.querySelector('.close-sidebar-button');
-            closeSidebarButton.classList.remove('open');
         }
 
         function closeContainerLeftSidePanel() {
@@ -419,32 +463,26 @@ $conn->close();
             scaleButtons.classList.remove('open');
             const openSidebarButton = document.querySelector('.open-sidebar-button');
             openSidebarButton.classList.add('open');
-            const closeSidebarButton = document.querySelector('.close-sidebar-button');
-            closeSidebarButton.classList.remove('open');
         }
 
         function openSidebar() {
             const leftSidebar = document.getElementById('leftSidebar');
             const scaleButtons = document.querySelector('.scale-buttons-2');
             const openSidebarButton = document.getElementById('openSidebarButton');
-            const closeSidebarButton = document.getElementById('closeSidebarButton');
 
             leftSidebar.classList.add('open');
             scaleButtons.classList.add('open');
             openSidebarButton.classList.remove('open');
-            closeSidebarButton.classList.add('open');
         }
 
         function closeSidebar() {
             const leftSidebar = document.getElementById('leftSidebar');
             const scaleButtons = document.querySelector('.scale-buttons-2');
             const openSidebarButton = document.getElementById('openSidebarButton');
-            const closeSidebarButton = document.getElementById('closeSidebarButton');
 
             leftSidebar.classList.remove('open');
             scaleButtons.classList.remove('open');
             openSidebarButton.classList.add('open');
-            closeSidebarButton.classList.remove('open');
         }
         // Function to initialize WebSocket connection
         function initializeWebSocket() {
@@ -551,7 +589,7 @@ $conn->close();
                 const containerDiv = document.createElement('div');
                 containerDiv.innerHTML = `
                     <p style="text-align: center; color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>${container.container_name}</b></p>
-                    <div style="overflow-y: auto; overflow-x: hidden; height: 54vh; padding-right: 10px">
+                    <div style="overflow-y: auto; overflow-x: hidden; height: 45vh; padding-right: 10px">
                         <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Parent Container</b></p>
                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px;">
                             <input type="color" id="container_${container.container_id}_bg_color" name="container_${container.container_id}_bg_color" class="floating-label-input" style="height: 100%; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="${container.parent_background_color}">
@@ -664,20 +702,220 @@ $conn->close();
             }
         }
 
+        function openBackgroundLeftSidePanel() {
+            closeTopbarLeftSidePanel();  // Close the top bar panel if it's open
+            closeContainerLeftSidePanel();  // Close the container panel if it's open
+            closeSidebar();
+            backgroundLeftSidePanel.classList.add('open');
+            const scaleButtons = document.querySelector('.scale-buttons-2');
+            scaleButtons.classList.add('open');
+            const openSidebarButton = document.querySelector('.open-sidebar-button');
+            openSidebarButton.classList.remove('open');
+        }
+
+        // Function to open and close the left side panels
+        function openTopbarLeftSidePanel() {
+            closeBackgroundLeftSidePanel();  // Close the background panel if it's open
+            closeContainerLeftSidePanel();  // Close the container panel if it's open
+            closeSidebar();
+            topbarLeftSidePanel.classList.add('open');
+            const scaleButtons = document.querySelector('.scale-buttons-2');
+            scaleButtons.classList.add('open');
+            const openSidebarButton = document.querySelector('.open-sidebar-button');
+            openSidebarButton.classList.remove('open');
+        }
+
+        function handleEditClick() {
+            if (currentTarget.type === 'container') {
+                openContentContainerLeftSidePanel(currentTarget.id);
+            } else if (currentTarget.type === 'background') {
+                openBackgroundLeftSidePanel();
+            } else if (currentTarget.type === 'topbar') {
+                openTopbarLeftSidePanel();
+            }
+            document.getElementById('floatingMenu').style.display = 'none';
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const backgroundColorForm = document.getElementById('editBackgroundColorForm');
             const topBarColorForm = document.getElementById('editTopBarColorForm');
             const visibilityForm = document.getElementById('visibilitySettingsForm');
 
+            const floatingMenu = document.getElementById('floatingMenu');
+            if (!floatingMenu) {
+                console.error('Floating menu element not found!');
+            }
             const iframe = document.getElementById('tv-iframe');
             const topbarLeftSidePanel = document.getElementById('topbarLeftSidePanel');
             const backgroundLeftSidePanel = document.getElementById('backgroundLeftSidePanel');
             const contentContainerLeftSidePanel = document.getElementById('contentContainerLeftSidePanel');
+
+            const staticCheckbox = document.getElementById('static_background_choice');
+            const imageCheckbox = document.getElementById('image_background_choice');
+            const staticSection = document.getElementById('static_background_section');
+            const imageSection = document.getElementById('image_background_section');
             
             const tvFrame = document.querySelector('.tv-frame');
             const sliders = document.querySelector('.scale-slider');
             let isDragging = false;
             let startX, startY;
+
+            // Handle messages from iframe
+            window.addEventListener('message', function(event) {
+                if (event.data.action === 'containerClicked') {
+                    currentTarget = {
+                        type: 'container',
+                        id: event.data.containerId
+                    };
+                    document.getElementById('editContainerText').style.display = 'inline';
+                    document.getElementById('editBackgroundText').style.display = 'none';
+                    document.getElementById('editTopbarText').style.display = 'none';
+                    showFloatingMenuAboveContainer(event.data.containerRect);
+                } else if (event.data.action === 'backgroundClicked') {
+                    console.log('Background click detected'); // Debug log
+                    currentTarget = {
+                        type: 'background'
+                    };
+                    document.getElementById('editContainerText').style.display = 'none';    
+                    document.getElementById('editBackgroundText').style.display = 'inline';
+                    document.getElementById('editTopbarText').style.display = 'none';
+                    showFloatingMenuAboveContainer(event.data.containerRect);
+                } else if (event.data.action === 'topbarClicked') {
+                    console.log('Topbar click detected'); // Debug log
+                    currentTarget = {
+                        type: 'topbar'
+                    };
+                    document.getElementById('editContainerText').style.display = 'none';
+                    document.getElementById('editBackgroundText').style.display = 'none';
+                    document.getElementById('editTopbarText').style.display = 'inline';
+                    showFloatingMenuAboveContainer(event.data.containerRect);
+                }
+            });
+
+            function showFloatingMenuAboveContainer(containerRect) {
+                const iframeRect = iframe.getBoundingClientRect();
+                const scale = parseFloat(document.querySelector('.scale-slider').value);
+                
+                // Position the menu above the container
+                const adjustedX = iframeRect.left + (containerRect.left * scale);
+                const adjustedY = iframeRect.top + (containerRect.top * scale) - floatingMenu.offsetHeight - 5; // 5px gap
+
+                floatingMenu.style.display = 'flex';
+                floatingMenu.style.left = `${adjustedX}px`;
+                floatingMenu.style.top = `${adjustedY}px`;
+            }
+
+            // function showFloatingMenuAtPosition(x, y) {
+            //     console.log('Showing menu at:', x, y); // Debug log
+            //     const floatingMenu = document.getElementById('floatingMenu');
+            //     const iframe = document.getElementById('tv-iframe');
+            //     const iframeRect = iframe.getBoundingClientRect();
+            //     const scale = parseFloat(document.querySelector('.scale-slider').value);
+                
+            //     // Calculate position relative to the iframe
+            //     const adjustedX = iframeRect.left + (x * scale);
+            //     const adjustedY = iframeRect.top + (y * scale);
+
+            //     floatingMenu.style.display = 'block';
+            //     floatingMenu.style.position = 'fixed';
+            //     floatingMenu.style.zIndex = '1000';
+            //     floatingMenu.style.left = `${adjustedX}px`;
+            //     floatingMenu.style.top = `${adjustedY}px`;
+            // }
+
+            const fileInput = document.getElementById('media');
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Check file type
+                    if (!file.type.match('image.*')) {
+                        alert('Please select an image file (.jpg, .png)');
+                        return;
+                    }
+
+                    // Read file as base64
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Send via WebSocket
+                        if (typeof ws !== 'undefined' && ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({
+                                action: 'update_background_image',
+                                tv_id: <?php echo $tvId; ?>,
+                                image: e.target.result
+                            }));
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            function updateSections(event) {
+                // Get the checkbox that triggered the event
+                const clickedCheckbox = event ? event.target : null;
+                
+                // Prevent unchecking if it's the only checked checkbox
+                if (clickedCheckbox && !staticCheckbox.checked && !imageCheckbox.checked) {
+                    clickedCheckbox.checked = true;
+                    return;
+                }
+                
+                if (clickedCheckbox === staticCheckbox && staticCheckbox.checked) {
+                    // If static background is checked, uncheck image background
+                    imageCheckbox.checked = false;
+                    staticSection.style.display = 'block';
+                    imageSection.style.display = 'none';
+                } else if (clickedCheckbox === imageCheckbox && imageCheckbox.checked) {
+                    // If image background is checked, uncheck static background
+                    staticCheckbox.checked = false;
+                    staticSection.style.display = 'none';
+                    imageSection.style.display = 'block';
+                }
+
+                // Send update to server via WebSocket
+                if (typeof ws !== 'undefined' && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        action: 'update_background_type',
+                        tv_id: <?php echo $tvId; ?>,
+                        isStaticBackground: staticCheckbox.checked ? 1 : 0,
+                        isImageBackground: imageCheckbox.checked ? 1 : 0
+                    }));
+                }
+            }
+
+            staticCheckbox.addEventListener('change', updateSections);
+            imageCheckbox.addEventListener('change', updateSections);
+
+            // Handle WebSocket response
+            if (typeof ws !== 'undefined') {
+                ws.addEventListener('message', function(event) {
+                    const response = JSON.parse(event.data);
+                    if (response.action === 'update_background_type' && response.success) {
+                        // Update checkboxes
+                        staticCheckbox.checked = response.isStaticBackground === 1;
+                        imageCheckbox.checked = response.isImageBackground === 1;
+                        
+                        // Update sections visibility
+                        staticSection.style.display = response.isStaticBackground === 1 ? 'block' : 'none';
+                        imageSection.style.display = response.isImageBackground === 1 ? 'block' : 'none';
+                    }
+                });
+            }
+
+            // Ensure at least one checkbox is checked initially
+            if (!staticCheckbox.checked && !imageCheckbox.checked) {
+                staticCheckbox.checked = true;
+                staticSection.style.display = 'block';
+                imageSection.style.display = 'none';
+            }
+
+            updateSections();
+
+            // Add click handler to hide menu when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (floatingMenu && !floatingMenu.contains(e.target)) {
+                    floatingMenu.style.display = 'none';
+                }
+            });
 
             // Function to fit the tv-frame inside its parent
             function fitFrameToParent() {
@@ -764,58 +1002,6 @@ $conn->close();
                 isDragging = false;
                 tvFrame.parentElement.style.cursor = 'grab';
             }
-
-            // Function to open and close the left side panels
-            function openTopbarLeftSidePanel() {
-                closeBackgroundLeftSidePanel();  // Close the background panel if it's open
-                closeContainerLeftSidePanel();  // Close the container panel if it's open
-                closeSidebar();
-                topbarLeftSidePanel.classList.add('open');
-                const scaleButtons = document.querySelector('.scale-buttons-2');
-                scaleButtons.classList.add('open');
-                const openSidebarButton = document.querySelector('.open-sidebar-button');
-                openSidebarButton.classList.remove('open');
-                const closeSidebarButton = document.querySelector('.close-sidebar-button');
-                closeSidebarButton.classList.remove('open');
-            }
-
-            function openBackgroundLeftSidePanel() {
-                closeTopbarLeftSidePanel();  // Close the top bar panel if it's open
-                closeContainerLeftSidePanel();  // Close the container panel if it's open
-                closeSidebar();
-                backgroundLeftSidePanel.classList.add('open');
-                const scaleButtons = document.querySelector('.scale-buttons-2');
-                scaleButtons.classList.add('open');
-                const openSidebarButton = document.querySelector('.open-sidebar-button');
-                openSidebarButton.classList.remove('open');
-                const closeSidebarButton = document.querySelector('.close-sidebar-button');
-                closeSidebarButton.classList.remove('open');
-            }
-
-            // Add event listeners to the iframe content
-            iframe.onload = function () {
-                const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-
-                // Click event for the top bar
-                iframeDocument.getElementById('topbar').addEventListener('dblclick', function () {
-                    openTopbarLeftSidePanel();
-                });
-
-                // Click event for the background
-                iframeDocument.getElementById('tvBackgroundColor').addEventListener('dblclick', function () {
-                    openBackgroundLeftSidePanel();
-                });
-
-                var contentDocument = iframe.contentDocument || iframe.contentWindow.document;
-                // Click event for the containers
-                var containersElements = iframeDocument.querySelectorAll('.content-container');
-                containersElements.forEach(function(container) {
-                    container.addEventListener('click', function() {
-                        const containerId = container.dataset.containerId; // Use data-container-id
-                        openContentContainerLeftSidePanel(containerId);
-                    });
-                });
-            };
             
             // Automatically submit the backgroundColorForm when the color changes
             const backgroundColorInput = document.getElementById('background_color');

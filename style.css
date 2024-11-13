@@ -1325,13 +1325,18 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 
 /* Breadcrumb Navigation Styles */
 .breadcrumb {
-    display: flex;
+    display: -webkit-inline-box;
+    overflow-x: auto;
     list-style: none; /* Remove default list styling */
     padding: 10px; /* Add some padding */
     margin: 0; /* Remove default margin */
     background-color: #f8f9fa; /* Light background color */
     border-radius: 5px; /* Rounded corners */
     font-size: 14px;
+}
+
+.breadcrumb::-webkit-scrollbar {
+    display: none;
 }
 
 .breadcrumb-item {
@@ -2631,7 +2636,7 @@ tr:nth-child(even) {
     padding-bottom: 5px;
     z-index: 9999;
     top: 185px;
-    left: 290px; 
+    left: 25px; 
     display: flex; 
     flex-direction: column; 
     gap: 10px;
@@ -2647,6 +2652,10 @@ tr:nth-child(even) {
     cursor: pointer;
 }
 
+.scale-buttons-2.open {
+    left: 280px;
+}
+
 .close-sidebar-button {
     display: none;
 }
@@ -2660,7 +2669,7 @@ tr:nth-child(even) {
 }
 
 .open-sidebar-button.open{
-    display: none;
+    display: block;
 }
 
 input[type="checkbox"]{
@@ -2837,7 +2846,7 @@ input[type=range]:focus::-ms-fill-upper {
     position: absolute;
     left: -400px; /* Hidden initially */
     top: 0;
-    width: 360px;
+    /* width: 360px; */
     height: 100%;
     background: none;
     border-left: 1px solid #ccc;
@@ -2852,16 +2861,19 @@ input[type=range]:focus::-ms-fill-upper {
 
 .left-sidebar {
     position: absolute;
-    /* left: -400px;  */
-    left: 0;
+    left: -400px; /* Hidden initially */
     top: 0;
-    width: 360px;
+    /* width: 360px; */
     height: 100%;
     background: none;
     border-left: 1px solid #ccc;
     transition: left 0.4s ease;
     padding-left: 10px;
     padding-top: 10px;
+}
+
+.left-sidebar.open {
+    left: 0; /* Show the panel */
 }
 
 .panel-close-btn {
@@ -2898,6 +2910,29 @@ input[type=range]:focus::-ms-fill-upper {
 
 .button-container-desktop {
     display: -webkit-inline-box;
+}
+
+.floating-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.floating-menu button {
+    background: #264B2B;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.floating-menu button:hover {
+    background: #1a331d;
 }
 
 /* Media query for smaller screens */
@@ -3166,12 +3201,12 @@ input[type=range]:focus::-ms-fill-upper {
     }
 
     .scale-buttons-2 {
-        left: 35px;
-        top: 150px;
+        left: 25px;
+        top: 145px;
     }
 
     .scale-buttons-2.open {
-        left: 290px;
+        left: 280px;
     }
 
     .open-sidebar-button {

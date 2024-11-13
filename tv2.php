@@ -38,7 +38,16 @@ include 'tv_initialize.php';
 <p id="screen" style="display: none; color: white; position: fixed"></p>
 <body>
     <?php include('tv_topbar.php'); ?>
-    <div style="background: <?php echo $backgroundColor ?>; cursor: pointer; width: 100%; height: calc(100% - 7vh); overflow: hidden; display: flex; flex-direction: column; /* Arrange containers vertically */ height: 100vh; overflow: hidden; /* Prevent any overflow */" id="tvBackgroundColor">
+    <div style="<?php 
+        if ($isStaticBackground) {
+            echo "background: $backgroundColor;";
+        } else if ($isImageBackground) {
+            echo "background-image: url('servers/tv_backgrounds/$tvId/$backgroundImagePath');";
+            echo "background-size: cover;";
+            echo "background-position: center;";
+            echo "background-repeat: no-repeat;";
+        }
+        ?> cursor: pointer; width: 100%; height: calc(100% - 7vh); overflow: hidden; display: flex; flex-direction: column; /* Arrange containers vertically */ height: 100vh; overflow: hidden; /* Prevent any overflow */" id="tvBackgroundColor">
         <div class="main-container" id="main-container">
         <?php foreach ($containers as $container): ?>
             <?php $containerNameLower = strtolower($container['type']); ?>
@@ -61,7 +70,7 @@ include 'tv_initialize.php';
                             font-family: <?php echo $container['child_font_family']; ?>">
                     <!-- Content for carousel-container will be displayed here -->
                 </div>
-                <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="<?php echo $containerNameLower; ?>PageNumberContainer" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
+                <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="page-number-container" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
             </div>
             <?php endforeach; ?>
         </div>
@@ -72,6 +81,53 @@ include 'tv_initialize.php';
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <script src="js_tv/fetch_tv_content.js"></script>
     <script>
+        document.querySelectorAll('.content-container').forEach(container => {
+            container.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const rect = this.getBoundingClientRect();
+                window.parent.postMessage({
+                    action: 'containerClicked',
+                    containerId: this.dataset.containerId,
+                    containerRect: {
+                        top: rect.top,
+                        left: rect.left,
+                        width: rect.width,
+                        height: rect.height
+                    }
+                }, '*');
+            });
+        });
+
+        document.getElementById('tvBackgroundColor').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const rect = this.getBoundingClientRect();
+            window.parent.postMessage({
+                action: 'backgroundClicked',
+                containerId: this.dataset.containerId,
+                containerRect: {
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,  
+                    height: rect.height
+                }
+            }, '*');
+        });
+
+        document.getElementById('topbar').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const rect = this.getBoundingClientRect();
+            window.parent.postMessage({
+                action: 'topbarClicked',
+                containerId: this.dataset.containerId,
+                containerRect: {
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,  
+                    height: rect.height
+                }
+            }, '*');
+        });
+
         function sendScreenDimensions() {
             var w = window.innerWidth;
             var h = window.innerHeight;
@@ -131,8 +187,18 @@ include 'tv_initialize.php';
                             target.setAttribute('data-x', x);
                             target.setAttribute('data-y', y);
 
-                            // Notify parent window that a container was moved
-                            window.parent.postMessage({action: 'containerMoved'}, '*');
+                            // Send updated position to parent window
+                            const rect = target.getBoundingClientRect();
+                            window.parent.postMessage({
+                                action: 'containerMoved',
+                                containerId: target.dataset.containerId,
+                                containerRect: {
+                                    top: rect.top,
+                                    left: rect.left,
+                                    width: rect.width,
+                                    height: rect.height
+                                }
+                            }, '*');
                         }
                     },
                     modifiers: [
@@ -176,7 +242,17 @@ include 'tv_initialize.php';
                             target.setAttribute('data-y', y);
 
                             // Notify parent window that a container was resized
-                            window.parent.postMessage({action: 'containerMoved'}, '*');
+                            const rect = target.getBoundingClientRect();
+                            window.parent.postMessage({
+                                action: 'containerMoved',
+                                containerId: target.dataset.containerId,
+                                containerRect: {
+                                    top: rect.top,
+                                    left: rect.left,
+                                    width: rect.width,
+                                    height: rect.height
+                                }
+                            }, '*');
                         }
                     },
                     modifiers: [

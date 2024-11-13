@@ -5,7 +5,13 @@
             <p id="successMessage"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">
-                <button type="button" id="createMoreButton" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B;" onclick="closeSuccessMessageModal()">Make more</button>
+                <?php
+                    if (!isset($_GET['action']) || $_GET['action'] !== 'edit'){
+                        echo '<button type="button" id="createMoreButton" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B;" onclick="closeSuccessMessageModal()">Make More</button>';
+                    } else if (isset($_GET['action']) && $_GET['action'] === 'edit'){
+                        echo '<button type="button" id="backToTvContentsButton" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B;" onclick="window.location.href=\'tv_contents.php?tvId=' . $_GET['tv_id'] . '&isIframe=true\'">Back to View Contents</button>';
+                    }
+                ?>
                 <button type="button" id="homeButton" class="green-button" style="margin-right: 0" onclick="resetFormAndGoHome()">Home</button>
             </div>
         </div>
@@ -25,13 +31,21 @@
 </div>
 
 <script>
-    document.getElementById('createMoreButton').addEventListener('click', function() {
-        closeSuccessMessageModal();
-    });
+    if (document.getElementById('createMoreButton')) {  
+        document.getElementById('createMoreButton').addEventListener('click', function() {
+            closeSuccessMessageModal();
+        });
+    }
 
     document.getElementById('okayButton').addEventListener('click', function() {
         closeSuccessMessageModalVersion2();
     });
+
+    if (document.getElementById('backToTvContentsButton')) {    
+        document.getElementById('backToTvContentsButton').addEventListener('click', function() {
+            closeSuccessMessageModal();
+        });
+    }
 
     function closeSuccessMessageModal() {
         var successMessageModal = document.getElementById('successMessageModal');
@@ -45,4 +59,5 @@
         var successMessageModalVersion2 = document.getElementById('successMessageModalVersion2');
         successMessageModalVersion2.style.display = 'none';
     }
+    
 </script>

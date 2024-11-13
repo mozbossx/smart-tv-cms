@@ -35,12 +35,12 @@ try {
               LEFT JOIN users_tb u ON c.{$authorIdField} = u.user_id
               WHERE c.isArchived = :isArchived AND c.isTrashed = :isTrashed";
 
-    // Schedule_datetime condition if scheduled parameter is true
-    if ($scheduled) {
+    // Add schedule_datetime condition only for tables that have this column
+    if ($scheduled && $type !== 'peo' && $type !== 'so') {
         $query .= " AND c.schedule_datetime IS NOT NULL";
     }
 
-    if ($scheduled) {
+    if ($scheduled && $type !== 'peo' && $type !== 'so') {
         $query .= " ORDER BY c.schedule_datetime ASC";
     }
     

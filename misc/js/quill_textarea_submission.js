@@ -23,7 +23,7 @@ if (contentType === 'announcement') {
         quillEditors.announcementBodyQuill.root.innerHTML = existingContent.value;
     }
 } else if (contentType === 'event') {
-    quillEditors.announcementBodyQuill = new Quill('#event_body', {
+    quillEditors.eventBodyQuill = new Quill('#event_body', {
         theme: 'snow',
         modules: {
             toolbar: toolbarOptions
@@ -71,11 +71,13 @@ if (contentType === 'announcement') {
     });
 
     // If edit mode, populate the editor
-    const existingContent = document.querySelector('#existing_peo_content');
-    if (existingContent) {
-        quillEditors.peoTitleQuill.root.innerHTML = existingContent.value;
-        quillEditors.peoDescriptionQuill.root.innerHTML = existingContent.value;
-        quillEditors.peoSubdescriptionQuill.root.innerHTML = existingContent.value;
+    const existingContentTitle = document.querySelector('#existing_peo_content_title');
+    const existingContentDescription = document.querySelector('#existing_peo_content_description');
+    const existingContentSubdescription = document.querySelector('#existing_peo_content_subdescription');
+    if (existingContentTitle && existingContentDescription && existingContentSubdescription) {
+        quillEditors.peoTitleQuill.root.innerHTML = existingContentTitle.value;
+        quillEditors.peoDescriptionQuill.root.innerHTML = existingContentDescription.value;
+        quillEditors.peoSubdescriptionQuill.root.innerHTML = existingContentSubdescription.value;
     }
 } else if (contentType === 'so') {
     quillEditors.soTitleQuill = new Quill('#so_title', {
@@ -100,11 +102,13 @@ if (contentType === 'announcement') {
     });
 
     // If edit mode, populate the editor
-    const existingContent = document.querySelector('#existing_so_content');
-    if (existingContent) {
-        quillEditors.soTitleQuill.root.innerHTML = existingContent.value;
-        quillEditors.soDescriptionQuill.root.innerHTML = existingContent.value;
-        quillEditors.soSubdescriptionQuill.root.innerHTML = existingContent.value;
+    const existingContentTitle = document.querySelector('#existing_so_content_title');
+    const existingContentDescription = document.querySelector('#existing_so_content_description');
+    const existingContentSubdescription = document.querySelector('#existing_so_content_subdescription');
+    if (existingContentTitle && existingContentDescription && existingContentSubdescription) {
+        quillEditors.soTitleQuill.root.innerHTML = existingContentTitle.value;
+        quillEditors.soDescriptionQuill.root.innerHTML = existingContentDescription.value;
+        quillEditors.soSubdescriptionQuill.root.innerHTML = existingContentSubdescription.value;
     }
 }
 

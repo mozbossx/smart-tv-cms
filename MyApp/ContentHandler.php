@@ -858,10 +858,12 @@ class ContentHandler implements MessageComponentInterface
                 $updateFields = [];
                 $params = [];
         
-                // Set status based on user type
-                $status = ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') ? 'Pending' : 'Approved';
-                $updateFields[] = "status = ?";
-                $params[] = $status;
+                // Set status based on user type only for non-PEO/SO content
+                if ($type !== 'peo' && $type !== 'so') {
+                    $status = ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') ? 'Pending' : 'Approved';
+                    $updateFields[] = "status = ?";
+                    $params[] = $status;
+                }
         
                 // Handle different content types
                 if ($bodyField) {
@@ -870,17 +872,20 @@ class ContentHandler implements MessageComponentInterface
                     $params[] = $data["{$type}_body"];
                 } else if ($type === 'peo' || $type === 'so') {
                     // For PEO and SO
-                    $updateFields[] = "title = ?, description = ?, subdescription = ?";
+                    $updateFields[] = "{$type}_title = ?, {$type}_description = ?, {$type}_subdescription = ?";
                     $params[] = $data["{$type}_title"];
                     $params[] = $data["{$type}_description"];
                     $params[] = $data["{$type}_subdescription"];
                 }
         
-                // Add common fields
-                if (isset($data['expiration_datetime'])) {
-                    $updateFields[] = "expiration_datetime = ?";
-                    $params[] = $data['expiration_datetime'];
+                // Add common fields only for non-PEO/SO content
+                if ($type !== 'peo' && $type !== 'so') {
+                    if (isset($data['expiration_datetime'])) {
+                        $updateFields[] = "expiration_datetime = ?";
+                        $params[] = $data['expiration_datetime'];
+                    }
                 }
+
                 if (isset($data['display_time'])) {
                     $updateFields[] = "display_time = ?";
                     $params[] = $data['display_time'];
@@ -890,11 +895,35 @@ class ContentHandler implements MessageComponentInterface
                 $params[] = $content_id;
         
                 // Build and execute update query
-                $updateQuery = "UPDATE $table SET " . implode(", ", $updateFields) . " WHERE $idField = ?";
+                $updateQuery = "UPDATE $table SET " . implode(", ", $updateFields) . ", created_datetime = NOW() WHERE $idField = ?";
                 $stmt = $this->pdo->prepare($updateQuery);
                 $success = $stmt->execute($params);
         
                 if ($success) {
+                    // Handle media update if present
+                    if (!empty($data['media'])) {
+                        // Determine media folder
+                        $mediaFolder = $type . '_media';
+                        if (!file_exists($mediaFolder)) {
+                            mkdir($mediaFolder, 0777, true);
+                        }
+
+                        $base64Data = $data['media'];
+                        $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
+                        $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
+                        $timeNow = date('YmdHis');
+                        $filename = "{$content_id}_{$timeNow}.{$fileExtension}";
+                        $media_save = "{$mediaFolder}/{$filename}";
+
+                        // Save the new media file
+                        file_put_contents($media_save, $mediaData);
+
+                        // Update the record with new media_path
+                        $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                        $updateStatement->execute([$filename, $content_id]);
+
+                        $data['media_path'] = $filename;
+                    }
                     // Create notifications based on user type
                     if ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') {
                         // Notify content owner
@@ -923,7 +952,7 @@ class ContentHandler implements MessageComponentInterface
                         foreach ($admins as $admin) {
                             $stmt->execute([
                                 $content_id, $admin['user_id'], $type, 'content_updated',
-                                'pending', $full_name, $department, $user_type, $data['tv_id']
+                                'pending', $full_name, $department, $user_type
                             ]);
                         }
         
@@ -939,7 +968,7 @@ class ContentHandler implements MessageComponentInterface
                         foreach ($superAdmins as $superAdmin) {
                             $stmt->execute([
                                 $content_id, $superAdmin['user_id'], $type, 'content_updated',
-                                'pending', $full_name, $department, $user_type, $data['tv_id']
+                                'pending', $full_name, $department, $user_type
                             ]);
                         }
         
@@ -958,15 +987,27 @@ class ContentHandler implements MessageComponentInterface
                     // Broadcast notification update
                     $this->broadcastNotification('new_notification');
         
-                    $response = [
-                        'action' => 'update_content',
-                        'success' => true,
-                        'message' => ucfirst($type) . ' has been updated' . 
-                            ($status === 'Pending' ? ' and is pending approval' : ''),
-                        'type' => $type,
-                        $idField => $content_id,
-                        'data' => $data
-                    ];
+                    // Different response messages for PEO/SO vs other content types
+                    if ($type === 'peo' || $type === 'so') {
+                        $response = [
+                            'action' => 'update_content',
+                            'success' => true,
+                            'message' => ucfirst($type) . ' has been updated',
+                            'type' => $type,
+                            $idField => $content_id,
+                            'data' => $data
+                        ];
+                    } else {
+                        $response = [
+                            'action' => 'update_content',
+                            'success' => true,
+                            'message' => ucfirst($type) . ' has been updated' . 
+                                ($status === 'Pending' ? ' and is pending approval' : ''),
+                            'type' => $type,
+                            $idField => $content_id,
+                            'data' => $data
+                        ];
+                    }
 
                     error_log("Content updated successfully!");
                 } else {
@@ -978,6 +1019,106 @@ class ContentHandler implements MessageComponentInterface
                 }
         
                 $from->send(json_encode($response));
+            }
+        }
+
+        else if (isset($data['action']) && $data['action'] === 'update_background_type') {
+            // Handle background type update
+            $tvId = $data['tv_id'];
+            $isStaticBackground = $data['isStaticBackground'];
+            $isImageBackground = $data['isImageBackground'];
+
+            // Update the background type settings
+            $stmt = $this->pdo->prepare("UPDATE background_tv_tb SET isStaticBackground = ?, isImageBackground = ? WHERE tv_id = ?");
+            $success = $stmt->execute([$isStaticBackground, $isImageBackground, $tvId]);
+
+            if ($success) {
+                $response = [
+                    'action' => 'update_background_type',
+                    'success' => true,
+                    'tv_id' => $tvId,
+                    'isStaticBackground' => $isStaticBackground,
+                    'isImageBackground' => $isImageBackground
+                ];
+                error_log("Background type updated successfully!");
+            } else {
+                $response = [
+                    'action' => 'update_background_type',
+                    'success' => false,
+                    'message' => 'Failed to update background type'
+                ];
+                error_log("Failed to update background type!");
+            }
+
+            // Notify all clients about the update
+            foreach ($this->clients as $client) {
+                $client->send(json_encode($response));
+            }
+        }
+
+        else if (isset($data['action']) && $data['action'] === 'update_background_image') {
+            $tvId = $data['tv_id'];
+            $imageData = $data['image']; // Base64 encoded image data
+            
+            // Create directory if it doesn't exist
+            $uploadDir = "tv_backgrounds/$tvId";
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+        
+            // Generate filename with current timestamp
+            $timestamp = date('Y-m-d_H-i-s');
+            
+            // Extract image data and type from base64 string
+            if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                $imageType = $matches[1];
+                $imageData = base64_decode(preg_replace('/^data:image\/\w+;base64,/', '', $imageData));
+                
+                // Generate filename
+                $filename = "{$tvId}_{$timestamp}.{$imageType}";
+                $filepath = "$uploadDir/$filename";
+                
+                if (file_put_contents($filepath, $imageData)) {
+                    // Update database with new image path
+                    $stmt = $this->pdo->prepare("UPDATE background_tv_tb SET background_image_path = ? WHERE tv_id = ?");
+                    $success = $stmt->execute([$filename, $tvId]);
+                    
+                    if ($success) {
+                        $response = [
+                            'action' => 'update_background_image',
+                            'success' => true,
+                            'tv_id' => $tvId,
+                            'background_image_path' => $filepath
+                        ];
+                        error_log("Background image updated successfully!");
+                    } else {
+                        $response = [
+                            'action' => 'update_background_image',
+                            'success' => false,
+                            'message' => 'Failed to update database'
+                        ];
+                        error_log("Failed to update background image in database!");
+                    }
+                } else {
+                    $response = [
+                        'action' => 'update_background_image',
+                        'success' => false,
+                        'message' => 'Failed to save image file'
+                    ];
+                    error_log("Failed to save background image file!");
+                }
+            } else {
+                $response = [
+                    'action' => 'update_background_image',
+                    'success' => false,
+                    'message' => 'Invalid image data'
+                ];
+                error_log("Invalid background image data received!");
+            }
+        
+            // Notify all clients about the update
+            foreach ($this->clients as $client) {
+                $client->send(json_encode($response));
             }
         }
 
@@ -2770,7 +2911,8 @@ class ContentHandler implements MessageComponentInterface
                             $base64Data = $data['media'];
                             $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
                             $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
-                            $filename = "{$id}.{$fileExtension}";
+                            $timeNow = date('YmdHis');
+                            $filename = "{$id}_{$timeNow}.{$fileExtension}";
                             $media_save = "{$mediaFolder}/{$filename}";
 
                             file_put_contents($media_save, $mediaData);
@@ -2920,7 +3062,8 @@ class ContentHandler implements MessageComponentInterface
                         $base64Data = $data['media'];
                         $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
                         $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
-                        $filename = "{$id}.{$fileExtension}";
+                        $timeNow = date('YmdHis');
+                        $filename = "{$id}_{$timeNow}.{$fileExtension}";
                         $media_save = "{$mediaFolder}/{$filename}";
 
                         file_put_contents($media_save, $mediaData);
@@ -3255,7 +3398,8 @@ class ContentHandler implements MessageComponentInterface
                                 $base64Data = $data['media'];
                                 $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
                                 $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
-                                $filename = "{$id}.{$fileExtension}";
+                                $timeNow = date('YmdHis');
+                                $filename = "{$id}_{$timeNow}.{$fileExtension}";
                                 $media_save = "{$mediaFolder}/{$filename}";
                     
                                 file_put_contents($media_save, $mediaData);
@@ -3383,7 +3527,8 @@ class ContentHandler implements MessageComponentInterface
                                 $base64Data = $data['media'];
                                 $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
                                 $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
-                                $filename = "{$id}.{$fileExtension}";
+                                $timeNow = date('YmdHis');
+                                $filename = "{$id}_{$timeNow}.{$fileExtension}";
                                 $media_save = "{$mediaFolder}/{$filename}";
             
                                 file_put_contents($media_save, $mediaData);

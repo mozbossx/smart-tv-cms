@@ -9,6 +9,19 @@ include 'get_session.php';
 // fetch tv data from the select options
 include 'misc/php/options_tv.php';
 
+// Check if we're in edit mode and have media data
+$isEditMode = isset($_GET['action']) && $_GET['action'] === 'edit';
+$contentData = null;
+
+if ($isEditMode && isset($_GET['news_id'])) {
+    // Fetch the news data
+    $stmt = $conn->prepare("SELECT * FROM news_tb WHERE news_id = ? AND tv_id = ?");
+    $stmt->bind_param("ii", $_GET['news_id'], $_GET['tv_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $contentData = $result->fetch_assoc();
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -26,7 +39,7 @@ include 'misc/php/options_tv.php';
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <title>Create a News</title>
+    <title><?php echo $isEditMode ? 'Edit News' : 'Create a News'; ?></title>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -38,13 +51,37 @@ include 'misc/php/options_tv.php';
                     <div class="content-form">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb" style="background: none">
-                                <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
+                            <?php if ($isEditMode): ?>
+                                <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
+                                <li class="breadcrumb-item">
+                                    <a href="tv_contents.php?tvId=<?php echo $_GET['tv_id']; ?>&isIframe=true" style="color: #264B2B">
+                                        <?php 
+                                        // Fetch TV name based on tv_id
+                                        $stmt = $conn->prepare("SELECT tv_name FROM smart_tvs_tb WHERE tv_id = ?");
+                                        $stmt->bind_param("i", $_GET['tv_id']);
+                                        $stmt->execute();
+                                        $result = $stmt->get_result();
+                                        $tv = $result->fetch_assoc();
+                                        echo htmlspecialchars($tv['tv_name']); 
+                                        ?>
+                                    </a>
+                                </li>
+                                <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                            <?php else: ?>
+                                <li class="breadcrumb-item">
+                                    <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a>
+                                </li>
                                 <li class="breadcrumb-item active" aria-current="page">News Form</li>
+                            <?php endif; ?>
                             </ol>
                         </nav>
                         <form id="newsForm" enctype="multipart/form-data" class="main-form">
                             <?php include('error_message.php'); ?>
                             <input type="hidden" name="type" value="news">
+                            <?php if ($isEditMode && isset($_GET['news_id'])): ?>
+                                <input type="hidden" name="news_id" value="<?php echo htmlspecialchars($_GET['news_id']); ?>">
+                                <input type="hidden" name="action_value" value="edit">
+                            <?php endif; ?>
                             <h1 style="text-align: center">News Form</h1>
                             <div class="floating-label-container">
                                 <div id="quillEditorContainer">
@@ -52,12 +89,19 @@ include 'misc/php/options_tv.php';
                                     <div id="news_body" style="height: 150px;"></div>
                                 </div>
                                 <input type="hidden" name="news_body" id="newsBodyHiddenInput">
+                                <?php if ($isEditMode && $contentData): ?>
+                                    <input type="hidden" id="existing_news_content" value="<?php echo htmlspecialchars($contentData['news_body']); ?>">
+                                <?php endif; ?>
                             </div>
                             <?php include('misc/php/upload_preview_media.php')?>
                             <div class="form-row">
+                                <?php 
+                                    $type = 'news';
+                                ?>
                                 <?php include('misc/php/expiration_date.php')?>
                                 <?php include('misc/php/displaytime_tvdisplay.php')?>
                             </div>
+                            <?php if (!$isEditMode): ?>
                             <?php include('misc/php/schedule_post.php')?>
                             <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
                                 <div>
@@ -71,6 +115,15 @@ include 'misc/php/options_tv.php';
                                     </button>
                                 </div>
                             </div>
+                            <?php else: ?>
+                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
+                                <div>
+                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
+                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
+                                    </button>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                             <?php include('misc/php/preview_modal.php') ?>
                         </form>
                     </div>
@@ -80,7 +133,7 @@ include 'misc/php/options_tv.php';
     </div>
     <script src="misc/js/is_form_dirty.js"></script>
     <?php include('misc/php/error_modal.php') ?>
-    <?php include('misc/php/success_modal.php') ?>    
+    <?php include('misc/php/success_modal.php') ?>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script src="misc/js/quill_textarea_submission.js"></script>
     <script src="misc/js/wsform_submission.js"></script>

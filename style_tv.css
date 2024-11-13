@@ -24,6 +24,10 @@ body {
     cursor: pointer;
 }
 
+.topbar:hover {
+    border-bottom: 2px solid rgb(132, 253, 161);
+}
+
 .tv-id {
     flex: 1; /* Takes up available space */
     padding-left: 10px;
@@ -63,6 +67,11 @@ body {
     overflow: hidden;
 }
 
+.main-container:hover {
+    background: #b5b5b511;
+    border: 1px solid #2f6932;
+}
+
 .content-container {
     position: absolute;
     width: 300px;
@@ -74,22 +83,30 @@ body {
     overflow: hidden;
     margin: 5px;
     border-radius: 5px;
-    cursor:move;
+    cursor: move;
     top: 0;
     left: 0;
     user-select: none;
+    display: flex;
+    flex-direction: column;
 }
+
+.content-container:hover {
+    border: 2px solid rgb(132, 253, 161);
+}
+
 /* 
 .main-container.main-container.muuri {
     height: 100vh !important;
 } */
 
 .carousel-container {
-    /* height: 84.5%; */
-    align-content: center;
-    height: calc(100% - 6.5vh);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     border: black 1px solid;
     border-radius: 5px;
+    overflow: hidden;
 }
 
 .orgchart-container {
@@ -122,12 +139,15 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
-    position: relative;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 .content-main {
     flex: 1;
-    overflow: auto; /* Optional: ensures scrolling if content overflows */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .content-details {
@@ -135,18 +155,24 @@ body {
 }
 
 .media-container {
-    width: 100%;
-    height: 100%;
+    max-height: 60%;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
 }
 
+.media-container img,
+.media-container video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
 .carousel-item {
     display: none;
     width: 100%;
-    height: auto;
+    height: 100%;
     animation: fadeIn 2s ease-out;
 }
 
@@ -164,20 +190,19 @@ body {
 }
 
 .main-message {
-    white-space: pre-wrap;
-    max-height: 100%; /* Prevent overflow */
-    overflow: hidden; /* Hide overflow content */
-    text-align: justify; /* Justify text */
-    word-wrap: break-word; /* Break words if necessary */
-    line-height: 1.4; /* Line height for readability */
-    margin: 0; /* Remove default margin */
-    padding: 0; /* Remove default padding */
+    flex: 1;
+    overflow: hidden;
+    font-size: clamp(12px, 2vw, 24px);
+    line-height: 1.4;
+    margin: 10px 0;
 }
 
 .page-number-container {
     bottom: 0;
     text-align: center;
     font-weight: bold;
+    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .no-announcements-message {
@@ -196,7 +221,8 @@ body {
 }
 
 .carousel-item.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
 }
 
 .custom-node {
@@ -247,6 +273,9 @@ body {
     .tv-name, .content-title, .main-message {
         font-size: 2.50vh;
     }
+    .carousel-container {
+        height: calc(100% - 7.75vh);
+    }
 }
 
 /* Medium TVs (32 to 49 inches) */
@@ -256,6 +285,9 @@ body {
     }
     .tv-name, .content-title, .main-message {
         font-size: 2.75vh;
+    }
+    .carousel-container {
+        height: calc(100% - 8.0vh);
     }
 }
 
@@ -267,6 +299,9 @@ body {
     .tv-name, .content-title, .main-message {
         font-size: 3.00vh;
     }
+    .carousel-container {
+        height: calc(100% - 8.25vh);
+    }
 }
 
 /* Extra Large TVs (60 to 69 inches) */
@@ -277,6 +312,9 @@ body {
     .tv-name, .content-title, .main-message {
         font-size: 3.25vh;
     }
+    .carousel-container {
+        height: calc(100% - 8.50vh);
+    }
 }
 
 /* Super Large TVs (70 inches and above) */
@@ -286,5 +324,8 @@ body {
     }
     .tv-name, .content-title, .main-message {
         font-size: 3.50vh;
+    }
+    .carousel-container {
+        height: calc(100% - 8.75vh);
     }
 }

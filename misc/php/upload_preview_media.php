@@ -9,7 +9,7 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         <p class="input-container-label">Upload Media (Optional)</p>
         <br>
         <input type="file" name="media" id="media" accept="video/*, image/*" onchange="previewMedia()" hidden>
-        <label for="media" class="choose-file-button">Choose File (.mp4, .jpg, .png)</label>
+        <label for="media" class="green-button">Choose File (.mp4, .jpg, .png)</label>
         <button type="button" id="cancelMediaButton" class="red-button" onclick="cancelMedia()" style="display: none;">Cancel</button>
         <div class="preview-media" style="border: #000 1px solid; border-radius: 5px; background: white; text-align: center; width: 100%; height: 350px; display: none; justify-content: center; align-items: center; margin-top: 15px">
             <video id="video-preview" width="100%" height="350px" controls style="display:none; border-radius: 5px; background: #000;"></video>
@@ -22,15 +22,15 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
             const videoPreview = document.getElementById('video-preview');
             const imagePreview = document.getElementById('image-preview');
             const cancelMediaButton = document.getElementById('cancelMediaButton');
-            
+           
             previewMedia.style.display = 'flex';
             cancelMediaButton.style.display = 'inline-block';
             
             <?php if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $mediaPath)): ?>
-            imagePreview.src = 'servers/announcement_media/<?php echo $mediaPath; ?>';
+            imagePreview.src = 'servers/<?php echo $_GET['type']; ?>_media/<?php echo $mediaPath; ?>';
             imagePreview.style.display = 'block';
             <?php else: ?>
-            videoPreview.src = 'servers/announcement_media/<?php echo $mediaPath; ?>';
+            videoPreview.src = 'servers/<?php echo $_GET['type']; ?>_media/<?php echo $mediaPath; ?>';
             videoPreview.style.display = 'block';
             <?php endif; ?>
         });

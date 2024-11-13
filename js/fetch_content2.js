@@ -121,21 +121,39 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
     contentHtml += `
             <div class="line-separator"></div>
             <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
+    `;
+
+    // Only add expiration date for content types that have it
+    if (type !== 'peo' && type !== 'so') {
+        contentHtml += `
             <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDateTime}</small></p>
             <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
-        </div>
-    `;
+        `;
+    } else {
+        contentHtml += `
+            <p class="display-time" style="margin-top: 10px"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
+        `;
+    }
+
+    contentHtml += `</div>`;
 
     return contentHtml;
 };
 
 // Function to update UI for announcement, event, news, etc.
 const updateUI = (data, type) => {
-    if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 1 || data.isTrashed === 1 || data.schedule_datetime !== null || !data[`${type}_id`]) return;
+    if (type === 'peo' || type === 'so') {
+        if (data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) return;
+    } else {
+        if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 1 || 
+            data.isTrashed === 1 || !data[`${type}_id`] || data.schedule_datetime !== null) return;
+    }
 
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
-    const formattedExpirationDateTime = formatDateTime(data.expiration_datetime);
+    // Only format expiration datetime for content types that have it
+    const formattedExpirationDateTime = (type !== 'peo' && type !== 'so') ? 
+    formatDateTime(data.expiration_datetime) : null;
 
     let mediaContent = '';
     if (data.media_path) {
@@ -192,7 +210,13 @@ const updateUI = (data, type) => {
                 tv_id: data.tv_id,
                 action: 'edit'
             }).toString();
-            window.location.href = `form_${type}.php?${queryParams}`;
+            if (type === 'promaterial') {
+                window.location.href = `form_promotional_material.php?${queryParams}`;
+            } else if (type === 'so') {
+                window.location.href = `form_student_outcomes.php?${queryParams}`;
+            } else {
+                window.location.href = `form_${type}.php?${queryParams}`;
+            }
         });
 
         if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
@@ -501,12 +525,34 @@ function fetchAndUpdate(type) {
             let filteredData;
             if (Array.isArray(data)) {
                 filteredData = data.filter(item => {
-                    return item.tv_id === parseInt(tvId, 10) && item.isArchived === 0 && item.isTrashed === 0 && item.schedule_datetime === null && item.status === 'Approved';
+                    // Special handling for PEO and SO
+                    if (type === 'peo' || type === 'so') {
+                        return item.tv_id === parseInt(tvId, 10) && 
+                               item.isArchived === 0 && 
+                               item.isTrashed === 0
+                    }
+                    // Regular handling for other content types
+                    return item.tv_id === parseInt(tvId, 10) && 
+                           item.isArchived === 0 && 
+                           item.isTrashed === 0 && 
+                           item.schedule_datetime === null && 
+                           item.status === 'Approved';
                 });
             } else if (typeof data === 'object' && data !== null) {
                 // If data is a single object, wrap it in an array
                 filteredData = [data].filter(item => {
-                    return item.tv_id === parseInt(tvId, 10) && item.isArchived === 0 && item.isTrashed === 0 && item.schedule_datetime === null && item.status === 'Approved';
+                    // Special handling for PEO and SO
+                    if (type === 'peo' || type === 'so') {
+                        return item.tv_id === parseInt(tvId, 10) && 
+                               item.isArchived === 0 && 
+                               item.isTrashed === 0 
+                    }
+                    // Regular handling for other content types
+                    return item.tv_id === parseInt(tvId, 10) && 
+                           item.isArchived === 0 && 
+                           item.isTrashed === 0 && 
+                           item.schedule_datetime === null && 
+                           item.status === 'Approved';
                 });
             } else {
                 console.error(`Unexpected data format for ${type}:`, data);

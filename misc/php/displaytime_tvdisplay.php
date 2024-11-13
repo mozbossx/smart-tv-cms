@@ -6,7 +6,13 @@ $displayTime = ($isEditMode && isset($contentData['display_time']))
 // Fetch selected TVs if in edit mode
 $selectedTvs = [];
 if ($isEditMode && isset($contentData["{$type}_id"])) {
-    $stmt = $conn->prepare("SELECT tv_id FROM {$type}s_tb WHERE {$type}_id = ? AND tv_id = ?");
+    if ($type == 'news' || $type == 'peo' || $type == 'so'){
+        $stmt = $conn->prepare("SELECT tv_id FROM {$type}_tb WHERE {$type}_id = ? AND tv_id = ?");
+    } else if ($type == 'announcement' || $type == 'event' || $type == 'promaterial'){
+        $stmt = $conn->prepare("SELECT tv_id FROM {$type}s_tb WHERE {$type}_id = ? AND tv_id = ?");
+    } else {
+        $stmt = $conn->prepare("SELECT tv_id FROM {$type}_tb WHERE {$type}_id = ? AND tv_id = ?");
+    }
     $stmt->bind_param("ii", $contentData["{$type}_id"], $contentData['tv_id']);
     $stmt->execute();
     $tvResult = $stmt->get_result();
@@ -15,8 +21,6 @@ if ($isEditMode && isset($contentData["{$type}_id"])) {
     }
 }
 ?>
-
-
 
 <div class="form-column" style="flex: 1">
     <div class="floating-label-container" style="flex: 1">

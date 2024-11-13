@@ -15,6 +15,19 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
     exit;
 }
 
+// Check if we're in edit mode and have media data
+$isEditMode = isset($_GET['action']) && $_GET['action'] === 'edit';
+$contentData = null;
+
+if ($isEditMode && isset($_GET['so_id'])) {
+    // Fetch the so data
+    $stmt = $conn->prepare("SELECT * FROM so_tb WHERE so_id = ? AND tv_id = ?");
+    $stmt->bind_param("ii", $_GET['so_id'], $_GET['tv_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $contentData = $result->fetch_assoc();
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -32,7 +45,7 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <title>Student Outcomes (SO)</title>
+    <title><?php echo $isEditMode ? 'Edit Student Outcomes (SO)' : 'Create a Student Outcomes (SO)'; ?></title>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -44,21 +57,48 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                     <div class="content-form">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb" style="background: none">
-                                <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
+                            <?php if ($isEditMode): ?>
+                                <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
+                                <li class="breadcrumb-item">
+                                    <a href="tv_contents.php?tvId=<?php echo $_GET['tv_id']; ?>&isIframe=true" style="color: #264B2B">
+                                        <?php 
+                                        // Fetch TV name based on tv_id
+                                        $stmt = $conn->prepare("SELECT tv_name FROM smart_tvs_tb WHERE tv_id = ?");
+                                        $stmt->bind_param("i", $_GET['tv_id']);
+                                        $stmt->execute();
+                                        $result = $stmt->get_result();
+                                        $tv = $result->fetch_assoc();
+                                        echo htmlspecialchars($tv['tv_name']); 
+                                        ?>
+                                    </a>
+                                </li>
+                                <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                            <?php else: ?>
+                                <li class="breadcrumb-item">
+                                    <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a>
+                                </li>
                                 <li class="breadcrumb-item"><a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">General Information</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Student Outcomes (SO)</li>
+                            <?php endif; ?>
                             </ol>
                         </nav>
                         <form id="soForm" enctype="multipart/form-data" class="main-form">
                             <?php include('error_message.php'); ?>
-                            <h1 style="text-align: center">Student Outcomes (SO) Form</h1>
                             <input type="hidden" name="type" value="so" readonly>
+                            <?php if ($isEditMode && isset($_GET['so_id'])): ?>
+                                <input type="hidden" name="so_id" value="<?php echo htmlspecialchars($_GET['so_id']); ?>">
+                                <input type="hidden" name="action_value" value="edit">
+                            <?php endif; ?>
+                            <h1 style="text-align: center">Student Outcomes (SO) Form</h1>
                             <div class="floating-label-container">
                                 <div id="quillSoTitleEditorContainer">
                                     <label for="quillSoTitleEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">SO Title</label>
                                     <div id="so_title"></div>
                                 </div>
                                 <input type="hidden" name="so_title" id="soTitleHiddenInput">
+                                <?php if ($isEditMode && $contentData): ?>
+                                    <input type="hidden" id="existing_so_content_title" value="<?php echo htmlspecialchars($contentData['so_title']); ?>">
+                                <?php endif; ?>
                             </div>
                             <div class="floating-label-container">
                                 <div id="quillSoDescriptionEditorContainer">
@@ -66,6 +106,9 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                                     <div id="so_description" style="height: 100px;"></div>
                                 </div>
                                 <input type="hidden" name="so_description" id="soDescriptionHiddenInput">
+                                <?php if ($isEditMode && $contentData): ?>
+                                    <input type="hidden" id="existing_so_content_description" value="<?php echo htmlspecialchars($contentData['so_description']); ?>">
+                                <?php endif; ?>
                             </div>
                             <div class="floating-label-container">
                                 <div id="quillSoSubdescriptionEditorContainer">
@@ -73,7 +116,13 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                                     <div id="so_subdescription" style="height: 150px;"></div>
                                 </div>
                                 <input type="hidden" name="so_subdescription" id="soSubdescriptionHiddenInput">
+                                <?php if ($isEditMode && $contentData): ?>
+                                    <input type="hidden" id="existing_so_content_subdescription" value="<?php echo htmlspecialchars($contentData['so_subdescription']); ?>">
+                                <?php endif; ?>
                             </div>
+                            <?php 
+                                $type = 'so';
+                            ?>
                             <?php include('misc/php/displaytime_tvdisplay.php')?>
                             <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
                                 <div>

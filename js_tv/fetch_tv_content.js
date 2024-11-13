@@ -807,7 +807,7 @@ Ws.addEventListener('message', function (event) {
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVDetails();
         // location.reload();
-    } else if (data.action === 'update_container_positions' || data.action === 'show_hide_content') {
+    } else if (data.action === 'update_container_positions' || data.action === 'show_hide_content' || data.action === 'update_background_type' || data.action === 'update_background_image') {
         const urlParams = new URLSearchParams(window.location.search);
         const tvId = urlParams.get('tvId');
         if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {

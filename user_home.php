@@ -33,7 +33,7 @@ include 'get_session.php';
                 <form class="search-form" style="width: 550px; max-width: 100%; margin: 0 auto; margin-bottom: 10px;">
                     <div class="floating-label-container">
                         <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchTvs()">
-                        <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search for TV Name, Brand, Department, or ID</label>
+                        <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search</label>
                         <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
                             <i class="fa fa-times" aria-hidden="true"></i>
                         </button>
