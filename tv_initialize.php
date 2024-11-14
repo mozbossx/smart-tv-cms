@@ -172,6 +172,7 @@ if ($result && mysqli_num_rows($result) > 0) {
                 $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
 
                 $topbarPosition = $topbarColorData['topbar_position'];
+                $departmentLogoPath = $topbarColorData['department_logo_path'];
             }
             
             // Redirect to the same page with tvId as query parameter

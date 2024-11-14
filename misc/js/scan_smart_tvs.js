@@ -61,7 +61,7 @@ function showScanResults(discoveredTVs) {
     } else {
         content += '<ul>';
         discoveredTVs.forEach(tv => {
-            content += `<li>${tv.name} (${tv.location}) <button onclick="enrollTV('${tv.name}', '${tv.location}')">Enroll</button></li>`;
+            content += `<li style="background: #dedede; padding: 10px; border-radius: 5px; margin-bottom: 10px;">${tv.name} (${tv.location}) <button class="green-button" style="margin-top: 0; margin-right: 0" onclick="enrollTV('${tv.name}', '${tv.location}')">Enroll</button></li>`;
         });
         content += '</ul>';
     }
@@ -93,9 +93,9 @@ function enrollTV(name, location) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`Successfully enrolled ${name}`);
-            fetchSmartTVs();
-        } else {
+            alert(`Successfully enrolled ${name}. Message: ${data.message}`);
+            window.location.reload();
+        } else if (data.success === false) {
             alert(`Failed to enroll ${name}: ${data.error}`);
         }
     })

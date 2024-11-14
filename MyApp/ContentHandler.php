@@ -1056,6 +1056,34 @@ class ContentHandler implements MessageComponentInterface
             }
         }
 
+        else if (isset($data['action']) && $data['action'] === 'update_topbar_position') {
+            $tvId = $data['tv_id'];
+            $topbarPosition = $data['topbar_position'];
+
+            $stmt = $this->pdo->prepare("UPDATE topbar_tv_tb SET topbar_position = ? WHERE tv_id = ?");
+            $success = $stmt->execute([$topbarPosition, $tvId]);
+
+            if ($success) {
+                $response = [
+                    'action' => 'update_topbar_position',
+                    'success' => true,
+                    'tv_id' => $tvId,
+                    'topbar_position' => $topbarPosition
+                ];
+            } else {
+                $response = [
+                    'action' => 'update_topbar_position',
+                    'success' => false,
+                    'message' => 'Failed to update topbar position'
+                ];
+            }
+
+            // Notify all clients about the update
+            foreach ($this->clients as $client) {
+                $client->send(json_encode($response));
+            }
+        }
+
         else if (isset($data['action']) && $data['action'] === 'update_background_image') {
             $tvId = $data['tv_id'];
             $imageData = $data['image']; // Base64 encoded image data
@@ -1063,7 +1091,29 @@ class ContentHandler implements MessageComponentInterface
             // Create directory if it doesn't exist
             $uploadDir = "tv_backgrounds/$tvId";
             if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+                if (!mkdir($uploadDir, 0777, true)) {
+                    error_log("Failed to create directory: $uploadDir");
+                    $response = [
+                        'action' => 'update_background_image',
+                        'success' => false,
+                        'message' => 'Failed to create directory'
+                    ];
+                    $from->send(json_encode($response));
+                    return;
+                }
+            }
+        
+            // First, check for and delete existing image
+            $stmt = $this->pdo->prepare("SELECT background_image_path FROM background_tv_tb WHERE tv_id = ?");
+            $stmt->execute([$tvId]);
+            $existingImage = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($existingImage && $existingImage['background_image_path']) {
+                $existingFilePath = "tv_backgrounds/$tvId/" . $existingImage['background_image_path'];
+                if (file_exists($existingFilePath)) {
+                    unlink($existingFilePath);
+                    error_log("Deleted existing image: $existingFilePath");
+                }
             }
         
             // Generate filename with current timestamp
@@ -1074,12 +1124,15 @@ class ContentHandler implements MessageComponentInterface
                 $imageType = $matches[1];
                 $imageData = base64_decode(preg_replace('/^data:image\/\w+;base64,/', '', $imageData));
                 
-                // Generate filename
+                // Generate filename and paths
                 $filename = "{$tvId}_{$timestamp}.{$imageType}";
-                $filepath = "$uploadDir/$filename";
+                $fullFilePath = "$uploadDir/$filename";
+                $relativeFilePath = "servers/tv_backgrounds/$tvId/$filename"; // For database storage
                 
-                if (file_put_contents($filepath, $imageData)) {
-                    // Update database with new image path
+                error_log("Attempting to save file to: $fullFilePath");
+                
+                if (file_put_contents($fullFilePath, $imageData)) {
+                    // Update database with new image path (using relative path)
                     $stmt = $this->pdo->prepare("UPDATE background_tv_tb SET background_image_path = ? WHERE tv_id = ?");
                     $success = $stmt->execute([$filename, $tvId]);
                     
@@ -1088,32 +1141,123 @@ class ContentHandler implements MessageComponentInterface
                             'action' => 'update_background_image',
                             'success' => true,
                             'tv_id' => $tvId,
-                            'background_image_path' => $filepath
+                            'background_image_path' => $relativeFilePath
                         ];
-                        error_log("Background image updated successfully!");
+                        error_log("Background image updated successfully! Path: $relativeFilePath");
                     } else {
+                        error_log("Database update failed: " . print_r($stmt->errorInfo(), true));
                         $response = [
                             'action' => 'update_background_image',
                             'success' => false,
                             'message' => 'Failed to update database'
                         ];
-                        error_log("Failed to update background image in database!");
                     }
                 } else {
+                    error_log("Failed to write file to: $fullFilePath");
                     $response = [
                         'action' => 'update_background_image',
                         'success' => false,
                         'message' => 'Failed to save image file'
                     ];
-                    error_log("Failed to save background image file!");
                 }
             } else {
+                error_log("Invalid image data format received");
                 $response = [
                     'action' => 'update_background_image',
                     'success' => false,
                     'message' => 'Invalid image data'
                 ];
-                error_log("Invalid background image data received!");
+            }
+        
+            // Notify all clients about the update
+            foreach ($this->clients as $client) {
+                $client->send(json_encode($response));
+            }
+        }
+
+        else if (isset($data['action']) && $data['action'] === 'update_department_logo') {
+            $tvId = $data['tv_id'];
+            $imageData = $data['logo']; // Base64 encoded image data
+            
+            // Create directory if it doesn't exist
+            $uploadDir = "tv_department_logos/$tvId";
+            if (!file_exists($uploadDir)) {
+                if (!mkdir($uploadDir, 0777, true)) {
+                    error_log("Failed to create directory: $uploadDir");
+                    $response = [
+                        'action' => 'update_department_logo',
+                        'success' => false,
+                        'message' => 'Failed to create directory'
+                    ];
+                    $from->send(json_encode($response));
+                    return;
+                }
+            }
+        
+            // First, check for and delete existing image
+            $stmt = $this->pdo->prepare("SELECT department_logo_path FROM topbar_tv_tb WHERE tv_id = ?");
+            $stmt->execute([$tvId]);
+            $existingImage = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($existingImage && $existingImage['department_logo_path']) {
+                $existingFilePath = "tv_department_logos/$tvId/" . $existingImage['department_logo_path'];
+                if (file_exists($existingFilePath)) {
+                    unlink($existingFilePath);
+                    error_log("Deleted existing image: $existingFilePath");
+                }
+            }
+        
+            // Generate filename with current timestamp
+            $timestamp = date('Y-m-d_H-i-s');
+            
+            // Extract image data and type from base64 string
+            if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                $imageType = $matches[1];
+                $imageData = base64_decode(preg_replace('/^data:image\/\w+;base64,/', '', $imageData));
+                
+                // Generate filename and paths
+                $filename = "{$tvId}_{$timestamp}.{$imageType}";
+                $fullFilePath = "$uploadDir/$filename";
+                $relativeFilePath = "servers/tv_department_logos/$tvId/$filename"; // For database storage
+                
+                error_log("Attempting to save file to: $fullFilePath");
+                
+                if (file_put_contents($fullFilePath, $imageData)) {
+                    // Update database with new image path (using relative path)
+                    $stmt = $this->pdo->prepare("UPDATE topbar_tv_tb SET department_logo_path = ? WHERE tv_id = ?");
+                    $success = $stmt->execute([$filename, $tvId]);
+                    
+                    if ($success) {
+                        $response = [
+                            'action' => 'update_department_logo',
+                            'success' => true,
+                            'tv_id' => $tvId,
+                            'department_logo_path' => $relativeFilePath
+                        ];
+                        error_log("Department logo updated successfully! Path: $relativeFilePath");
+                    } else {
+                        error_log("Database update failed: " . print_r($stmt->errorInfo(), true));
+                        $response = [
+                            'action' => 'update_department_logo',
+                            'success' => false,
+                            'message' => 'Failed to update database'
+                        ];
+                    }
+                } else {
+                    error_log("Failed to write file to: $fullFilePath");
+                    $response = [
+                        'action' => 'update_department_logo',
+                        'success' => false,
+                        'message' => 'Failed to save image file'
+                    ];
+                }
+            } else {
+                error_log("Invalid image data format received");
+                $response = [
+                    'action' => 'update_department_logo',
+                    'success' => false,
+                    'message' => 'Invalid image data'
+                ];
             }
         
             // Notify all clients about the update

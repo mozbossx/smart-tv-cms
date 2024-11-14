@@ -2914,18 +2914,16 @@ input[type=range]:focus::-ms-fill-upper {
 
 .floating-menu {
     position: fixed;
-    background: white;
-    border: 1px solid #ccc;
+    background: none;
     border-radius: 4px;
     padding: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     z-index: 1000;
 }
 
 .floating-menu button {
     background: #264B2B;
     color: white;
-    border: none;
+    border: 1px solid #ccc;
     padding: 5px 10px;
     border-radius: 3px;
     cursor: pointer;

@@ -28,6 +28,7 @@ $topbarTimeFontFamily = '';
 $topbarDateColor = '';
 $topbarDateFontStyle = '';
 $topbarDateFontFamily = '';
+$topbarPosition = '';
 
 $isStaticBackground = '';
 $isImageBackground = '';
@@ -108,6 +109,8 @@ if (isset($_GET['tvId'])) {
         $topbarDateColor = $topbarColorData['topbar_date_font_color'];
         $topbarDateFontStyle = $topbarColorData['topbar_date_font_style'];
         $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
+
+        $topbarPosition = $topbarColorData['topbar_position'];
     }
 
     $stmtTopbarColor->close();
@@ -241,6 +244,19 @@ $conn->close();
                                     </div>
                                     <p style="color: #264B2B; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: center;"><b>Top Bar</b></p>
                                     <form id="editTopBarColorForm" enctype="multipart/form-data" style="height: 45vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">
+                                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                                            <select id="topbar_position" name="topbar_position" class="floating-label-input" style="background: #f3f3f3; box-shadow: none; height: 100%;">
+                                                <option value="top" <?php echo $topbarPosition == 'top' ? 'selected' : ''; ?>>Top</option>
+                                                <option value="bottom" <?php echo $topbarPosition == 'bottom' ? 'selected' : ''; ?>>Bottom</option>
+                                            </select>
+                                            <label for="topbar_position" class="floating-label">Position</label>
+                                        </div>
+                                        <div class="rounded-container-media" style="background: #f3f3f3; margin-top: 0; margin-bottom: 10px; border: none; box-shadow: none;">
+                                            <p class="input-container-label">Department Logo</p>
+                                            <br>
+                                            <input type="file" name="department_logo" id="department_logo" accept="image/*" hidden>
+                                            <label for="department_logo" class="green-button">Choose File (.jpg, .png)</label>
+                                        </div>
                                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: #f3f3f3; margin-right: 5px; border-radius: 5px; ">
                                             <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 60px; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
                                             <label for="topbar_color" class="floating-label">Top Bar Color</label>
@@ -393,7 +409,7 @@ $conn->close();
                                             <div class="rounded-container-media" style="background: #f3f3f3; margin-top: 0; margin-bottom: 10px; border: none; box-shadow: none;">
                                                 <p class="input-container-label">Upload Image Background</p>
                                                 <br>
-                                                <input type="file" name="media" id="media" accept="video/*, image/*" hidden>
+                                                <input type="file" name="media" id="media" accept="image/*" hidden>
                                                 <label for="media" class="green-button">Choose File (.jpg, .png)</label>
                                             </div>
                                         </div>
@@ -420,7 +436,7 @@ $conn->close();
             </div>
         </div>
         <div id="floatingMenu" class="floating-menu" style="display: none;">
-            <button onclick="handleEditClick()">
+            <button onclick="handleEditClick()" style="border-radius: 40px; padding: 10px;">
                 <span id="editContainerText" style="display: none;">Edit Container</span>
                 <span id="editBackgroundText" style="display: none;">Edit Background</span>
                 <span id="editTopbarText" style="display: none;">Edit Topbar</span>
@@ -823,8 +839,8 @@ $conn->close();
             //     floatingMenu.style.top = `${adjustedY}px`;
             // }
 
-            const fileInput = document.getElementById('media');
-            fileInput.addEventListener('change', function(e) {
+            const backgroundImageInput = document.getElementById('media');
+            backgroundImageInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
                     // Check file type
@@ -847,6 +863,41 @@ $conn->close();
                     };
                     reader.readAsDataURL(file);
                 }
+            });
+
+            const departmentLogoInput = document.getElementById('department_logo');
+            departmentLogoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Check file type
+                    if (!file.type.match('image.*')) {
+                        alert('Please select an image file (.jpg, .png)');
+                        return;
+                    }
+
+                    // Read file as base64
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Send via WebSocket
+                        if (typeof ws !== 'undefined' && ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({
+                                action: 'update_department_logo',
+                                tv_id: <?php echo $tvId; ?>,
+                                logo: e.target.result
+                            }));
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.getElementById('topbar_position').addEventListener('change', function() {
+                const position = this.value;
+                ws.send(JSON.stringify({
+                    action: 'update_topbar_position',
+                    tv_id: <?php echo $tvId; ?>,
+                    topbar_position: position
+                }));
             });
 
             function updateSections(event) {
@@ -1026,7 +1077,7 @@ $conn->close();
                 'topbar_tvname_font_family', 'topbar_tvid_font_style', 
                 'topbar_tvid_font_family', 'topbar_time_font_style', 
                 'topbar_time_font_family', 'topbar_date_font_style', 
-                'topbar_date_font_family', 'topbar_position',
+                'topbar_date_font_family',
             ];
 
             // Function to send WebSocket message
@@ -1047,8 +1098,7 @@ $conn->close();
                     topbar_time_font_family: formData.get('topbar_time_font_family'),
                     topbar_date_font_color: formData.get('topbar_date_color'),
                     topbar_date_font_style: formData.get('topbar_date_font_style'),
-                    topbar_date_font_family: formData.get('topbar_date_font_family'),
-                    topbar_position: formData.get('topbar_position')
+                    topbar_date_font_family: formData.get('topbar_date_font_family')
                 }));
             }
 

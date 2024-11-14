@@ -1,5 +1,11 @@
 <div class="topbar" id="topbar" style="background: <?php echo $topbarColor; ?>">
-    <img src="images/soe_icon.png" alt="" style="width: 3vh; height: 3vh; margin-left: 5px">
+    <?php 
+        if ($departmentLogoPath == NULL) {
+            echo '<img src="images/soe_icon.png" alt="" style="width: 6vh; height: 6vh; margin-left: 5px">';
+        } else {
+            echo '<img src="servers/tv_department_logos/' . $_SESSION['tv_id'] . '/' . $departmentLogoPath . '" alt="" style="width: 6vh; height: 6vh; margin-left: 5px">';
+        }
+    ?>
     <div class="tv-id" style="color: <?php echo $topbarTvIdColor; ?>; font-style: <?php echo $topbarTvIdFontStyle; ?>; font-family: <?php echo $topbarTvIdFontFamily; ?>;">
         <p id="tvDepartment_<?php echo $_SESSION['tv_id']; ?>"><?php echo htmlspecialchars($_SESSION['tv_department']); ?></p>
         <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: <?php echo htmlspecialchars($_SESSION['tv_id']); ?></p>

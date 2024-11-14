@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.7:8081');
+const Ws = new WebSocket('ws://10.71.4.91:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -766,7 +766,7 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
         }
-    } else if (data.action === 'update') {
+    } else if (data.action === 'update_content') {
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');
         } else if (data.type === 'event') {
@@ -807,7 +807,7 @@ Ws.addEventListener('message', function (event) {
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVDetails();
         // location.reload();
-    } else if (data.action === 'update_container_positions' || data.action === 'show_hide_content' || data.action === 'update_background_type' || data.action === 'update_background_image') {
+    } else if (data.action === 'update_container_positions' || data.action === 'show_hide_content' || data.action === 'update_background_type' || data.action === 'update_background_image' || data.action === 'update_department_logo' || data.action === 'update_topbar_position') {
         const urlParams = new URLSearchParams(window.location.search);
         const tvId = urlParams.get('tvId');
         if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {

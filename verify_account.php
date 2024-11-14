@@ -86,7 +86,7 @@ if (isset($_SESSION['mail'])) {
     <script>
         // Handle form submission via WebSocket
         const form = document.getElementById('pendingUserForm');
-        const ws = new WebSocket('ws://192.168.1.7:8081?email=<?php echo urlencode($email); ?>');
+        const ws = new WebSocket('ws://10.71.4.91:8081?email=<?php echo urlencode($email); ?>');
         
         form.addEventListener('submit', function (e) {
             e.preventDefault();

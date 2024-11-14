@@ -24,10 +24,6 @@ body {
     cursor: pointer;
 }
 
-.topbar:hover {
-    border-bottom: 2px solid rgb(132, 253, 161);
-}
-
 .tv-id {
     flex: 1; /* Takes up available space */
     padding-left: 10px;
@@ -39,6 +35,10 @@ body {
     flex: auto;
     text-align: center;
     font-weight: bold;
+    width: 20%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .date-time {
@@ -89,10 +89,6 @@ body {
     user-select: none;
     display: flex;
     flex-direction: column;
-}
-
-.content-container:hover {
-    border: 2px solid rgb(132, 253, 161);
 }
 
 /* 

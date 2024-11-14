@@ -37,7 +37,6 @@ include 'tv_initialize.php';
 </head>
 <p id="screen" style="display: none; color: white; position: fixed"></p>
 <body>
-    <?php include('tv_topbar.php'); ?>
     <div style="<?php 
         if ($isStaticBackground) {
             echo "background: $backgroundColor;";
@@ -48,6 +47,9 @@ include 'tv_initialize.php';
             echo "background-repeat: no-repeat;";
         }
         ?> cursor: pointer; width: 100%; height: calc(100% - 7vh); overflow: hidden; display: flex; flex-direction: column; /* Arrange containers vertically */ height: 100vh; overflow: hidden; /* Prevent any overflow */" id="tvBackgroundColor">
+        <?php if ($topbarPosition === 'top') { ?>
+            <?php include('tv_topbar.php'); ?>
+        <?php } ?>
         <div class="main-container" id="main-container">
         <?php foreach ($containers as $container): ?>
             <?php $containerNameLower = strtolower($container['type']); ?>
@@ -74,6 +76,9 @@ include 'tv_initialize.php';
             </div>
             <?php endforeach; ?>
         </div>
+        <?php if ($topbarPosition === 'bottom') { ?>
+            <?php include('tv_topbar.php'); ?>
+        <?php } ?>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web-animations/2.3.1/web-animations.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
