@@ -137,7 +137,7 @@ include 'misc/php/options_tv.php';
     <?php include 'misc/php/error_modal.php' ?>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
-        const tvNames = <?php echo json_encode($tv_names); ?>; 
+        const tvNames = <?php echo !empty($tv_names) ? json_encode($tv_names) : '{}'; ?>; 
         const contentType = document.querySelector('[name="type"]').value;
 
         let orgChartData = []; // Initialize an empty array to store org chart data

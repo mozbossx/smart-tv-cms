@@ -3,17 +3,25 @@
 $options_tv = '';
 $user_department = $department; // $department is already set from the session
 
-// Modify the SQL query based on user type
-if ($user_type == 'Super Admin') {
-    $sql = "SELECT tv_id, tv_name, tv_department FROM smart_tvs_tb";
+// Check if we're in edit mode
+$isEditMode = isset($_GET['action']) && $_GET['action'] === 'edit';
+$editTvId = $isEditMode ? $_GET['tv_id'] : null;
+
+// Modify the SQL query based on whether we're in edit mode
+if ($isEditMode) {
+    $sql = "SELECT tv_id, tv_name, tv_department FROM smart_tvs_tb WHERE tv_id = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $editTvId);
 } else {
-    $sql = "SELECT tv_id, tv_name, tv_department FROM smart_tvs_tb WHERE tv_department = ?";
-}
-
-$stmt = mysqli_prepare($conn, $sql);
-
-if ($user_type != 'Super Admin') {
-    mysqli_stmt_bind_param($stmt, "s", $user_department);
+    // Original logic for non-edit mode
+    if ($user_type == 'Super Admin') {
+        $sql = "SELECT tv_id, tv_name, tv_department FROM smart_tvs_tb WHERE tv_name != 'Unknown' AND tv_brand != 'Unknown'";
+        $stmt = mysqli_prepare($conn, $sql);
+    } else {
+        $sql = "SELECT tv_id, tv_name, tv_department FROM smart_tvs_tb WHERE tv_department = ? AND tv_name != 'Unknown' AND tv_brand != 'Unknown'";
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $user_department);
+    }
 }
 
 mysqli_stmt_execute($stmt);
@@ -23,8 +31,19 @@ $tv_count = 0;
 
 while ($row = mysqli_fetch_assoc($result)) {
     $tv_count++;
-    $options_tv .= '<label style="display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px">';
-    $options_tv .= '<input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '" data-tv-name="' . $row['tv_name'] . '">';
+    // Add pointer-events-none class in edit mode
+    $labelStyle = $isEditMode ? 'display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px; pointer-events: none;' : 'display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;';
+    $options_tv .= '<label style="' . $labelStyle . '">';
+    
+    // In edit mode, make the checkbox checked and disabled
+    if ($isEditMode) {
+        $options_tv .= '<input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '" data-tv-name="' . $row['tv_name'] . '" checked disabled style="pointer-events: none;">';
+        // Add a hidden input to ensure the value is still submitted when the checkbox is disabled
+        $options_tv .= '<input type="hidden" name="tv_id[]" value="' . $row['tv_id'] . '">';
+    } else {
+        $options_tv .= '<input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '" data-tv-name="' . $row['tv_name'] . '">';
+    }
+    
     $options_tv .= ' ' . $row['tv_name'];
     $options_tv .= '</label>';
 
@@ -37,5 +56,7 @@ mysqli_stmt_close($stmt);
 // If no TVs are available, display a message
 if ($tv_count == 0) {
     $options_tv = '<p style="text-align: center; padding: 10px;">No TVs Available</p>';
+    // Ensure $tv_names is at least an empty array
+    $tv_names = [];
 }
 ?>

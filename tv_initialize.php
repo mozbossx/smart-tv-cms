@@ -3,17 +3,32 @@
 $tvId = $_GET['tvId'] ?? $_COOKIE['tv_id'] ?? null;
 $isIframe = $_GET['isIframe'] ?? null;
 
-echo "<script>console.log('isIframe: " . $isIframe . "');</script>";
+// Check if this TV ID was deleted
+if ($tvId !== null) {
+    $stmtCheckDeleted = $conn->prepare("SELECT 1 FROM deleted_tvs_tb WHERE tv_id = ?");
+    $stmtCheckDeleted->execute([$tvId]);
+    
+    if ($stmtCheckDeleted->fetch()) {
+        // This TV was deleted, unset the cookie
+        setcookie('tv_id', '', time() - 3600, '/');
+        $tvId = null; // Reset tvId to trigger new TV creation
+    }
+    // Close the statement
+    $stmtCheckDeleted->close();
+}
 
 // Check if the tv_id is already stored in a cookie
 if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
     $tv_name = "Unknown";
     $tv_brand = "Unknown";
 
-    $sql = "INSERT INTO smart_tvs_tb (tv_name, tv_brand) VALUES ('$tv_name', '$tv_brand')";
-    if (mysqli_query($conn, $sql)) {
+    $sql = "INSERT INTO smart_tvs_tb (tv_name, tv_brand) VALUES (?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $tv_name, $tv_brand);
+
+    if ($stmt->execute()) {
         // Get the ID of the newly inserted row
-        $tvId = mysqli_insert_id($conn);
+        $tvId = $conn->insert_id;
 
         // Store the tv_id in a cookie
         setcookie('tv_id', $tvId, time() + (10 * 365 * 24 * 60 * 60)); // Expire in 10 years

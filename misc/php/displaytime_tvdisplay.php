@@ -36,9 +36,18 @@ if ($isEditMode && isset($contentData["{$type}_id"])) {
     </div>
     <div class="form-column" style="flex: 1">
         <div class="floating-label-container" style="flex: 1">
-            <button type="button" id="tvModalButton" class="floating-label-input" style="background: #FFFF">
-                Select TV Displays
-            </button>
+            <?php if ($isEditMode): ?>
+                <!-- In edit mode, show a disabled input instead of a button -->
+                <input type="text" 
+                       class="floating-label-input" 
+                       style="background: none; border: none; box-shadow: none" 
+                       value="<?php echo htmlspecialchars($tv_names[$editTvId] ?? ''); ?>" 
+                       disabled>
+            <?php else: ?>
+                <button type="button" id="tvModalButton" class="floating-label-input" style="background: #FFFF;">
+                    Select TV Displays
+                </button>
+            <?php endif; ?>
             <label for="tv_id" class="floating-label">TV Display</label>
         </div>
     </div>
@@ -49,7 +58,7 @@ if ($isEditMode && isset($contentData["{$type}_id"])) {
         <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-tv" aria-hidden="true"></i></h1>
         <p>Select TV Displays</p>
         <br>
-        <div id="tvCheckboxList" style="height: 150px; max-height: 200px; overflow: auto; text-align: left">
+        <div id="tvCheckboxList" style="height: 150px; max-height: 200px; overflow: auto; text-align: left;">
             <?= $options_tv; ?>
         </div>
         <div style="display: flex; float: right">
@@ -59,30 +68,7 @@ if ($isEditMode && isset($contentData["{$type}_id"])) {
     </div>
 </div>
 
-<?php if ($isEditMode): ?>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Pre-select TVs
-    const selectedTvs = <?php echo json_encode($selectedTvs); ?>;
-    const selectedTvNames = [];
-    
-    selectedTvs.forEach(tvId => {
-        const checkbox = document.querySelector(`input[name="tv_id[]"][value="${tvId}"]`);
-        if (checkbox) {
-            checkbox.checked = true;
-            selectedTvNames.push(checkbox.getAttribute('data-tv-name'));
-        }
-    });
-
-    // Update the TV button text
-    const tvModalButton = document.getElementById('tvModalButton');
-    if (selectedTvNames.length > 0) {
-        tvModalButton.textContent = selectedTvNames.join(", ");
-    }
-});
-</script>
-<?php endif; ?>
-
+<?php if (!$isEditMode): ?>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const tvModalButton = document.getElementById("tvModalButton");
@@ -104,9 +90,19 @@ document.addEventListener('DOMContentLoaded', function() {
         saveTvSelection.addEventListener("click", function () {
             const selectedTvs = [];
             document.querySelectorAll('#tvCheckboxList input[type="checkbox"]:checked').forEach(function (checkedBox) {
-                selectedTvs.push(checkedBox.getAttribute('data-tv-name')); // Change to get tv_name
+                selectedTvs.push(checkedBox.getAttribute('data-tv-name'));
             });
-            tvModalButton.textContent = selectedTvs.length > 0 ? selectedTvs.join(", ") : "Select TV Displays";
+            
+            if (selectedTvs.length > 0) {
+                const maxLength = 50; // Adjust this value as needed
+                let displayText = selectedTvs.join(", ");
+                if (displayText.length > maxLength) {
+                    displayText = displayText.substring(0, maxLength) + "...";
+                }
+                tvModalButton.textContent = displayText;
+            } else {
+                tvModalButton.textContent = "Select TV Displays";
+            }
             tvModal.style.display = "none";
         });
 
@@ -118,3 +114,28 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 </script>
+<?php endif; ?>
+
+<?php if ($isEditMode): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Pre-select TVs
+    const selectedTvs = <?php echo json_encode($selectedTvs); ?>;
+    const selectedTvNames = [];
+    
+    selectedTvs.forEach(tvId => {
+        const checkbox = document.querySelector(`input[name="tv_id[]"][value="${tvId}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+            // selectedTvNames.push(checkbox.getAttribute('data-tv-name'));
+        }
+    });
+
+    // Update the TV button text
+    const tvModalButton = document.getElementById('tvModalButton');
+    if (selectedTvNames.length > 0) {
+        tvModalButton.textContent = selectedTvNames.join(", ");
+    }
+});
+</script>
+<?php endif; ?>

@@ -146,7 +146,7 @@ if ($isEditMode && isset($_GET['peo_id'])) {
     <script src="misc/js/is_form_dirty.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
-        const tvNames = <?php echo json_encode($tv_names); ?>;
+        const tvNames = <?php echo !empty($tv_names) ? json_encode($tv_names) : '{}'; ?>; 
     </script>
 </body>
 </html>

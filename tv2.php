@@ -297,6 +297,15 @@ include 'tv_initialize.php';
                     positions: positions
                 }, '*');
             }
+            
+            // Handle WebSocket messages for cookie management
+            if (event.data.action === 'delete_smart_tv' && event.data.unset_cookies && event.data.success) {
+                // Delete the tv_id cookie
+                document.cookie = "tv_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                
+                // Reload the page to generate a new TV ID
+                window.location.reload();
+            }
         });
 
         function openContentContainerRightSidePanel(containerId) {

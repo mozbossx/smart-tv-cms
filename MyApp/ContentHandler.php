@@ -99,6 +99,21 @@ class ContentHandler implements MessageComponentInterface
                 $evaluator_id = $data['evaluator_id'];
             */
 
+            // First, fetch the media_path before deleting the content
+            $stmt = $this->pdo->prepare("SELECT media_path FROM {$table} WHERE {$idField} = ?");
+            $stmt->execute([$content_id]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // If there's a media file, delete it
+            if ($result && !empty($result['media_path'])) {
+                $mediaFolder = "{$type}_media";
+                $mediaPath = "{$mediaFolder}/{$result['media_path']}";
+                if (file_exists($mediaPath)) {
+                    unlink($mediaPath); // Delete the file
+                }
+                error_log("Deleted media file: {$mediaPath}");
+            }
+
             $stmt = $this->pdo->prepare("DELETE FROM {$table} WHERE {$idField} = ?");
             $stmt->execute([$content_id]);
                 
@@ -1127,7 +1142,7 @@ class ContentHandler implements MessageComponentInterface
                 // Generate filename and paths
                 $filename = "{$tvId}_{$timestamp}.{$imageType}";
                 $fullFilePath = "$uploadDir/$filename";
-                $relativeFilePath = "servers/tv_backgrounds/$tvId/$filename"; // For database storage
+                $relativeFilePath = "tv_backgrounds/$tvId/$filename"; // For database storage
                 
                 error_log("Attempting to save file to: $fullFilePath");
                 
@@ -1218,7 +1233,7 @@ class ContentHandler implements MessageComponentInterface
                 // Generate filename and paths
                 $filename = "{$tvId}_{$timestamp}.{$imageType}";
                 $fullFilePath = "$uploadDir/$filename";
-                $relativeFilePath = "servers/tv_department_logos/$tvId/$filename"; // For database storage
+                $relativeFilePath = "tv_department_logos/$tvId/$filename"; // For database storage
                 
                 error_log("Attempting to save file to: $fullFilePath");
                 
@@ -2538,6 +2553,65 @@ class ContentHandler implements MessageComponentInterface
             $tv = $stmt->rowCount() > 0;
 
             if ($tv) {
+                // Update notification status
+                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'approved', notification_type = 'smart_tv_edited', evaluator_name = ?, created_at = NOW() WHERE user_id = ? AND content_tv_id = ?");
+                $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $user_id, $content_id]);
+
+                // Notify the Admin or Super Admin who approved the user
+                $stmtUserIdEvaluator = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_id = ?");
+                $stmtUserIdEvaluator->execute([$evaluator_id]);
+                $evaluatorId = $stmtUserIdEvaluator->fetchAll(PDO::FETCH_ASSOC);
+
+                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectDepartmentAdmins->execute([$department, $evaluator_id, $user_id]);
+                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Notify each Admin of the approved user's department
+                if ($departmentAdmins) {
+                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($departmentAdmins as $admin) {
+                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
+                    }
+                }
+                
+                // Notify all Super Admins except the one who approved the user
+                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                ");
+                $stmtSelectSuperAdmins->execute([$evaluator_id, $user_id]);
+                $allSuperAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+
+                // Notify all Super Admins
+                if ($allSuperAdmins) {
+                    error_log("allSuperAdmins called");
+                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($allSuperAdmins as $superAdmin) {
+                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
+                    }
+                }
+
+                // Notify the new user that an admin approved them
+                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id) 
+                                             VALUES (?, 'content_approved_by_admin', ?, 'approved', ?, ?, ?, ?)");
+                $stmt->execute([$user_id, $content_type, $evaluator_name, $full_name, $department, $content_tv_id]);
+
+                // Update notification counts for Admins, Super Admins, and the evaluator
+                $stmtUpdateNotificationCounts = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE (user_type = 'Admin' AND department = ?) 
+                    OR user_type = 'Super Admin'
+                    OR user_id = ? OR user_id = ?
+                ");
+                $stmtUpdateNotificationCounts->execute([$department, $evaluator_id, $user_id]);
                 // Prepare the response with the new TV name, brand, and department
                 $response = [
                     'action' => 'edit_smart_tv',
@@ -2562,25 +2636,37 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'delete_smart_tv') {
             $tvId = $data['tv_id'];
-
-            // Perform the delete in the database
-            $stmtDeleteSmartTV = $this->pdo->prepare("DELETE FROM smart_tvs_tb WHERE tv_id = ?");
-            $stmtDeleteSmartTV->execute([$tvId]);
-
-            $smart_tv = $stmtDeleteSmartTV->rowCount() > 0;
-
-            if ($smart_tv) {
-                // Notify the client who sent the request
-                $from->send(json_encode(['action' => 'delete_smart_tv', 'success' => true, 'tv_id' => $tvId]));
-
+        
+            // Start transaction
+            $this->pdo->beginTransaction();
+            
+            try {
+                // Add to deleted TVs table first
+                $stmtAddToDeleted = $this->pdo->prepare("INSERT INTO deleted_tvs_tb (tv_id, deleted_at) VALUES (?, NOW())");
+                $stmtAddToDeleted->execute([$tvId]);
+        
+                // Then delete from smart_tvs_tb
+                $stmtDeleteSmartTV = $this->pdo->prepare("DELETE FROM smart_tvs_tb WHERE tv_id = ?");
+                $stmtDeleteSmartTV->execute([$tvId]);
+        
+                $this->pdo->commit();
+        
+                $response = [
+                    'action' => 'delete_smart_tv',
+                    'data' => $data,
+                    'success' => true,
+                    'tv_id' => $tvId,
+                    'unset_cookies' => true
+                ];
+        
                 // Notify all connected clients about the update
                 foreach ($this->clients as $client) {
-                    if ($client !== $from) {
-                        $client->send(json_encode(['action' => 'delete_smart_tv', 'success' => true, 'tv_id' => $tvId]));
-                    }
+                    $client->send(json_encode($response));
                 }
+                
                 echo "TV deleted for tv_id: {$tvId}\n";
-            } else {
+            } catch (Exception $e) {
+                $this->pdo->rollBack();
                 $from->send(json_encode(['action' => 'delete_smart_tv', 'success' => false]));
             }
             return;

@@ -24,11 +24,6 @@ const fetchArchiveDays = async () => {
         const response = await fetch('database/fetch_archive_days.php');
         const data = await response.json();
         currentArchiveDays = parseInt(data.archive_days);
-        if (userType === 'Super Admin') {
-            document.getElementById('archiveDaysButton').textContent = `${currentArchiveDays} days`;
-        } else {
-            document.getElementById('archiveDaysSpan').textContent = `${currentArchiveDays} days`;
-        }
         return currentArchiveDays;
     } catch (error) {
         console.error('Error fetching archive days:', error);
@@ -54,47 +49,47 @@ const fetchTrashDays = async () => {
     }
 };
 
-const checkAndTrashExpiredItems = async () => {
-    try {
-        const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
-        if (userType === 'Admin' || userType === 'Super Admin') {
-            contentTypes.push('peo', 'so');
-        }
+// const checkAndTrashExpiredItems = async () => {
+//     try {
+//         const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+//         if (userType === 'Admin' || userType === 'Super Admin') {
+//             contentTypes.push('peo', 'so');
+//         }
 
-        for (const type of contentTypes) {
-            const response = await fetch(`database/fetch_content.php?type=${type}&trashed=true`);
-            const data = await response.json();
+//         for (const type of contentTypes) {
+//             const response = await fetch(`database/fetch_content.php?type=${type}&trashed=true`);
+//             const data = await response.json();
             
-            // Filter for trashed items that aren't already trashed
-            const trashedItems = data.filter(item => 
-                item.isArchived === 0 && 
-                item.isTrashed === 1
-            );
+//             // Filter for trashed items that aren't already trashed
+//             const trashedItems = data.filter(item => 
+//                 item.isArchived === 0 && 
+//                 item.isTrashed === 1
+//             );
 
-            // Check each item's remaining days
-            trashedItems.forEach(item => {
-                const daysRemaining = calculateDaysRemaining(item.datetime_trashed);
+//             // Check each item's remaining days
+//             trashedItems.forEach(item => {
+//                 const daysRemaining = calculateDaysRemaining(item.datetime_trashed);
                 
-                if (daysRemaining <= 0) {
-                    // Automatically trash the item
-                    deleteItem(
-                        item[`${type}_id`],
-                        type,
-                        item[`${type}_author_id`],
-                        'System', // System is moving it to trash
-                        item.author_name,
-                        item.author_user_type,
-                        item.author_department,
-                        item.tv_id
-                    );
-                    // fetchAndUpdateAll();
-                }
-            });
-        }
-    } catch (error) {
-        console.error('Error checking expired items:', error);
-    }
-};
+//                 if (daysRemaining <= 0) {
+//                     // Automatically trash the item
+//                     deleteItem(
+//                         item[`${type}_id`],
+//                         type,
+//                         item[`${type}_author_id`],
+//                         'System', // System is moving it to trash
+//                         item.author_name,
+//                         item.author_user_type,
+//                         item.author_department,
+//                         item.tv_id
+//                     );
+//                     // fetchAndUpdateAll();
+//                 }
+//             });
+//         }
+//     } catch (error) {
+//         console.error('Error checking expired items:', error);
+//     }
+// };
 
 // Function to create trash days modal
 const createTrashDaysModal = () => {
@@ -683,13 +678,13 @@ const trashItem = (contentId, contentType, authorId, loggedInFullName, authorNam
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
-const startExpirationChecker = () => {
-    // Check immediately when the page loads
-    checkAndTrashExpiredItems();
+// const startExpirationChecker = () => {
+//     // Check immediately when the page loads
+//     checkAndTrashExpiredItems();
 
-    // Then check every minute
-    setInterval(checkAndTrashExpiredItems, 60000);
-};
+//     // Then check every minute
+//     setInterval(checkAndTrashExpiredItems, 60000);
+// };
 
 // Function to delete an item
 const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
@@ -1068,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('clearSearch').addEventListener('click', clearSearch);
 
     // Start the expiration checker
-    startExpirationChecker();
+    // startExpirationChecker();
 
     // Fetch and update all content
     fetchAndUpdateAll();

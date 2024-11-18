@@ -126,7 +126,7 @@ if ($isEditMode && isset($_GET['promaterial_id'])) {
     <script src="misc/js/wsform_submission.js"></script>
     <script>
         const containers = <?php echo json_encode($containers); ?>;
-        const tvNames = <?php echo json_encode($tv_names); ?>;
+        const tvNames = <?php echo !empty($tv_names) ? json_encode($tv_names) : '{}'; ?>; 
     </script>
 </body>
 </html>

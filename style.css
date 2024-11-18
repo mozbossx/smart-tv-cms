@@ -117,6 +117,8 @@ body {
     flex: 1;
     border-radius: 5px;
     padding: 5px;
+    width: auto;
+    max-width: 250px;
 }
 
 .preview-website {
@@ -360,7 +362,7 @@ nav a{
     height: auto;
     padding: 5px;
     margin: 2.5px;
-    background: #222c2f;
+    background: #1e3b22;
     color: #fff;
     border-radius: 5px;
     border: none;
@@ -1024,7 +1026,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .navbar a:hover{
-    background-color: #222C2F;
+    background-color: #1e3b22;
     transition: 0.8s ease;
 }
 
@@ -1554,7 +1556,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 .announcement-card {
     width: auto;
     height: auto;
-    background-color: #222C2F;
+    background-color: #1e3b22;
     border-radius: 6px;
     color: #FFFF;
     text-align: left;
@@ -2933,6 +2935,13 @@ input[type=range]:focus::-ms-fill-upper {
     background: #1a331d;
 }
 
+#tvModalButton {
+    max-width: 100%; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap;
+}
+
 /* Media query for smaller screens */
 @media only screen and (max-width: 1000px) {
     .container-body {
@@ -3114,6 +3123,13 @@ input[type=range]:focus::-ms-fill-upper {
 
     .preview-content {
         padding: 0;
+        max-width: 100%;
+    }
+
+    #tvModalButton {
+        width: 100%;
+        max-width: auto; 
+
     }
 
     .preview-website {

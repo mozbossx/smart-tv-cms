@@ -2,7 +2,7 @@
 session_start();
 @include 'config_connection.php';
 
-include 'check_for_inactive_users.php';
+// include 'check_for_inactive_users.php';
 
 // Check if the user is already logged in, redirect to user-home.php
 if (isset($_SESSION['full_name'])) {

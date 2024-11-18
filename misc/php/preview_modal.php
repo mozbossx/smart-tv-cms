@@ -2,11 +2,15 @@
     <div class="modal-content-preview">
         <div class="flex-preview-content">
             <?php 
-                $sqlContainers = "SELECT * FROM containers_tb";
+                $sqlContainers = "SELECT c.*, t.width_px as tv_width_px, t.height_px as tv_height_px, t.tv_brand as tv_brand,
+                    b.background_image_path, b.background_hex_color, b.isImageBackground, b.isStaticBackground
+                FROM containers_tb c 
+                JOIN smart_tvs_tb t ON c.tv_id = t.tv_id
+                LEFT JOIN background_tv_tb b ON c.tv_id = b.tv_id";
                 $resultContainers = mysqli_query($conn, $sqlContainers);
                 $containers = [];
                 while ($row = mysqli_fetch_assoc($resultContainers)) {
-                    $containers[] = $row; // Store each container in an array
+                    $containers[] = $row;
                 }
             ?>
             <div style="display: flex, flex-direction: column; flex: 2; height: auto; overflow: auto">
@@ -17,7 +21,7 @@
         </div>
         <!-- Operation buttons inside the Preview modal -->
         <div class="flex-button-modal">
-            <button type="button" class="green-button" id="closeButton" style="background: none; border: 1px solid #264B2B; color: #264B2B; margin-top: 0; margin-right: 5px" onclick="closePreviewModal()">Cancel</button>
+            <button type="button" class="grey-button" id="closeButton" style="margin-top: 0; margin-right: 5px" onclick="closePreviewModal()">Cancel</button>
             <button type="button" name="post" class="green-button" style="margin-top: 0; margin-right: 0" onclick="submitFormViaWebSocket()">Submit</button>
         </div>
     </div>
@@ -188,7 +192,7 @@
 
         const selectedTvs = Array.from(document.querySelectorAll('[name="tv_id[]"]:checked')).map(checkbox => checkbox.value);
         const selectedTvNames = selectedTvs.map(tvId => tvNames[tvId]); // Map tv_id to tv_name
-        previewContent += '<p class="preview-input"><strong>TV Display: </strong><br>' + (selectedTvNames.length > 0 ? selectedTvNames.join(", ") : 'None selected') + '</p>';
+        previewContent += '<p class="preview-input" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>TV Display: </strong><br>' + (selectedTvNames.length > 0 ? selectedTvNames.join(", ") : 'None selected') + '</p>';
         
         return previewContent;
     }
@@ -259,13 +263,83 @@
             let carouselHTML = '<div class="carousel">';
             matchingContainers.forEach((matchingContainer, index) => {
                 const tvName = tvNames[matchingContainer.tv_id] || 'Unknown TV';
+                const isSelectedType = matchingContainer.type === selectedType;
+                const isVisible = matchingContainer.visible === '1';
 
                 carouselHTML += `
                     <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;" data-tv-id="${matchingContainer.tv_id}">
-                        <div class="carousel-content" style="background-color: ${matchingContainer.parent_background_color}; padding: 10px; border-radius: 5px; height: ${matchingContainer.height_px}px; width: ${matchingContainer.width_px}px;">
-                            <h1 style="color: ${matchingContainer.parent_font_color}; font-family: ${matchingContainer.parent_font_family}; font-style: ${matchingContainer.parent_font_style}; margin-bottom: 5px">${matchingContainer.container_name}</h1>
-                            <div style="background-color: ${matchingContainer.child_background_color}; color: ${matchingContainer.child_font_color}; font-style: ${matchingContainer.child_font_style}; font-family: ${matchingContainer.child_font_family}; width: auto; height: calc(100% - 11.5vh); padding: 10px; border-radius: 5px">
-                                <p style="white-space: pre-wrap">${content}</p>
+                        <div class="tv-frame-parent" style="width: auto; height: 100%; background: none; cursor: default;">
+                            <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="display: flex; flex-direction: column; align-items: center;">
+                                <div class='tv-screen' style='
+                                    height: ${matchingContainer.tv_height_px}px; 
+                                    width: ${matchingContainer.tv_width_px}px; 
+                                    pointer-events: none; border: none;
+                                    ${matchingContainer.isImageBackground ? 
+                                        `background-image: url(servers/tv_backgrounds/${matchingContainer.tv_id}/${matchingContainer.background_image_path}); background-size: cover; background-position: center;` : 
+                                        (matchingContainer.isStaticBackground ? 
+                                            `background-color: ${matchingContainer.background_hex_color};` : 
+                                            'background-color: #000;'
+                                        )
+                                    }'>
+                                    ${matchingContainer.visible === '1' ? 
+                                        `<div class="carousel-content" 
+                                            style="position: absolute;
+                                                    left: ${matchingContainer.xaxis}px;
+                                                    top: ${matchingContainer.yaxis}px;
+                                                    width: ${matchingContainer.width_px}px;
+                                                    height: ${matchingContainer.height_px}px;
+                                                    background-color: ${matchingContainer.parent_background_color};
+                                                    padding: 10px;
+                                                    border-radius: 5px;">
+                                            <h1 style="color: ${matchingContainer.parent_font_color}; 
+                                                    font-family: ${matchingContainer.parent_font_family}; 
+                                                    font-style: ${matchingContainer.parent_font_style}; 
+                                                    margin-bottom: 5px;
+                                                    text-overflow: ellipsis;
+                                                    overflow: hidden;
+                                                    white-space: nowrap;
+                                                    width: auto;
+                                                    max-width: 100%;">
+                                                ${matchingContainer.container_name}
+                                            </h1>
+                                            <div style="background-color: ${matchingContainer.child_background_color}; 
+                                                    color: ${matchingContainer.child_font_color}; 
+                                                    font-style: ${matchingContainer.child_font_style}; 
+                                                    font-family: ${matchingContainer.child_font_family}; 
+                                                    width: auto; 
+                                                    height: calc(100% - 11.5vh); 
+                                                    padding: 10px; 
+                                                    border-radius: 5px">
+                                                <p style="white-space: pre-wrap">${content}</p>
+                                            </div>
+                                        </div>` :
+                                        `<div class="carousel-content" 
+                                            style="position: absolute;
+                                                    left: ${matchingContainer.xaxis}px;
+                                                    top: ${matchingContainer.yaxis}px;
+                                                    width: ${matchingContainer.width_px}px;
+                                                    height: ${matchingContainer.height_px}px;
+                                                    background-color: ${matchingContainer.parent_background_color};
+                                                    padding: 10px;
+                                                    border-radius: 5px;
+                                                    display: flex;
+                                                    justify-content: center;
+                                                    align-items: center;
+                                                    flex-direction: column;">
+                                                <h1 style="font-size: 35px; color: ${matchingContainer.parent_font_color}"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1> 
+                                                <h1 style="color: ${matchingContainer.parent_font_color}; 
+                                                    font-family: ${matchingContainer.parent_font_family}; 
+                                                    font-style: ${matchingContainer.parent_font_style}; 
+                                                    margin-bottom: 5px;
+                                                    text-align: center;
+                                                    align-content: center;">
+                                                ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Container not visible in the TV
+                                            </h1>
+                                        </div>`
+                                    }
+                                </div>
+                                <p id="tvBrand2UserHome_${matchingContainer.tv_id}" style="text-align: center; font-size: 25px; margin-top: auto; color: white; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 250px;">${matchingContainer.tv_brand}</p>
+                                <div class="tv-stand"></div>
                             </div>
                         </div>
                     </div>
@@ -279,7 +353,7 @@
                 carouselHTML += `
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <button type="button" class="carousel-control prev" onclick="moveCarousel(-1)"><i class="fa fa-angle-left" aria-hidden="true"></i> Previous</button>
-                        <p id="carouselTvName">${initialTvName}</p>
+                        <p id="carouselTvName" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 200px;">${initialTvName}</p>
                         <button type="button" class="carousel-control next" onclick="moveCarousel(1)">Next <i class="fa fa-angle-right" aria-hidden="true"></i></button>
                     </div>
                 `;
@@ -304,7 +378,8 @@
 
             // Function to move carousel
             window.moveCarousel = function(direction) {
-                items[currentIndex].style.display = 'none'; // Hide current item
+                // Hide current item
+                items[currentIndex].style.display = 'none';
                 items[currentIndex].classList.remove('active');
 
                 // Update index
@@ -317,31 +392,56 @@
                     currentIndex = 0;
                 }
 
-                items[currentIndex].style.display = 'block'; // Show new item
+                // Reset transform on all frames before showing new one
+                items.forEach(item => {
+                    const tvId = item.getAttribute('data-tv-id');
+                    const frame = document.getElementById(`tvFrame-${tvId}`);
+                    if (frame) {
+                        frame.style.transform = 'none';
+                    }
+                });
+
+                // Show new item
+                items[currentIndex].style.display = 'block';
                 items[currentIndex].classList.add('active');
 
-                updateTvName(); // Update the TV name based on the new active item
+                // Small delay to ensure DOM updates before fitting
+                setTimeout(() => {
+                    updateTvName();
+                    fitFrameToParent();
+                }, 0);
             };
+
 
             const carouselContent = document.querySelector('.carousel-content');
 
-            // Function to fit the tv-frame inside its parent
+            // Modified fit frame function to maintain aspect ratio
             function fitFrameToParent() {
-                const parent = carouselContent.parentElement;
+                const activeItem = document.querySelector('.carousel-item.active');
+                if (!activeItem) return;
+                
+                const tvId = activeItem.getAttribute('data-tv-id');
+                const tvFrame = document.getElementById(`tvFrame-${tvId}`);
+                if (!tvFrame) return;
+
+                const parent = tvFrame.parentElement;
                 const parentRect = parent.getBoundingClientRect();
 
-                // Reset any existing transformations and positioning
-                carouselContent.style.transform = 'none';
+                // Reset any existing transformations
+                tvFrame.style.transform = 'none';
                 
-                const frameRect = carouselContent.getBoundingClientRect();
-
+                // Force a reflow
+                void tvFrame.offsetWidth;
+                
+                const frameRect = tvFrame.getBoundingClientRect();
+                
                 const scaleX = parentRect.width / frameRect.width;
                 const scaleY = parentRect.height / frameRect.height;
-                const scale = Math.min(scaleX, scaleY, 1); // Don't scale up if already smaller
+                const scale = Math.min(scaleX, scaleY, 0.5);
 
                 // Apply transformations
-                carouselContent.style.transform = `scale(${scale})`;
-                carouselContent.style.transformOrigin = 'top left';
+                tvFrame.style.transform = `scale(${scale})`;
+                tvFrame.style.transformOrigin = 'center center';
             }
 
             // Fit frame on load

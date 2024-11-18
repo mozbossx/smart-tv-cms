@@ -8,7 +8,14 @@ include 'get_session.php';
 
 include 'admin_access_only.php';
 
+// Fetch data from smart_tvs_tb
+if($user_type == 'Super Admin') {
+    $querySelectExtistingTvs = "SELECT * FROM smart_tvs_tb WHERE tv_name != 'Unknown' AND tv_brand != 'Unknown'";
+} else {
+    $querySelectExtistingTvs = "SELECT * FROM smart_tvs_tb WHERE tv_department = '$department' AND tv_name != 'Unknown' AND tv_brand != 'Unknown'";
+}
 
+$resultSelectExtistingTvs = mysqli_query($conn, $querySelectExtistingTvs);
 
 ?>
 
@@ -49,30 +56,30 @@ include 'admin_access_only.php';
                                 <li class="breadcrumb-item active" aria-current="page">Manage Templates</li>
                             </ol>
                         </nav>
-                        <!-- search form -->
-                        <form class="search-form" style="width: 550px; max-width: 100%; margin: 0 auto; margin-bottom: 10px;">
-                            <div class="floating-label-container">
-                                <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchTvs()">
-                                <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search for TV Name, Brand, Department, or ID</label>
-                                <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
-                                    <i class="fa fa-times" aria-hidden="true"></i>
-                                </button>
-                            </div>
-                        </form>
+                        <?php
+                        if (mysqli_num_rows($resultSelectExtistingTvs) > 0) {
+                            echo '
+                                <!-- search form -->
+                                <form class="search-form" style="width: 550px; max-width: 100%; margin: 0 auto; margin-bottom: 10px;">
+                                    <div class="floating-label-container">
+                                        <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchTvs()">
+                                        <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search for TV Name, Brand, Department, or ID</label>
+                                        <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                                            <i class="fa fa-times" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            ';
+                        } else if (mysqli_num_rows($resultSelectExtistingTvs) == 0) {
+                            echo '';
+                        }
+                        ?>
+
                         <?php include('error_message.php'); ?>
                         <div class="content-grid-container">
-                        <?php
-                        // Fetch data from smart_tvs_tb
-                        if($user_type == 'Super Admin') {
-                            $query = "SELECT * FROM smart_tvs_tb WHERE tv_name != 'Unknown' AND tv_brand != 'Unknown'";
-                        } else {
-                            $query = "SELECT * FROM smart_tvs_tb WHERE tv_department = '$department' AND tv_name != 'Unknown' AND tv_brand != 'Unknown'";
-                        }
-
-                        $result = mysqli_query($conn, $query);
-                
-                        if (mysqli_num_rows($result) > 0) {
-                            while ($row = mysqli_fetch_assoc($result)) {
+                        <?php                
+                        if (mysqli_num_rows($resultSelectExtistingTvs) > 0) {
+                            while ($row = mysqli_fetch_assoc($resultSelectExtistingTvs)) {
                                 $tvId = $row['tv_id'];
                                 $tvBrand = $row['tv_brand'];
                                 $tvName = $row['tv_name'];
@@ -81,16 +88,16 @@ include 'admin_access_only.php';
                                 $tvWidth = $row['width_px'];
                                 // Display each TV item
                                 echo '<div class="content-container" data-tv-name="' . strtolower(htmlspecialchars($tvName)) . '" data-tv-brand="' . strtolower(htmlspecialchars($tvBrand)) . '" data-tv-id="' . strtolower(htmlspecialchars($tvId)) . '" data-tv-department="' . strtolower(htmlspecialchars($tvDepartment)) . '">';
-                                echo '<h1 class="tv-title" id="tvNameUserHome_' . $tvId . '" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($row['tv_name']) . '</h1>';
+                                echo '<h1 class="tv-title" id="tvNameUserHome_' . $tvId . '" style="text-align: center; padding-bottom: 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($row['tv_name']) . '</h1>';
                                 echo '<div style="display: flex; justify-content: center; align-items: center;">';
                                     echo '<p style="margin: 0; margin-right: 5px; color: #6E6E6E">ID: ' . htmlspecialchars($row['tv_id']) . '</p>'; 
-                                    echo '<p id="tvBrandUserHome_' . $tvId . '" style="margin: 0; color: #6E6E6E;">| ' . htmlspecialchars($row['tv_brand']) . '</p>'; 
+                                    echo '<p id="tvBrandUserHome_' . $tvId . '" style="margin: 0; color: #6E6E6E; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 150px;">| ' . htmlspecialchars($row['tv_brand']) . '</p>'; 
                                 echo '</div>';
                                 echo '<p id="tvDepartmentUserHome_' . $tvId . '" style="margin: 0; margin-bottom: 10px; color: #6E6E6E; text-align: center;">' . htmlspecialchars($row['tv_department']) . '</p>'; 
                                 echo '<div class="tv-frame-parent" style="width: auto; height: 350px; background: none; cursor: default;">';
                                 echo '<div class="tv-frame" style="display: flex; flex-direction: column; align-items: center;">';
                                     echo "<iframe frameborder='0' src='tv2.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
-                                    echo '<p id="tvBrand2UserHome_' . $tvId . '" style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($row['tv_brand']) .'</p>';
+                                    echo '<p id="tvBrand2UserHome_' . $tvId . '" style="text-align: center; font-size: 25px; margin-top: auto; color: white; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 250px;">'. htmlspecialchars($row['tv_brand']) .'</p>';
                                     echo '<div class="tv-stand"></div>';
                                 echo "</div>";
                                 echo "</div>";
@@ -101,12 +108,18 @@ include 'admin_access_only.php';
                                 echo "<button class='green-button' style='float: right; margin-top: auto;' onclick='window.location.href=\"edit_template.php?tvId=$tvId&isIframe=true\"'>Edit Template</button>";
                                 echo '</div>';
                             }
-                        } else {
-                            echo '<p style="font-size: 25px; color: black; margin-top: 5px;">No TVs found.</p>';
-                        }
+                        } 
                         ?>
                         </div>
                     </div>
+                    <?php
+                    if (mysqli_num_rows($resultSelectExtistingTvs) == 0) {
+                        echo '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%;">';
+                            echo '<img src="images/no_tvs_found.png" alt="No TVs found" style="display: block; margin: 0 auto; width: auto; height: 200px;">';
+                            echo '<p style="text-weight: bold; font-size: 25px; color: black; margin-top: 5px; text-align: center;">No TVs found</p>';
+                        echo '</div>';
+                    }
+                    ?>
                 </div>
             </div>
         </div>
@@ -137,11 +150,13 @@ include 'admin_access_only.php';
         }
 
         // Add event listener for the clear search button
-        document.getElementById('clearSearch').addEventListener('click', function() {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.value = '';
-            searchTvs(); // Reset the search results
-        });
+        if (document.getElementById('clearSearch')) {
+            document.getElementById('clearSearch').addEventListener('click', function() {
+                const searchInput = document.getElementById('searchInput');
+                searchInput.value = '';
+                searchTvs(); // Reset the search results
+            });
+        }
     </script>
 </body>
 </html>

@@ -233,8 +233,8 @@ $conn->close();
                                 </div>
                             </div>
                             <div class="scale-buttons-2">
-                                <button type="button" id="openSidebarButton" class="open-sidebar-button open" onclick="openSidebar()"><i class="fa fa-angle-right"></i></button>
-                                <button type="button" id="updateTemplateButton" style="display: none;"><i class="fa fa-floppy-o"></i></button>
+                                <button type="button" id="openSidebarButton" class="open-sidebar-button open" style="width: 40px;" onclick="openSidebar()"><i class="fa fa-angle-right"></i></button>
+                                <button type="button" id="updateTemplateButton" style="display: none; width: 40px;"><i class="fa fa-floppy-o"></i></button>
                             </div>
                             <!-- Top Bar Customization Left-side panel -->
                             <div id="topbarLeftSidePanel" class="left-side-panel" >

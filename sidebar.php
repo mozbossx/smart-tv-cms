@@ -58,7 +58,7 @@ $stmt->close();
 <div class="sidebar">
     <nav class="navbar">
         <div style="display: flex;">
-            <button id="minimizeSidebarButton" style="background: none; border: none; height: 40px; width: 40px; margin-top: 10px"><i class="fa fa-angle-left" style="padding-right: 8px; color: white; font-size: 40px"></i></button>
+            <button id="minimizeSidebarButton" style="background: none; border: none; height: 40px; width: 40px; margin-top: 10px; cursor: pointer;"><i class="fa fa-angle-left" style="padding-right: 8px; color: white; font-size: 40px"></i></button>
         </div>
         <div class="line-separator"></div>
         <a style="font-size: 17px" href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo ($current_page === 'user_home.php' || $current_page === 'edit_announcement.php' || $current_page === 'edit_event.php' || $current_page === 'edit_news.php' || $current_page === 'edit_promaterial.php' || $current_page === 'edit_peo.php') ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-home" style="padding-right: 8px"></i>Home</a>
@@ -74,7 +74,7 @@ $stmt->close();
         <?php } ?>
         <a style="font-size: 17px" href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" <?php echo $current_page === 'profile.php' ? 'class="active-sidebar-content"' : ''; ?>><i class="fa fa-user" style="padding-right: 8px"></i>Profile</a>
         <div class="line-separator" style="margin-top: 20px"></div>
-        <button style="font-size: 17px; background: none; border: none; color: white; padding: 10px; width: 100%; text-align: left" onclick="openLogoutModal()"><i class="fa fa-sign-out" style="padding-right: 7px"></i>Logout</button>
+        <button style="font-size: 17px; background: none; border: none; color: white; padding: 10px; width: 100%; text-align: left; cursor: pointer" onclick="openLogoutModal()"><i class="fa fa-sign-out" style="padding-right: 7px"></i>Logout</button>
         <!-- <a href="logout.php" style="margin-bottom: 80px"><i class="fa fa-sign-out" style="padding-right: 8px"></i>Logout</a> -->
     </nav>
 </div>

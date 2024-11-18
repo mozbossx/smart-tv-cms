@@ -17,8 +17,8 @@ const displaySmartTVTable = (data) => {
     data.forEach(row => {
         tableHtml += `<trs>
             <td style="text-align: center;">${row.tv_id}</td>
-            <td style="text-align: left;">${row.tv_name}</td>
-            <td style="text-align: left;">${row.tv_brand}</td>
+            <td style="text-align: left; column-width: 150px; overflow: auto">${row.tv_name}</td>
+            <td style="text-align: left; column-width: 150px; overflow: auto">${row.tv_brand}</td>
             <td style="text-align: left;">${row.tv_department}</td>
             <td style="text-align:center;">
                 <button type="button" class="green-button" style="width: 100%; margin-bottom: 5px" onclick="showEditSmartTVModal(${row.tv_id})">Edit</button>
@@ -75,7 +75,7 @@ const sendWebSocketMessage = (data) => {
                             break;
                     }
                     displaySmartTVTable(data);
-                } else {
+                } else if (message.success == false) {
                     let errorMessage = message.message || 'An error occurred. Please try again.';
                     showErrorModal(errorMessage);
                 }
