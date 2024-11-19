@@ -46,11 +46,11 @@ $stmtNotificationCount->close();
             <ul>
                 <li>
                     <a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo ($current_page === 'user_home.php' || $current_page === 'tv_contents.php' || $current_page === 'edit_announcement.php' || $current_page === 'edit_event.php' || $current_page === 'edit_news.php' || $current_page === 'edit_promaterial.php' || $current_page === 'edit_peo.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>Home</a>
+                    <?php echo (isset($_GET['action']) && $_GET['action']=='edit') || ($current_page === 'user_home.php' || $current_page === 'tv_contents.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>Home</a>
                 </li>
                 <li>
                     <a id="dropdown-arrow" href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                        <?php echo ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'form_add_new_feature.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
+                        <?php echo ((!isset($_GET['action']) && ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'form_add_new_feature.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php'))) ? 'class="active-header-content" style="color:black"' : ''; ?>>
                         Create Post
                     </a>
                     <ul class='sub-menus'>

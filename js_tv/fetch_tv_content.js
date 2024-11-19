@@ -110,7 +110,9 @@ const updateUI = (data, type) => {
             <div class="content-container-con">
                 <div class="content-main">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <p class="main-message" style="word-break: break-word;">${data.announcement_body}</p>
+                    <span class="main-message" style="word-break: break-word;">
+                        ${data.announcement_body}
+                    </span>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -129,7 +131,9 @@ const updateUI = (data, type) => {
             <div class="content-container-con">
                 <div class="content-main">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <p class="main-message" style="word-break: break-word;">${data.event_body}</p>
+                    <span class="main-message" style="word-break: break-word;">
+                        ${data.event_body}
+                    </span>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -148,7 +152,9 @@ const updateUI = (data, type) => {
             <div class="content-container-con">
                 <div class="content-main">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <p class="main-message" style="word-break: break-word;">${data.news_body}</p>
+                    <span class="main-message" style="word-break: break-word;">
+                        ${data.news_body}
+                    </span>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -184,9 +190,15 @@ const updateUI = (data, type) => {
         contentHTML = `
             <div class="content-container-con">
                 <div class="content-main">
-                    <p class="main-message" style="word-break: break-word;"><b>${data.peo_title}</b></p>
-                    <p class="main-message" style="word-break: break-word;">${data.peo_description}</p>
-                    <p class="main-message" style="word-break: break-word;">${data.peo_subdescription}</p>
+                    <span class="main-message" style="word-break: break-word;">
+                        <b>${data.peo_title}</b>
+                    </span>
+                    <span class="main-message" style="word-break: break-word;">
+                        ${data.peo_description}
+                    </span>
+                    <span class="main-message" style="word-break: break-word;">
+                        ${data.peo_subdescription}
+                    </span>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -205,9 +217,15 @@ const updateUI = (data, type) => {
             <div class="content-container-con">
                 <div class="content-main">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <p class="main-message" style="word-break: break-word;"><b>${data.so_title}</b></p>
-                    <p class="main-message" style="word-break: break-word;">${data.so_description}</p>
-                    <p class="main-message" style="word-break: break-word;">${data.so_subdescription}</p>
+                    <span class="main-message" style="word-break: break-word;">
+                        <b>${data.so_title}</b>
+                    </span>
+                    <span class="main-message" style="word-break: break-word;">
+                        ${data.so_description}
+                    </span>
+                    <span class="main-message" style="word-break: break-word;">
+                        ${data.so_subdescription}
+                    </span>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -267,9 +285,8 @@ const updateUI = (data, type) => {
             border: none;
             border-top-left-radius: 5px;
             border-top-right-radius: 5px;
-            padding: 10px;
             text-align: justify;
-            height: calc(100% - 20px);
+            height: 100%;
             bottom: 0;
         `;
 
@@ -302,27 +319,49 @@ const updateUI = (data, type) => {
 };
 
 function adjustFontSize(type) {
-    const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+    const carouselContainer = document.querySelector('.content-main');
     if (carouselContainer) {       
-        const textContainers = carouselContainer.querySelectorAll('.content-main');
-        textContainers.forEach((textContainer, index) => {           
+        const textContainers = carouselContainer.querySelectorAll('.main-message');
+        textContainers.forEach((textContainer) => {           
             const containerWidth = carouselContainer.offsetWidth;
             const containerHeight = carouselContainer.offsetHeight;
 
-            let fontSize = 1;
+            let fontSize = 10;
+            let lineHeight = 1.0; // Start with base line height
             textContainer.style.fontSize = `${fontSize}px`;
+            textContainer.style.lineHeight = lineHeight.toString();
 
+            // First pass: adjust font size and line height until content fits
             while (
                 textContainer.scrollWidth <= containerWidth &&
                 textContainer.scrollHeight <= containerHeight &&
-                fontSize < 100
+                fontSize < 20
             ) {
                 fontSize++;
                 textContainer.style.fontSize = `${fontSize}px`;
+                
+                // Incrementally adjust line height
+                if (textContainer.scrollHeight < containerHeight * 0.8) { // If content height is less than 80% of container
+                    lineHeight += 0.1; // Increase line height by 0.1
+                    textContainer.style.lineHeight = lineHeight.toString();
+                }
+
+                // If content overflows height, reduce line height
+                if (textContainer.scrollHeight > containerHeight) {
+                    lineHeight = Math.max(1.0, lineHeight - 0.1); // Don't go below 1.0
+                    textContainer.style.lineHeight = lineHeight.toString();
+                }
             }
 
-            fontSize -= 2; // Reduce by 2 to ensure text fits within container
+            // Final adjustments
+            fontSize -= 6; // Reduce font size to ensure fit
             textContainer.style.fontSize = `${fontSize}px`;
+
+            // Fine-tune line height one more time
+            while (textContainer.scrollHeight > containerHeight && lineHeight > 1.0) {
+                lineHeight -= 0.1;
+                textContainer.style.lineHeight = lineHeight.toString();
+            }
         });
     } else {
         console.log(`${type}CarouselContainer not found`);

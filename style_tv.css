@@ -188,8 +188,8 @@ body {
 .main-message {
     flex: 1;
     overflow: hidden;
-    font-size: clamp(12px, 2vw, 24px);
-    line-height: 1.4;
+    /* font-size: clamp(12px, 2vw, 24px); */
+    /* line-height: 1.4; */
     margin: 10px 0;
 }
 

@@ -192,11 +192,11 @@ const populateEditSmartTVModal = (tvId) => {
                     <label for="edit_tv_id" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Device ID</label>
                 </div>
                 <div class="floating-label-container">
-                    <input type="text" name="tv_name" id="edit_tv_name" placeholder=" " class="floating-label-input-text-area">
+                    <input type="text" name="tv_name" id="edit_tv_name" placeholder=" " class="floating-label-input-text-area" maxlength="20">
                     <label for="edit_tv_name" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">TV Name</label>
                 </div>
                 <div class="floating-label-container">
-                    <input type="text" name="tv_brand" id="edit_tv_brand" placeholder=" " class="floating-label-input-text-area">
+                    <input type="text" name="tv_brand" id="edit_tv_brand" placeholder=" " class="floating-label-input-text-area" maxlength="20">
                     <label for="edit_tv_brand" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">TV Brand</label>
                 </div>
                 <div class="floating-label-container">

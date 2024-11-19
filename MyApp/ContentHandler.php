@@ -1342,8 +1342,7 @@ class ContentHandler implements MessageComponentInterface
                        'topbar_time_font_family',
                        'topbar_date_font_color',
                        'topbar_date_font_style',
-                       'topbar_date_font_family',
-                       'topbar_position',
+                       'topbar_date_font_family'
                     ];
             
             // Extract the tv_id and topbar_color details from the incoming data
@@ -1365,8 +1364,6 @@ class ContentHandler implements MessageComponentInterface
             $topbarDateColor = $data['topbar_date_font_color'] ?? null;
             $topbarDateFontStyle = $data['topbar_date_font_style'] ?? null;
             $topbarDateFontFamily = $data['topbar_date_font_family'] ?? null;
-
-            $topbarPosition = $data['topbar_position'] ?? null;
             
             if ($tvId !== null || $topbarColor !== null || $topbarTvNameColor !== null || $topbarTvIdColor !== null || $topbarTimeColor !== null || $topbarDateColor !== null) {
                 // Prepare the parameters for the update statement
@@ -1383,7 +1380,6 @@ class ContentHandler implements MessageComponentInterface
                            $topbarDateColor, 
                            $topbarDateFontStyle,
                            $topbarDateFontFamily,
-                           $topbarPosition,
                            $tvId];
                 $fieldAssignments = implode(', ', array_map(fn($field) => "$field = ?", $fields));
                 $stmt = $this->pdo->prepare("UPDATE {$table} SET {$fieldAssignments} WHERE {$idField} = ?");
@@ -1412,8 +1408,7 @@ class ContentHandler implements MessageComponentInterface
                         'topbar_time_font_family' => $topbarTimeFontFamily,
                         'topbar_date_font_color' => $topbarDateColor,
                         'topbar_date_font_style' => $topbarDateFontStyle,
-                        'topbar_date_font_family' => $topbarDateFontFamily,
-                        'topbar_position' => $topbarPosition,
+                        'topbar_date_font_family' => $topbarDateFontFamily
                     ];
                 } else {
                     $response = [

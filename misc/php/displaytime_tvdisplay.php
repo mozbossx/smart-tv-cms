@@ -62,7 +62,7 @@ if ($isEditMode && isset($contentData["{$type}_id"])) {
             <?= $options_tv; ?>
         </div>
         <div style="display: flex; float: right">
-            <button type="button" id="closeTvModal" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B">Cancel</button>
+            <button type="button" id="closeTvModal" class="grey-button" style="margin-top: 10px; margin-right: 5px">Cancel</button>
             <button type="button" id="saveTvSelection" class="green-button" style="border: 1px solid #264B2B; margin-right: 0">Save</button>
         </div>
     </div>
@@ -94,12 +94,11 @@ if ($isEditMode && isset($contentData["{$type}_id"])) {
             });
             
             if (selectedTvs.length > 0) {
-                const maxLength = 50; // Adjust this value as needed
-                let displayText = selectedTvs.join(", ");
-                if (displayText.length > maxLength) {
-                    displayText = displayText.substring(0, maxLength) + "...";
+                if (selectedTvs.length === 1) {
+                    tvModalButton.textContent = `${selectedTvs.length} TV Selected`;
+                } else {
+                    tvModalButton.textContent = `${selectedTvs.length} TVs Selected`;
                 }
-                tvModalButton.textContent = displayText;
             } else {
                 tvModalButton.textContent = "Select TV Displays";
             }

@@ -2,11 +2,17 @@
     <div class="modal-content-preview">
         <div class="flex-preview-content">
             <?php 
-                $sqlContainers = "SELECT c.*, t.width_px as tv_width_px, t.height_px as tv_height_px, t.tv_brand as tv_brand,
-                    b.background_image_path, b.background_hex_color, b.isImageBackground, b.isStaticBackground
+                $sqlContainers = "SELECT c.*, t.width_px as tv_width_px, t.height_px as tv_height_px, t.tv_brand as tv_brand, t.tv_name as tv_name, t.tv_department as tv_department,
+                    b.background_image_path, b.background_hex_color, b.isImageBackground, b.isStaticBackground,
+                    tb.topbar_hex_color, tb.department_logo_path,
+                    tb.topbar_tvname_font_color, tb.topbar_tvname_font_style, tb.topbar_tvname_font_family, 
+                    tb.topbar_tvid_font_color, tb.topbar_tvid_font_style, tb.topbar_tvid_font_family, 
+                    tb.topbar_time_font_color, tb.topbar_time_font_style, tb.topbar_time_font_family, 
+                    tb.topbar_date_font_color, tb.topbar_date_font_style, tb.topbar_date_font_family
                 FROM containers_tb c 
                 JOIN smart_tvs_tb t ON c.tv_id = t.tv_id
-                LEFT JOIN background_tv_tb b ON c.tv_id = b.tv_id";
+                LEFT JOIN background_tv_tb b ON c.tv_id = b.tv_id
+                LEFT JOIN topbar_tv_tb tb ON c.tv_id = tb.tv_id";
                 $resultContainers = mysqli_query($conn, $sqlContainers);
                 $containers = [];
                 while ($row = mysqli_fetch_assoc($resultContainers)) {
@@ -28,6 +34,8 @@
 </div>
 
 <script>
+    let clockInterval;
+
     document.getElementById('closeButton').addEventListener('click', function() {
         closePreviewModal();
     });
@@ -36,6 +44,12 @@
     function closePreviewModal() {
         var modal = document.getElementById('previewModal');
         modal.style.display = 'none';
+
+        // Clear the interval if it exists
+        if (clockInterval) {
+            clearInterval(clockInterval);
+            clockInterval = null;
+        }
     }
 
     function validateAndOpenPreviewModal() {
@@ -155,6 +169,7 @@
 
     // Function to get the preview content
     function getPreviewContent() {
+        const displayTime = document.querySelector('[name="display_time"]').value;
         const selectedType = document.querySelector('[name="type"]').value;
         const isEditMode = document.querySelector('input[name="action_value"]')?.value === 'edit';
 
@@ -176,7 +191,7 @@
         var previewContent = '';
 
         if (selectedType !== 'peo' && selectedType !== 'so') {
-            previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
+            previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + displayTime + ' seconds</p>';
             previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_datetime"]').value) + '</p>';
             
             // Only show schedule date/time in create mode
@@ -211,14 +226,63 @@
         updatePreviewContent();
         // Display the preview content in the modal
         document.getElementById('previewContent').innerHTML = getPreviewContent();
+
+        // Clear any existing interval
+        if (clockInterval) {
+            clearInterval(clockInterval);
+        }
+
+        // Start clock updates
+        updateClock(); // Initial update
+        clockInterval = setInterval(updateClock, 1000);
+        
+        // Clear interval when modal is closed by clicking outside
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closePreviewModal();
+            }
+        }
     }
 
     function updatePreviewContent() {
         const selectedTvs = Array.from(document.querySelectorAll('[name="tv_id[]"]:checked')).map(checkbox => parseInt(checkbox.value, 10));
         const selectedType = document.querySelector('[name="type"]').value;
         const previewContainer = document.getElementById('previewContainer');
+        const mediaInput = document.getElementById('media');
 
         let content = '';
+        let mediaContent = '';
+
+        // Generate media preview HTML if media is selected
+        if (mediaInput && mediaInput.files && mediaInput.files[0]) {
+            const file = mediaInput.files[0];
+            const fileType = file.type;
+            const fileURL = URL.createObjectURL(file);
+            
+            if (fileType.startsWith('video/')) {
+                mediaContent = `<video controls style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">
+                        <source src="${fileURL}" type="${fileType}">
+                        Your browser does not support the video tag.
+                    </video>`;
+            } else if (fileType.startsWith('image/')) {
+                mediaContent = `<img src="${fileURL}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">`;
+            }
+        }
+        <?php if ($isEditMode && isset($contentData['media_path'])): ?>
+            // Show existing media in edit mode
+            const mediaPath = '<?php echo $contentData['media_path']; ?>';
+            if (mediaPath) {
+                if (mediaPath.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                    mediaContent = `<img src="servers/<?php echo $type; ?>_media/${mediaPath}" 
+                            style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">`;
+                } else if (mediaPath.match(/\.(mp4|webm|ogg)$/i)) {
+                    mediaContent = `<video controls style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">
+                            <source src="servers/<?php echo $type; ?>_media/${mediaPath}">
+                            Your browser does not support the video tag.
+                        </video>`;
+                }
+            }
+        <?php endif; ?>
 
         // Determine the content based on the selected type
         switch (selectedType) {
@@ -230,6 +294,9 @@
                 break;
             case 'news':
                 content = quillEditors.newsBodyQuill.root.innerHTML;
+                break;
+            case 'promaterial':
+                content = mediaContent; 
                 break;
             case 'peo':
                 content = `
@@ -248,6 +315,11 @@
             default:
                 content = 'Unknown content type';
                 break;
+        }
+
+        // For types other than promaterial, append media content after the main content if it exists
+        if (selectedType !== 'promaterial' && mediaContent) {
+            content += mediaContent;
         }
 
         // Clear previous content
@@ -269,13 +341,36 @@
                 carouselHTML += `
                     <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;" data-tv-id="${matchingContainer.tv_id}">
                         <div class="tv-frame-parent" style="width: auto; height: 100%; background: none; cursor: default;">
-                            <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center; overflow: clip; user-select: all">
+                                <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
+                                    <img src="${matchingContainer.department_logo_path ? 
+                                    `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
+                                    'images/soe_icon.png'}" 
+                                    alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
+                                    <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
+                                        <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
+                                        <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                    </div>
+                                    <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
+                                        ${matchingContainer.tv_name}
+                                    </h1>
+                                    <div class="date-time">
+                                        <span class="live-clock time" style="color: ${matchingContainer.topbar_time_font_color}; font-style: ${matchingContainer.topbar_time_font_style}; font-family: ${matchingContainer.topbar_time_font_family};"></span>
+                                        <span class="live-date date" style="color: ${matchingContainer.topbar_date_font_color}; font-style: ${matchingContainer.topbar_date_font_style}; font-family: ${matchingContainer.topbar_date_font_family};"></span>
+                                    </div>
+                                </div>
                                 <div class='tv-screen' style='
                                     height: ${matchingContainer.tv_height_px}px; 
                                     width: ${matchingContainer.tv_width_px}px; 
                                     pointer-events: none; border: none;
+                                    border-radius: 0;
                                     ${matchingContainer.isImageBackground ? 
-                                        `background-image: url(servers/tv_backgrounds/${matchingContainer.tv_id}/${matchingContainer.background_image_path}); background-size: cover; background-position: center;` : 
+                                        (matchingContainer.background_image_path ? 
+                                            `background-image: url(servers/tv_backgrounds/${matchingContainer.tv_id}/${matchingContainer.background_image_path}); 
+                                            background-size: cover; 
+                                            background-position: center;` : 
+                                            'background-color: #000;'
+                                        ) :
                                         (matchingContainer.isStaticBackground ? 
                                             `background-color: ${matchingContainer.background_hex_color};` : 
                                             'background-color: #000;'
@@ -283,13 +378,12 @@
                                     }'>
                                     ${matchingContainer.visible === '1' ? 
                                         `<div class="carousel-content" 
-                                            style="position: absolute;
-                                                    left: ${matchingContainer.xaxis}px;
-                                                    top: ${matchingContainer.yaxis}px;
+                                            style="position: relative;
+                                                    transform: translate(${matchingContainer.xaxis}px, ${matchingContainer.yaxis}px);
                                                     width: ${matchingContainer.width_px}px;
                                                     height: ${matchingContainer.height_px}px;
                                                     background-color: ${matchingContainer.parent_background_color};
-                                                    padding: 10px;
+                                                    padding: 5px;
                                                     border-radius: 5px;">
                                             <h1 style="color: ${matchingContainer.parent_font_color}; 
                                                     font-family: ${matchingContainer.parent_font_family}; 
@@ -299,28 +393,73 @@
                                                     overflow: hidden;
                                                     white-space: nowrap;
                                                     width: auto;
-                                                    max-width: 100%;">
+                                                    max-width: 100%;
+                                                    font-size: 2.5vh">
                                                 ${matchingContainer.container_name}
                                             </h1>
-                                            <div style="background-color: ${matchingContainer.child_background_color}; 
+                                            <div id="carouselContent-${matchingContainer.tv_id}" style="background-color: ${matchingContainer.child_background_color}; 
                                                     color: ${matchingContainer.child_font_color}; 
                                                     font-style: ${matchingContainer.child_font_style}; 
                                                     font-family: ${matchingContainer.child_font_family}; 
                                                     width: auto; 
-                                                    height: calc(100% - 11.5vh); 
-                                                    padding: 10px; 
+                                                    height: calc(100% - 9.5vh); 
+                                                    display: flex;
+                                                    flex-direction: column;
+                                                    padding: 5px; 
                                                     border-radius: 5px">
-                                                <p style="white-space: pre-wrap">${content}</p>
+                                                <div class="carousel-item-2 active" style="width: auto; margin-bottom: 5px; height: 100%; border-radius: 5px;">
+                                                    <div style="border: none; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: justify; height: 100%; bottom: 0;">
+                                                        <div class="content-container-con" style="height: 100%">
+                                                            <div class="content-main">
+                                                                ${selectedType === 'promaterial' ? 
+                                                                    mediaContent : 
+                                                                    `${mediaContent ? 
+                                                                            `<div class="media-container" style="margin-bottom: 5px;">
+                                                                                ${mediaContent}
+                                                                            </div>` : 
+                                                                            ''
+                                                                        }
+                                                                        <div class="main-message" style="margin: 0; word-break: break-word;">
+                                                                            ${selectedType === 'peo' ? 
+                                                                                `<h2>${quillEditors.peoTitleQuill.root.innerHTML}</h2>
+                                                                                <div>${quillEditors.peoDescriptionQuill.root.innerHTML}</div>
+                                                                                <div>${quillEditors.peoSubdescriptionQuill.root.innerHTML}</div>` :
+                                                                            selectedType === 'so' ? 
+                                                                                `<h2>${quillEditors.soTitleQuill.root.innerHTML}</h2>
+                                                                                <div>${quillEditors.soDescriptionQuill.root.innerHTML}</div>
+                                                                                <div>${quillEditors.soSubdescriptionQuill.root.innerHTML}</div>` :
+                                                                            selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
+                                                                            selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
+                                                                            selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
+                                                                            ''}
+                                                                        </div>`
+                                                                }
+                                                            </div>
+                                                            <div class="content-details">
+                                                                <div style="display: flex; flex-direction: row; margin: 0">
+                                                                    <div>
+                                                                        <p class="author" style="margin: 0; font-size: 1.9vh;"><small>Posted on ${new Date().toLocaleString()}</small></p>
+                                                                    </div>
+                                                                    <div style="margin-left: auto; margin-top: auto">
+                                                                        <p class="display-time" style="text-align: right; margin: 0; font-size: 1.9vh;">
+                                                                            <i class="fa fa-hourglass-half" aria-hidden="true"></i> 
+                                                                            <span class="time-left">${document.querySelector('[name="display_time"]').value}s</span>
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>` :
                                         `<div class="carousel-content" 
-                                            style="position: absolute;
-                                                    left: ${matchingContainer.xaxis}px;
-                                                    top: ${matchingContainer.yaxis}px;
+                                            style="position: relative;
+                                                    transform: translate(${matchingContainer.xaxis}px, ${matchingContainer.yaxis}px);
                                                     width: ${matchingContainer.width_px}px;
                                                     height: ${matchingContainer.height_px}px;
                                                     background-color: ${matchingContainer.parent_background_color};
-                                                    padding: 10px;
+                                                    padding: 5px;
                                                     border-radius: 5px;
                                                     display: flex;
                                                     justify-content: center;
@@ -426,7 +565,7 @@
 
                 const parent = tvFrame.parentElement;
                 const parentRect = parent.getBoundingClientRect();
-
+                
                 // Reset any existing transformations
                 tvFrame.style.transform = 'none';
                 
@@ -435,13 +574,15 @@
                 
                 const frameRect = tvFrame.getBoundingClientRect();
                 
-                const scaleX = parentRect.width / frameRect.width;
-                const scaleY = parentRect.height / frameRect.height;
+                // Calculate scale while leaving room for the TV stand
+                const scaleX = (parentRect.width) / frameRect.width;
+                const scaleY = (parentRect.height - 50) / frameRect.height; // Subtract some pixels for TV stand
                 const scale = Math.min(scaleX, scaleY, 0.5);
 
-                // Apply transformations
+                // Apply transformations with adjusted position
                 tvFrame.style.transform = `scale(${scale})`;
-                tvFrame.style.transformOrigin = 'center center';
+                tvFrame.style.transformOrigin = 'center top';
+                tvFrame.style.marginBottom = '50px'; // Add margin to ensure stand visibility
             }
 
             // Fit frame on load
@@ -462,4 +603,38 @@
         });
     });
 
+    // Function to update the clock
+    function updateClock() {
+        const clockElements = document.getElementsByClassName('live-clock');
+        const dateElements = document.getElementsByClassName('live-date');
+        
+        if (clockElements.length > 0 && dateElements.length > 0) {
+            const now = new Date();
+            const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+            
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12; // Convert to 12-hour format
+            
+            const dayOfWeek = daysOfWeek[now.getDay()];
+            const month = months[now.getMonth()];
+            const day = now.getDate().toString().padStart(2, '0');
+            const year = now.getFullYear();
+
+            const timeString = `${hours}:${minutes} ${ampm}`;
+            const dateString = `${dayOfWeek}, ${month} ${day}, ${year}`;
+
+            // Update all clock elements
+            Array.from(clockElements).forEach(element => {
+                element.textContent = timeString;
+            });
+
+            // Update all date elements
+            Array.from(dateElements).forEach(element => {
+                element.textContent = dateString;
+            });
+        }
+    }
 </script>

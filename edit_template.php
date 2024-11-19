@@ -29,6 +29,7 @@ $topbarDateColor = '';
 $topbarDateFontStyle = '';
 $topbarDateFontFamily = '';
 $topbarPosition = '';
+$topbarDepartmentLogo = '';
 
 $isStaticBackground = '';
 $isImageBackground = '';
@@ -111,6 +112,7 @@ if (isset($_GET['tvId'])) {
         $topbarDateFontFamily = $topbarColorData['topbar_date_font_family'];
 
         $topbarPosition = $topbarColorData['topbar_position'];
+        $topbarDepartmentLogo = $topbarColorData['department_logo_path'];
     }
 
     $stmtTopbarColor->close();
@@ -252,6 +254,16 @@ $conn->close();
                                             <label for="topbar_position" class="floating-label">Position</label>
                                         </div>
                                         <div class="rounded-container-media" style="background: #f3f3f3; margin-top: 0; margin-bottom: 10px; border: none; box-shadow: none;">
+                                            <div style="text-align: center;">
+                                                <?php
+                                                    if ($topbarDepartmentLogo == null) {
+                                                        echo '<img id="department_logo_preview" src="images/soe_icon.png" alt="images/soe_icon.png" style="width: auto; height: 100px; border-radius: 5px;">';
+                                                    } else {
+                                                        echo '<img id="department_logo_preview" src="servers/tv_department_logos/' . $tvId . '/' . htmlspecialchars($topbarDepartmentLogo) . '" alt="images/soe_icon.png" style="width: auto; height: 100px; border-radius: 5px;">';
+                                                    }
+                                                ?>
+                                            </div>
+                                            <!-- <img id="department_logo_preview" src="servers/tv_department_logos/<?php echo $tvId ?>/<?php echo htmlspecialchars($topbarDepartmentLogo); ?>" alt="images/soe_icon.png" style="width: 100%; height: 100px; object-fit: cover; border-radius: 5px;"> -->
                                             <p class="input-container-label">Department Logo</p>
                                             <br>
                                             <input type="file" name="department_logo" id="department_logo" accept="image/*" hidden>
@@ -406,6 +418,7 @@ $conn->close();
                                             </div>
                                         </div>
                                         <div id="image_background_section" style="display: <?php echo $isImageBackground ? 'block' : 'none'; ?>;">
+                                            <img id="background_image_preview" src="servers/tv_backgrounds/<?php echo $tvId ?>/<?php echo htmlspecialchars($backgroundImagePath); ?>" alt="Image Background" style="width: 100%; height: 100px; object-fit: cover; border-radius: 5px;">
                                             <div class="rounded-container-media" style="background: #f3f3f3; margin-top: 0; margin-bottom: 10px; border: none; box-shadow: none;">
                                                 <p class="input-container-label">Upload Image Background</p>
                                                 <br>
@@ -436,7 +449,7 @@ $conn->close();
             </div>
         </div>
         <div id="floatingMenu" class="floating-menu" style="display: none;">
-            <button onclick="handleEditClick()" style="border-radius: 40px; padding: 10px;">
+            <button onclick="handleEditClick()" style="border-radius: 40px; padding: 10px; box-shadow: -1px -1px 22px 1px rgba(0,0,0,0.45); -webkit-box-shadow: -1px -1px 22px 1px rgba(0,0,0,0.45); -moz-box-shadow: -1px -1px 22px 1px rgba(0,0,0,0.45);">
                 <span id="editContainerText" style="display: none;">Edit Container</span>
                 <span id="editBackgroundText" style="display: none;">Edit Background</span>
                 <span id="editTopbarText" style="display: none;">Edit Topbar</span>
@@ -840,6 +853,7 @@ $conn->close();
             // }
 
             const backgroundImageInput = document.getElementById('media');
+            const imagePreview = document.getElementById('background_image_preview');
             backgroundImageInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
@@ -849,10 +863,12 @@ $conn->close();
                         return;
                     }
 
-                    // Read file as base64
+                    // Create a preview URL and update the image
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        // Send via WebSocket
+                        imagePreview.src = e.target.result;
+                        
+                        // Send via WebSocket (your existing code)
                         if (typeof ws !== 'undefined' && ws.readyState === WebSocket.OPEN) {
                             ws.send(JSON.stringify({
                                 action: 'update_background_image',
@@ -866,6 +882,7 @@ $conn->close();
             });
 
             const departmentLogoInput = document.getElementById('department_logo');
+            const departmentLogoPreview = document.getElementById('department_logo_preview');
             departmentLogoInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
@@ -878,6 +895,7 @@ $conn->close();
                     // Read file as base64
                     const reader = new FileReader();
                     reader.onload = function(e) {
+                        departmentLogoPreview.src = e.target.result;
                         // Send via WebSocket
                         if (typeof ws !== 'undefined' && ws.readyState === WebSocket.OPEN) {
                             ws.send(JSON.stringify({
