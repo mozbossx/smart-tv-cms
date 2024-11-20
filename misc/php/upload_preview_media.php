@@ -10,7 +10,14 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         <br>
         <input type="file" name="media" id="media" accept="video/*, image/*" onchange="previewMedia()" hidden>
         <label for="media" class="green-button">Choose File (.mp4, .jpg, .png)</label>
-        <button type="button" id="cancelMediaButton" class="red-button" onclick="cancelMedia()" style="display: none;">Cancel</button>
+        <?php 
+        // Only show cancel button if NOT in promaterial edit mode
+        if (!($isEditMode && isset($_GET['type']) && $_GET['type'] === 'promaterial')): 
+        ?>
+            <button type="button" id="cancelMediaButton" class="red-button" onclick="cancelMedia()" style="display: none;">
+                <i class="fa fa-times" aria-hidden="true"></i> Cancel
+            </button>
+        <?php endif; ?>
         <div class="preview-media" style="border: #000 1px solid; border-radius: 5px; background: white; text-align: center; width: 100%; height: 350px; display: none; justify-content: center; align-items: center; margin-top: 15px">
             <video id="video-preview" width="100%" height="350px" controls style="display:none; border-radius: 5px; background: #000;"></video>
             <img id="image-preview" style="display:none; max-width: 100%; max-height: 100%;">
@@ -21,10 +28,12 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
             const previewMedia = document.querySelector('.preview-media');
             const videoPreview = document.getElementById('video-preview');
             const imagePreview = document.getElementById('image-preview');
-            const cancelMediaButton = document.getElementById('cancelMediaButton');
+            if (document.getElementById('cancelMediaButton')) {
+                const cancelMediaButton = document.getElementById('cancelMediaButton');
+                cancelMediaButton.style.display = 'inline-block';
+            }
            
             previewMedia.style.display = 'flex';
-            cancelMediaButton.style.display = 'inline-block';
             
             <?php if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $mediaPath)): ?>
             imagePreview.src = 'servers/<?php echo $_GET['type']; ?>_media/<?php echo $mediaPath; ?>';
@@ -46,7 +55,9 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         var videoPreview = document.getElementById('video-preview');
         var imagePreview = document.getElementById('image-preview');
         var previewMedia = document.querySelector('.preview-media'); 
-        var cancelMediaButton = document.getElementById('cancelMediaButton');
+        if (document.getElementById('cancelMediaButton')) {
+            var cancelMediaButton = document.getElementById('cancelMediaButton');
+        }
 
         if (mediaInput.files && mediaInput.files[0]) {
             var reader = new FileReader();
@@ -68,7 +79,9 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
 
                 // Show the preview-media container
                 previewMedia.style.display = 'flex';
-                cancelMediaButton.style.display = 'inline-block';
+                if (cancelMediaButton) {
+                    cancelMediaButton.style.display = 'inline-block';
+                }
             };
 
             reader.readAsDataURL(mediaInput.files[0]);
@@ -81,7 +94,37 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         var videoPreview = document.getElementById('video-preview');
         var imagePreview = document.getElementById('image-preview');
         var previewMedia = document.querySelector('.preview-media');
-        var cancelMediaButton = document.getElementById('cancelMediaButton');
+        if (document.getElementById('cancelMediaButton')) {
+            var cancelMediaButton = document.getElementById('cancelMediaButton');
+        }
+
+        // If in edit mode and there's an existing media path, delete it via AJAX
+        <?php if ($isEditMode && isset($contentData['media_path'])): ?>
+        if (confirm('Are you sure you want to remove this media?')) {
+            fetch('misc/php/delete_media.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    type: '<?php echo $_GET['type']; ?>',
+                    media_path: '<?php echo $contentData['media_path']; ?>',
+                    content_id: '<?php echo $_GET[$_GET['type'] . '_id']; ?>'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Media deleted successfully');
+                } else {
+                    console.error('Error deleting media:', data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            return; // Don't proceed with clearing if user cancels
+        }
+        <?php endif; ?>
 
         // Reset the file input
         mediaInput.value = '';
@@ -100,6 +143,8 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         previewMedia.style.display = 'none';
         
         // Hide the cancel button
-        cancelMediaButton.style.display = 'none';
+        if (cancelMediaButton) {
+            cancelMediaButton.style.display = 'none';
+        }
     }
 </script>

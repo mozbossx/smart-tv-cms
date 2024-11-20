@@ -933,6 +933,19 @@ class ContentHandler implements MessageComponentInterface
                         // Save the new media file
                         file_put_contents($media_save, $mediaData);
 
+                        // First, check for and delete existing image
+                        $stmtMediaPath = $this->pdo->prepare("SELECT media_path FROM $table WHERE $idField = ?");
+                        $stmtMediaPath->execute([$content_id]);
+                        $existingImage = $stmtMediaPath->fetch(PDO::FETCH_ASSOC);
+                        
+                        if ($existingImage && $existingImage['media_path']) {
+                            $existingFilePath = "{$mediaFolder}/" . $existingImage['media_path'];
+                            if (file_exists($existingFilePath)) {
+                                unlink($existingFilePath);
+                                error_log("Deleted existing image: $existingFilePath");
+                            }
+                        }
+
                         // Update the record with new media_path
                         $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
                         $updateStatement->execute([$filename, $content_id]);
@@ -1491,7 +1504,7 @@ class ContentHandler implements MessageComponentInterface
             $positions = $data['positions'] ?? [];
         
             if ($tvId !== null && !empty($positions)) {
-                $stmt = $this->pdo->prepare("UPDATE containers_tb SET xaxis = ?, yaxis = ?, width_px = ?, height_px = ? WHERE tv_id = ? AND container_id = ?");
+                $stmt = $this->pdo->prepare("UPDATE containers_tb SET xaxis = ?, yaxis = ?, width_px = ?, height_px = ? WHERE tv_id = ? AND container_id = ? AND visible = 1");
         
                 foreach ($positions as $position) {
                     $params = [
@@ -4292,42 +4305,42 @@ include 'misc/php/options_tv.php';
         }
     }
 
-    private function saveLayoutToDatabase($tv_id, $layout) {
-        $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+    // private function saveLayoutToDatabase($tv_id, $layout) {
+    //     $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
     
-        // Prepare the SQL statement for updating
-        $stmt = $pdo->prepare("
-            UPDATE containers_tb
-            SET position_order = ?, xaxis = ?, yaxis = ?
-            WHERE tv_id = ? AND container_id = ?
-        ");
+    //     // Prepare the SQL statement for updating
+    //     $stmt = $pdo->prepare("
+    //         UPDATE containers_tb
+    //         SET position_order = ?, xaxis = ?, yaxis = ?
+    //         WHERE tv_id = ? AND container_id = ?
+    //     ");
 
-        foreach ($layout as $index => $item) {
-            // Execute the update for each container
-            $stmt->execute([$index + 1, $item['x'], $item['y'], $tv_id, $item['id']]);
-        }
-    }
+    //     foreach ($layout as $index => $item) {
+    //         // Execute the update for each container
+    //         $stmt->execute([$index + 1, $item['x'], $item['y'], $tv_id, $item['id']]);
+    //     }
+    // }
     
-    private function loadLayoutFromDatabase($tv_id) {
-        $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+    // private function loadLayoutFromDatabase($tv_id) {
+    //     $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
         
-        $stmt = $pdo->prepare("SELECT container_id FROM containers_tb WHERE tv_id = ? ORDER BY position_order ASC");
-        $stmt->execute([$tv_id]);
+    //     $stmt = $pdo->prepare("SELECT container_id FROM containers_tb WHERE tv_id = ? ORDER BY position_order ASC");
+    //     $stmt->execute([$tv_id]);
     
-        $layout = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $layout[] = [
-                'id' => $row['container_id'],
-            ];
-        }
+    //     $layout = [];
+    //     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    //         $layout[] = [
+    //             'id' => $row['container_id'],
+    //         ];
+    //     }
     
-        // Debug: Check if the layout is populated correctly
-        // if (empty($layout)) {
-        //     error_log("No layout data found for TV ID: " . $tv_id);
-        // } else {
-        //     error_log("Layout data found for TV ID: " . $tv_id . ": " . json_encode($layout));
-        // }
+    //     // Debug: Check if the layout is populated correctly
+    //     // if (empty($layout)) {
+    //     //     error_log("No layout data found for TV ID: " . $tv_id);
+    //     // } else {
+    //     //     error_log("Layout data found for TV ID: " . $tv_id . ": " . json_encode($layout));
+    //     // }
     
-        return $layout;
-    }    
+    //     return $layout;
+    // }    
 }

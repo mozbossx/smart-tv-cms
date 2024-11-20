@@ -1527,6 +1527,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .content-container {
+    position: relative;
     width: auto;
     height: auto;
     box-sizing: border-box;

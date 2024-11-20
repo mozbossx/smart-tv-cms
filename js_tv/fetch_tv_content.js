@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.8:8081');
+const Ws = new WebSocket('ws://192.168.1.11:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -172,7 +172,7 @@ const updateUI = (data, type) => {
         contentHTML = `
             <div class="content-container-con">
                 <div class="content-main">
-                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">${mediaContent}</div>` : ''}
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -789,8 +789,7 @@ Ws.addEventListener('message', function (event) {
 
         if (data.success) {
             removeContent(type, id); // Call the helper function
-        }
-        
+        }         
     } else if (data.action === 'restore_content' || data.action === 'restore_content_and_update_expiration') {
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');

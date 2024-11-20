@@ -83,7 +83,7 @@
         let expirationDateTime = null;
         let scheduleDateTime = null;
         
-        // If not PEO/SO, validate expiration and schedule dates/times
+        // If not PEO, SO, or Promotional Material, validate expiration and schedule dates/times
         if (selectedType !== 'peo' && selectedType !== 'so' && selectedType !== 'promaterial') {
             const expirationDateTime = document.querySelector('[name="expiration_datetime"]').value;
             
@@ -118,12 +118,22 @@
                 }
             }
         } else if (selectedType === 'promaterial') {
+            const mediaInput = document.querySelector('[name="media"]');
             const expirationDateTime = document.querySelector('[name="expiration_datetime"]').value;
-            
-            if (!media || displayTime === "" || tvDisplays.length === 0 || expirationDateTime === "") {
-                errorModalMessage("Please fill the necessary fields and select at least one TV display.");
-                return;
-            }
+
+            <?php if ($isEditMode && isset($contentData['media_path'])): ?>
+                // In edit mode with existing media
+                if (displayTime === "" || tvDisplays.length === 0 || expirationDateTime === "") {
+                    errorModalMessage("Please select at least one TV display and fill in all required fields.");
+                    return;
+                }
+            <?php else: ?>
+                // New post or edit mode without existing media
+                if (!mediaInput.files[0] || displayTime === "" || tvDisplays.length === 0 || expirationDateTime === "") {
+                    errorModalMessage("Please upload a media file and select at least one TV display.");
+                    return;
+                }
+            <?php endif; ?>
 
             // Convert expiration date and time to Date object
             const currentDateTime = new Date();
@@ -268,8 +278,9 @@
                 mediaContent = `<img src="${fileURL}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">`;
             }
         }
+        // Only show existing media if no new media is selected
         <?php if ($isEditMode && isset($contentData['media_path'])): ?>
-            // Show existing media in edit mode
+        else {
             const mediaPath = '<?php echo $contentData['media_path']; ?>';
             if (mediaPath) {
                 if (mediaPath.match(/\.(jpg|jpeg|png|gif)$/i)) {
@@ -282,6 +293,7 @@
                         </video>`;
                 }
             }
+        }
         <?php endif; ?>
 
         // Determine the content based on the selected type
@@ -414,25 +426,25 @@
                                                                 ${selectedType === 'promaterial' ? 
                                                                     mediaContent : 
                                                                     `${mediaContent ? 
-                                                                            `<div class="media-container" style="margin-bottom: 5px;">
-                                                                                ${mediaContent}
-                                                                            </div>` : 
-                                                                            ''
-                                                                        }
-                                                                        <div class="main-message" style="margin: 0; word-break: break-word;">
-                                                                            ${selectedType === 'peo' ? 
-                                                                                `<h2>${quillEditors.peoTitleQuill.root.innerHTML}</h2>
-                                                                                <div>${quillEditors.peoDescriptionQuill.root.innerHTML}</div>
-                                                                                <div>${quillEditors.peoSubdescriptionQuill.root.innerHTML}</div>` :
-                                                                            selectedType === 'so' ? 
-                                                                                `<h2>${quillEditors.soTitleQuill.root.innerHTML}</h2>
-                                                                                <div>${quillEditors.soDescriptionQuill.root.innerHTML}</div>
-                                                                                <div>${quillEditors.soSubdescriptionQuill.root.innerHTML}</div>` :
-                                                                            selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
-                                                                            selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
-                                                                            selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
-                                                                            ''}
-                                                                        </div>`
+                                                                        `<div class="media-container" style="margin-bottom: 5px;">
+                                                                            ${mediaContent}
+                                                                        </div>` : 
+                                                                        ''
+                                                                    }
+                                                                    <div class="main-message" style="margin: 0; word-break: break-word;">
+                                                                        ${selectedType === 'peo' ? 
+                                                                            `<h2>${quillEditors.peoTitleQuill.root.innerHTML}</h2>
+                                                                            <div>${quillEditors.peoDescriptionQuill.root.innerHTML}</div>
+                                                                            <div>${quillEditors.peoSubdescriptionQuill.root.innerHTML}</div>` :
+                                                                        selectedType === 'so' ? 
+                                                                            `<h2>${quillEditors.soTitleQuill.root.innerHTML}</h2>
+                                                                            <div>${quillEditors.soDescriptionQuill.root.innerHTML}</div>
+                                                                            <div>${quillEditors.soSubdescriptionQuill.root.innerHTML}</div>` :
+                                                                        selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
+                                                                        selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
+                                                                        selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
+                                                                        ''}
+                                                                    </div>`
                                                                 }
                                                             </div>
                                                             <div class="content-details">
@@ -455,9 +467,9 @@
                                         </div>` :
                                         `<div class="carousel-content" 
                                             style="position: relative;
-                                                    transform: translate(${matchingContainer.xaxis}px, ${matchingContainer.yaxis}px);
-                                                    width: ${matchingContainer.width_px}px;
-                                                    height: ${matchingContainer.height_px}px;
+                                                    transform: translate(5px, 5px);
+                                                    width: 400px;
+                                                    height: 400px;
                                                     background-color: ${matchingContainer.parent_background_color};
                                                     padding: 5px;
                                                     border-radius: 5px;
