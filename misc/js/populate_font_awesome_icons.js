@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const iconElement = document.createElement('i');
         iconElement.className = `fa ${iconClass}`;
         iconElement.addEventListener('click', function() {
-            document.getElementById('selectedIcon').value = iconClass;
+            document.getElementById('selected_icon').value = iconClass;
             featureIconsModal.style.display = 'none';
             featureIconsModalButton.innerHTML = `<i class="fa ${iconClass}"></i>`;
         });

@@ -3996,6 +3996,12 @@ class ContentHandler implements MessageComponentInterface
                     $nullableString = ($input['required'] == 'yes') ? 'NOT NULL' : 'NULL';
                     $sql = "ALTER TABLE $tableName ADD COLUMN $columnName $columnType $nullableString";
                     $this->pdo->exec($sql);
+        
+                    // If this input is of type 'media', add a media_path column
+                    if ($input['type'] == 'media') {
+                        $sql = "ALTER TABLE $tableName ADD COLUMN media_path VARCHAR(255) NULL";
+                        $this->pdo->exec($sql);
+                    }
                 }
             
                 // Add other necessary columns
@@ -4009,15 +4015,20 @@ class ContentHandler implements MessageComponentInterface
                 $this->pdo->exec($sql);
             
                 // Insert the feature details into a features_tb
-                $fileName = $this->createFeaturePhpFile($featureName, $data['inputs'], $data['selectedIcon'], $data['content_has_expiration_date']);
-                $stmt = $this->pdo->prepare("INSERT INTO features_tb (feature_name, file_name, type, department, icon, has_expiration) VALUES (?, ?, ?, ?, ?, ?)");
+                $fileName = $this->createFeaturePhpFile($featureName, $data['inputs'], $data['selected_icon'], $data['content_has_expiration_date']);
+                $stmt = $this->pdo->prepare("
+                    INSERT INTO features_tb 
+                    (feature_name, file_name, type, department, icon, has_expiration) 
+                    VALUES 
+                    (:feature_name, :file_name, :type, :department, :icon, :has_expiration)
+                ");
                 $stmt->execute([
-                    $featureName,
-                    $fileName,
-                    $contentType,
-                    $data['department'],
-                    $data['selectedIcon'],
-                    $data['content_has_expiration_date']
+                    ':feature_name' => $featureName,
+                    ':file_name' => $fileName,
+                    ':type' => $contentType,
+                    ':department' => $data['department'],
+                    ':icon' => $data['selected_icon'],
+                    ':has_expiration' => $data['content_has_expiration_date']
                 ]);
             
                 // Insert user types that can access this feature
@@ -4028,26 +4039,37 @@ class ContentHandler implements MessageComponentInterface
                 }
 
                 // Create fetch file
-                $fetchFileName = 'fetch_' . $contentType . '.php';
-                $fetchFilePath = dirname(__DIR__, 1) . '/database/' . $fetchFileName;
-                $fetchFileContent = $this->generateFetchFileContent($tableName, $contentType);
-                file_put_contents($fetchFilePath, $fetchFileContent);
+                // $fetchFileName = 'fetch_' . $contentType . '.php';
+                // $fetchFilePath = dirname(__DIR__, 1) . '/database/' . $fetchFileName;
+                // $fetchFileContent = $this->generateFetchFileContent($tableName, $contentType);
+                // file_put_contents($fetchFilePath, $fetchFileContent);
 
                 // Fetch all tv_ids from smart_tvs_tb
-                $stmtFetchTVs = $this->pdo->query("SELECT tv_id FROM smart_tvs_tb");
+                $stmtFetchTVs = $this->pdo->prepare("SELECT tv_id FROM smart_tvs_tb WHERE tv_department = ?");
+                $stmtFetchTVs->execute([$data['department']]);
                 $tvIds = $stmtFetchTVs->fetchAll(PDO::FETCH_COLUMN);
 
                 // Insert new container into containers_tb for each TV
                 $containerName = ucfirst($featureName);
                 $visible = 0;
-                $stmtInsertContainer = $this->pdo->prepare("INSERT INTO containers_tb (container_name, type, tv_id, visible) VALUES (?, ?, ?, ?)");
+                $stmtInsertContainer = $this->pdo->prepare("
+                    INSERT INTO containers_tb 
+                    (container_name, type, tv_id, visible) 
+                    VALUES 
+                    (?, ?, ?, ?)
+                ");
                 
                 foreach ($tvIds as $tvId) {
-                    $stmtInsertContainer->execute([$containerName, $contentType, $tvId, $visible]);
+                    try {
+                        $stmtInsertContainer->execute([$containerName, $contentType, $tvId, $visible]);
+                        error_log("Container inserted for TV ID {$tvId}");
+                    } catch (PDOException $e) {
+                        error_log("Error inserting container for TV ID {$tvId}: " . $e->getMessage());
+                    }
                 }
 
-                $response = ['success' => true, 'message' => 'New feature added successfully', 'fileName' => $fileName, 'fetchFileName' => $fetchFileName, 'containerName' => $containerName];
-                echo "New feature '{$featureName}' added successfully with file name: {$fileName} and fetch file: {$fetchFileName} and container name: {$containerName}!\n";
+                $response = ['success' => true, 'message' => 'New feature added successfully', 'fileName' => $fileName, 'containerName' => $containerName];
+                echo "New feature '{$featureName}' added successfully with file name: {$fileName} and container name: {$containerName}!\n";
             } catch (PDOException $e) {
                 $errorCode = $e->getCode();
                 $errorMessage = $e->getMessage();
@@ -4108,25 +4130,25 @@ class ContentHandler implements MessageComponentInterface
         $conn->close();
     }
 
-    private function generateFetchFileContent($tableName, $contentType) {
-        return "<?php
-// fetch_{$contentType}.php
-// Database Connection
-\$pdo = new PDO(\"mysql:host=localhost;dbname=smart_tv_cms_db\", \"root\", \"\");
+//     private function generateFetchFileContent($tableName, $contentType) {
+//         return "<?php
+// // fetch_{$contentType}.php
+// // Database Connection
+// \$pdo = new PDO(\"mysql:host=localhost;dbname=smart_tv_cms_db\", \"root\", \"\");
 
-// Fetch {$tableName} from the database
-\$statement = \$pdo->query(\"SELECT * FROM {$tableName}\");
-\${$contentType} = \$statement->fetchAll(PDO::FETCH_ASSOC);
+// // Fetch {$tableName} from the database
+// \$statement = \$pdo->query(\"SELECT * FROM {$tableName}\");
+// \${$contentType} = \$statement->fetchAll(PDO::FETCH_ASSOC);
 
-// Return JSON response
-header('Content-Type: application/json');
-echo json_encode(\${$contentType});
-";
-    }
+// // Return JSON response
+// header('Content-Type: application/json');
+// echo json_encode(\${$contentType});
+// ";
+//     }
 
     private function createFeaturePhpFile($featureName, $inputs, $icon, $hasExpiration) {
         $fileName = 'form_' . strtolower(str_replace(' ', '_', $featureName)) . '.php';
-        $filePath = dirname(__DIR__, 1) . '/' . $fileName; // This goes up two levels from MyApp
+        $filePath = dirname(__DIR__, 1) . '/' . $fileName; // This goes up two levels from MyApp folder
         $content = $this->generateFeaturePhpContent($featureName, $inputs, $icon, $hasExpiration);
         $result = file_put_contents($filePath, $content);
         
@@ -4149,6 +4171,9 @@ include 'config_connection.php';
 
 // fetch user data for the currently logged-in user
 include 'get_session.php';
+
+// Check if user has access to this feature
+include 'new_features/newfeature_check_feature_access.php';
 
 // fetch tv data from the select options
 include 'misc/php/options_tv.php';
@@ -4216,7 +4241,7 @@ include 'misc/php/options_tv.php';
                                     $quillContentAssignment .= "
                                         document.getElementById('{$inputName}HiddenInput').value = {$inputName}Quill.root.innerHTML;
                                     ";
-                                } elseif ($input['type'] == 'image') {
+                                } elseif ($input['type'] == 'media') {
                                     $hasImageInput = true;
                                 }
                             }
@@ -4252,7 +4277,6 @@ include 'misc/php/options_tv.php';
     </div>
     <?php include('new_features/newfeature_error_modal.php') ?>
     <?php include('new_features/newfeature_success_modal.php') ?>
-    <script src=\"misc/js/capitalize_first_letter.js\"></script>
     <script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js\"></script>
     <script src=\"new_features/newfeature_wsform_submission.js\"></script>
     <script>

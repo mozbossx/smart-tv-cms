@@ -146,19 +146,25 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                             echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . " <span id='{$type}Count' style='color: #6E6E6E;'></span></h1>";
                         }
                     }
-                    echo '<div class="archives-buttons-flex">';
-                    echo '
-                        <!-- search form -->
-                        <form class="search-form" style="width: 300px; max-width: 100%; margin: 0;">
-                            <div class="floating-label-container" style="margin-top: 10px;">
-                                <input type="text" id="searchInput" required class="floating-label-input" style="height: 35px; padding-top: 8px; padding-bottom: 8px" onkeyup="searchUsersTable()" placeholder="Search User Table">
-                                <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
-                                    <i class="fa fa-times" aria-hidden="true"></i>
-                                </button>
-                            </div>
-                        </form>
-                    ';
-                    echo '<button id="createPostButton" class="grey-button" style="margin-left: auto; margin-top: 10px;height: 35px;" onclick="window.location.href=\'form_($contentType)\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                    echo '<div style="display: flex; justify-content: space-between; align-items: center;">';
+                    if ($type == 'promaterial') {
+                        echo '<button id="createPostButton" class="grey-button" style="margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_promotional_material.php\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                    } else if ($type == 'so') {
+                        echo '<button id="createPostButton" class="grey-button" style="margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_student_outcomes.php\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                    } else {
+                        echo '<button id="createPostButton" class="grey-button" style="margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_' . $type . '.php\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                    }
+                    echo '<div style="display: flex; align-items: center; justify-content: flex-end;">';
+                    echo '<label for="sortBy_' . $type . '" style="margin-top: 5px; margin-right: 10px;">Sort By:</label>';
+                    echo '<select id="sortBy_' . $type . '" class="select-button" style="margin-top: 5px; height: 35px; width: 40%;">';
+                        echo '<option value="post_datetime_newest">Post Date/Time (Newest First)</option>';
+                        echo '<option value="post_datetime_oldest">Post Date/Time (Oldest First)</option>';
+                        echo '<option value="expiration_datetime_newest">Expiration Date/Time (Descending)</option>';
+                        echo '<option value="expiration_datetime_oldest">Expiration Date/Time (Ascending)</option>';
+                        echo '<option value="display_time_longest">Display Time (Longer Duration First)</option>';
+                        echo '<option value="display_time_shortest">Display Time (Shorter Duration First)</option>';
+                    echo '</select>';
+                    echo '</div>';
                     echo "</div>";
                     echo "<div class='scroll-div' style='margin-top: 10px;'>";
                     echo "<div id='{$type}CarouselContainer'>";

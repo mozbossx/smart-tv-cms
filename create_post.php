@@ -68,14 +68,6 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                                 <div class="button-text">Promotional Material</div>
                             </a>
                         </div>
-                        <?php foreach ($featuresNewFeatures as $feature): ?>
-                            <div class="button-container">
-                                <a href="<?php echo $feature['file_name']; ?>?pageid=<?php echo ucfirst($feature['feature_name']); ?>Form?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
-                                    <div class="button-icon"><i class="fa <?php echo $feature['icon']; ?>"></i></div>
-                                    <div class="button-text"><?php echo $feature['feature_name']; ?></div>
-                                </a>
-                            </div>
-                        <?php endforeach; ?>
                         <?php if ($user_type === 'Admin' || $user_type === 'Super Admin'){ ?>
                             <div class="button-container">
                                 <a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
@@ -91,9 +83,50 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                         <?php } ?>
                     </div>
+                    <div class="line-separator"></div>
+                    <h4>Added New Features</h4>
+                    <div class="button-flex" style="margin-top: 10px;">
+                        <?php foreach ($featuresNewFeatures as $feature): ?>
+                            <div class="button-container">
+                                <?php if ($user_type === 'Super Admin' || $user_type === 'Admin'){ ?>
+                                <button 
+                                    style="display: block; margin-left: auto; margin-bottom: 5px; background-color: transparent; border: none; cursor: pointer; color: crimson; font-size: 25px; z-index: 1;" 
+                                    onclick="deleteFeatureModal(<?php echo $feature['feature_id']; ?>)"
+                                ><i class="fa fa-trash"></i>
+                                </button>
+                                <?php } ?>
+                                <a href="<?php echo $feature['file_name']; ?>?pageid=<?php echo ucfirst($feature['feature_name']); ?>Form?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
+                                    <div class="button-icon"><i class="fa <?php echo $feature['icon']; ?>"></i></div>
+                                    <div class="button-text"><?php echo $feature['feature_name']; ?></div>
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <div id="confirmDeleteFeatureModal" class="modal">
+        <div class="modal-content" style="padding: 15px;">
+            <span class="close" onclick="document.getElementById('confirmDeleteFeatureModal').style.display='none'" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <br>
+            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+            <p id="deleteMessage" style="text-align: center">Proceed to delete this feature?</p>
+            <br>
+            <div style="text-align: right;">
+                <button type="button" class="grey-button" style="margin-right: 5px;" onclick="document.getElementById('confirmDeleteFeatureModal').style.display='none'">Cancel</button>
+                <button type="button" class="red-button" onclick="deleteFeature(<?php echo $feature['feature_id']; ?>)">Yes, delete</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function deleteFeatureModal(featureId) {
+            document.getElementById('confirmDeleteFeatureModal').style.display = 'flex';
+        }
+
+        function deleteFeature(featureId) {
+            console.log(featureId);
+        }
+    </script>
 </body>
 </html>

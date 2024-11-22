@@ -9,11 +9,8 @@ include 'get_session.php';
 // fetch tv data from the select options
 include 'misc/php/options_tv.php';
 
-// Student or Faculty do not have access to this page
-if($user_type == 'Student'|| $user_type == 'Faculty' || $user_type == 'Staff'){
-    header("location: user_home.php?pageid=UserHome&userId=$user_id''$full_name");
-    exit;
-}
+// Student, Faculty, or Staff do not have access to this page
+include 'admin_access_only.php';
 
 // Check if we're in edit mode and have media data
 $isEditMode = isset($_GET['action']) && $_GET['action'] === 'edit';

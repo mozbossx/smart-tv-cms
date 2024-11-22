@@ -6,6 +6,9 @@ include 'config_connection.php';
 // Fetch user data for the currently logged-in user
 include 'get_session.php';
 
+// Student, Faculty, or Staff do not have access to this page
+include 'admin_access_only.php';
+
 // Initialize variables to store tv data
 $tvId = '';
 $tvHeight = '';

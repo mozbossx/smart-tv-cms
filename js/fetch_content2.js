@@ -1,3 +1,61 @@
+// function for sorting content
+const sortContent = (type, sortBy) => {
+    const container = document.getElementById(`${type}CarouselContainer`);
+    const contents = Array.from(container.children).filter(child => child.hasAttribute(`data-${type}-id`));
+    
+    contents.sort((a, b) => {
+        switch(sortBy) {
+            case 'post_datetime_newest':
+                const dateA1 = new Date(a.querySelector('.ann-author small').textContent.split('on ')[1]);
+                const dateB1 = new Date(b.querySelector('.ann-author small').textContent.split('on ')[1]);
+                return dateB1 - dateA1;
+            
+            case 'post_datetime_oldest':
+                const dateA2 = new Date(a.querySelector('.ann-author small').textContent.split('on ')[1]);
+                const dateB2 = new Date(b.querySelector('.ann-author small').textContent.split('on ')[1]);
+                return dateA2 - dateB2;
+            
+            case 'expiration_datetime_newest':
+                // Only sort by expiration if the content type has expiration dates
+                if (type !== 'peo' && type !== 'so') {
+                    const expA1 = new Date(a.querySelector('.expiration-date small').textContent.split('on ')[1]);
+                    const expB1 = new Date(b.querySelector('.expiration-date small').textContent.split('on ')[1]);
+                    return expB1 - expA1;
+                }
+                return 0;
+            
+            case 'expiration_datetime_oldest':
+                if (type !== 'peo' && type !== 'so') {
+                    const expA2 = new Date(a.querySelector('.expiration-date small').textContent.split('on ')[1]);
+                    const expB2 = new Date(b.querySelector('.expiration-date small').textContent.split('on ')[1]);
+                    return expA2 - expB2;
+                }
+                return 0;
+            
+            case 'display_time_longest':
+                const timeA1 = parseInt(a.querySelector('.display-time').textContent.match(/\d+/)[0]);
+                const timeB1 = parseInt(b.querySelector('.display-time').textContent.match(/\d+/)[0]);
+                return timeB1 - timeA1;
+            
+            case 'display_time_shortest':
+                const timeA2 = parseInt(a.querySelector('.display-time').textContent.match(/\d+/)[0]);
+                const timeB2 = parseInt(b.querySelector('.display-time').textContent.match(/\d+/)[0]);
+                return timeA2 - timeB2;
+            
+            default:
+                return 0;
+        }
+    });
+
+    // Clear container and append sorted elements
+    const noItemsMessage = container.querySelector(`#no-${type}-message`);
+    container.innerHTML = '';
+    if (noItemsMessage) {
+        container.appendChild(noItemsMessage);
+    }
+    contents.forEach(content => container.appendChild(content));
+};
+
 // Function to format date to "MM DD YYYY"
 function formatDateTime(dateTimeString) {
     const dateTime = new Date(dateTimeString);
@@ -569,6 +627,12 @@ function fetchAndUpdate(type) {
                     displayNoMessage(type);
                 } else {
                     filteredData.forEach(item => updateUI(item, type));
+
+                    // Apply current sort after updating content
+                    const sortSelect = document.getElementById(`sortBy_${type}`);
+                    if (sortSelect) {
+                        sortContent(type, sortSelect.value);
+                    }
                 }
             }
         })
@@ -656,6 +720,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Get all content types from the DOM
     const contentTypes = Array.from(document.querySelectorAll('.content-container'))
         .map(container => container.id.replace('List', ''));
+
+    contentTypes.forEach(type => {
+        const sortSelect = document.getElementById(`sortBy_${type}`);
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                sortContent(type, e.target.value);
+            });
+        }
+    });
     
     // Create modals for all content types
     createModals(contentTypes);

@@ -6,8 +6,7 @@ include 'config_connection.php';
 // fetch user data for the currently logged-in user
 include 'get_session.php';
 
-// fetch tv data from the select options
-include 'misc/php/options_tv.php';
+include 'admin_access_only.php';
 
 ?>
 
@@ -49,7 +48,7 @@ include 'misc/php/options_tv.php';
                             <?php include('error_message.php'); ?>
                             <h1 style="text-align: center">Add New Feature Form</h1>
                             <div class="floating-label-container">
-                                <input type="text" name="name_of_feature" id="name_of_feature" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input">
+                                <input type="text" name="name_of_feature" id="name_of_feature" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input" maxlength="40">
                                 <label for="name_of_feature" class="floating-label">Name of Feature</label>
                             </div>
                             <div class="form-row" style="margin-bottom: 5px">
@@ -67,7 +66,7 @@ include 'misc/php/options_tv.php';
                                         Select Feature Icon
                                     </button>
                                     <label for="featureIconsModalButton" class="floating-label">Feature Icon</label>
-                                    <input type="hidden" id="selectedIcon" name="selectedIcon" style="display: none">
+                                    <input type="hidden" id="selected_icon" name="selected_icon" style="display: none">
                                 </div>
                             </div>
                             <div id="newInput" style="display: none">
@@ -78,7 +77,7 @@ include 'misc/php/options_tv.php';
                                 <br>
                                 <?php
                                     // fetch user type data
-                                    $sqlUserType = "SELECT * FROM user_types_tb WHERE user_type_id != 1 AND user_type_id != 2";
+                                    $sqlUserType = "SELECT * FROM user_types_tb";
                                     $resultUserType = mysqli_query($conn, $sqlUserType);
 
                                     if (mysqli_num_rows($resultUserType) > 0) {
@@ -115,7 +114,7 @@ include 'misc/php/options_tv.php';
                                 </div>
                             </div>
                             <div id="departmentSelection" class="floating-label-container" style="display: none">
-                                <select name="department" class="floating-label-input" style="background: #FFFF; padding-left: 8px">
+                                <select name="department" id="department" class="floating-label-input" style="background: #FFFF; padding-left: 8px">
                                     <option value="">~</option>
                                     <option value="COMPUTER ENGINEERING">Department of Computer Engineering</option>
                                     <option value="CHEMICAL ENGINEERING">Department of Chemical Engineering</option>
@@ -172,20 +171,23 @@ include 'misc/php/options_tv.php';
             userTypeAccess.style.display = 'none';
             contentExpirationDate.style.display = 'none';
             departmentSelection.style.display = 'none';
+
+            let hasMediaInput = false; // Track if media input is already selected
+            
             // Create and append new input sections
             for (let i = 0; i < numberOfInputs; i++) {
                 const inputSection = `
                     <p style="color: #264B2B;"><b>Input #${i+1}</b></p>
                     <div class="floating-label-container">
-                        <input type="text" name="name_of_input_${i+1}" id="name_of_input_${i+1}" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input">
+                        <input type="text" name="name_of_input_${i+1}" id="name_of_input_${i+1}" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input" maxlength="35">
                         <label for="name_of_input_${i+1}" class="floating-label">Name of Input #${i+1}</label>
                     </div>
                     <div class="form-row" style="margin-bottom: 5px">
                         <div class="floating-label-container" style="flex: 1">
-                            <select id="input_type_${i+1}" name="input_type_${i+1}" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
+                            <select id="input_type_${i+1}" name="input_type_${i+1}" class="input-type-select floating-label-input" required style="background: #FFFF; padding-left: 8px">
                                 <option value="">Select Input Type</option>
                                 <option value="text">Text</option>
-                                <option value="image">Image</option>
+                                <option value="media">Media (video, image)</option>
                             </select>
                             <label for="input_type_${i+1}" class="floating-label">Input Type</label>
                         </div>
@@ -202,6 +204,41 @@ include 'misc/php/options_tv.php';
                 `;
                 newInputContainer.insertAdjacentHTML('beforeend', inputSection);
             }
+
+            // Function to update all media options based on current state
+            function updateMediaOptions() {
+                const selects = document.querySelectorAll('.input-type-select');
+                const hasAnyMediaSelected = Array.from(selects).some(select => select.value === 'media');
+                
+                selects.forEach(select => {
+                    const mediaOption = select.querySelector('option[value="media"]');
+                    if (mediaOption) {
+                        mediaOption.disabled = hasAnyMediaSelected && select.value !== 'media';
+                    }
+                });
+                
+                hasMediaInput = hasAnyMediaSelected;
+            }
+
+            // Add event listeners to all input type selects
+            document.querySelectorAll('.input-type-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    if (this.value === 'media') {
+                        hasMediaInput = true;
+                    } else if (this.value !== 'media' && this.querySelector('option[value="media"]').disabled) {
+                        // If changing from media to something else, need to check if we should enable media options
+                        const otherMediaSelected = Array.from(document.querySelectorAll('.input-type-select'))
+                            .some(otherSelect => otherSelect !== this && otherSelect.value === 'media');
+                        
+                        if (!otherMediaSelected) {
+                            hasMediaInput = false;
+                        }
+                    }
+                    
+                    // Always update all media options after any change
+                    updateMediaOptions();
+                });
+            });
             
             // Show the container if inputs are selected, hide otherwise
             newInputContainer.style.display = numberOfInputs > 0 ? 'block' : 'none';

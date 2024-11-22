@@ -36,8 +36,9 @@
         const requiredFields = [
             'name_of_feature',
             'number_of_inputs',
-            'selectedIcon',
-            'content_has_expiration_date'
+            'selected_icon',
+            'content_has_expiration_date',
+            'department'
         ];
 
         for (const field of requiredFields) {
@@ -75,7 +76,7 @@
         const formData = new FormData(document.getElementById('newFeatureForm'));
         let previewContainer = `
             <div class="main-form">
-                <h2 style="text-align: center"><i class="fa ${formData.get('selectedIcon')}"></i> ${formData.get('name_of_feature')} Form</h2>
+                <h2 style="text-align: center; overflow-wrap: break-word"><i class="fa ${formData.get('selected_icon')}"></i> ${formData.get('name_of_feature')} Form</h2>
         `;
 
         const numberOfInputs = parseInt(formData.get('number_of_inputs'));
@@ -94,9 +95,15 @@
                         <input type="hidden" name="preview_input_${i}" id="preview_input_hidden_${i}">
                     </div>
                 `;
-            } else if (inputType === 'image') {
+            } else if (inputType === 'media') {
                 previewContainer += `
-                    <input type="file" id="preview_input_${i}" name="preview_input_${i}" accept="image/*"${isRequired ? ' required' : ''}>
+                    <div class="right-flex">
+                        <div class="rounded-container-media">
+                            <p class="input-container-label">Upload Media (Optional)</p>
+                            <input type="file" name="media" id="media" accept="video/*, image/*" hidden disabled>
+                            <label for="media" style="display: block; width: fit-content; font-size: 14px" class="green-button" disabled>Choose File (.mp4, .jpg, .png)</label>
+                        </div>
+                    </div>
                 `;
             }
 
@@ -109,10 +116,10 @@
                 <div id="expiration_date_time" class="rounded-container-column" style="flex: 1">
                     <p class="input-container-label">Expiration Date & Time</p>
                     <div class="left-flex">
-                        <input type="date" id="expiration_date" name="expiration_date" class="input-date">
+                        <input type="date" id="expiration_date" name="expiration_date" class="input-date" disabled>
                     </div>
                     <div class="right-flex">
-                        <input type="time" id="expiration_time" name="expiration_time" class="input-time">
+                        <input type="time" id="expiration_time" name="expiration_time" class="input-time" disabled>
                     </div>
                 </div>
             `;
@@ -123,27 +130,6 @@
                     <div class="floating-label-container" style="flex: 1">
                         <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
                             <option value="">Select Display Time</option>
-                            <option value="10">10 seconds</option>
-                            <option value="11">11 seconds</option>
-                            <option value="12">12 seconds</option>
-                            <option value="13">13 seconds</option>
-                            <option value="14">14 seconds</option>
-                            <option value="15">15 seconds</option>
-                            <option value="16">16 seconds</option>
-                            <option value="17">17 seconds</option>
-                            <option value="18">18 seconds</option>
-                            <option value="19">19 seconds</option>
-                            <option value="20">20 seconds</option>
-                            <option value="21">21 seconds</option>
-                            <option value="22">22 seconds</option>
-                            <option value="23">23 seconds</option>
-                            <option value="24">24 seconds</option>
-                            <option value="25">25 seconds</option>
-                            <option value="26">26 seconds</option>
-                            <option value="27">27 seconds</option>
-                            <option value="28">28 seconds</option>
-                            <option value="29">29 seconds</option>
-                            <option value="30">30 seconds</option>
                         </select>
                         <label for="display_time" class="floating-label">Display Time (seconds)</label>
                     </div>
@@ -161,9 +147,27 @@
         return previewContainer;
     }
 
+    // Function to get the preview content
+    function getPreviewContent() {
+        const contentHasExpirationDate = document.getElementById('content_has_expiration_date').value;
+        const selectedUserTypes = Array.from(document.querySelectorAll('input[name="user_type[]"]:checked'))
+            .map(checkbox => checkbox.value)
+            .join(', ');
+        const department = document.getElementById('department').value;
+
+        var previewContent = '';
+        previewContent += '<p class="preview-input"><strong>Has Expiration Date: </strong><br>' + contentHasExpirationDate + '</p>';
+        previewContent += '<p class="preview-input"><strong>Users Who Can Access: </strong><br>' + (selectedUserTypes || 'None selected') + '</p>';
+        previewContent += '<p class="preview-input"><strong>Department: </strong><br>' + (department || 'None selected') + '</p>';
+        
+        return previewContent;
+    }
+
     function openPreviewModal() {
         const previewContainer = getPreviewContainer();
         document.getElementById('previewContainer').innerHTML = previewContainer;
+
+        document.getElementById('previewContent').innerHTML = getPreviewContent();
 
         const numberOfInputs = parseInt(document.getElementById('number_of_inputs').value);
         for (let i = 1; i <= numberOfInputs; i++) {
@@ -171,14 +175,14 @@
             if (inputType === 'text') {
                 new Quill(`#preview_input_${i}`, {
                     theme: 'snow',
-                    placeholder: `Enter ${document.getElementById(`name_of_input_${i}`).value}`,
                     modules: {
                         toolbar: [
                             ['bold', 'italic', 'underline'],
                             ['link'],
                             [{ 'list': 'ordered'}, { 'list': 'bullet' }]
                         ]
-                    }
+                    },
+                    readOnly: true
                 });
             }
         }
@@ -194,7 +198,7 @@
             action: 'post_new_feature',
             name_of_feature: formData.get('name_of_feature'),
             number_of_inputs: formData.get('number_of_inputs'),
-            selectedIcon: formData.get('selectedIcon'),
+            selected_icon: formData.get('selected_icon'),
             content_has_expiration_date: formData.get('content_has_expiration_date'),
             department: formData.get('department'),
             user_types: formData.getAll('user_type[]'),

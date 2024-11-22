@@ -1915,6 +1915,21 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     transition: 0.5s ease;
 }
 
+.select-button {
+    background-color: #ffffff3b;
+    color: black;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #808080;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.select-button:hover {
+    background: #e0e0e03b;
+    transition: 0.5s ease;
+}
+
 .light-green-button {
     background-color: #aad3b0;
     color: black;
