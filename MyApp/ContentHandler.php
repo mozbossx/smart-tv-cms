@@ -4093,6 +4093,86 @@ class ContentHandler implements MessageComponentInterface
             $from->send(json_encode($response));
         } 
 
+        else if (isset($data['action']) && $data['action'] === 'delete_feature') {
+            try {
+                $featureId = $data['feature_id'];
+                
+                // 1. Get feature information before deletion
+                $stmt = $this->pdo->prepare("
+                    SELECT feature_name, file_name, type, department 
+                    FROM features_tb 
+                    WHERE feature_id = ?
+                ");
+                $stmt->execute([$featureId]);
+                $feature = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$feature) {
+                    throw new Exception("Feature not found");
+                }
+
+                // Get TV IDs associated with this feature's department
+                $stmt = $this->pdo->prepare("
+                    SELECT tv_id 
+                    FROM smart_tvs_tb 
+                    WHERE tv_department = ?
+                ");
+                $stmt->execute([$feature['department']]);
+                $tvIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+                // 2. Delete the PHP file
+                $filePath = dirname(__DIR__, 1) . '/' . $feature['file_name'];
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+        
+                // 3. Drop the feature's database table
+                $tableName = strtolower(str_replace(' ', '_', $feature['type'])) . '_tb';
+                $this->pdo->exec("DROP TABLE IF EXISTS `$tableName`");
+        
+                // 4. Delete containers associated with this feature
+                $stmt = $this->pdo->prepare("
+                    DELETE FROM containers_tb 
+                    WHERE type = ?
+                ");
+                $stmt->execute([$feature['type']]);
+        
+                // 5. Delete feature user types
+                $stmt = $this->pdo->prepare("
+                    DELETE FROM feature_user_types 
+                    WHERE feature_id = ?
+                ");
+                $stmt->execute([$featureId]);
+        
+                // 6. Delete the feature from features_tb
+                $stmt = $this->pdo->prepare("
+                    DELETE FROM features_tb 
+                    WHERE feature_id = ?
+                ");
+                $stmt->execute([$featureId]);
+        
+                $response = [
+                    'action' => 'delete_feature',
+                    'success' => true,
+                    'feature_id' => $featureId,
+                    'tv_ids' => $tvIds,
+                    'message' => 'Feature deleted successfully'
+                ];
+        
+            } catch (Exception $e) {
+                $response = [
+                    'action' => 'delete_feature',
+                    'success' => false,
+                    'feature_id' => $featureId,
+                    'message' => 'Error deleting feature: ' . $e->getMessage()
+                ];
+        
+                error_log("Error deleting feature: " . $e->getMessage());
+            }
+        
+            // Send response to the client
+            $from->send(json_encode($response));
+        }
+
         else if (isset($data['action']) && $data['action'] === 'reset_notification_count') {
             $user_id = $data['user_id'];
             

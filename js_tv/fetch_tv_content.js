@@ -845,7 +845,7 @@ Ws.addEventListener('message', function (event) {
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVDetails();
         // location.reload();
-    } else if (data.action === 'update_container_positions'|| data.action === 'delete_smart_tv' || data.action === 'show_hide_content' || data.action === 'update_background_type' || data.action === 'update_background_image' || data.action === 'update_department_logo' || data.action === 'update_topbar_position') {
+    } else if (data.action === 'update_container_positions'|| data.action === 'delete_smart_tv' || data.action === 'show_hide_content' || data.action === 'update_background_type' || data.action === 'update_background_image' || data.action === 'update_department_logo' || data.action === 'update_topbar_position' || data.action === 'delete_feature') {
         const urlParams = new URLSearchParams(window.location.search);
         const tvId = urlParams.get('tvId');
         if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
