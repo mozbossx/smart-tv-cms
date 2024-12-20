@@ -99,19 +99,32 @@ class ContentHandler implements MessageComponentInterface
                 $evaluator_id = $data['evaluator_id'];
             */
 
-            // First, fetch the media_path before deleting the content
-            $stmt = $this->pdo->prepare("SELECT media_path FROM {$table} WHERE {$idField} = ?");
-            $stmt->execute([$content_id]);
+            // First, check if media_path column exists in the table
+            $stmt = $this->pdo->prepare("
+                SELECT COUNT(*) as column_exists 
+                FROM information_schema.COLUMNS 
+                WHERE TABLE_NAME = ? 
+                AND COLUMN_NAME = 'media_path'
+                AND TABLE_SCHEMA = DATABASE()
+            ");
+            $stmt->execute([$table]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            // If there's a media file, delete it
-            if ($result && !empty($result['media_path'])) {
-                $mediaFolder = "{$type}_media";
-                $mediaPath = "{$mediaFolder}/{$result['media_path']}";
-                if (file_exists($mediaPath)) {
-                    unlink($mediaPath); // Delete the file
+
+            // Only fetch and handle media_path if the column exists
+            if ($result['column_exists']) {
+                $stmt = $this->pdo->prepare("SELECT media_path FROM {$table} WHERE {$idField} = ?");
+                $stmt->execute([$content_id]);
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                // If there's a media file, delete it
+                if ($result && !empty($result['media_path'])) {
+                    $mediaFolder = "{$type}_media";
+                    $mediaPath = "{$mediaFolder}/{$result['media_path']}";
+                    if (file_exists($mediaPath)) {
+                        unlink($mediaPath); // Delete the file
+                    }
+                    error_log("Deleted media file: {$mediaPath}");
                 }
-                error_log("Deleted media file: {$mediaPath}");
             }
 
             $stmt = $this->pdo->prepare("DELETE FROM {$table} WHERE {$idField} = ?");
@@ -862,6 +875,23 @@ class ContentHandler implements MessageComponentInterface
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id', 'bodyField' => null],
                 'so' => ['table' => 'so_tb', 'idField' => 'so_id', 'bodyField' => null]
             ];
+
+            // Fetch new features from the database
+            $stmtFeatures = $this->pdo->prepare("SELECT feature_name, feature_id FROM features_tb");
+            $stmtFeatures->execute();
+            $newFeatures = $stmtFeatures->fetchAll(PDO::FETCH_ASSOC);
+
+            // Add new features to validTypes
+            foreach ($newFeatures as $feature) {
+                $featureType = strtolower(str_replace(' ', '_', $feature['feature_name']));
+                $validTypes[$featureType] = [
+                    'table' => $featureType . '_tb',
+                    'idField' => $featureType . '_id',
+                    'bodyField' => null // New features use dynamic fields
+                ];
+            }
+
+            $type = $data['type'] ?? null;
         
             if (isset($validTypes[$type])) {
                 $table = $validTypes[$type]['table'];
@@ -891,6 +921,15 @@ class ContentHandler implements MessageComponentInterface
                     $params[] = $data["{$type}_title"];
                     $params[] = $data["{$type}_description"];
                     $params[] = $data["{$type}_subdescription"];
+                } else {
+                     // For new features - dynamically add all fields from the form
+                    foreach ($data as $key => $value) {
+                        // Skip arrays (like tv_ids) and special fields
+                        if (!is_array($value) && !in_array($key, ['action', 'type', $idField, 'tv_id[]', 'expiration_datetime', 'tv_ids', 'action_value'])) {
+                            $updateFields[] = "$key = ?";
+                            $params[] = $value;
+                        }
+                    }
                 }
         
                 // Add common fields only for non-PEO/SO content
@@ -1029,7 +1068,7 @@ class ContentHandler implements MessageComponentInterface
                         $response = [
                             'action' => 'update_content',
                             'success' => true,
-                            'message' => ucfirst($type) . ' has been updated' . 
+                            'message' => ucfirst(str_replace('_',' ', $type)) . ' has been updated' . 
                                 ($status === 'Pending' ? ' and is pending approval' : ''),
                             'type' => $type,
                             $idField => $content_id,
@@ -3657,12 +3696,11 @@ class ContentHandler implements MessageComponentInterface
                         $from->send(json_encode($response));
                     }
                 } else {
-                    // For New Feature only
+                    // For New Features only
                     foreach ($data['tv_ids'] as $tv_ids) { 
                         $type = $data['type'] ?? null;
                         $expiration_datetime = $data['expiration_datetime'] ?? null;
                         
-                        echo "Type: $type\n";
                         $status = ($user_type == 'Admin' || $user_type == 'Super Admin') ? 'Approved' : 'Pending';
                         $category = ucfirst($type); // Capitalize the first letter of the type
             
@@ -3678,17 +3716,31 @@ class ContentHandler implements MessageComponentInterface
                         $idField = $type . '_id';
                         $authorField = $type . '_author_id';
             
-                        // Common fields for all types
+                        // Common fields for all types - Remove duplicates
                         $fields = [
-                            'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                            'category', 'isArchived', 'status',
-                            'expiration_datetime', 'type'
+                            'department', 
+                            'user_type', 
+                            $authorField, 
+                            'tv_id', 
+                            'display_time',
+                            'category', 
+                            'isArchived', 
+                            'status',
+                            'expiration_datetime', 
+                            'type'
                         ];
 
                         $values = [
-                            $department, $user_type, $user_id, $tv_ids, $data['display_time'],
-                            $category, $isArchived, $status,
-                            $expiration_datetime, $type
+                            $department, 
+                            $user_type, 
+                            $user_id, 
+                            $tv_ids, 
+                            $data['display_time'],
+                            $category, 
+                            $isArchived, 
+                            $status,
+                            $expiration_datetime, 
+                            $type
                         ];
 
                         // Add other fields specific to the content type
@@ -3705,9 +3757,14 @@ class ContentHandler implements MessageComponentInterface
                         //     }
                         // }
             
-                        // Add type-specific fields
+                        // Add type-specific fields, excluding those already added
                         foreach ($data as $key => $value) {
-                            if (!in_array($key, ['action', 'type', 'tv_id[]', 'tv_ids', 'expiration_datetime', 'display_time', 'media'])) {
+                            if (!in_array($key, [
+                                'action', 'type', 'tv_id[]', 'tv_ids', 
+                                'expiration_datetime', 'display_time', 'media',
+                                'department', 'user_type', $authorField, 'category',
+                                'status', $idField
+                            ])) {
                                 $fields[] = $key;
                                 $values[] = is_array($value) ? json_encode($value) : $value;
                             }
@@ -3715,10 +3772,6 @@ class ContentHandler implements MessageComponentInterface
             
                         $fieldList = implode(', ', $fields);
                         $placeholderList = implode(', ', array_fill(0, count($fields), '?'));
-
-                        echo "Field List: " . $fieldList . "\n";
-                        echo "Placeholder List: " . $placeholderList . "\n";
-                        echo "Values: " . implode(', ', $values) . "\n";
 
                         $statement = $this->pdo->prepare(
                             "INSERT INTO $table ($fieldList) VALUES ($placeholderList)"
@@ -3969,6 +4022,37 @@ class ContentHandler implements MessageComponentInterface
             try {
                 $featureName = $data['name_of_feature'];
                 $tableName = strtolower(str_replace(' ', '_', $featureName)) . '_tb';
+
+                // Check if feature name already exists
+                $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM features_tb WHERE LOWER(feature_name) = LOWER(?)");
+                $stmt->execute([strtolower($featureName)]);
+                if ($stmt->fetchColumn() > 0) {
+                    $response = [
+                        'success' => false,
+                        'message' => 'A feature with this name already exists. Please choose a different name.',
+                        'messageType' => 'error'
+                    ];
+                    $from->send(json_encode($response));
+                    return;
+                }
+
+                // Check for duplicate input names
+                $inputNames = [];
+                foreach ($data['inputs'] as $input) {
+                    $inputName = strtolower($input['name']);
+                    if (in_array($inputName, $inputNames)) {
+                        $response = [
+                            'success' => false,
+                            'message' => 'Duplicate input names found. Each input must have a unique name.',
+                            'messageType' => 'error'
+                        ];
+                        $from->send(json_encode($response));
+                        return;
+                    }
+                    $inputNames[] = $inputName;
+                }
+                
+                // If validation passes, get featureId and contentType
                 $featureId = strtolower(str_replace(' ', '_', $featureName));
                 $contentType = strtolower(str_replace(' ', '_', $featureName));
                 
@@ -3983,6 +4067,8 @@ class ContentHandler implements MessageComponentInterface
                     tv_id INT(100) NOT NULL,
                     category VARCHAR(255) NOT NULL,
                     isArchived TINYINT(1) DEFAULT 0,
+                    isTrashed TINYINT(1) DEFAULT 0,
+                    schedule_datetime DATETIME DEFAULT NULL,
                     created_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (tv_id) REFERENCES smart_tvs_tb(tv_id),
                     FOREIGN KEY ({$featureId}_author_id) REFERENCES users_tb(user_id)
@@ -4242,7 +4328,8 @@ class ContentHandler implements MessageComponentInterface
     }
 
     private function generateFeaturePhpContent($featureName, $inputs, $icon, $hasExpiration) {
-        // Generate the PHP content here. This is a basic template, you'll need to adjust it based on your specific requirements.
+        $typeVar = strtolower(str_replace(' ', '_', $featureName));
+        // Generate the PHP content here. 
         $content = 
 "<?php
 // Start the session and include the configuration
@@ -4257,6 +4344,19 @@ include 'new_features/newfeature_check_feature_access.php';
 
 // fetch tv data from the select options
 include 'misc/php/options_tv.php';
+
+// Check if we're in edit mode and have media data
+\$isEditMode = isset(\$_GET['action']) && \$_GET['action'] === 'edit';
+\$contentData = null;
+
+if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
+    // Fetch the content data
+    \$stmt = \$conn->prepare(\"SELECT * FROM {$typeVar}_tb WHERE {$typeVar}_id = ? AND tv_id = ?\");
+    \$stmt->bind_param(\"ii\", \$_GET['{$typeVar}_id'], \$_GET['tv_id']);
+    \$stmt->execute();
+    \$result = \$stmt->get_result();
+    \$contentData = \$result->fetch_assoc();
+}
 ?>
 
 <!DOCTYPE html>
@@ -4274,7 +4374,7 @@ include 'misc/php/options_tv.php';
     <link rel=\"stylesheet\" href=\"style.css\">
     <link href=\"https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css\" rel=\"stylesheet\" />
     <script src=\"https://code.jquery.com/jquery-3.2.1.min.js\"></script>
-    <title>Create an $featureName</title>
+    <title><?php echo \$isEditMode ? 'Edit {$featureName}' : 'Create a {$featureName}'; ?></title>
 </head>
 <body>
     <div class=\"main-section\" id=\"all-content\">
@@ -4286,13 +4386,37 @@ include 'misc/php/options_tv.php';
                     <div class=\"content-form\">
                         <nav aria-label=\"breadcrumb\">
                             <ol class=\"breadcrumb\" style=\"background: none\">
-                                <li class=\"breadcrumb-item\"><a href=\"create_post.php?pageid=CreatePost?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\" style=\"color: #264B2B\">Create Post</a></li>
-                                <li class=\"breadcrumb-item active\" aria-current=\"page\">$featureName Form</li>
+                            <?php if (\$isEditMode): ?>
+                                <li class=\"breadcrumb-item\"><a href=\"user_home.php?pageid=UserHome?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\" style=\"color: #264B2B\">Home</a></li>
+                                <li class=\"breadcrumb-item\">
+                                    <a href=\"tv_contents.php?tvId=<?php echo \$_GET['tv_id']; ?>&isIframe=true\" style=\"color: #264B2B\">
+                                        <?php 
+                                        // Fetch TV name based on tv_id
+                                        \$stmt = \$conn->prepare(\"SELECT tv_name FROM smart_tvs_tb WHERE tv_id = ?\");
+                                        \$stmt->bind_param(\"i\", \$_GET['tv_id']);
+                                        \$stmt->execute();
+                                        \$result = \$stmt->get_result();
+                                        \$tv = \$result->fetch_assoc();
+                                        echo htmlspecialchars(\$tv['tv_name']); 
+                                        ?>
+                                    </a>
+                                </li>
+                                <li class=\"breadcrumb-item active\" aria-current=\"page\">Edit</li>
+                            <?php else: ?>
+                                <li class=\"breadcrumb-item\">
+                                    <a href=\"create_post.php?pageid=CreatePost?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\" style=\"color: #264B2B\">Create Post</a>
+                                </li>
+                                <li class=\"breadcrumb-item active\" aria-current=\"page\">{$featureName} Form</li>
+                            <?php endif; ?>
                             </ol>
                         </nav>
                         <form id=\"" . strtolower(str_replace(' ', '_', $featureName)) . "Form\" enctype=\"multipart/form-data\" class=\"main-form\">
                             <?php include('error_message.php'); ?>
                             <input type=\"hidden\" name=\"type\" value=\"" . strtolower(str_replace(' ', '_', $featureName)) . "\">
+                            <?php if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])): ?>
+                                <input type=\"hidden\" name=\"{$typeVar}_id\" value=\"<?php echo htmlspecialchars(\$_GET['{$typeVar}_id']); ?>\">
+                                <input type=\"hidden\" name=\"action_value\" value=\"edit\">
+                            <?php endif; ?>
                             <h1 style=\"text-align: center\">$featureName Form</h1>
                             ";
 
@@ -4332,6 +4456,9 @@ include 'misc/php/options_tv.php';
                         
                             $content .= "
                             <div class=\"form-row\">
+                            <?php 
+                                \$type = '{$typeVar}';
+                            ?>\n
                             ";
 
                             if ($hasExpiration === 'yes') {
@@ -4392,6 +4519,9 @@ include 'misc/php/options_tv.php';
                         <div id=\"{$name}\" style=\"height: 150px;\"></div>
                     </div>
                     <input type=\"hidden\" name=\"{$name}\" id=\"{$name}HiddenInput\">
+                    <?php if (\$isEditMode && \$contentData): ?>
+                        <input type=\"hidden\" id=\"existing_{$name}_content\" value=\"<?php echo htmlspecialchars(\$contentData['{$name}']); ?>\">
+                    <?php endif; ?>
                 </div>";
         } else {
             return "

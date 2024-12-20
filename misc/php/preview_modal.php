@@ -376,14 +376,14 @@
                                     width: ${matchingContainer.tv_width_px}px; 
                                     pointer-events: none; border: none;
                                     border-radius: 0;
-                                    ${matchingContainer.isImageBackground ? 
+                                    ${matchingContainer.isImageBackground === '1' ? 
                                         (matchingContainer.background_image_path ? 
                                             `background-image: url(servers/tv_backgrounds/${matchingContainer.tv_id}/${matchingContainer.background_image_path}); 
                                             background-size: cover; 
                                             background-position: center;` : 
                                             'background-color: #000;'
                                         ) :
-                                        (matchingContainer.isStaticBackground ? 
+                                        (matchingContainer.isStaticBackground === '1' ? 
                                             `background-color: ${matchingContainer.background_hex_color};` : 
                                             'background-color: #000;'
                                         )

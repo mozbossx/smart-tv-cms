@@ -77,7 +77,7 @@ include 'admin_access_only.php';
                                 <br>
                                 <?php
                                     // fetch user type data
-                                    $sqlUserType = "SELECT * FROM user_types_tb";
+                                    $sqlUserType = "SELECT * FROM user_types_tb WHERE user_type != 'Super Admin'";
                                     $resultUserType = mysqli_query($conn, $sqlUserType);
 
                                     if (mysqli_num_rows($resultUserType) > 0) {

@@ -41,6 +41,7 @@
             'department'
         ];
 
+        // Check required fields
         for (const field of requiredFields) {
             if (!document.getElementById(field).value) {
                 errorModalMessage(`Please fill in the ${field.replace(/_/g, ' ')}`);
@@ -48,8 +49,19 @@
             }
         }
 
+        // Check for duplicate input names
         const numberOfInputs = parseInt(document.getElementById('number_of_inputs').value);
+        const inputNames = new Set();
+
         for (let i = 1; i <= numberOfInputs; i++) {
+            const inputName = document.getElementById(`name_of_input_${i}`).value.toLowerCase();
+            if (inputNames.has(inputName)) {
+                errorModalMessage(`Duplicate input name found: ${inputName}. Input names must be unique.`);
+                return false;
+            }
+            inputNames.add(inputName);
+
+            // Check other required input fields
             const inputFields = [
                 `name_of_input_${i}`,
                 `input_type_${i}`,
@@ -63,6 +75,7 @@
             }
         }
 
+        // Check user types
         const userTypes = document.querySelectorAll('input[name="user_type[]"]:checked');
         if (userTypes.length === 0) {
             errorModalMessage('Please select at least one user type');
@@ -221,11 +234,16 @@
         // Listen for messages from the WebSocket server
         ws.onmessage = function(event) {
             const message = JSON.parse(event.data);
-            if (message.success) {
+            if (message.success === true) {
                 document.getElementById('successMessage').textContent = "New feature was successfully added!";
                 document.getElementById('successMessageModal').style.display = 'flex';
                 isFormDirty = false;
-            } 
+            } else if (message.success === false) {
+                // Display error message in error modal
+                errorModalMessage(message.message);
+                // Close preview modal if open
+                document.getElementById('previewModal').style.display = 'none';
+            }
         };
     }
 

@@ -9,11 +9,13 @@ include 'get_session.php';
 // Fetch all features from the database
 $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
 $stmtNewFeatures = $pdo->prepare("
-    SELECT DISTINCT f.* 
+    SELECT DISTINCT f.*, 
+           GROUP_CONCAT(fut.user_type) as allowed_user_types 
     FROM features_tb f
     LEFT JOIN feature_user_types fut ON f.feature_id = fut.feature_id
     WHERE (f.department = :department AND (fut.user_type = :user_type OR :user_type = 'Admin'))
        OR :user_type = 'Super Admin'
+    GROUP BY f.feature_id
 ");
 $stmtNewFeatures->execute([':department' => $department, ':user_type' => $user_type]);
 $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
@@ -95,14 +97,20 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                             <div class="button-container" data-feature-id="<?php echo $feature['feature_id']; ?>">
                                 <?php if ($user_type === 'Super Admin' || $user_type === 'Admin'){ ?>
                                 <button 
-                                    style="display: block; margin-left: auto; margin-bottom: 5px; background-color: transparent; border: none; cursor: pointer; color: crimson; font-size: 25px; z-index: 1;" 
-                                    onclick="deleteFeatureModal(<?php echo $feature['feature_id']; ?>)"
-                                ><i class="fa fa-trash"></i>
+                                    style="display: block; position: absolute; margin-left: 10px; margin-top: 10px; margin-bottom: 5px; background-color: transparent; border: none; cursor: pointer; color: crimson; font-size: 25px; z-index: 1;" 
+                                    onclick="deleteFeatureModal(<?php echo $feature['feature_id']; ?>)"><i class="fa fa-trash"></i>
                                 </button>
                                 <?php } ?>
                                 <a href="<?php echo $feature['file_name']; ?>?pageid=<?php echo ucfirst($feature['feature_name']); ?>Form?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
                                     <div class="button-icon"><i class="fa <?php echo $feature['icon']; ?>"></i></div>
                                     <div class="button-text"><?php echo $feature['feature_name']; ?></div>
+                                    <div class="user-type-pills">
+                                        <?php 
+                                        $userTypes = explode(',', $feature['allowed_user_types']);
+                                        foreach ($userTypes as $type): ?>
+                                            <span class="user-type-pill"><?php echo trim($type); ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
                                 </a>
                             </div>
                         <?php endforeach; ?>
@@ -117,6 +125,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             <br>
             <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
             <p id="deleteMessage" style="text-align: center">Proceed to delete this feature?</p>
+            <p id="deleteMessage2" style="text-align: center; font-size: 15px; color: #808080;">This action cannot be undone.</p>
             <br>
             <div style="text-align: right;">
                 <button type="button" class="grey-button" style="margin-right: 5px;" onclick="document.getElementById('confirmDeleteFeatureModal').style.display='none'">Cancel</button>
@@ -147,7 +156,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             const response = JSON.parse(event.data);
             
             if (response.action === 'delete_feature') {
-                if (response.success) {
+                if (response.success == true) {
                     // Close the modal
                     document.getElementById('confirmDeleteFeatureModal').style.display = 'none';
 
@@ -160,7 +169,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     // Show success message
                     document.getElementById('successMessageModalVersion2').style.display = 'flex';
                     document.getElementById('successMessageVersion2').textContent = 'Feature was successfully deleted!';
-                } else {
+                } else if (response.success == false) {
                     // Close delete modal
                     document.getElementById('confirmDeleteFeatureModal').style.display = 'none';
                     

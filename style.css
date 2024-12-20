@@ -1761,11 +1761,14 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 
 .button-text {
     flex: 1;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding: 10px;
     background: none;
     color: black;
     font-size: 15px;
+    width: auto;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .button-text-2 {
@@ -3007,6 +3010,24 @@ input[type=range]:focus::-ms-fill-upper {
 
 .floating-menu button:hover {
     background: #1a331d;
+}
+
+.user-type-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+}
+
+.user-type-pill {
+    background-color: #264B2B;
+    color: white;
+    padding: 5px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    white-space: nowrap;
 }
 
 /* Media query for smaller screens */

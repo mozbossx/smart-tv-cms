@@ -28,7 +28,7 @@ if ($featureData) {
     $stmt->execute();
     $result = $stmt->get_result();
     $userTypeCount = $result->fetch_assoc();
-    $hasUserTypeAccess = ($userTypeCount['count'] > 0);
+    $hasUserTypeAccess = ($userTypeCount['count'] > 0 || $user_type === 'Super Admin');
     
     // Redirect if user doesn't have access
     if (!$hasDepartmentAccess || !$hasUserTypeAccess) {

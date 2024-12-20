@@ -16,7 +16,12 @@ function getNewFeatureQuillEditorContent(form) {
 
 function submitFormViaWebSocket() {
     const contentType = document.querySelector('[name="type"]').value;
+    const contentTypeWithNoUnderscores = contentType
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
     const form = document.getElementById(`${contentType}Form`);
+    const isEditMode = form.querySelector('input[name="action_value"]')?.value === 'edit';
 
     // Get content from all Quill editors
     const quillEditorContent = getNewFeatureQuillEditorContent(form);
@@ -35,9 +40,17 @@ function submitFormViaWebSocket() {
 
     const formData = new FormData(form);
     const data = { 
-        action: 'post_content',
+        action: isEditMode ? 'update_content' : 'post_content',
         tv_ids: Array.from(formData.getAll('tv_id[]'))
     };
+
+    // If in edit mode, add the content ID
+    if (isEditMode) {
+        const contentId = new URLSearchParams(window.location.search).get(`${contentType}_id`);
+        if (contentId) {
+            data[`${contentType}_id`] = contentId;
+        }
+    }
 
     // Check for file input
     const fileInputs = form.querySelectorAll('input[type="file"]');
@@ -61,6 +74,9 @@ function submitFormViaWebSocket() {
 
     Promise.all(filePromises).then(() => {
         formData.forEach((value, key) => {
+            if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
+                return; // Skip empty schedule_datetime
+            }
             data[key] = value;
         });
 
@@ -72,7 +88,8 @@ function submitFormViaWebSocket() {
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
         if (message.success) {
-            document.getElementById('successMessageVersion2').textContent = message.message || `${capitalizeFirstLetter(contentType)} was successfully processed!`;
+            document.getElementById('successMessageVersion2').textContent = message.message || 
+                `${contentTypeWithNoUnderscores} was successfully ${isEditMode ? 'updated' : 'processed'}!`;
             document.getElementById('successMessageModalVersion2').style.display = 'flex';
             isFormDirty = false;
         } 

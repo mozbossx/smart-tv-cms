@@ -110,6 +110,18 @@ const fetchTrashDays = async () => {
 };
 
 // Utility function to create buttons
+const createDeleteButton = (text, iconClass, onClick) => {
+    const button = document.createElement('button');
+    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.className = 'light-green-button';
+    button.style = `
+        margin-top: 10px;
+        margin-right: 5px;
+    `;
+    button.onclick = onClick;
+    return button;
+};
+
 const createTrashButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
@@ -170,7 +182,8 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
                 if (key !== `${type}_id` && key !== 'created_datetime' && key !== 'expiration_datetime' 
                     && key !== 'display_time' && key !== 'status' && key !== 'isArchived' && key !== 'isTrashed'
                     && key !== 'tv_id' && key !== `${type}_author_id` && key !== 'type' && key !== 'department' 
-                    && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name') {
+                    && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name'
+                    && key !== 'schedule_datetime' && key !== 'author_user_type' && key !== 'author_department' && key !== 'datetime_archived' && key !== 'datetime_trashed') {
                         contentHtml += `<p>${data[key]}</p>`;
                 }
             }
@@ -259,8 +272,27 @@ const updateUI = (data, type) => {
             margin-top: 10px;
         `;
 
-        const trashButton = createTrashButton('Trash', 'fa fa-trash', () => showTrashModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
-        const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
+        // Only create archive and trash buttons for specific content types
+        const isStandardContent = ['announcement', 'event', 'news', 'promaterial'].includes(type);
+
+        if (isStandardContent) {
+            const trashButton = createTrashButton('Trash', 'fa fa-trash', () => showTrashModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
+            const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
+            
+            if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
+                buttonContainer.appendChild(trashButton);
+                buttonContainer.appendChild(archiveButton);
+            }
+        } else {
+            // Only include deleteButton for non-standard contents
+            const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
+            if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
+                buttonContainer.appendChild(deleteButton);
+            }
+        }
+
+        // const trashButton = createTrashButton('Trash', 'fa fa-trash', () => showTrashModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
+        // const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
         const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => {
             const queryParams = new URLSearchParams({
                 [`${type}_id`]: data[`${type}_id`],
@@ -278,8 +310,6 @@ const updateUI = (data, type) => {
         });
 
         if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
-            buttonContainer.appendChild(trashButton);
-            buttonContainer.appendChild(archiveButton);
             buttonContainer.appendChild(editButton);
         }
         // Append the button container to the main container
