@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.2:8081');
+const Ws = new WebSocket('ws://10.0.0.41:8081');
 
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);

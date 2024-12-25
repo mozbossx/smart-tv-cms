@@ -33,6 +33,11 @@ $resultNotificationCount = $stmtNotificationCount->get_result();
 $notificationCount = $resultNotificationCount->fetch_assoc()['notification_count'];
 $stmtNotificationCount->close();
 
+$displayTimeQuery = $conn->query("SELECT display_seconds_range_first, display_seconds_range_last, display_interval FROM display_time_tb LIMIT 1");
+$displayTimeRange = $displayTimeQuery->fetch_assoc();
+$minTime = $displayTimeRange['display_seconds_range_first'];
+$maxTime = $displayTimeRange['display_seconds_range_last'];
+$displayInterval = $displayTimeRange['display_interval'];
 ?>
 
 <div class="header">
@@ -104,6 +109,7 @@ $stmtNotificationCount->close();
                         <li><a href="manage_users.php?pageid=ManageUsers?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Users</a></li>
                         <li><a href="manage_smart_tvs.php?pageid=ManageSmartTVs?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Smart TVs</a></li>
                         <li><a href="manage_templates.php?pageid=ManageTemplates?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Templates</a></li>
+                        <li><button class="menu-button" onclick="changeDisplayTimeModal()">Change Display Time</button></li>
                     </ul>
                 </li>
                 <?php } ?>
@@ -117,6 +123,7 @@ $stmtNotificationCount->close();
                         <li><a href="manage_users.php?pageid=ManageUsers?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Users</a></li>
                         <li><a href="manage_smart_tvs.php?pageid=ManageSmartTVs?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Smart TVs</a></li>
                         <li><a href="manage_templates.php?pageid=ManageTemplates?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Manage Templates</a></li>
+                        <li><button class="menu-button" onclick="changeDisplayTimeModal()">Change Display Time</button></li>
                     </ul>
                 </li>
                 <?php } ?>
@@ -147,6 +154,32 @@ $stmtNotificationCount->close();
 <div id="confirmRejectContentModal" class="modal" style="z-index: 10000;"></div>
 <div id="viewContentModal" class="modal"></div>
 <div id="confirmDeleteContentModal" class="modal"></div>
+<div id="changeDisplayTimeModal" class="modal">
+    <div class="modal-content" style="padding: 15px">
+        <span class="close" onclick="document.getElementById('changeDisplayTimeModal').style.display='none'" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <br>
+        <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-clock-o" aria-hidden="true"></i></h1>
+        <p id="addMessage" style="text-align: center">Change Display TIme</p>
+        <form id="changeDisplayTimeForm" style="margin-top: 10px">
+            <div class="floating-label-container">
+                <input type="number" name="display_seconds_range_first" id="display_seconds_range_first" required placeholder=" " class="floating-label-input-text-area">
+                <label for="display_seconds_range_first" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Minimum Display Time (seconds)</label>
+            </div>
+            <div class="floating-label-container">
+                <input type="number" name="display_seconds_range_last" id="display_seconds_range_last" required placeholder=" " class="floating-label-input-text-area">
+                <label for="display_seconds_range_last" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Maximum Display Time (seconds)</label>
+            </div>
+            <div class="floating-label-container">
+                <input type="number" name="display_interval" id="display_interval" required placeholder=" " class="floating-label-input-text-area">
+                <label for="display_interval" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Interval</label>
+            </div>
+            <br>
+            <div style="text-align: right;">
+                <button type="submit" id="changeDisplayTimeButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Change Display Time</b></button>
+            </div>
+        </form>
+    </div>
+</div>
     <!-- Modal content will be dynamically inserted here -->
 <script src="misc/js/capitalize_first_letter.js"></script>
 <script>
@@ -192,6 +225,73 @@ $stmtNotificationCount->close();
     function goToNotifications() {
         window.location.href = 'notifications.php?pageid=Notifications?userId=' + user_id + '' + full_name;
     }
+
+    function changeDisplayTimeModal() {
+        const changeDisplayTimeModal = document.getElementById("changeDisplayTimeModal");
+        // Pre-fill the existing values
+        document.getElementById("display_seconds_range_first").value = <?php echo $minTime; ?>;
+        document.getElementById("display_seconds_range_last").value = <?php echo $maxTime; ?>;
+        document.getElementById("display_interval").value = <?php echo $displayInterval; ?>;
+
+        changeDisplayTimeModal.style.display = "flex";
+    }
+
+    document.getElementById('changeDisplayTimeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const minTime = document.getElementById('display_seconds_range_first').value;
+        const maxTime = document.getElementById('display_seconds_range_last').value;
+        const displayInterval = document.getElementById('display_interval').value;
+
+        // Validate input
+        if (parseInt(minTime) >= parseInt(maxTime)) {
+            alert('Minimum time must be less than maximum time');
+            return;
+        } 
+        
+        if (parseInt(minTime) <= 0) {
+            alert('Minimum time must be more than 0');
+            return;
+        }
+
+        if (parseInt(maxTime) <= 0) {
+            alert('Maximum time must be more than 0');
+            return;
+        }
+
+        if (parseInt(displayInterval) <= 0) {
+            alert('Interval must be more than 0');
+            return;
+        }
+
+        // Send AJAX request
+       fetch('update_display_time.php', {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({
+               min_time: minTime,
+               max_time: maxTime,
+               display_interval: displayInterval
+           })
+       })
+       .then(response => response.json())
+       .then(data => {
+           if (data.success) {
+               alert('Display time updated successfully');
+               document.getElementById('changeDisplayTimeModal').style.display = 'none';
+               // Optionally reload the page to reflect changes
+               location.reload();
+           } else {
+               alert('Error updating display time: ' + data.message);
+           }
+       })
+       .catch(error => {
+           console.error('Error:', error);
+           alert('An error occurred while updating display time');
+       });
+   });
 </script>
 <script src="js/fetch_notifications.js"></script>
 <script src="js/fetch_user_session.js"></script>

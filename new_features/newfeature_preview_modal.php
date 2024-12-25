@@ -31,7 +31,14 @@
         </div>
     </div>
 </div>
-
+<?php 
+    $topbarPositions = [];
+    $topbarQuery = "SELECT tv_id, topbar_position FROM topbar_tv_tb";
+    $resultTopbar = mysqli_query($conn, $topbarQuery);
+    while ($row = mysqli_fetch_assoc($resultTopbar)) {
+        $topbarPositions[$row['tv_id']] = $row['topbar_position'];
+    }
+?>
 <script>
 let clockInterval;
 
@@ -174,27 +181,30 @@ function updateNewFeaturePreviewContent(contentBody) {
         matchingContainers.forEach((matchingContainer, index) => {
             const tvName = tvNames[matchingContainer.tv_id] || 'Unknown TV';
 
+            const topbarPositions = <?php echo json_encode($topbarPositions); ?>;
             carouselHTML += `
                 <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;" data-tv-id="${matchingContainer.tv_id}">
                     <div class="tv-frame-parent" style="width: auto; height: 100%; background: none; cursor: default;">
                         <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center; overflow: clip; user-select: all">
-                            <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
-                                <img src="${matchingContainer.department_logo_path ? 
-                                `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
-                                'images/soe_icon.png'}" 
-                                alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
-                                <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
-                                    <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
-                                    <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                            ${topbarPositions[matchingContainer.tv_id] === 'top' ? `
+                                <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
+                                    <img src="${matchingContainer.department_logo_path ? 
+                                    `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
+                                    'images/soe_icon.png'}" 
+                                    alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
+                                    <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
+                                        <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
+                                        <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                    </div>
+                                    <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
+                                        ${matchingContainer.tv_name}
+                                    </h1>
+                                    <div class="date-time">
+                                        <span class="live-clock time" style="font-weight: bold; color: ${matchingContainer.topbar_time_font_color}; font-style: ${matchingContainer.topbar_time_font_style}; font-family: ${matchingContainer.topbar_time_font_family};"></span>
+                                        <span class="live-date date" style="color: ${matchingContainer.topbar_date_font_color}; font-style: ${matchingContainer.topbar_date_font_style}; font-family: ${matchingContainer.topbar_date_font_family};"></span>
+                                    </div>
                                 </div>
-                                <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
-                                    ${matchingContainer.tv_name}
-                                </h1>
-                                <div class="date-time">
-                                    <span class="live-clock time" style="color: ${matchingContainer.topbar_time_font_color}; font-style: ${matchingContainer.topbar_time_font_style}; font-family: ${matchingContainer.topbar_time_font_family};"></span>
-                                    <span class="live-date date" style="color: ${matchingContainer.topbar_date_font_color}; font-style: ${matchingContainer.topbar_date_font_style}; font-family: ${matchingContainer.topbar_date_font_family};"></span>
-                                </div>
-                            </div>
+                            ` : ''}
                             <div class='tv-screen' style='
                                 height: ${matchingContainer.tv_height_px}px; 
                                 width: ${matchingContainer.tv_width_px}px; 
@@ -290,6 +300,25 @@ function updateNewFeaturePreviewContent(contentBody) {
                                     </div>`
                                 }
                             </div>
+                            ${topbarPositions[matchingContainer.tv_id] === 'bottom' ? `
+                                <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
+                                    <img src="${matchingContainer.department_logo_path ? 
+                                    `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
+                                    'images/soe_icon.png'}" 
+                                    alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
+                                    <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
+                                        <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
+                                        <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                    </div>
+                                    <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
+                                        ${matchingContainer.tv_name}
+                                    </h1>
+                                    <div class="date-time">
+                                        <span class="live-clock time" style="font-weight: bold; color: ${matchingContainer.topbar_time_font_color}; font-style: ${matchingContainer.topbar_time_font_style}; font-family: ${matchingContainer.topbar_time_font_family};"></span>
+                                        <span class="live-date date" style="color: ${matchingContainer.topbar_date_font_color}; font-style: ${matchingContainer.topbar_date_font_style}; font-family: ${matchingContainer.topbar_date_font_family};"></span>
+                                    </div>
+                                </div>
+                            ` : ''}
                             <p style="text-align: center; font-size: 25px; margin-top: auto; color: white; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 250px;">${matchingContainer.tv_brand}</p>
                             <div class="tv-stand"></div>
                         </div>

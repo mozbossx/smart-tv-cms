@@ -949,7 +949,7 @@ class ContentHandler implements MessageComponentInterface
                 $params[] = $content_id;
         
                 // Build and execute update query
-                $updateQuery = "UPDATE $table SET " . implode(", ", $updateFields) . ", created_datetime = NOW() WHERE $idField = ?";
+                $updateQuery = "UPDATE $table SET " . implode(", ", $updateFields) . " WHERE $idField = ?";
                 $stmt = $this->pdo->prepare($updateQuery);
                 $success = $stmt->execute($params);
         
@@ -3789,25 +3789,131 @@ class ContentHandler implements MessageComponentInterface
                             $data['status'] = $status;
                             
                             if ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') {
+                                // Check if post is scheduled
+                                $notification_type = 'content_post';
+
+                                // Prepare base notification fields and values
+                                $notificationFields = "user_id, content_id, content_type, notification_type, status, action_user_name, action_user_department, action_user_type, content_tv_id";
+                                $notificationValues = "?, ?, ?, ?, 'pending', ?, ?, ?, ?";
+                                $params = [$user_id, $data[$idField], $data['type'], $notification_type, $full_name, $department, $user_type, $tv_ids];
+
+                                // Add schedule_datetime if it exists
+                                if (!empty($data['schedule_datetime'])) {
+                                    $notificationFields .= ", content_schedule_datetime";
+                                    $notificationValues .= ", ?";
+                                    $params[] = $data['schedule_datetime'];
+                                }
+
                                 // Insert notification for new content post
-                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'pending')");
-                                $stmt->execute([$user_id, $data[$idField], $data['type']]);
+                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb ($notificationFields) VALUES ($notificationValues)");
+                                $stmt->execute($params);
 
-                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
-                                $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' OR user_type = 'Super Admin'");
-                                $stmtUpdateAdminOrSuperAdminNotificationCount->execute();
+                                // Increase the notification count of the Admin of the department
+                                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ? AND user_id != ?");
+                                $stmtUpdateAdminNotificationCount->execute([$department, $user_id]);
 
-                                // Increase the notification count of the student or faculty
-                                $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                                $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
+                                // Increase the notification count of the Super Admin 
+                                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin' AND user_id != ?");
+                                $stmtUpdateSuperAdminNotificationCount->execute([$user_id]);
+
+                                // Increase the notification count of the user who posted the content
+                                $stmtUpdateUserWhoPosted = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1, last_post_date = CURRENT_TIMESTAMP WHERE user_id = ?");
+                                $stmtUpdateUserWhoPosted->execute([$user_id]);
                     
                                 // Broadcast update notification to all clients
                                 $this->broadcastNotification('new_notification');
                                 echo "Notification sent to all clients\n";
                             } else if ($user_type == 'Admin' || $user_type == 'Super Admin') {
-                                // Insert notification for new content post
-                                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status) VALUES (?, ?, ?, 'content_post', 'approved')");
-                                $stmt->execute([$user_id, $data[$idField], $data['type']]);
+                                $notification_type = 'content_post';
+                                // Insert notification for the user who posted his own content
+                                if ($user_id) {
+                                    // Prepare base query without schedule_datetime
+                                    $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
+                                    $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
+                                    $params = [$data[$idField], $user_id, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
+
+                                    // Add schedule_datetime if it exists
+                                    if (!empty($data['schedule_datetime'])) {
+                                        $notificationFields .= ", content_schedule_datetime";
+                                        $notificationValues .= ", ?";
+                                        $params[] = $data['schedule_datetime'];
+                                    }
+
+                                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb ($notificationFields) VALUES ($notificationValues)");
+                                    $stmt->execute($params);
+                                }
+
+                                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ?
+                                ");
+                                $stmtSelectDepartmentAdmins->execute([$department, $user_id]);
+                                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                                
+                                // Notify each Admin of the approved user's department
+                                if ($departmentAdmins) {
+                                    $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
+                                    $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
+                                    $baseParams = [$data[$idField], null, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
+
+                                    if (!empty($data['schedule_datetime'])) {
+                                        $notificationFields .= ", content_schedule_datetime";
+                                        $notificationValues .= ", ?";
+                                        $baseParams[] = $data['schedule_datetime'];
+                                    }
+
+                                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                                        INSERT INTO notifications_tb ($notificationFields)
+                                        VALUES ($notificationValues)
+                                    ");
+
+                                    foreach ($departmentAdmins as $admin) {
+                                        $params = $baseParams;
+                                        $params[1] = $admin['user_id']; // Set the user_id
+                                        $stmtNotifyDepartmentAdmins->execute($params);
+                                    }
+                                }
+
+                                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ?
+                                ");
+                                $stmtSelectSuperAdmins->execute([$user_id]);
+                                $superAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+                                
+                                // Notify each Admin of the approved user's department
+                                if ($superAdmins) {
+                                    $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
+                                    $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
+                                    $baseParams = [$data[$idField], null, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
+
+                                    if (!empty($data['schedule_datetime'])) {
+                                        $notificationFields .= ", content_schedule_datetime";
+                                        $notificationValues .= ", ?";
+                                        $baseParams[] = $data['schedule_datetime'];
+                                    }
+
+                                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                                        INSERT INTO notifications_tb ($notificationFields)
+                                        VALUES ($notificationValues)
+                                    ");
+
+                                    foreach ($superAdmins as $superAdmin) {
+                                        $params = $baseParams;
+                                        $params[1] = $superAdmin['user_id']; // Set the user_id
+                                        $stmtNotifySuperAdmins->execute($params);
+                                    }
+                                }
+
+                                // Increase the notification count of the user who posted the content
+                                $stmtUpdateUserWhoPosted = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1, last_post_date = CURRENT_TIMESTAMP WHERE user_id = ?");
+                                $stmtUpdateUserWhoPosted->execute([$user_id]);
+
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ? AND user_id != ?");
+                                $stmtUpdateAdminNotificationCount->execute([$department, $user_id]);
+
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin' AND user_id != ?");
+                                $stmtUpdateSuperAdminNotificationCount->execute([$user_id]);
                     
                                 // Broadcast update notification to all clients
                                 $this->broadcastNotification('new_notification');
@@ -4441,6 +4547,11 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                                                 ]
                                             }
                                         });
+                                        // If edit mode, populate the editor
+                                        const existing{$inputName}Content = document.querySelector('#existing_{$inputName}_content');
+                                        if (existing{$inputName}Content) {
+                                            {$inputName}Quill.root.innerHTML = existing{$inputName}Content.value;
+                                        }
                                     ";
                                     $quillContentAssignment .= "
                                         document.getElementById('{$inputName}HiddenInput').value = {$inputName}Quill.root.innerHTML;

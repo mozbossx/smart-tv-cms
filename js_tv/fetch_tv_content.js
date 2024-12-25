@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://192.168.1.2:8081');
+const Ws = new WebSocket('ws://10.0.0.41:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -85,8 +85,20 @@ const updateUI = (data, type) => {
     //     return;
     // }
 
-    if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || data.schedule_datetime !== null || !data[`${type}_id`]) {
-        return;
+    // if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || data.schedule_datetime !== null || !data[`${type}_id`]) {
+    //     return;
+    // }
+
+    // Check status based on content type
+    if (type === 'peo' || type === 'so') {
+        if (data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) {
+            return;
+        }
+    } else {
+        if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || 
+            data.schedule_datetime !== null || !data[`${type}_id`]) {
+            return;
+        }
     }
 
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
@@ -245,6 +257,36 @@ const updateUI = (data, type) => {
                 <div id="orgChartContainer-${data.orgchart_id}" class="orgchart-container" style="width: 100%; height: 100%;"></div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        // Generic handler for new features
+        contentHTML = `
+            <div class="content-container-con">
+                <div class="content-main">
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                    <div class="main-message" style="word-break: break-word;">
+                        ${Object.entries(data)
+                            .filter(([key]) => !['id', 'created_datetime', 'display_time', 'status', 'expiration_datetime', 
+                                'isArchived', 'isTrashed', 'tv_id', 'author_id', 'type', 
+                                'department', 'user_type', 'category', 'evaluated_by', `${type}_author_id`, `${type}_id`,
+                                'evaluated_message', 'author_name', 'schedule_datetime', 
+                                'author_user_type', 'author_department', 'datetime_archived', 
+                                'datetime_trashed', 'media_path'].includes(key))
+                            .map(([key, value]) => `<p>${value}</p>`)
+                            .join('')}
+                    </div>
+                </div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div>
+                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                        </div>
                         <div style="margin-left: auto; margin-top: auto">
                             <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
@@ -701,7 +743,10 @@ const fetchAndUpdateContents = (type) => {
     const urlParams = new URLSearchParams(window.location.search);
     const tvId = urlParams.get('tvId');
 
-    if (tvId) {
+    // List of predefined content types
+    const predefinedTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so', 'orgchart'];
+
+    if (tvId && predefinedTypes.includes(type)) {
         fetch(`database/fetch_smart_tvs.php?tvId=${tvId}`)
             .then(response => response.json())
             .then(data => {
@@ -763,6 +808,45 @@ const fetchAndUpdateContents = (type) => {
                     .catch(error => console.error(`Error fetching ${type}s:`, error));
             })
             .catch(error => console.error('Error fetching TV data:', error));
+    } else if (tvId && !predefinedTypes.includes(type)) {
+        fetch(`database/fetch_smart_tvs.php?tvId=${tvId}`)
+            .then(response => response.json())
+            .then(data => {
+                const tvName = data.tv_name;
+                const tvDepartment = data.tv_department;
+                // Use fetch_content.php for new features
+                fetch(`database/fetch_content.php?type=${type}&tvId=${tvId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(`Fetched ${type} data:`, data);
+                        const { carouselContainer } = getContainerElements(type);
+                        if (carouselContainer) {
+                            carouselContainer.innerHTML = '';
+                        }
+
+                        if (Array.isArray(data) && data.length > 0) {
+                            data.forEach(item => {
+                                if (item.tv_id === parseInt(tvId, 10)) {
+                                    updateUI(item, type);
+                                }
+                            });
+                        } else if (data && typeof data === 'object' && data.tv_id === parseInt(tvId, 10)) {
+                            updateUI(data, type);
+                        }
+
+                        // Start carousel if there's content
+                        if (contents[`${type}s`].length > 0) {
+                            // currentIndex[type] = 0;
+                            currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
+                            // showNextContent(type); // Initialize first content
+                            resetDisplayTime(type); // Start the countdown timer
+                        } else {
+                            displayNoMessage(type);
+                        }
+                    })
+                    .catch(error => console.error(`Error fetching new feature ${type}:`, error));
+            })
+            .catch(error => console.error('Error fetching TV data:', error));
     } else {
         console.error('TV ID not found in URL');
     }
@@ -817,6 +901,10 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('peo');
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
+        } else {
+            // For new features 
+            const type = data.type;
+            fetchAndUpdateContents(type);
         }
     } else if (data.action === 'post_content' || data.action === 'post_now_content') {
         if (data.type === 'announcement') {
@@ -834,6 +922,10 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'orgchart') {
             console.log("Received new orgchart data:", data);
             fetchAndUpdateContents('orgchart');
+        } else {
+            // For new features 
+            const type = data.type;
+            fetchAndUpdateContents(type);
         }
     } else if (data.action === 'approve_post') {
         const type = data.content_type || data.type;
@@ -928,13 +1020,23 @@ Ws.addEventListener('message', function (event) {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchAndUpdateContents('announcement');
-    fetchAndUpdateContents('event');
-    fetchAndUpdateContents('news');
-    fetchAndUpdateContents('promaterial');
-    fetchAndUpdateContents('peo');
-    fetchAndUpdateContents('so');
-    fetchAndUpdateContents('orgchart');
+    // Get all content types from the containers
+    const containers = document.querySelectorAll('[id$="CarouselContainer"]');
+    containers.forEach(container => {
+        const type = container.id.replace('CarouselContainer', '');
+        // Initialize arrays for new types if they don't exist
+        if (!currentIndex[type]) {
+            currentIndex[type] = 0;
+        }
+        if (!contents[`${type}s`]) {
+            contents[`${type}s`] = [];
+        }
+        if (!displayTimeIntervals[type]) {
+            displayTimeIntervals[type] = null;
+        }
+        // Fetch content for each type
+        fetchAndUpdateContents(type);
+    });
     // initializeOrgCharts();
     const types = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so', 'orgchart'];
     types.forEach(type => {

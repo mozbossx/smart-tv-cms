@@ -20,13 +20,18 @@ if ($isEditMode && isset($contentData["{$type}_id"])) {
         $selectedTvs[] = $row['tv_id'];
     }
 }
+$displayTimeQuery = $conn->query("SELECT display_seconds_range_first, display_seconds_range_last, display_interval FROM display_time_tb LIMIT 1");
+$displayTimeRange = $displayTimeQuery->fetch_assoc();
+$minTime = $displayTimeRange['display_seconds_range_first'];
+$maxTime = $displayTimeRange['display_seconds_range_last'];
+$displayInterval = $displayTimeRange['display_interval'];
 ?>
 
 <div class="form-column" style="flex: 1">
     <div class="floating-label-container" style="flex: 1">
         <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
             <option value="">Select Display Time</option>
-            <?php for($i = 10; $i <= 30; $i++): ?>
+            <?php for($i = $minTime; $i <= $maxTime; $i+=$displayInterval): ?>
                 <option value="<?php echo $i; ?>" <?php echo ($displayTime == $i) ? 'selected' : ''; ?>>
                     <?php echo $i; ?> seconds
                 </option>
