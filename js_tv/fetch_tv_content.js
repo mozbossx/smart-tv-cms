@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://10.0.0.41:8081');
+const Ws = new WebSocket('ws://10.0.0.39:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -8,10 +8,10 @@ const getContainerElements = (type) => {
 
     // Check if the containers are found
     if (!carouselContainer) {
-        console.error(`Carousel container for ${type} not found.`);
+        console.error(`Carousel container for ${type} not found from getContainerElements in fetch_tv_content.js.`);
     }
     if (!pageNumberContainer) {
-        console.error(`Page number container for ${type} not found.`);
+        console.error(`Page number container for ${type} not found from getContainerElements in fetch_tv_content.js.`);
     }
 
     return {
@@ -37,7 +37,7 @@ let contents = {
     promaterial: [],
     peo: [],
     so: [],
-    orgchart: []
+    orgcharts: []
 };
 
 let displayTimeIntervals = { 
@@ -90,7 +90,13 @@ const updateUI = (data, type) => {
     // }
 
     // Check status based on content type
-    if (type === 'peo' || type === 'so') {
+    // Check status based on content type
+    if (type === 'orgchart') {
+        // No status check needed for orgchart
+        if (!data[`${type}_id`]) {
+            return;
+        }
+    } else if (type === 'peo' || type === 'so') {
         if (data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) {
             return;
         }
@@ -100,19 +106,70 @@ const updateUI = (data, type) => {
             return;
         }
     }
-
-    const formattedCreatedDateTime = formatDateTime(data.created_datetime);
+    
+    const formattedCreatedDateTime = type !== 'orgchart' ? formatDateTime(data.created_datetime) : '';
     const id = data[`${type}_id`]; 
 
     // const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const existingDiv = document.querySelector(`[data-${type}-id="${id}"]`);
+    
     let mediaContent = '';
-
     if (data.media_path) {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
         mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}">` :
             isVideo ? `<video controls><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
+    }
+
+    // Special handling for orgchart type
+    if (type === 'orgchart') {
+        const containerDiv = document.createElement('div');
+        containerDiv.dataset.orgchartId = id;
+        containerDiv.classList.add('carousel-item');
+        containerDiv.dataset.displayTime = data.display_time;
+        
+        // Store the chart data for later use
+        containerDiv.chartData = data.chartData;
+
+        const contentHTML = `
+            <div class="content-container-con">
+                <div id="orgChartContainer-${id}" class="orgchart-container">
+                    <div class="orgchart-content"></div>
+                </div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right">
+                                <i class="fa fa-hourglass-half" aria-hidden="true"></i> 
+                                <span class="time-left">${data.display_time}s</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        containerDiv.innerHTML = contentHTML;
+
+        if (existingDiv) {
+            existingDiv.innerHTML = contentHTML;
+            existingDiv.chartData = data.chartData;
+            resetCountdown(existingDiv, data.display_time, currentIndexKey);
+        } else {
+            contentsArray.push(containerDiv);
+            carouselContainer.appendChild(containerDiv);
+
+            if (contentsArray.length === 1) {
+                containerDiv.classList.add('active');
+                // Render the first chart immediately
+                setTimeout(() => {
+                    createOrgChart(id, data.chartData);
+                }, 100);
+            }
+        }
+
+        updatePageNumber(currentIndexKey);
+        return;
     }
 
     let contentHTML = '';
@@ -251,19 +308,6 @@ const updateUI = (data, type) => {
                 </div>
             </div>
         `;
-    } else if (type === 'orgchart') {
-        contentHTML = `
-            <div class="content-container-con">
-                <div id="orgChartContainer-${data.orgchart_id}" class="orgchart-container" style="width: 100%; height: 100%;"></div>
-                <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
     } else {
         // Generic handler for new features
         contentHTML = `
@@ -303,9 +347,6 @@ const updateUI = (data, type) => {
         }
         resetCountdown(existingDiv, data.display_time, currentIndexKey);
         updatePageNumber(currentIndexKey);
-        if (type === 'orgchart') {
-            createOrgChart(data.orgchart_id, data.chartData);
-        }
     } else {
         const containerDiv = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
@@ -344,70 +385,55 @@ const updateUI = (data, type) => {
         } else {
             updatePageNumber(currentIndexKey);
         }
-        if (type === 'orgchart') {
-            createOrgChart(data.orgchart_id, data.chartData);
-        }
-    }
-    // Ensure the orgchart is scaled after it's added to the DOM
-    if (type === 'orgchart') {
-        setTimeout(() => {
-            const container = document.getElementById(`orgChartContainer-${data.orgchart_id}`);
-            if (container) {
-                scaleOrgChart(container);
-            }
-        }, 0);
+        // if (type === 'orgchart') {
+        //     createOrgChart(data.orgchart_id, data.chartData);
+        // }
     }
     adjustFontSize(type);
 };
 
 function adjustFontSize(type) {
-    const carouselContainer = document.querySelector('.content-main');
-    if (carouselContainer) {       
-        const textContainers = carouselContainer.querySelectorAll('.main-message');
-        textContainers.forEach((textContainer) => {           
-            const containerWidth = carouselContainer.offsetWidth;
-            const containerHeight = carouselContainer.offsetHeight;
-
-            let fontSize = 10;
-            let lineHeight = 1.0; // Start with base line height
-            textContainer.style.fontSize = `${fontSize}px`;
-            textContainer.style.lineHeight = lineHeight.toString();
-
-            // First pass: adjust font size and line height until content fits
-            while (
-                textContainer.scrollWidth <= containerWidth &&
-                textContainer.scrollHeight <= containerHeight &&
-                fontSize < 20
-            ) {
-                fontSize++;
-                textContainer.style.fontSize = `${fontSize}px`;
-                
-                // Incrementally adjust line height
-                if (textContainer.scrollHeight < containerHeight * 0.8) { // If content height is less than 80% of container
-                    lineHeight += 0.1; // Increase line height by 0.1
-                    textContainer.style.lineHeight = lineHeight.toString();
-                }
-
-                // If content overflows height, reduce line height
-                if (textContainer.scrollHeight > containerHeight) {
-                    lineHeight = Math.max(1.0, lineHeight - 0.1); // Don't go below 1.0
-                    textContainer.style.lineHeight = lineHeight.toString();
-                }
-            }
-
-            // Final adjustments
-            fontSize -= 6; // Reduce font size to ensure fit
-            textContainer.style.fontSize = `${fontSize}px`;
-
-            // Fine-tune line height one more time
-            while (textContainer.scrollHeight > containerHeight && lineHeight > 1.0) {
-                lineHeight -= 0.1;
-                textContainer.style.lineHeight = lineHeight.toString();
-            }
-        });
-    } else {
-        console.log(`${type}CarouselContainer not found`);
+    const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+    
+    if (!carouselContainer) {
+        console.warn(`${type}CarouselContainer not found`);
+        return;
     }
+
+    const textContainers = carouselContainer.querySelectorAll('.main-message');
+    if (!textContainers.length) {
+        return; // No text containers found, exit quietly
+    }
+
+    textContainers.forEach((textContainer) => {
+        // Get container dimensions
+        const containerWidth = carouselContainer.offsetWidth;
+        const containerHeight = carouselContainer.offsetHeight;
+
+        // Reset styles to get proper measurements
+        textContainer.style.fontSize = '10px';
+        textContainer.style.lineHeight = '1.2';
+
+        // Incrementally adjust font size
+        let fontSize = 10;
+        const maxFontSize = 24; // Maximum font size
+        
+        while (
+            fontSize < maxFontSize &&
+            textContainer.scrollHeight <= containerHeight * 0.9 && // Use 90% of container height
+            textContainer.scrollWidth <= containerWidth * 0.9 // Use 90% of container width
+        ) {
+            fontSize++;
+            textContainer.style.fontSize = `${fontSize}px`;
+        }
+
+        // Step back one size to ensure fit
+        fontSize = Math.max(10, fontSize - 1);
+        textContainer.style.fontSize = `${fontSize}px`;
+
+        // Adjust line height for readability
+        textContainer.style.lineHeight = '1.4';
+    });
 }
 
 // Set up a MutationObserver to watch for changes in a specific carousel container
@@ -446,79 +472,34 @@ const createOrgChart = (orgchartId, chartData) => {
     }
 
     // Clear any existing chart
-    container.innerHTML = '<div class="orgchart-content"></div>';
     const contentDiv = container.querySelector('.orgchart-content');
-
-    const chartConfig = {
-        chart: {
-            container: `#${containerId}`,
-            nodeAlign: "BOTTOM",
-            connectors: {
-                type: 'step'
-            },
-            node: {
-                HTMLclass: 'nodeExample1'
-            }
-        },
-        nodeStructure: buildOrgChartNodeStructure(chartData.members)
-    };
-
-    // new Treant(chartConfig);
-    container.chartConfig = chartConfig;
-    // After the chart is created, scale it to fit
-    scaleOrgChart(container);
-};
-
-const scaleOrgChart = (container) => {
-    const content = container.querySelector('.orgchart-content');
-    if (!content) return;
-
-    const chart = content.firstChild;
-    if (!chart) return;
-
-    const containerWidth = container.offsetWidth;
-    const containerHeight = container.offsetHeight;
-    const chartWidth = chart.offsetWidth;
-    const chartHeight = chart.offsetHeight;
-
-    const scaleX = containerWidth / chartWidth;
-    const scaleY = containerHeight / chartHeight;
-    const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
-
-    content.style.transform = `scale(${scale})`;
-};
-
-const renderVisibleOrgChart = () => {
-    const activeItem = document.querySelector('.carousel-item.active');
-    if (activeItem) {
-        const orgChartContainer = activeItem.querySelector('.orgchart-container');
-        if (orgChartContainer && orgChartContainer.chartConfig) {
-            new Treant(orgChartContainer.chartConfig);
-            // Remove the config after rendering to avoid re-rendering
-            delete orgChartContainer.chartConfig;
-        }
+    if (!contentDiv) {
+        return;
     }
-};
+    contentDiv.innerHTML = '';
 
-// Function to build org chart node structure
-const buildOrgChartNodeStructure = (members) => {
+    // Create a map of all nodes
     const nodeMap = new Map();
-    const rootNodes = [];
-
+    
     // First pass: create all nodes
-    members.forEach(member => {
+    chartData.members.forEach(member => {
+        const hasChildren = chartData.members.some(child => child.parent_id === member.parent_node_id);
         nodeMap.set(member.parent_node_id, {
-            text: { 
+            text: {
                 name: member.name,
                 title: member.title,
             },
             image: member.picture,
             innerHTML: `
-                ${member.picture ? `<img src="${member.picture}" style="width: 50px; height: 50px; border-radius: 50%;">` : '<img src="images/profile_picture.png">'}
-                <div class="details">
-                    <div class="node-name">${member.name}</div>
-                    <div class="node-title">${member.title}</div>
-                    <div class="node-id">${member.parent_node_id}</div>                    
+                <div class="node-content">
+                    ${member.picture ? 
+                        `<img src="${member.picture}" class="node-image" alt="${member.name}">` : 
+                        `<img src="images/profile_picture.png" class="node-image" alt="Default Profile">`
+                    }
+                    <div class="node-details">
+                        <div class="node-name">${member.name}</div>
+                        <div class="node-title">${member.title}</div>
+                    </div>
                 </div>
             `,
             HTMLclass: "custom-node",
@@ -527,7 +508,8 @@ const buildOrgChartNodeStructure = (members) => {
     });
 
     // Second pass: build hierarchy
-    members.forEach(member => {
+    const rootNodes = [];
+    chartData.members.forEach(member => {
         const node = nodeMap.get(member.parent_node_id);
         if (member.parent_id && member.parent_id !== 'NULL') {
             const parentNode = nodeMap.get(member.parent_id);
@@ -542,24 +524,87 @@ const buildOrgChartNodeStructure = (members) => {
         }
     });
 
-    // If there's only one root node, return it
-    if (rootNodes.length === 1) {
-        return rootNodes[0];
-    }
-
-    // If there are multiple root nodes, create a dummy root
-    return {
+    // Determine final node structure
+    const nodeStructure = rootNodes.length === 1 ? rootNodes[0] : {
         text: { name: "Department" },
         HTMLclass: "hidden-node",
         children: rootNodes
     };
+
+    // Create chart configuration
+    const chartConfig = {
+        chart: {
+            container: `#${containerId}`,
+            nodeAlign: "BOTTOM",
+            levelSeparation: 50,
+            siblingSeparation: 40,
+            subTeeSeparation: 40,
+            connectors: {
+                type: 'step'
+            },
+            node: {
+                HTMLclass: 'nodeExample1'
+            },
+            callback: {
+                onTreeLoaded: function() {
+                    // Scale the chart after it's loaded
+                    scaleOrgChart(container);
+                }
+            }
+        },
+        nodeStructure: nodeStructure
+    };
+
+    try {
+        new Treant(chartConfig);
+    } catch (error) {
+        console.error('Error creating org chart:', error);
+        contentDiv.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
+    }
+};
+
+// Add this new function to handle scaling
+function scaleOrgChart(container) {
+    const treant = container.querySelector('.Treant');
+    const svg = treant ? treant.querySelector('svg') : null;
+    
+    if (!container || !treant || !svg) return;
+
+    const svgWidth = svg.width.baseVal.value;
+    const svgHeight = svg.height.baseVal.value;
+    
+    treant.style.width = `${svgWidth}px`;
+    treant.style.height = `${svgHeight}px`;
+    
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+    const scale = Math.min(
+        containerWidth / svgWidth,
+        containerHeight / svgHeight,
+        1
+    ) * 0.9;
+
+    treant.style.transform = `scale(${scale})`;
+    treant.style.transformOrigin = 'top center';
+}
+
+const renderVisibleOrgChart = () => {
+    const activeItem = document.querySelector('.carousel-item.active');
+    if (activeItem) {
+        const orgChartContainer = activeItem.querySelector('.orgchart-container');
+        if (orgChartContainer && orgChartContainer.chartConfig) {
+            new Treant(orgChartContainer.chartConfig);
+            // Remove the config after rendering to avoid re-rendering
+            delete orgChartContainer.chartConfig;
+        }
+    }
 };
 
 // Function to initialize org charts
 const initializeOrgCharts = () => {
     fetchOrgChartData().then(groupedData => {
         Object.keys(groupedData).forEach(orgchartId => {
-            const containerId = `orgChartContainer_${orgchartId}`;
+            const containerId = `orgChartContainer-${orgchartId}`;
             const containerDiv = document.createElement('div');
             containerDiv.id = containerId;
             containerDiv.style.width = '100%';
@@ -596,7 +641,7 @@ const updatePageNumber = (type) => {
 // Function to show next content
 const showNextContent = (type) => {
     const currentIndexKey = type;
-    const contentsArray = contents[`${type}s`];
+    const contentsArray = contents[type + 's'];
 
     if (contentsArray.length > 0) {
         // Remove active class from the current item
@@ -613,9 +658,21 @@ const showNextContent = (type) => {
             updatePageNumber(currentIndexKey);
             resetDisplayTime(type);
 
-            // Render the org chart if it's an orgchart type
+            // For orgchart, ensure proper rendering after transition
             if (type === 'orgchart') {
-                setTimeout(renderVisibleOrgChart, 100); // Small delay to ensure DOM update
+                // Clear the previous chart
+                const currentChart = contentsArray[currentIndex[currentIndexKey]];
+                const chartContainer = currentChart.querySelector('.orgchart-content');
+                if (chartContainer) {
+                    chartContainer.innerHTML = '';
+                }
+                
+                // Re-render the chart with a delay to ensure DOM is ready
+                setTimeout(() => {
+                    if (currentChart.chartData) {
+                        createOrgChart(currentChart.dataset.orgchartId, currentChart.chartData);
+                    }
+                }, 100);
             }
         }
     } else {
@@ -625,6 +682,50 @@ const showNextContent = (type) => {
 
 // Function to reset display time
 const resetDisplayTime = (type) => {
+    // // Special handling for orgchart
+    // if (type === 'orgchart') {
+    //     const currentContent = contents[type + 's'][currentIndex[type]];
+    //     if (!currentContent) {
+    //         console.warn(`No orgchart content found at index ${currentIndex[type]}`);
+    //         return;
+    //     }
+
+    //     // Find the display time element within the orgchart structure
+    //     const displayTimeElement = currentContent.querySelector('.content-container-con .time-left');
+    //     if (!displayTimeElement) {
+    //         console.warn('Display time element not found in orgchart');
+    //         return;
+    //     }
+
+    //     const originalDisplayTime = currentContent.dataset.displayTime;
+    //     if (!originalDisplayTime) {
+    //         console.warn('No display time set for orgchart');
+    //         return;
+    //     }
+
+    //     let remainingTime = parseInt(originalDisplayTime, 10);
+    //     displayTimeElement.innerHTML = `<i class="fa fa-hourglass-half" aria-hidden="true"></i> ${remainingTime}s`;
+
+    //     // Clear existing interval
+    //     if (displayTimeIntervals[type]) {
+    //         clearInterval(displayTimeIntervals[type]);
+    //     }
+
+    //     // Set new interval
+    //     displayTimeIntervals[type] = setInterval(() => {
+    //         remainingTime -= 1;
+    //         if (displayTimeElement) {
+    //             displayTimeElement.innerHTML = `<i class="fa fa-hourglass-half" aria-hidden="true"></i> ${remainingTime}s`;
+    //         }
+    //         if (remainingTime < 0) {
+    //             clearInterval(displayTimeIntervals[type]);
+    //             showNextContent(type);
+    //         }
+    //     }, 1000);
+
+    //     return; // Exit early for orgchart
+    // }
+    
     const currentContent = contents[`${type}s`][currentIndex[type]];
     // const currentContent = type === 'announcement' ? contents.announcements[currentIndex.announcement] : contents.events[currentIndex.event];
     const displayTimeElement = currentContent.querySelector('.display-time');
@@ -704,6 +805,21 @@ const updateTvDetails = (tvName, tvBrand, tvDepartment, tvId) => {
 };
 
 const startCarousel = (type) => {
+    // Check specifically for orgchart type
+    if (type === 'orgchart') {
+        if (contents[type + 's'].length > 0) {
+            if (contents[type + 's'][currentIndex[type]]) {
+                contents[type + 's'][currentIndex[type]].classList.add('active');
+            }
+            resetDisplayTime(type);
+            renderVisibleOrgChart(); // Ensure the orgchart is rendered
+        } else {
+            console.error("No orgchart content available");
+            displayNoMessage(type);
+        }
+        return;
+    }
+
     if (contents[type + 's'].length > 0) {
         // Remove active class from all contents
         contents[type + 's'].forEach(content => content.classList.remove('active'));
@@ -712,17 +828,11 @@ const startCarousel = (type) => {
         if (contents[type + 's'][currentIndex[type]]) { // Check if the index is valid
             contents[type + 's'][currentIndex[type]].classList.add('active');
             resetDisplayTime(type);
-
-            // Render the org chart if it's an orgchart type
-            if (type === 'orgchart') {
-                renderVisibleOrgChart();
-            }
         } else {
             console.error("Invalid current content index.");
         }
     } else {
-        console.error("Cannot start carousel: No valid content available.");
-        // Optionally handle this scenario
+        console.error("Cannot start carousel: No valid content available.", type);
     }
 }
 
@@ -752,10 +862,10 @@ const fetchAndUpdateContents = (type) => {
             .then(data => {
                 const tvName = data.tv_name;
                 const tvDepartment = data.tv_department;
-                fetch(`database/fetch_${type}.php`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (type === 'orgchart') {
+                if (type === 'orgchart') {
+                    fetch(`database/fetch_orgchart.php?tvId=${tvId}`)
+                        .then(response => response.json())
+                        .then(data => {
                             console.log("Fetched orgchart data:", data); // Debug log
                             Object.entries(data).forEach(([orgchartId, orgchartData]) => {
                                 console.log(`Processing orgchart ${orgchartId}:`, orgchartData); // Debug log
@@ -766,11 +876,20 @@ const fetchAndUpdateContents = (type) => {
                                 }, 'orgchart');
                             });
                             if (Object.keys(data).length > 0) {
-                                currentIndex['orgchart'] = 0;
+                                // currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
+                                currentIndex['orgchart'] = Math.min(currentIndex['orgchart'], contents['orgcharts'].length - 1); // Starts at the first item;
                                 startCarousel('orgchart');
                             } else {
                                 displayNoMessage('orgchart');
                             }
+                        })
+                        .catch(error => console.error('Error fetching orgcharts:', error));
+                } else if (type !== 'orgchart') {
+                    fetch(`database/fetch_${type}.php`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (type === 'orgchart') {
+                            
                         } else if (type === 'peo' || type === 'so') {
                             const filteredData = data.filter(item =>
                                 item.tv_id === parseInt(tvId, 10) &&
@@ -806,6 +925,7 @@ const fetchAndUpdateContents = (type) => {
                         adjustFontSize(type);
                     })
                     .catch(error => console.error(`Error fetching ${type}s:`, error));
+                }
             })
             .catch(error => console.error('Error fetching TV data:', error));
     } else if (tvId && !predefinedTypes.includes(type)) {
@@ -818,7 +938,7 @@ const fetchAndUpdateContents = (type) => {
                 fetch(`database/fetch_content.php?type=${type}&tvId=${tvId}`)
                     .then(response => response.json())
                     .then(data => {
-                        console.log(`Fetched ${type} data:`, data);
+                        // console.log(`Fetched ${type} data:`, data);
                         const { carouselContainer } = getContainerElements(type);
                         if (carouselContainer) {
                             carouselContainer.innerHTML = '';
@@ -1024,6 +1144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const containers = document.querySelectorAll('[id$="CarouselContainer"]');
     containers.forEach(container => {
         const type = container.id.replace('CarouselContainer', '');
+        // console.log(type);
         // Initialize arrays for new types if they don't exist
         if (!currentIndex[type]) {
             currentIndex[type] = 0;

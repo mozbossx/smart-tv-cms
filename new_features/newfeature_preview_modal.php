@@ -452,15 +452,19 @@ function generateNewFeaturePreviewContent(contentBody) {
     });
 
     // Add media content if it exists
-    if (contentBody.media) {
-        const fileExtension = contentBody.media.split('.').pop().toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-            previewHTML += `<img src="servers/new_feature_media/${contentBody.media}" style="max-width: 100%; height: auto;">`;
-        } else if (['mp4', 'webm', 'ogg'].includes(fileExtension)) {
-            previewHTML += `<video controls style="max-width: 100%; height: auto;">
-                <source src="servers/new_feature_media/${contentBody.media}">
-                Your browser does not support the video tag.
-            </video>`;
+    const mediaInput = document.querySelector('input[type="file"]');
+    if (mediaInput && mediaInput.files.length > 0) {
+        const file = mediaInput.files[0];
+        const fileURL = URL.createObjectURL(file);
+        const fileType = file.type.split('/')[0]; // 'image' or 'video'
+        if (fileType === 'image') {
+            previewHTML += `<img src="${fileURL}" style="max-width: 100%; height: auto; display: block; margin: 10px auto;">`;
+        } else if (fileType === 'video') {
+            previewHTML += `
+                <video controls style="max-width: 100%; height: auto; display: block; margin: 10px auto;">
+                    <source src="${fileURL}" type="${file.type}">
+                    Your browser does not support the video tag.
+                </video>`;
         }
     }
 

@@ -2,8 +2,17 @@
 // Database Connection
 $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
 
-// Fetch org chart members from the database
-$statement = $pdo->query("SELECT * FROM org_chart_members ORDER BY orgchart_id, parent_id");
+// Get TV ID from request
+$tvId = isset($_GET['tvId']) ? $_GET['tvId'] : null;
+
+if (!$tvId) {
+    echo json_encode(['error' => 'TV ID is required']);
+    exit;
+}
+
+// Prepare and execute the query with proper parameter binding
+$statement = $pdo->prepare("SELECT * FROM org_chart_members WHERE tv_id = ? ORDER BY orgchart_id, parent_id");
+$statement->execute([$tvId]);
 $chartData = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 // Group data by orgchart_id
@@ -13,7 +22,7 @@ foreach ($chartData as $member) {
     if (!isset($groupedData[$orgchartId])) {
         $groupedData[$orgchartId] = [
             'members' => [],
-            'display_time' => $member['display_time'] // Add display_time to the orgchart data
+            'display_time' => $member['display_time']
         ];
     }
     $groupedData[$orgchartId]['members'][] = $member;

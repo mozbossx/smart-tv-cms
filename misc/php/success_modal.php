@@ -1,5 +1,5 @@
 <div id="successMessageModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="padding: 15px">
         <div class="green-bar-vertical">
             <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
             <p id="successMessage"></p>
@@ -18,7 +18,7 @@
     </div>
 </div>
 <div id="successMessageModalVersion2" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="padding: 15px">
         <div class="green-bar-vertical">
             <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
             <p id="successMessageVersion2" style="max-height: 200px; overflow: auto"></p>

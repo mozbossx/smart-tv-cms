@@ -925,7 +925,7 @@ class ContentHandler implements MessageComponentInterface
                      // For new features - dynamically add all fields from the form
                     foreach ($data as $key => $value) {
                         // Skip arrays (like tv_ids) and special fields
-                        if (!is_array($value) && !in_array($key, ['action', 'type', $idField, 'tv_id[]', 'expiration_datetime', 'tv_ids', 'action_value'])) {
+                        if (!is_array($value) && !in_array($key, ['action', 'type', $idField, 'tv_id[]', 'expiration_datetime', 'tv_ids', 'action_value', 'media'])) {
                             $updateFields[] = "$key = ?";
                             $params[] = $value;
                         }
@@ -4129,6 +4129,29 @@ class ContentHandler implements MessageComponentInterface
                 $featureName = $data['name_of_feature'];
                 $tableName = strtolower(str_replace(' ', '_', $featureName)) . '_tb';
 
+                // Check for reserved feature names
+                $reservedNames = ['announcement', 'event', 'news', 'promaterial', 'promotional material', 'promotional materials', 'peo', 'program educational objectives', 'so', 'student outcomes', 'orgchart', 'organizational chart'];
+                if (in_array(strtolower($featureName), $reservedNames)) {
+                    $response = [
+                        'success' => false,
+                        'message' => 'This feature name is reserved. Please choose a different name.',
+                        'messageType' => 'error'
+                    ];
+                    $from->send(json_encode($response));
+                    return;
+                }
+                
+                // Check for invalid characters in feature name
+                if (!preg_match('/^[a-zA-Z\s]+$/', $featureName)) {
+                    $response = [
+                        'success' => false,
+                        'message' => 'Feature name can only contain letters and spaces.',
+                        'messageType' => 'error'
+                    ];
+                    $from->send(json_encode($response));
+                    return;
+                }
+
                 // Check if feature name already exists
                 $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM features_tb WHERE LOWER(feature_name) = LOWER(?)");
                 $stmt->execute([strtolower($featureName)]);
@@ -4635,11 +4658,7 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                     <?php endif; ?>
                 </div>";
         } else {
-            return "
-                <div class=\"floating-label-container\">
-                    <input type=\"{$input['type']}\" name=\"{$name}\" id=\"{$name}\" {$required} placeholder=\" \" style=\"background: #FFFF; width: 100%\" class=\"floating-label-input\">
-                    <label for=\"{$name}\" class=\"floating-label\">{$label}</label>
-                </div>";
+            
         }
     }
 

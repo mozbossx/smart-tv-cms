@@ -6,7 +6,7 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
 
 <div class="right-flex">
     <div class="rounded-container-media">
-        <p class="input-container-label">Upload Media (Optional)</p>
+        <p class="input-container-label">Upload Media</p>
         <br>
         <input type="file" name="media" id="media" accept="video/*, image/*" onchange="previewMedia()" hidden>
         <label for="media" class="green-button">Choose File (.mp4, .jpg, .png)</label>

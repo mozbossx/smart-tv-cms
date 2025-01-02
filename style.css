@@ -1280,13 +1280,26 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .chart-parent-container {
-    border: 2px solid black; /* Dark border around the chart */
-    background-color: #f9f9f9; /* Light background for the container */
+    /* border: 2px solid black;  */
+    background-color: #ffffff; /* Light background for the container */
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for a 3D effect */
     border-radius: 5px;
     margin-top: 7px;
-    overflow: auto;
-    height: 600px;
+    width: 100%;
+    height: auto; /* Set a fixed height or adjust as needed */
+    position: relative;
+    overflow: hidden; /* Prevent scrollbars */
+}
+
+.chart-container {
+    width: 100%;
+    height: 100%;
+    max-height: 100% !important;
+    position: relative !important;
+    overflow: hidden !important;
+    transform-origin: center center; /* Set transform origin to top center */
+    transition: transform 0.3s ease; /* Smooth transition for scaling */
+    overflow: hidden;
 }
 
 #chart-container::-webkit-scrollbar, .chart-parent-container::-webkit-scrollbar {
@@ -1302,14 +1315,98 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .custom-node {
-    border: 2px solid black; /* Border around the node */
-    border-radius: 10px; /* Slight rounding of corners */
-    padding: 10px; /* Padding around the contents */
-    display: flex; /* Flexbox layout for easy alignment */
-    align-items: center; /* Vertically center the items */
-    background-color: rgb(237, 237, 237); /* Background color */
-    width: 200px; /* Fixed width */
-    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2); /* Shadow effect */
+    padding: 15px;
+    border-radius: 8px;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    min-width: 150px;
+    max-width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.node-content {
+    display: flex;
+    align-items: center;
+}
+
+.node-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #264B2B;
+}
+
+.node-details {
+    flex: 1;
+    text-align: left;
+}
+
+.node-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #264B2B;
+    margin-bottom: 4px;
+}
+
+.node-title {
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+.node-actions {
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+    margin-top: 5px;
+}
+
+.add-member-node-btn {
+    background: #316038;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    justify-content: center;
+}
+
+.add-member-node-btn:hover {
+    background: #264B2B;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.add-member-node-btn i {
+    margin-right: 5px;
+}
+
+.delete-member-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #ff4444;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.delete-member-btn:hover {
+    opacity: 1;
 }
 
 .custom-node img {
@@ -1336,9 +1433,21 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     margin-bottom: 5px; /* Space below the title */
 }
 
-/* Connecting lines */
+/* Ensure the Treant container and its SVG scale properly */
+.Treant {
+    position: relative;
+    width: 100%; /* Force full width */
+    height: 100%; /* Force full height */
+    transition: transform 0.3s ease;
+    transform-origin: center center;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+}
+
 .Treant .node {
-    border-color: #000000; /* Blue color for connecting lines */
+    width: auto;
+    position: absolute;
 }
 
 .ql-toolbar.ql-snow {

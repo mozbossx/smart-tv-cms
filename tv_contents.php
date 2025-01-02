@@ -75,6 +75,10 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="misc/js/treant-js-master/vendor/jquery.min.js"></script>
+    <script src="misc/js/treant-js-master/vendor/raphael.js"></script>
+    <script src="misc/js/treant-js-master/Treant.js"></script>
+    <link rel="stylesheet" href="misc/js/treant-js-master/Treant.css" />
     <title><?php echo $tvName; ?></title>
 </head>
 <body>
@@ -111,7 +115,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 <div class="content-grid-container">
                 <?php
                 // Array of content types
-                $contentTypes = ['announcement', 'event',  'news', 'promaterial', 'peo', 'so'];
+                $contentTypes = ['announcement', 'event',  'news', 'promaterial', 'peo', 'so', 'orgchart'];
                 // echo '<p>'; print_r($contentTypes); echo '</p>';
 
                 // Add new features to the content types array
@@ -134,6 +138,8 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO) <span id='peoCount' style='color: #6E6E6E;'></span></h1>";
                     } else if ($type == 'so') {
                         echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO) <span id='soCount' style='color: #6E6E6E;'></span></h1>";
+                    } else if ($type == 'orgchart') {
+                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Department Organizational Chart <span id='orgchartCount' style='color: #6E6E6E;'></span></h1>";
                     } else {
                         // For new features
                         $feature = array_filter($featuresNewFeatures, function($f) use ($type) {

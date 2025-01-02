@@ -103,16 +103,7 @@ include 'admin_access_only.php';
                                     }
                                 ?>
                             </div>
-                            <div class="form-row" style="margin-bottom: 5px"> 
-                                <div id="contentExpirationDate" class="floating-label-container" style="display: none; flex: 1">
-                                    <select id="content_has_expiration_date" name="content_has_expiration_date" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
-                                        <option value="">Choose Selection</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                    <label for="content_has_expiration_date" class="floating-label">Content Has Expiration Date?</label>
-                                </div>
-                            </div>
+                            <input type="hidden" id="content_has_expiration_date" name="content_has_expiration_date" value="yes">
                             <div id="departmentSelection" class="floating-label-container" style="display: none">
                                 <select name="department" id="department" class="floating-label-input" style="background: #FFFF; padding-left: 8px">
                                     <option value="">~</option>
@@ -163,13 +154,11 @@ include 'admin_access_only.php';
             const numberOfInputs = parseInt(this.value);
             const newInputContainer = document.getElementById('newInput');
             const userTypeAccess = document.getElementById('userTypeAccess');
-            const contentExpirationDate = document.getElementById('contentExpirationDate');
             const departmentSelection = document.getElementById('departmentSelection');
             
             // Clear existing inputs
             newInputContainer.innerHTML = '';
             userTypeAccess.style.display = 'none';
-            contentExpirationDate.style.display = 'none';
             departmentSelection.style.display = 'none';
 
             let hasMediaInput = false; // Track if media input is already selected
@@ -178,31 +167,38 @@ include 'admin_access_only.php';
             for (let i = 0; i < numberOfInputs; i++) {
                 const inputSection = `
                     <p style="color: #264B2B;"><b>Input #${i+1}</b></p>
-                    <div class="floating-label-container">
-                        <input type="text" name="name_of_input_${i+1}" id="name_of_input_${i+1}" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input" maxlength="35">
-                        <label for="name_of_input_${i+1}" class="floating-label">Name of Input #${i+1}</label>
-                    </div>
-                    <div class="form-row" style="margin-bottom: 5px">
-                        <div class="floating-label-container" style="flex: 1">
-                            <select id="input_type_${i+1}" name="input_type_${i+1}" class="input-type-select floating-label-input" required style="background: #FFFF; padding-left: 8px">
-                                <option value="">Select Input Type</option>
-                                <option value="text">Text</option>
-                                <option value="media">Media (video, image)</option>
-                            </select>
-                            <label for="input_type_${i+1}" class="floating-label">Input Type</label>
+                    <div id="input_section_${i+1}">
+                        <div class="floating-label-container" id="name_container_${i+1}">
+                            <input type="text" name="name_of_input_${i+1}" id="name_of_input_${i+1}" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input" maxlength="35">
+                            <label for="name_of_input_${i+1}" class="floating-label">Name of Input #${i+1}</label>
                         </div>
-                        <div class="floating-label-container" style="flex: 1">
-                            <select id="required_field_${i+1}" name="required_field_${i+1}" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
-                                <option value="">Choose Selection</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </select>
-                            <label for="required_field_${i+1}" class="floating-label">Required Field?</label>
+                        <div class="form-row" style="margin-bottom: 5px">
+                            <div class="floating-label-container" style="flex: 1">
+                                <select id="input_type_${i+1}" name="input_type_${i+1}" class="input-type-select floating-label-input" required style="background: #FFFF; padding-left: 8px">
+                                    <option value="">Select Input Type</option>
+                                    <option value="text">Text</option>
+                                    <option value="media">Media (video, image)</option>
+                                </select>
+                                <label for="input_type_${i+1}" class="floating-label">Input Type</label>
+                            </div>
+                            <input type="hidden" id="required_field_${i+1}" name="required_field_${i+1}" value="yes">
                         </div>
                     </div>
                     <div class="line-separator"></div>
                 `;
                 newInputContainer.insertAdjacentHTML('beforeend', inputSection);
+                document.getElementById(`input_type_${i+1}`).addEventListener('change', function() {
+                    const nameContainer = document.getElementById(`name_container_${i+1}`);
+                    const nameInput = document.getElementById(`name_of_input_${i+1}`);
+                    
+                    if (this.value === 'media') {
+                        nameContainer.style.display = 'none';
+                        nameInput.value = 'Media Upload Only zz';  // Set a default value for media inputs
+                    } else {
+                        nameContainer.style.display = 'block';
+                        nameInput.value = '';  // Clear the value when switching back to text
+                    }
+                });
             }
 
             // Function to update all media options based on current state
@@ -243,7 +239,6 @@ include 'admin_access_only.php';
             // Show the container if inputs are selected, hide otherwise
             newInputContainer.style.display = numberOfInputs > 0 ? 'block' : 'none';
             userTypeAccess.style.display = numberOfInputs > 0 ? 'block' : 'none';
-            contentExpirationDate.style.display = numberOfInputs > 0 ? 'block' : 'none';
             departmentSelection.style.display = numberOfInputs > 0 ? 'block' : 'none';
         });
 

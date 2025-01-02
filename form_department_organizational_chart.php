@@ -48,18 +48,13 @@ include 'misc/php/options_tv.php';
                                 <li class="breadcrumb-item active" aria-current="page">Department Organizational Chart</li>
                             </ol>
                         </nav>
-                        <form id="orgchartForm" enctype="multipart/form-data" class="main-form">
+                        <form id="orgchartForm" enctype="multipart/form-data" class="main-form" style="max-width: 100%">
                             <?php include('error_message.php'); ?>
                             <input type="hidden" name="type" value="orgchart">
                             <h1 style="text-align: center">Department Organizational Chart Form</h1>
                             <div style="position: relative">
-                                <div class="chart-parent-container">
-                                    <div id="chart-container" style="width: auto; height: auto; max-height: 540px"></div>
-                                </div>
-                                <div style="position: absolute; z-index: 100; bottom: 15px; right: 15px">
-                                    <button type="button" name="addMemberButton" id="addMemberButton" class="preview-button" style="background: none; border: 1px solid #316038; color: #316038; margin-right: 0" onclick="openAddMemberModal()">
-                                        <i class="fa fa-user-plus" style="padding-right: 5px"></i> Add a Member
-                                    </button>
+                                <div class="chart-parent-container" style="place-items: center">
+                                    <div id="chart-container" class="chart-container" style="width: auto;"></div>
                                 </div>
                             </div>
                             <?php include('misc/php/displaytime_tvdisplay.php')?>
@@ -78,7 +73,7 @@ include 'misc/php/options_tv.php';
     </div>
     <!-- Modal for Adding a Member -->
     <div class="modal" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
-        <div class="modal-content" style="padding: 10px">
+        <div class="modal-content" style="padding: 15px">
             <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-user-plus" aria-hidden="true"></i></h1>
             <p>Add New Member</p>
             <form id="addMemberForm" enctype="multipart/form-data">
@@ -90,27 +85,22 @@ include 'misc/php/options_tv.php';
                     <input type="text" id="memberTitle" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area">
                     <label for="memberTitle" style="width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Title</label>
                 </div>
-                <div class="floating-label-container">
-                    <select id="parentNode" class="floating-label-input" style="background: #FFFF">
-                        <option value="">Select Parent Node</option>
-                        <!-- Dynamically populate with existing members -->
-                    </select>
-                    <label for="parentNode" class="floating-label">Parent Node</label>
-                </div>
+                <input type="hidden" id="parentNodeHiddenInput" value="">
                 <div class="floating-label-container">
                     <input type="file" class="floating-label-input" style="padding-top: 23px; background: white" id="memberPicture" accept="image/*">
                     <label for="memberPicture" style="width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label">Upload Picture</label>
                 </div>
             </form>
+            <br>
             <div style="text-align: right; margin-top: 5px">
-                <button type="button" class="green-button" onclick="closeAddMemberModal()" style="background: none; border: 1px solid #264B2B; color: #264B2B">Close</button>
+                <button type="button" class="grey-button" onclick="closeAddMemberModal()">Close</button>
                 <button type="button" class="green-button" onclick="submitMemberForm()" style="margin-right: 0">Add Member</button>
             </div>
         </div>
     </div>
     <!-- Preview Modal -->
     <div id="previewModal" class="modal">
-        <div class="modal-content-preview">
+        <div class="modal-content-preview" style="padding: 15px">
             <div class="flex-preview-content">
                 <?php 
                     $sqlContainers = "SELECT * FROM containers_tb";
@@ -120,7 +110,7 @@ include 'misc/php/options_tv.php';
                         $containers[] = $row; // Store each container in an array
                     }
                 ?>
-                <div style="display: flex, flex-direction: column; flex: 2; height: auto; overflow: auto">
+                <div style="display: flex, flex-direction: column; flex: 2; height: auto;">
                     <div id="previewContainer"></div>
                 </div>
                 <!-- The container consists of child_background_color, child_font_style, child_font_color-->
@@ -128,7 +118,7 @@ include 'misc/php/options_tv.php';
             </div>
             <!-- Operation buttons inside the Preview modal -->
             <div class="flex-button-modal">
-                <button type="button" class="green-button" id="closeButton" style="background: none; border: 1px solid #264B2B; color: #264B2B; margin-top: 0; margin-right: 5px" onclick="closePreviewModal()">Cancel</button>
+                <button type="button" class="grey-button" id="closeButton" style="margin-top: 0; margin-right: 5px" onclick="closePreviewModal()">Cancel</button>
                 <button type="button" name="post" class="green-button" style="margin-top: 0; margin-right: 0" onclick="submitFormViaWebSocket()">Submit</button>
             </div>
         </div>
@@ -142,12 +132,14 @@ include 'misc/php/options_tv.php';
 
         let orgChartData = []; // Initialize an empty array to store org chart data
 
-        function openAddMemberModal() {
+        function openAddMemberModal(parentId) {
             const modal = document.getElementById('addMemberModal');
             modal.style.display = "flex";
             modal.classList.add('show');
 
-            populateParentNodeDropdown(); // Populate the parent node dropdown
+            // Set the value of the hidden input
+            const parentNodeHiddenInput = document.getElementById('parentNodeHiddenInput');
+            parentNodeHiddenInput.value = parentId || ''; // Set to empty string if parentId is null
         }
 
         function closeAddMemberModal() {
@@ -171,9 +163,9 @@ include 'misc/php/options_tv.php';
 
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
-                if (message.success) {
+                if (message.success == true) {
                     document.getElementById('successMessage').textContent = "Organizational Chart was successfully processed!";                        
-                } else {
+                } else if (message.success == false) {
                     alert('Error saving organizational chart. Please try again.');
                 }
             };
@@ -407,6 +399,38 @@ include 'misc/php/options_tv.php';
             });
         }
 
+        function scaleOrgChart() {
+            const container = document.querySelector('.chart-parent-container');
+            const treant = document.querySelector('.Treant');
+            const svg = treant ? treant.querySelector('svg') : null;
+            
+            if (!container || !treant || !svg) return;
+
+            // First, make the Treant match the SVG dimensions
+            const svgWidth = svg.width.baseVal.value;
+            const svgHeight = svg.height.baseVal.value;
+            
+            // Set both width and height of Treant to match SVG
+            treant.style.width = `${svgWidth}px`;
+            treant.style.height = `${svgHeight}px`;
+
+            // Reset transform to get true dimensions
+            treant.style.transform = 'none';
+            
+            // Calculate scale ratios
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            const scale = Math.min(
+                containerWidth / svgWidth,
+                containerHeight / svgHeight,
+                1
+            ) * 0.9;
+
+            // Apply the transform
+            treant.style.transform = `scale(${scale})`;
+            treant.style.transformOrigin = 'top center';
+        }
+
         function createOrgChart(data) {
             const chartContainer = document.getElementById('chart-container');
             chartContainer.innerHTML = ''; // Clear existing content
@@ -422,11 +446,27 @@ include 'misc/php/options_tv.php';
                     }, 
                     image: member.picture,
                     innerHTML: `
-                        ${!hasChildren ? `<button onclick="deleteMember(${member.id})" style="position: absolute; top: 0; right: 0; background: none; border: none; color: crimson; cursor: pointer;"><i class="fa fa-times-circle" style="font-size: 15px"></i></button>` : ''}
-                        ${member.picture ? `<img src="${member.picture}" style="width: 50px; height: 50px; border-radius: 50%;">` : '<img src="images/profile_picture.png">'}
-                        <div class="details">
-                            <div class="node-name">${member.name}</div>
-                            <div class="node-title">${member.title}</div>
+                        <div class="node-content">
+                            ${member.picture ? 
+                                `<img src="${member.picture}" class="node-image" alt="${member.name}">` : 
+                                `<img src="images/profile_picture.png" class="node-image" alt="Default Profile">`
+                            }
+                            <div class="node-details">
+                                <div class="node-name">${member.name}</div>
+                                <div class="node-title">${member.title}</div>
+                            </div>
+                            ${!hasChildren ? 
+                                `<button onclick="deleteMember(${member.id})" class="delete-member-btn">
+                                    <i class="fa fa-times-circle" style="font-size: 18px"></i>
+                                </button>` : 
+                                ''
+                            }
+                        </div>
+                        <div class="node-actions">
+                            <button onclick="openAddMemberModal(${member.id})" class="add-member-node-btn">
+                                <i class="fa fa-user-plus"></i>
+                                Add Member
+                            </button>
                         </div>
                     `,
                     HTMLclass: "custom-node",
@@ -455,7 +495,13 @@ include 'misc/php/options_tv.php';
                         nodeAlign: "BOTTOM",
                         levelSeparation: 50,
                         siblingSeparation: 40,
-                        subTeeSeparation: 40
+                        subTeeSeparation: 40,
+                        callback: {
+                            onTreeLoaded: function() {
+                                // Add a small delay to ensure the tree is fully rendered
+                                setTimeout(scaleOrgChart, 100);
+                            }
+                        }
                     },
                     nodeStructure: rootNode
                 });
@@ -483,35 +529,10 @@ include 'misc/php/options_tv.php';
             createOrgChart(orgChartData); // Initialize with an empty org chart
         });
 
-        function populateParentNodeDropdown() {
-            const parentNodeDropdown = document.getElementById('parentNode');
-            parentNodeDropdown.innerHTML = ''; // Clear existing options
-
-            if (orgChartData.length === 0) {
-                // If no members, add a "null" option
-                const nullOption = document.createElement('option');
-                nullOption.value = '';
-                nullOption.text = 'No Parent (Root Node)';
-                parentNodeDropdown.appendChild(nullOption);
-            } else {
-                // Populate with existing members
-                orgChartData.forEach(member => {
-                    const option = document.createElement('option');
-                    option.value = member.id;
-                    option.text = member.name;
-                    parentNodeDropdown.appendChild(option);
-                });
-            }
-        }
-
-        $('#addMemberModal').on('show.bs.modal', function() {
-            fetchOrgChartData().done(populateParentNodeDropdown);  // Re-fetch the data to ensure the latest structure
-        });
-
         function submitMemberForm() {
             const memberName = document.getElementById('memberName').value;
             const memberTitle = document.getElementById('memberTitle').value;
-            const parentNode = document.getElementById('parentNode').value;
+            const parentNodeHiddenInput = document.getElementById('parentNodeHiddenInput').value;
             const memberPicture = document.getElementById('memberPicture').files[0];
 
             if (!memberName || !memberTitle) {
@@ -525,7 +546,7 @@ include 'misc/php/options_tv.php';
 
                 const newMember = {
                     id: orgChartData.length + 1, // Generate a temporary ID
-                    parent_id: parentNode || null, // Set parent_id to null if no parent selected
+                    parent_id: parentNodeHiddenInput || null, // Set parent_id to null if no parent selected
                     name: memberName,
                     title: memberTitle,
                     picture: pictureBase64
@@ -541,7 +562,7 @@ include 'misc/php/options_tv.php';
             } else {
                 const newMember = {
                     id: orgChartData.length + 1,
-                    parent_id: parentNode || null,
+                    parent_id: parentNodeHiddenInput || null,
                     name: memberName,
                     title: memberTitle,
                     picture: ''
@@ -553,6 +574,9 @@ include 'misc/php/options_tv.php';
             }
 
             console.log("Org Chart Data:", orgChartData);
+            
+            const addMemberForm = document.getElementById('addMemberForm');
+            addMemberForm.reset();
 
         }
     </script>

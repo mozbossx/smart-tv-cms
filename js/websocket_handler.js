@@ -1,9 +1,9 @@
-const Ws = new WebSocket('ws://10.0.0.41:8081');
+const Ws = new WebSocket('ws://10.0.0.39:8081');
 
 // let Ws;
 
 // function initializeWebSocket() {
-//     Ws = new WebSocket('ws://10.0.0.41:8081');
+//     Ws = new WebSocket('ws://10.0.0.39:8081');
 
 //     Ws.onopen = function(event) {
 //         console.log("WebSocket connection established");

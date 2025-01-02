@@ -177,14 +177,11 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
                             <pre class="ann-body" style="word-break: break-word">${data[`${type}_subdescription`]}</pre>`;
             break;
         default:
-            // For new features, dynamically add all fields
+            // For new features, only display content fields (skip metadata fields)
             for (let key in data) {
-                if (key !== `${type}_id` && key !== 'created_datetime' && key !== 'expiration_datetime' 
-                    && key !== 'display_time' && key !== 'status' && key !== 'isArchived' && key !== 'isTrashed'
-                    && key !== 'tv_id' && key !== `${type}_author_id` && key !== 'type' && key !== 'department' 
-                    && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name'
-                    && key !== 'schedule_datetime' && key !== 'author_user_type' && key !== 'author_department' && key !== 'datetime_archived' && key !== 'datetime_trashed') {
-                        contentHtml += `<p>${data[key]}</p>`;
+                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
+                    && !key.endsWith('_id')) {
+                    contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[key]}</pre>`;
                 }
             }
     }

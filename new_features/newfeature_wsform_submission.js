@@ -53,26 +53,29 @@ function submitFormViaWebSocket() {
     }
 
     // Check for file input
-    const fileInputs = form.querySelectorAll('input[type="file"]');
-    let filePromises = [];
+    const mediaInput = document.getElementById('media');
+    if (mediaInput && mediaInput.files.length > 0) {
+        const mediaFile = mediaInput.files[0];
+        const reader = new FileReader();
 
-    fileInputs.forEach(fileInput => {
-        if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const promise = new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const base64Data = e.target.result;
-                    formData.set(fileInput.name, base64Data);
-                    resolve();
-                };
-                reader.readAsDataURL(file);
+        reader.onload = function (e) {
+            const base64Data = e.target.result;
+            formData.set('media', base64Data);
+
+            // Convert FormData to object, excluding empty schedule_datetime
+            formData.forEach((value, key) => {
+                if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
+                    return; // Skip empty schedule_datetime
+                }
+                data[key] = value;
             });
-            filePromises.push(promise);
-        }
-    });
 
-    Promise.all(filePromises).then(() => {
+            ws.send(JSON.stringify(data));
+        };
+
+        reader.readAsDataURL(mediaFile);
+    } else {
+        // Convert FormData to object, excluding empty schedule_datetime
         formData.forEach((value, key) => {
             if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
                 return; // Skip empty schedule_datetime
@@ -82,7 +85,7 @@ function submitFormViaWebSocket() {
 
         console.log('Form Data:', data);
         ws.send(JSON.stringify(data));
-    });
+    }
 
     // Listen for messages from the WebSocket server
     ws.onmessage = function(event) {
