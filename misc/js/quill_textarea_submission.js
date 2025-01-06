@@ -110,6 +110,19 @@ if (contentType === 'announcement') {
         quillEditors.soDescriptionQuill.root.innerHTML = existingContentDescription.value;
         quillEditors.soSubdescriptionQuill.root.innerHTML = existingContentSubdescription.value;
     }
+} else if (contentType === 'facility') {
+    quillEditors.facilityBodyQuill = new Quill('#facility_body', {
+        theme: 'snow',
+        modules: {
+            toolbar: toolbarOptions
+        }
+    });
+
+    // If edit mode, populate the editor
+    const existingContent = document.querySelector('#existing_facility_content');
+    if (existingContent) {
+        quillEditors.facilityBodyQuill.root.innerHTML = existingContent.value;
+    }
 }
 
 // Add change listeners
@@ -158,6 +171,10 @@ function handleFormSubmission(event) {
     if (quillEditors.soSubdescriptionQuill) {
         document.querySelector('input[name=so_subdescription]').value = 
             quillEditors.soSubdescriptionQuill.root.innerHTML;
+    } 
+    if (quillEditors.facilityBodyQuill) {
+        document.querySelector('input[name=facility_body]').value = 
+            quillEditors.facilityBodyQuill.root.innerHTML;
     }
 
     // Submit the form

@@ -132,9 +132,11 @@ const updateUI = (data, type) => {
         containerDiv.chartData = data.chartData;
 
         const contentHTML = `
-            <div class="content-container-con">
-                <div id="orgChartContainer-${id}" class="orgchart-container">
-                    <div class="orgchart-content"></div>
+            <div class="content-container-con" id="orgChartParentContainer-${id}">
+                <div id="orgChartContainerParent-${id}" class="orgchart-container">
+                    <div id="orgChartContainer-${id}" class="orgchart-container-parent">
+                        <div class="orgchart-content"></div>
+                    </div>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -155,6 +157,7 @@ const updateUI = (data, type) => {
             existingDiv.innerHTML = contentHTML;
             existingDiv.chartData = data.chartData;
             resetCountdown(existingDiv, data.display_time, currentIndexKey);
+            // setupOrgChartResizeObserver(existingDiv.querySelector('.orgchart-container'));
         } else {
             contentsArray.push(containerDiv);
             carouselContainer.appendChild(containerDiv);
@@ -164,6 +167,7 @@ const updateUI = (data, type) => {
                 // Render the first chart immediately
                 setTimeout(() => {
                     createOrgChart(id, data.chartData);
+                    // setupOrgChartResizeObserver(containerDiv.querySelector('.orgchart-container'));
                 }, 100);
             }
         }
@@ -176,8 +180,8 @@ const updateUI = (data, type) => {
 
     if (type === 'announcement') {
         contentHTML = `
-            <div class="content-container-con">
-                <div class="content-main">
+            <div class="content-container-con" id="${type}ContentConContainer-${id}">
+                <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <span class="main-message" style="word-break: break-word;">
                         ${data.announcement_body}
@@ -197,8 +201,8 @@ const updateUI = (data, type) => {
         `;
     } else if (type === 'event') {
         contentHTML = `
-            <div class="content-container-con">
-                <div class="content-main">
+            <div class="content-container-con" id="${type}ContentConContainer-${id}">
+                <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <span class="main-message" style="word-break: break-word;">
                         ${data.event_body}
@@ -218,8 +222,8 @@ const updateUI = (data, type) => {
         `;
     } else if (type === 'news') {
         contentHTML = `
-            <div class="content-container-con">
-                <div class="content-main">
+            <div class="content-container-con" id="${type}ContentConContainer-${id}">
+                <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <span class="main-message" style="word-break: break-word;">
                         ${data.news_body}
@@ -239,8 +243,8 @@ const updateUI = (data, type) => {
         `;
     } else if (type === 'promaterial') {
         contentHTML = `
-            <div class="content-container-con">
-                <div class="content-main">
+            <div class="content-container-con" id="${type}ContentConContainer-${id}">
+                <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">${mediaContent}</div>` : ''}
                 </div>
                 <div class="content-details">
@@ -257,8 +261,8 @@ const updateUI = (data, type) => {
         `;
     } else if (type === 'peo') {
         contentHTML = `
-            <div class="content-container-con">
-                <div class="content-main">
+            <div class="content-container-con" id="${type}ContentConContainer-${id}">
+                <div class="content-main" id="${type}ContentMain-${id}">
                     <span class="main-message" style="word-break: break-word;">
                         <b>${data.peo_title}</b>
                     </span>
@@ -283,8 +287,8 @@ const updateUI = (data, type) => {
         `;
     } else if (type === 'so') {
         contentHTML = `
-            <div class="content-container-con">
-                <div class="content-main">
+            <div class="content-container-con" id="${type}ContentConContainer-${id}">
+                <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <span class="main-message" style="word-break: break-word;">
                         <b>${data.so_title}</b>
@@ -311,8 +315,8 @@ const updateUI = (data, type) => {
     } else {
         // Generic handler for new features
         contentHTML = `
-            <div class="content-container-con">
-                <div class="content-main">
+            <div class="content-container-con" id="${type}ContentConContainer-${id}">
+                <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <div class="main-message" style="word-break: break-word;">
                         ${Object.entries(data)
@@ -347,6 +351,11 @@ const updateUI = (data, type) => {
         }
         resetCountdown(existingDiv, data.display_time, currentIndexKey);
         updatePageNumber(currentIndexKey);
+
+        if (type !== 'orgchart') {
+            scaleContentContainer(type, id);
+            setupContentResizeObserver(type, id);
+        }
     } else {
         const containerDiv = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
@@ -385,82 +394,88 @@ const updateUI = (data, type) => {
         } else {
             updatePageNumber(currentIndexKey);
         }
+
+        setTimeout(() => {
+            scaleContentContainer(type, id);
+            setupContentResizeObserver(type, id);
+        }, 100);
         // if (type === 'orgchart') {
         //     createOrgChart(data.orgchart_id, data.chartData);
         // }
     }
-    adjustFontSize(type);
+    // adjustFontSize(type);
 };
 
-function adjustFontSize(type) {
-    const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+
+// function adjustFontSize(type) {
+//     const carouselContainer = document.getElementById(`${type}CarouselContainer`);
     
-    if (!carouselContainer) {
-        console.warn(`${type}CarouselContainer not found`);
-        return;
-    }
+//     if (!carouselContainer) {
+//         console.warn(`${type}CarouselContainer not found`);
+//         return;
+//     }
 
-    const textContainers = carouselContainer.querySelectorAll('.main-message');
-    if (!textContainers.length) {
-        return; // No text containers found, exit quietly
-    }
+//     const textContainers = carouselContainer.querySelectorAll('.main-message');
+//     if (!textContainers.length) {
+//         return; // No text containers found, exit quietly
+//     }
 
-    textContainers.forEach((textContainer) => {
-        // Get container dimensions
-        const containerWidth = carouselContainer.offsetWidth;
-        const containerHeight = carouselContainer.offsetHeight;
+//     textContainers.forEach((textContainer) => {
+//         // Get container dimensions
+//         const containerWidth = carouselContainer.offsetWidth;
+//         const containerHeight = carouselContainer.offsetHeight;
 
-        // Reset styles to get proper measurements
-        textContainer.style.fontSize = '10px';
-        textContainer.style.lineHeight = '1.2';
+//         // Reset styles to get proper measurements
+//         textContainer.style.fontSize = '10px';
+//         textContainer.style.lineHeight = '1.2';
 
-        // Incrementally adjust font size
-        let fontSize = 10;
-        const maxFontSize = 24; // Maximum font size
+//         // Incrementally adjust font size
+//         let fontSize = 10;
+//         const maxFontSize = 24; // Maximum font size
         
-        while (
-            fontSize < maxFontSize &&
-            textContainer.scrollHeight <= containerHeight * 0.9 && // Use 90% of container height
-            textContainer.scrollWidth <= containerWidth * 0.9 // Use 90% of container width
-        ) {
-            fontSize++;
-            textContainer.style.fontSize = `${fontSize}px`;
-        }
+//         while (
+//             fontSize < maxFontSize &&
+//             textContainer.scrollHeight <= containerHeight * 0.9 && // Use 90% of container height
+//             textContainer.scrollWidth <= containerWidth * 0.9 // Use 90% of container width
+//         ) {
+//             fontSize++;
+//             textContainer.style.fontSize = `${fontSize}px`;
+//         }
 
-        // Step back one size to ensure fit
-        fontSize = Math.max(10, fontSize - 1);
-        textContainer.style.fontSize = `${fontSize}px`;
+//         // Step back one size to ensure fit
+//         fontSize = Math.max(10, fontSize - 1);
+//         textContainer.style.fontSize = `${fontSize}px`;
 
-        // Adjust line height for readability
-        textContainer.style.lineHeight = '1.4';
-    });
-}
+//         // Adjust line height for readability
+//         textContainer.style.lineHeight = '1.4';
+//     });
+// }
 
 // Set up a MutationObserver to watch for changes in a specific carousel container
-function setupFontSizeObserver(type) {
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                adjustFontSize(type);
-            }
-        });
-    });
+// function setupFontSizeObserver(type) {
+//     const observer = new MutationObserver((mutations) => {
+//         mutations.forEach((mutation) => {
+//             if (mutation.type === 'childList' || mutation.type === 'characterData') {
+//                 adjustFontSize(type);
+//             }
+//         });
+//     });
 
-    const carouselContainer = document.getElementById(`${type}CarouselContainer`);
-    if (carouselContainer) {
-        observer.observe(carouselContainer, { childList: true, subtree: true, characterData: true });
-    }
-}
+//     const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+//     if (carouselContainer) {
+//         observer.observe(carouselContainer, { childList: true, subtree: true, characterData: true });
+//     }
+// }
 
 // Function to fetch org chart data
-const fetchOrgChartData = () => {
-    return fetch('database/fetch_orgchart.php')
-        .then(response => response.json())
-        .catch(error => {
-            console.error('Error fetching org chart data:', error);
-            return {};
-        });
-};
+// const fetchOrgChartData = () => {
+//     return fetch('database/fetch_orgchart.php')
+//         .then(response => response.json())
+//         .catch(error => {
+//             console.error('Error fetching org chart data:', error);
+//             return {};
+//         });
+// };
 
 // Function to create org chart
 const createOrgChart = (orgchartId, chartData) => {
@@ -476,14 +491,86 @@ const createOrgChart = (orgchartId, chartData) => {
     if (!contentDiv) {
         return;
     }
+
     contentDiv.innerHTML = '';
 
-    // Create a map of all nodes
+    // Calculate base node size based on container size
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+    const baseNodeWidth = Math.min(containerWidth * 0.15, 130); // 15% of container width, max 100px
+    const baseNodeHeight = Math.min(containerHeight * 0.15, 130); // 15% of container height, max 100px
+
+    // Update chart configuration with dynamic spacing
+    const chartConfig = {
+        chart: {
+            container: `#${containerId}`,
+            nodeAlign: "BOTTOM",
+            // levelSeparation: containerHeight * 0.08, // Dynamic level separation
+            // siblingSeparation: containerWidth * 0.03, // Dynamic sibling separation
+            // subTeeSeparation: containerWidth * 0.03, // Dynamic subtree separation
+            levelSeparation: 15, // Dynamic level separation
+            siblingSeparation: 20, // Dynamic sibling separation
+            subTeeSeparation: 20, // Dynamic subtree separation
+            connectors: {
+                type: 'step',
+                style: {
+                    'stroke-width': '1px'
+                }
+            },
+            node: {
+                HTMLclass: 'nodeExample1'
+            },
+            animation: {
+                nodeAnimation: "easeOutBounce",
+                nodeSpeed: 700,
+                connectorsAnimation: "bounce",
+                connectorsSpeed: 700
+            }
+        },
+        nodeStructure: createNodeStructure(chartData.members, baseNodeWidth, baseNodeHeight)
+    };
+
+    try {
+        // Create and store the Treant instance
+        container.treant = new Treant(chartConfig);
+
+        // Get the SVG element and add a unique ID
+        // const svg = container.querySelector('svg');
+        // if (svg) {
+        //     // Add unique ID to the SVG
+        //     svg.id = `orgchart-svg-${orgchartId}`;
+            
+        //     // Get the SVG dimensions
+        //     const svgWidth = svg.getBoundingClientRect().width;
+        //     const svgHeight = svg.getBoundingClientRect().height;
+            
+        //     console.log(`Org Chart SVG dimensions for ${orgchartId}:`, {
+        //         svgId: svg.id,
+        //         width: svgWidth,
+        //         height: svgHeight
+        //     });
+
+        //     // Store dimensions as data attributes
+        //     container.dataset.svgWidth = svgWidth;
+        //     container.dataset.svgHeight = svgHeight;
+        // }
+        
+        // Initial scaling
+        requestAnimationFrame(() => {
+            scaleOrgChart(container, orgchartId);
+        });
+    } catch (error) {
+        console.error('Error creating org chart:', error);
+        contentDiv.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
+    }
+};
+
+// Helper function to create node structure with dynamic sizing
+const createNodeStructure = (members, baseNodeWidth, baseNodeHeight) => {
     const nodeMap = new Map();
     
-    // First pass: create all nodes
-    chartData.members.forEach(member => {
-        const hasChildren = chartData.members.some(child => child.parent_id === member.parent_node_id);
+    // First pass: create all nodes with dynamic sizing
+    members.forEach(member => {
         nodeMap.set(member.parent_node_id, {
             text: {
                 name: member.name,
@@ -491,14 +578,14 @@ const createOrgChart = (orgchartId, chartData) => {
             },
             image: member.picture,
             innerHTML: `
-                <div class="node-content">
+                <div class="node-content" style="width: ${baseNodeWidth}px; ">
                     ${member.picture ? 
-                        `<img src="${member.picture}" class="node-image" alt="${member.name}">` : 
-                        `<img src="images/profile_picture.png" class="node-image" alt="Default Profile">`
+                        `<img src="${member.picture}" class="node-image" alt="${member.name}" style="width: ${baseNodeWidth * 0.4}px; height: ${baseNodeWidth * 0.4}px;">` : 
+                        `<img src="images/profile_picture.png" class="node-image" alt="Default Profile" style="width: ${baseNodeWidth * 0.4}px; height: ${baseNodeWidth * 0.4}px;">`
                     }
                     <div class="node-details">
-                        <div class="node-name">${member.name}</div>
-                        <div class="node-title">${member.title}</div>
+                        <div class="node-name" style="font-size: ${baseNodeWidth * 0.15}px">${member.name}</div>
+                        <div class="node-title" style="font-size: ${baseNodeWidth * 0.13}px">${member.title}</div>
                     </div>
                 </div>
             `,
@@ -509,14 +596,13 @@ const createOrgChart = (orgchartId, chartData) => {
 
     // Second pass: build hierarchy
     const rootNodes = [];
-    chartData.members.forEach(member => {
+    members.forEach(member => {
         const node = nodeMap.get(member.parent_node_id);
         if (member.parent_id && member.parent_id !== 'NULL') {
             const parentNode = nodeMap.get(member.parent_id);
             if (parentNode) {
                 parentNode.children.push(node);
             } else {
-                console.warn(`Parent node ${member.parent_id} not found for member ${member.parent_node_id}`);
                 rootNodes.push(node);
             }
         } else {
@@ -524,74 +610,180 @@ const createOrgChart = (orgchartId, chartData) => {
         }
     });
 
-    // Determine final node structure
-    const nodeStructure = rootNodes.length === 1 ? rootNodes[0] : {
+    return rootNodes.length === 1 ? rootNodes[0] : {
         text: { name: "Department" },
         HTMLclass: "hidden-node",
         children: rootNodes
     };
-
-    // Create chart configuration
-    const chartConfig = {
-        chart: {
-            container: `#${containerId}`,
-            nodeAlign: "BOTTOM",
-            levelSeparation: 50,
-            siblingSeparation: 40,
-            subTeeSeparation: 40,
-            connectors: {
-                type: 'step'
-            },
-            node: {
-                HTMLclass: 'nodeExample1'
-            },
-            callback: {
-                onTreeLoaded: function() {
-                    // Scale the chart after it's loaded
-                    scaleOrgChart(container);
-                }
-            }
-        },
-        nodeStructure: nodeStructure
-    };
-
-    try {
-        new Treant(chartConfig);
-    } catch (error) {
-        console.error('Error creating org chart:', error);
-        contentDiv.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
-    }
 };
 
 // Add this new function to handle scaling
-function scaleOrgChart(container) {
-    const treant = container.querySelector('.Treant');
-    const svg = treant ? treant.querySelector('svg') : null;
-    
-    if (!container || !treant || !svg) return;
+function scaleOrgChart(container, orgchartId) {
+    const contentConContainer = document.getElementById(`orgChartParentContainer-${orgchartId}`);
+    const contentMain = document.getElementById(`orgChartContainer-${orgchartId}`);
 
-    const svgWidth = svg.width.baseVal.value;
-    const svgHeight = svg.height.baseVal.value;
+    // console.log("contentConContainer: ", contentConContainer);
+    // console.log("contentMain: ", contentMain);
     
-    treant.style.width = `${svgWidth}px`;
-    treant.style.height = `${svgHeight}px`;
-    
-    const containerWidth = container.offsetWidth;
-    const containerHeight = container.offsetHeight;
-    const scale = Math.min(
-        containerWidth / svgWidth,
-        containerHeight / svgHeight,
-        1
-    ) * 0.9;
+    if (!contentConContainer || !contentMain) {
+        console.warn(`Container elements not found for ${type} with id ${id}`);
+        return;
+    }
 
-    treant.style.transform = `scale(${scale})`;
-    treant.style.transformOrigin = 'top center';
+    // Reset zoom and transform to get true dimensions
+    contentMain.style.zoom = '1';
+    contentConContainer.style.transform = 'none';
+    
+    // Force a reflow
+    void contentMain.offsetHeight;
+
+    // Get dimensions
+    const containerRect = contentConContainer.getBoundingClientRect();
+    const contentRect = contentMain.getBoundingClientRect();
+
+    // console.log("containerRect: ", containerRect);
+    // console.log("contentRect: ", contentRect);
+
+    // Calculate zoom level needed to fit the content
+    let zoomLevel;
+    if (containerRect.width > contentRect.width || containerRect.height > contentRect.height) {
+        // Content is too big - scale down
+        const scaleX = (containerRect.width / contentRect.width) / 8.5;
+        const scaleY = (containerRect.height / contentRect.height) / 8.5;
+        // console.log("scaleX: (scale-down)", scaleX);
+        // console.log("scaleY: (scale-down)", scaleY);
+        zoomLevel = Math.min(scaleX, scaleY) * 0.80; // Scale down by taking the smaller ratio, with 5% margin
+        // console.log("zoomLevel (scale-down) of type ", type, " : ", zoomLevel);
+    } 
+
+    // Apply zoom with smooth transition
+    contentMain.style.transition = 'zoom 0.3s ease-in-out';
+    contentMain.style.zoom = zoomLevel;
+    contentMain.style.display = 'block';
+
+    // Ensure container doesn't show scrollbars
+    contentConContainer.style.overflow = 'hidden';
+}
+
+function scaleContentContainer(type, id) {
+    const contentConContainer = document.getElementById(`${type}ContentConContainer-${id}`);
+    const contentMain = document.getElementById(`${type}ContentMain-${id}`);
+    
+    if (!contentConContainer || !contentMain) {
+        console.warn(`Container elements not found for ${type} with id ${id}`);
+        return;
+    }
+
+    // Reset zoom and transform to get true dimensions
+    contentMain.style.zoom = '1';
+    contentConContainer.style.transform = 'none';
+    
+    // Force a reflow
+    void contentMain.offsetHeight;
+
+    // Get dimensions
+    const containerRect = contentConContainer.getBoundingClientRect();
+    const contentRect = contentMain.getBoundingClientRect();
+
+    // Calculate zoom level needed to fit the content
+    let zoomLevel;
+    if (containerRect.width > contentRect.width || containerRect.height > contentRect.height) {
+        // Content is too big - scale down
+        const scaleX = containerRect.width / contentRect.width;
+        const scaleY = containerRect.height / contentRect.height;
+        zoomLevel = Math.min(scaleX, scaleY) * 0.90; // Scale down by taking the smaller ratio, with 5% margin
+        // console.log("zoomLevel (scale-down) of type ", type, " : ", zoomLevel);
+    } else {
+        // Content fits or is too small - keep at 1 or scale up slightly if too small
+        const scaleX = containerRect.width / contentRect.width;
+        const scaleY = containerRect.height / contentRect.height;
+        const minScale = Math.min(scaleX, scaleY);
+        zoomLevel = minScale > 1 ? Math.min(minScale, 1.2) : 1; // Cap the scale up at 1.2
+
+        // console.log("zoomLevel (scale-up) of type ", type, " : ", zoomLevel);
+    }
+
+    // Apply zoom with smooth transition
+    contentMain.style.transition = 'zoom 0.3s ease-in-out';
+    contentMain.style.zoom = zoomLevel;
+
+    // Ensure container doesn't show scrollbars
+    // contentConContainer.style.overflow = 'hidden';
+}
+
+// Resize observer for content containers
+function setupContentResizeObserver(type, id) {
+    const contentConContainer = document.getElementById(`${type}ContentConContainer-${id}`);
+    if (!contentConContainer) return;
+
+    let resizeTimeout;
+    const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            // Clear any existing timeout
+            if (resizeTimeout) {
+                clearTimeout(resizeTimeout);
+            }
+
+            // Set a new timeout to debounce the resize event
+            resizeTimeout = setTimeout(() => {
+                const activeItem = entry.target.closest('.carousel-item');
+                if (activeItem && activeItem.classList.contains('active')) {
+                    scaleContentContainer(type, id);
+                }
+            }, 100);
+        }
+    });
+
+    resizeObserver.observe(contentConContainer);
+    return resizeObserver;
+}
+
+// Add resize observer to handle container resizing
+function setupOrgChartResizeObserver(container) {
+    let resizeTimeout;
+    const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            if (entry.target === container) {
+                // Clear any existing timeout
+                if (resizeTimeout) {
+                    clearTimeout(resizeTimeout);
+                }
+
+                // Set a new timeout to debounce the resize event
+                resizeTimeout = setTimeout(() => {
+                    const activeItem = entry.target.closest('.carousel-item');
+                    if (activeItem && activeItem.classList.contains('active')) {
+                        const chartData = activeItem.chartData;
+                        if (chartData) {
+                            // First try to scale the existing chart
+                            const existingChart = container.querySelector('.Treant');
+                            if (existingChart) {
+                                scaleOrgChart(container);
+                            }
+
+                            // If scaling doesn't provide good results, recreate the chart
+                            const containerRect = container.getBoundingClientRect();
+                            const chartRect = existingChart?.getBoundingClientRect();
+                            if (!chartRect || 
+                                chartRect.width > containerRect.width * 1.5 || 
+                                chartRect.height > containerRect.height * 1.5) {
+                                createOrgChart(activeItem.dataset.orgchartId, chartData);
+                            }
+                        }
+                    }
+                }, 100); // Small delay for performance
+            }
+        }
+    });
+
+    resizeObserver.observe(container);
+    return resizeObserver;
 }
 
 const renderVisibleOrgChart = () => {
     const activeItem = document.querySelector('.carousel-item.active');
     if (activeItem) {
-        const orgChartContainer = activeItem.querySelector('.orgchart-container');
+        const orgChartContainer = activeItem.querySelector('.orgchart-container-parent');
         if (orgChartContainer && orgChartContainer.chartConfig) {
             new Treant(orgChartContainer.chartConfig);
             // Remove the config after rendering to avoid re-rendering
@@ -601,20 +793,20 @@ const renderVisibleOrgChart = () => {
 };
 
 // Function to initialize org charts
-const initializeOrgCharts = () => {
-    fetchOrgChartData().then(groupedData => {
-        Object.keys(groupedData).forEach(orgchartId => {
-            const containerId = `orgChartContainer-${orgchartId}`;
-            const containerDiv = document.createElement('div');
-            containerDiv.id = containerId;
-            containerDiv.style.width = '100%';
-            containerDiv.style.height = '100%';
-            document.getElementById('orgchartCarouselContainer').appendChild(containerDiv);
+// const initializeOrgCharts = () => {
+//     fetchOrgChartData().then(groupedData => {
+//         Object.keys(groupedData).forEach(orgchartId => {
+//             const containerId = `orgChartContainer-${orgchartId}`;
+//             const containerDiv = document.createElement('div');
+//             containerDiv.id = containerId;
+//             containerDiv.style.width = '100%';
+//             containerDiv.style.height = '100%';
+//             document.getElementById('orgchartCarouselContainer').appendChild(containerDiv);
 
-            createOrgChart(groupedData[orgchartId], containerId);
-        });
-    });
-};
+//             createOrgChart(groupedData[orgchartId], containerId);
+//         });
+//     });
+// };
 
 // Function to reset countdown for each content
 const resetCountdown = (div, newDisplayTime, type) => {
@@ -866,9 +1058,9 @@ const fetchAndUpdateContents = (type) => {
                     fetch(`database/fetch_orgchart.php?tvId=${tvId}`)
                         .then(response => response.json())
                         .then(data => {
-                            console.log("Fetched orgchart data:", data); // Debug log
+                            // console.log("Fetched orgchart data:", data); // Debug log
                             Object.entries(data).forEach(([orgchartId, orgchartData]) => {
-                                console.log(`Processing orgchart ${orgchartId}:`, orgchartData); // Debug log
+                                // console.log(`Processing orgchart ${orgchartId}:`, orgchartData); // Debug log
                                 updateUI({
                                     orgchart_id: orgchartId,
                                     chartData: orgchartData,
@@ -888,14 +1080,11 @@ const fetchAndUpdateContents = (type) => {
                     fetch(`database/fetch_${type}.php`)
                     .then(response => response.json())
                     .then(data => {
-                        if (type === 'orgchart') {
-                            
-                        } else if (type === 'peo' || type === 'so') {
+                        if (type === 'peo' || type === 'so') {
                             const filteredData = data.filter(item =>
                                 item.tv_id === parseInt(tvId, 10) &&
                                 item.isArchived === 0 &&
-                                item.isTrashed === 0 &&
-                                item.schedule_datetime === null
+                                item.isTrashed === 0
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
@@ -922,7 +1111,7 @@ const fetchAndUpdateContents = (type) => {
                                 displayNoMessage(type); // Call displayNoMessage if no content
                             }
                         }
-                        adjustFontSize(type);
+                        // adjustFontSize(type);
                     })
                     .catch(error => console.error(`Error fetching ${type}s:`, error));
                 }
@@ -978,22 +1167,31 @@ Ws.addEventListener('message', function (event) {
         const type = data.type;
         const id = data[`${type}_id`]; 
 
-        const removeContent = (type, id) => {
-            const contentDiv = document.querySelector(`[data-${type}-id="${id}"]`);
-            if (contentDiv) {
-                const indexToRemove = contents[`${type}s`].findIndex(item => item.dataset[`${type}Id`] === id);
-                if (indexToRemove !== 0) {
-                    contents[`${type}s`].splice(indexToRemove, 1); // Remove from the array
-                    currentIndex[type] = Math.max(0, currentIndex[type] - 1); // Adjust the current index
-                }
-                contentDiv.remove(); // Remove from DOM
-                fetchAndUpdateContents(type);
+        if (type == 'orgchart') {
+            // Refresh TV since there's an issue for the orgchart when posting it
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                location.reload();
             }
-        };
-
-        if (data.success) {
-            removeContent(type, id); // Call the helper function
-        }         
+        } else {
+            const removeContent = (type, id) => {
+                const contentDiv = document.querySelector(`[data-${type}-id="${id}"]`);
+                if (contentDiv) {
+                    const indexToRemove = contents[`${type}s`].findIndex(item => item.dataset[`${type}Id`] === id);
+                    if (indexToRemove !== 0) {
+                        contents[`${type}s`].splice(indexToRemove, 1); // Remove from the array
+                        currentIndex[type] = Math.max(0, currentIndex[type] - 1); // Adjust the current index
+                    }
+                    contentDiv.remove(); // Remove from DOM
+                    fetchAndUpdateContents(type);
+                }
+            };
+    
+            if (data.success) {
+                removeContent(type, id); // Call the helper function
+            } 
+        } 
     } else if (data.action === 'restore_content' || data.action === 'restore_content_and_update_expiration') {
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');
@@ -1021,6 +1219,17 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('peo');
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
+        } else if (data.type === 'orgchart') {
+            console.log("Received new orgchart data:", data);
+            // Refresh TV since there's an issue for the orgchart when posting it
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            console.log("TV IDS of orgchart: ", data.tv_ids);
+            console.log("TV ID of orgchart: ", data.tv_id);
+
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
+                location.reload();
+            }
         } else {
             // For new features 
             const type = data.type;
@@ -1041,7 +1250,15 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('so');
         } else if (data.type === 'orgchart') {
             console.log("Received new orgchart data:", data);
-            fetchAndUpdateContents('orgchart');
+            // Refresh TV since there's an issue for the orgchart when posting it
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            console.log("TV IDS of orgchart: ", data.tv_ids);
+            console.log("TV ID of orgchart: ", data.tv_id);
+
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
+                location.reload();
+            }
         } else {
             // For new features 
             const type = data.type;
@@ -1103,7 +1320,7 @@ Ws.addEventListener('message', function (event) {
                         console.error(`Page number container not found for type: ${container.type}`);
                     }
                 } else {
-                    console.error(`Container not found for ID: ${container.container_id}`);
+                    // console.error(`Container not found for ID: ${container.container_id}`);
                 }
             });
         }
@@ -1159,10 +1376,10 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchAndUpdateContents(type);
     });
     // initializeOrgCharts();
-    const types = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so', 'orgchart'];
-    types.forEach(type => {
-        adjustFontSize(type);
-        setupFontSizeObserver(type);
-    });
+    // const types = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so', 'orgchart'];
+    // types.forEach(type => {
+    //     adjustFontSize(type);
+    //     setupFontSizeObserver(type);
+    // });
     fetchSmartTVDetails();
 });

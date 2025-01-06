@@ -157,6 +157,8 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         echo '<button id="createPostButton" class="grey-button" style="margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_promotional_material.php?pageid=PromotionalMaterialsForm&userId=' . $user_id . ' ' . urlencode($full_name) . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
                     } else if ($type == 'so') {
                         echo '<button id="createPostButton" class="grey-button" style="margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_student_outcomes.php?pageid=StudentOutcomesForm&userId=' . $user_id . ' ' . urlencode($full_name) . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                    } else if ($type == 'orgchart') {
+                        echo '<button id="createPostButton" class="grey-button" style="margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_department_organizational_chart.php?pageid=DepartmentOrganizationalChart&userId=' . $user_id . ' ' . urlencode($full_name) . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
                     } else {
                         echo '<button id="createPostButton" class="grey-button" style="margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_' . $type . '.php?pageid=' . $type . 'Form&userId=' . $user_id . ' ' . urlencode($full_name) . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
                     }
@@ -187,6 +189,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- JavaScript to fetch all content using WebSocket-->
     <script src="js/fetch_content2.js"></script>
+    <?php include('misc/php/success_modal.php'); ?>
     <script>
         const tvFrame = document.querySelector('.tv-frame');
 

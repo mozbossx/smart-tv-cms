@@ -52,29 +52,61 @@ include 'tv_initialize.php';
         <?php } ?>
         <div class="main-container" id="main-container">
         <?php foreach ($containers as $container): ?>
-            <?php $containerNameLower = strtolower($container['type']); ?>
-            <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
-                data-x="<?php echo $container['xaxis']; ?>"
-                data-y="<?php echo $container['yaxis']; ?>"
-                style="background: <?php echo $container['parent_background_color']; ?>;
-                        display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
-                        height: <?php echo $container['height_px']; ?>px;
-                        width: <?php echo $container['width_px']; ?>px;
-                        transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);"
-                onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
-                <div>
-                    <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo $container['container_name']; ?></h1>
-                </div>
-                <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
-                    style="background: <?php echo $container['child_background_color']; ?>;
-                            color: <?php echo $container['child_font_color']; ?>;
-                            font-style: <?php echo $container['child_font_style'];?>;
-                            font-family: <?php echo $container['child_font_family']; ?>">
-                    <!-- Content for carousel-container will be displayed here -->
-                </div>
-                <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="page-number-container" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
-            </div>
-            <?php endforeach; ?>
+            <?php if ($container['type'] !== 'orgchart'):  ?>
+                <?php $containerNameLower = strtolower($container['type']); ?>
+                <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
+                    data-x="<?php echo $container['xaxis']; ?>"
+                    data-y="<?php echo $container['yaxis']; ?>"
+                    style="background: <?php echo $container['parent_background_color']; ?>;
+                            display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
+                            height: <?php echo $container['height_px']; ?>px;
+                            width: <?php echo $container['width_px']; ?>px;
+                            transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);"
+                    onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
+                    <div>
+                        <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo $container['container_name']; ?></h1>
+                    </div>
+                    <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
+                        style="background: <?php echo $container['child_background_color']; ?>;
+                                color: <?php echo $container['child_font_color']; ?>;
+                                font-style: <?php echo $container['child_font_style'];?>;
+                                font-family: <?php echo $container['child_font_family']; ?>">
+                        <!-- Content for carousel-container will be displayed here -->
+                    </div>
+                    <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="page-number-container" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
+                </div>        
+            <?php endif; ?>
+            <?php if ($container['type'] === 'orgchart'):  ?>
+                <?php $containerNameLower = strtolower($container['type']); ?>
+                <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
+                    data-x="<?php echo $container['xaxis']; ?>"
+                    data-y="<?php echo $container['yaxis']; ?>"
+                    style="background: <?php echo $container['parent_background_color']; ?>;
+                            display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
+                            height: <?php echo $container['height_px']; ?>px;
+                            width: <?php echo $container['width_px']; ?>px;
+                            min-height: 450px;
+                            min-width: 500px;
+                            transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);"
+                    onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
+                    <div>
+                        <h1 class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo $container['container_name']; ?></h1>
+                    </div>
+                    <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
+                        style="background: <?php echo $container['child_background_color']; ?>;
+                                color: <?php echo $container['child_font_color']; ?>;
+                                font-style: <?php echo $container['child_font_style'];?>;
+                                font-family: <?php echo $container['child_font_family']; ?>">
+                        <!-- Content for carousel-container will be displayed here -->
+                    </div>
+                    <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="page-number-container" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
+                </div> 
+            <?php endif; ?>
+
+            
+        <?php endforeach; ?>
+
+            
         </div>
         <?php if ($topbarPosition === 'bottom') { ?>
             <?php include('tv_topbar.php'); ?>

@@ -53,7 +53,7 @@ include 'misc/php/options_tv.php';
                             <input type="hidden" name="type" value="orgchart">
                             <h1 style="text-align: center">Department Organizational Chart Form</h1>
                             <div style="position: relative">
-                                <div class="chart-parent-container" style="place-items: center">
+                                <div class="chart-parent-container" style="place-items: center; background-color: none">
                                     <div id="chart-container" class="chart-container" style="width: auto;"></div>
                                 </div>
                             </div>
@@ -100,18 +100,29 @@ include 'misc/php/options_tv.php';
     </div>
     <!-- Preview Modal -->
     <div id="previewModal" class="modal">
-        <div class="modal-content-preview" style="padding: 15px">
+        <div class="modal-content-preview">
             <div class="flex-preview-content">
                 <?php 
-                    $sqlContainers = "SELECT * FROM containers_tb";
+                    $sqlContainers = "SELECT c.*, t.width_px as tv_width_px, t.height_px as tv_height_px, t.tv_brand as tv_brand, t.tv_name as tv_name, t.tv_department as tv_department,
+                        b.background_image_path, b.background_hex_color, b.isImageBackground, b.isStaticBackground,
+                        tb.topbar_hex_color, tb.department_logo_path,
+                        tb.topbar_tvname_font_color, tb.topbar_tvname_font_style, tb.topbar_tvname_font_family, 
+                        tb.topbar_tvid_font_color, tb.topbar_tvid_font_style, tb.topbar_tvid_font_family, 
+                        tb.topbar_time_font_color, tb.topbar_time_font_style, tb.topbar_time_font_family, 
+                        tb.topbar_date_font_color, tb.topbar_date_font_style, tb.topbar_date_font_family
+                    FROM containers_tb c 
+                    JOIN smart_tvs_tb t ON c.tv_id = t.tv_id
+                    LEFT JOIN background_tv_tb b ON c.tv_id = b.tv_id
+                    LEFT JOIN topbar_tv_tb tb ON c.tv_id = tb.tv_id";
                     $resultContainers = mysqli_query($conn, $sqlContainers);
                     $containers = [];
                     while ($row = mysqli_fetch_assoc($resultContainers)) {
-                        $containers[] = $row; // Store each container in an array
+                        $containers[] = $row;
                     }
                 ?>
-                <div style="display: flex, flex-direction: column; flex: 2; height: auto;">
-                    <div id="previewContainer"></div>
+                <div style="display: flex, flex-direction: column; flex: 2; height: auto; overflow: auto">
+                    <div id="previewContainer">
+                    </div>
                 </div>
                 <!-- The container consists of child_background_color, child_font_style, child_font_color-->
                 <div class="preview-content" id="previewContent"></div>
@@ -123,9 +134,18 @@ include 'misc/php/options_tv.php';
             </div>
         </div>
     </div>
+    <?php 
+        $topbarPositions = [];
+        $topbarQuery = "SELECT tv_id, topbar_position FROM topbar_tv_tb";
+        $resultTopbar = mysqli_query($conn, $topbarQuery);
+        while ($row = mysqli_fetch_assoc($resultTopbar)) {
+            $topbarPositions[$row['tv_id']] = $row['topbar_position'];
+        }
+    ?>
     <?php include 'misc/php/success_modal.php' ?>
     <?php include 'misc/php/error_modal.php' ?>
     <script>
+        let clockInterval;
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo !empty($tv_names) ? json_encode($tv_names) : '{}'; ?>; 
         const contentType = document.querySelector('[name="type"]').value;
@@ -164,6 +184,8 @@ include 'misc/php/options_tv.php';
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
                 if (message.success == true) {
+                    const successMessageModal = document.getElementById('successMessageModal');
+                    successMessageModal.style.display = 'flex';
                     document.getElementById('successMessage').textContent = "Organizational Chart was successfully processed!";                        
                 } else if (message.success == false) {
                     alert('Error saving organizational chart. Please try again.');
@@ -276,6 +298,22 @@ include 'misc/php/options_tv.php';
             updatePreviewContent();
             // Display the preview content in the modal
             document.getElementById('previewContent').innerHTML = getPreviewContent();
+
+            // Clear any existing interval
+            if (clockInterval) {
+                clearInterval(clockInterval);
+            }
+
+            // Start clock updates
+            updateClock(); // Initial update
+            clockInterval = setInterval(updateClock, 1000);
+            
+            // Clear interval when modal is closed by clicking outside
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    closePreviewModal();
+                }
+            }
         }
 
         function updatePreviewContent() {
@@ -284,22 +322,6 @@ include 'misc/php/options_tv.php';
             const previewContainer = document.getElementById('previewContainer');
 
             let content = '';
-
-            // Determine the content based on the selected type
-            switch (selectedType) {
-                case 'announcement':
-                    content = announcementBodyQuill.root.innerHTML;
-                    break;
-                case 'event':
-                    content = eventBodyQuill.root.innerHTML;
-                    break;
-                case 'news':
-                    content = newsBodyQuill.root.innerHTML;
-                    break;
-                default:
-                    content = 'Unknown content type';
-                    break;
-            }
 
             // Clear previous content
             previewContainer.innerHTML = '';
@@ -314,13 +336,152 @@ include 'misc/php/options_tv.php';
                 let carouselHTML = '<div class="carousel">';
                 matchingContainers.forEach((matchingContainer, index) => {
                     const tvName = tvNames[matchingContainer.tv_id] || 'Unknown TV';
+                    const isSelectedType = matchingContainer.type === selectedType;
+                    const isVisible = matchingContainer.visible === '1';
+                    const topbarPositions = <?php echo json_encode($topbarPositions); ?>;
 
                     carouselHTML += `
                         <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;" data-tv-id="${matchingContainer.tv_id}">
-                            <div style="background-color: ${matchingContainer.parent_background_color}; padding: 10px; border-radius: 5px; height: ${matchingContainer.height_px}px; width: ${matchingContainer.width_px}px;">
-                                <h1 style="color: ${matchingContainer.parent_font_color}; font-family: ${matchingContainer.parent_font_family}; font-style: ${matchingContainer.parent_font_style}; font-size: 2.0vh; margin-bottom: 5px">${matchingContainer.container_name}</h1>
-                                <div style="background-color: ${matchingContainer.child_background_color}; color: ${matchingContainer.child_font_color}; font-style: ${matchingContainer.child_font_style}; font-family: ${matchingContainer.child_font_family}; width: auto; height: calc(100% - 6.5vh); font-size: 1.5vh; padding: 10px; border-radius: 5px">
-                                    <p style="white-space: pre-wrap">${content}</p>
+                            <div class="tv-frame-parent" style="width: auto; height: 100%; background: none; cursor: default;">
+                                <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center; overflow: clip;">
+                                    ${topbarPositions[matchingContainer.tv_id] === 'top' ? `
+                                        <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
+                                            <img src="${matchingContainer.department_logo_path ? 
+                                            `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
+                                            'images/soe_icon.png'}" 
+                                            alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
+                                            <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
+                                                <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
+                                                <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                            </div>
+                                            <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
+                                                ${matchingContainer.tv_name}
+                                            </h1>
+                                            <div class="date-time">
+                                                <span class="live-clock time" style="font-weight: bold; color: ${matchingContainer.topbar_time_font_color}; font-style: ${matchingContainer.topbar_time_font_style}; font-family: ${matchingContainer.topbar_time_font_family};"></span>
+                                                <span class="live-date date" style="color: ${matchingContainer.topbar_date_font_color}; font-style: ${matchingContainer.topbar_date_font_style}; font-family: ${matchingContainer.topbar_date_font_family};"></span>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    <div class='tv-screen' style='
+                                        height: ${matchingContainer.tv_height_px}px; 
+                                        width: ${matchingContainer.tv_width_px}px; 
+                                        border: none;
+                                        border-radius: 0;
+                                        ${matchingContainer.isImageBackground === '1' ? 
+                                            (matchingContainer.background_image_path ? 
+                                                `background-image: url(servers/tv_backgrounds/${matchingContainer.tv_id}/${matchingContainer.background_image_path}); 
+                                                background-size: cover; 
+                                                background-position: center;` : 
+                                                'background-color: #000;'
+                                            ) :
+                                            (matchingContainer.isStaticBackground === '1' ? 
+                                                `background-color: ${matchingContainer.background_hex_color};` : 
+                                                'background-color: #000;'
+                                            )
+                                        }'>
+                                        ${matchingContainer.visible === '1' ? 
+                                            `<div class="carousel-content" 
+                                                style="position: relative;
+                                                        transform: translate(${matchingContainer.xaxis}px, ${matchingContainer.yaxis}px);
+                                                        width: ${matchingContainer.width_px}px;
+                                                        height: ${matchingContainer.height_px}px;
+                                                        background-color: ${matchingContainer.parent_background_color};
+                                                        padding: 5px;
+                                                        border-radius: 5px;">
+                                                <h1 style="color: ${matchingContainer.parent_font_color}; 
+                                                        font-family: ${matchingContainer.parent_font_family}; 
+                                                        font-style: ${matchingContainer.parent_font_style}; 
+                                                        margin-bottom: 5px;
+                                                        text-overflow: ellipsis;
+                                                        overflow: hidden;
+                                                        white-space: nowrap;
+                                                        width: auto;
+                                                        max-width: 100%;
+                                                        font-size: 2.5vh">
+                                                    ${matchingContainer.container_name}
+                                                </h1>
+                                                <div id="carouselContent-${matchingContainer.tv_id}" style="background-color: ${matchingContainer.child_background_color}; 
+                                                        color: ${matchingContainer.child_font_color}; 
+                                                        font-style: ${matchingContainer.child_font_style}; 
+                                                        font-family: ${matchingContainer.child_font_family}; 
+                                                        width: auto; 
+                                                        height: calc(100% - 9.5vh); 
+                                                        display: flex;
+                                                        flex-direction: column;
+                                                        padding: 5px; 
+                                                        border-radius: 5px">
+                                                    <div class="carousel-item-2 active" style="width: auto; margin-bottom: 5px; height: 100%; border-radius: 5px;">
+                                                        <div style="border: none; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: justify; height: 100%; bottom: 0;">
+                                                            <div class="content-container-con" style="height: 100%;">
+                                                                <div class="content-main" style="place-content: center; align-self: center">
+                                                                    <div id="previewOrgChartContainer-${matchingContainer.tv_id}" class="chart-parent-container-preview" style="place-items: center; background-color: transparent; box-shadow: none">
+                                                                        <div class="chart-container-preview" style="width: auto;"></div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="content-details">
+                                                                    <div style="display: flex; flex-direction: row; margin: 0">
+                                                                        <div>
+                                                                            <p class="author" style="margin: 0; font-size: 1.9vh;"><small>Posted on ${new Date().toLocaleString()}</small></p>
+                                                                        </div>
+                                                                        <div style="margin-left: auto; margin-top: auto">
+                                                                            <p class="display-time" style="text-align: right; margin: 0; font-size: 1.9vh;">
+                                                                                <i class="fa fa-hourglass-half" aria-hidden="true"></i> 
+                                                                                <span class="time-left">${document.querySelector('[name="display_time"]').value}s</span>
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>` :
+                                            `<div class="carousel-content" 
+                                                style="position: relative;
+                                                        transform: translate(5px, 5px);
+                                                        width: 400px;
+                                                        height: 400px;
+                                                        background-color: ${matchingContainer.parent_background_color};
+                                                        padding: 5px;
+                                                        border-radius: 5px;
+                                                        display: flex;
+                                                        justify-content: center;
+                                                        align-items: center;
+                                                        flex-direction: column;">
+                                                    <h1 style="font-size: 35px; color: ${matchingContainer.parent_font_color}"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1> 
+                                                    <h1 style="color: ${matchingContainer.parent_font_color}; 
+                                                        font-family: ${matchingContainer.parent_font_family}; 
+                                                        font-style: ${matchingContainer.parent_font_style}; 
+                                                        margin-bottom: 5px;
+                                                        text-align: center;
+                                                        align-content: center;">
+                                                    ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Container not visible in the TV
+                                                </h1>
+                                            </div>`
+                                        }
+                                    </div>
+                                    ${topbarPositions[matchingContainer.tv_id] === 'bottom' ? `
+                                        <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
+                                            <img src="${matchingContainer.department_logo_path ? 
+                                            `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
+                                            'images/soe_icon.png'}" 
+                                            alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
+                                            <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
+                                                <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
+                                                <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                            </div>
+                                            <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
+                                                ${matchingContainer.tv_name}
+                                            </h1>
+                                            <div class="date-time">
+                                                <span class="live-clock time" style="font-weight: bold; color: ${matchingContainer.topbar_time_font_color}; font-style: ${matchingContainer.topbar_time_font_style}; font-family: ${matchingContainer.topbar_time_font_family};"></span>
+                                                <span class="live-date date" style="color: ${matchingContainer.topbar_date_font_color}; font-style: ${matchingContainer.topbar_date_font_style}; font-family: ${matchingContainer.topbar_date_font_family};"></span>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    <p id="tvBrand2UserHome_${matchingContainer.tv_id}" style="text-align: center; font-size: 25px; margin-top: auto; color: white; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 250px;">${matchingContainer.tv_brand}</p>
+                                    <div class="tv-stand"></div>
                                 </div>
                             </div>
                         </div>
@@ -334,7 +495,7 @@ include 'misc/php/options_tv.php';
                     carouselHTML += `
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <button type="button" class="carousel-control prev" onclick="moveCarousel(-1)"><i class="fa fa-angle-left" aria-hidden="true"></i> Previous</button>
-                            <p id="carouselTvName">${initialTvName}</p>
+                            <p id="carouselTvName" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 200px;">${initialTvName}</p>
                             <button type="button" class="carousel-control next" onclick="moveCarousel(1)">Next <i class="fa fa-angle-right" aria-hidden="true"></i></button>
                         </div>
                     `;
@@ -359,7 +520,8 @@ include 'misc/php/options_tv.php';
 
                 // Function to move carousel
                 window.moveCarousel = function(direction) {
-                    items[currentIndex].style.display = 'none'; // Hide current item
+                    // Hide current item
+                    items[currentIndex].style.display = 'none';
                     items[currentIndex].classList.remove('active');
 
                     // Update index
@@ -372,14 +534,73 @@ include 'misc/php/options_tv.php';
                         currentIndex = 0;
                     }
 
-                    items[currentIndex].style.display = 'block'; // Show new item
+                    // Reset transform on all frames before showing new one
+                    items.forEach(item => {
+                        const tvId = item.getAttribute('data-tv-id');
+                        const frame = document.getElementById(`tvFrame-${tvId}`);
+                        if (frame) {
+                            frame.style.transform = 'none';
+                        }
+                    });
+
+                    // Show new item
+                    items[currentIndex].style.display = 'block';
                     items[currentIndex].classList.add('active');
 
-                    updateTvName(); // Update the TV name based on the new active item
+                    // Small delay to ensure DOM updates before fitting
+                    setTimeout(() => {
+                        updateTvName();
+                        fitFrameToParent();
+                    }, 0);
                 };
+
+
+                const carouselContent = document.querySelector('.carousel-content');
+
+                // Modified fit frame function to maintain aspect ratio
+                function fitFrameToParent() {
+                    const activeItem = document.querySelector('.carousel-item.active');
+                    if (!activeItem) return;
+                    
+                    const tvId = activeItem.getAttribute('data-tv-id');
+                    const tvFrame = document.getElementById(`tvFrame-${tvId}`);
+                    if (!tvFrame) return;
+
+                    const parent = tvFrame.parentElement;
+                    const parentRect = parent.getBoundingClientRect();
+                    
+                    // Reset any existing transformations
+                    tvFrame.style.transform = 'none';
+                    
+                    // Force a reflow
+                    void tvFrame.offsetWidth;
+                    
+                    const frameRect = tvFrame.getBoundingClientRect();
+                    
+                    // Calculate scale while leaving room for the TV stand
+                    const scaleX = (parentRect.width) / frameRect.width;
+                    const scaleY = (parentRect.height - 50) / frameRect.height; // Subtract some pixels for TV stand
+                    const scale = Math.min(scaleX, scaleY, 0.5);
+
+                    // Apply transformations with adjusted position
+                    tvFrame.style.transform = `scale(${scale})`;
+                    tvFrame.style.transformOrigin = 'center top';
+                    tvFrame.style.marginBottom = '50px'; // Add margin to ensure stand visibility
+                }
+
+                // Fit frame on load
+                fitFrameToParent();
+
+                // Refit on window resize
+                // window.addEventListener('resize', fitFrameToParent);
             } else {
                 previewContainer.innerHTML = '<p>No container found for the selected TVs.</p>'; // Fallback message
             }
+
+            // After creating the preview structure, create the org charts
+            matchingContainers.forEach((matchingContainer, index) => {
+                createPreviewOrgChart(orgChartData, `previewOrgChartContainer-${matchingContainer.tv_id}`);
+            });
         }
 
         // Add event listener to tv_id select element
@@ -389,6 +610,155 @@ include 'misc/php/options_tv.php';
                 checkbox.addEventListener('change', updatePreviewContent);
             });
         });
+
+        function createPreviewOrgChart(data, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`Container not found for orgchart ${containerId}`);
+                return;
+            }
+
+            // Clear any existing chart
+            const contentDiv = container.querySelector('.chart-container-preview');
+            if (!contentDiv) {
+                console.warn("contentDiv not found");
+                return;
+            }
+            contentDiv.innerHTML = '';
+
+            // Create nodes map first
+            const nodes = {};
+            data.forEach(member => {
+                nodes[member.id] = {
+                    text: {
+                        name: member.name,
+                        title: member.title,
+                    },
+                    image: member.picture,
+                    innerHTML: `
+                        <div class="node-content">
+                            ${member.picture ? 
+                                `<img src="${member.picture}" class="node-image" alt="${member.name}">` : 
+                                `<img src="images/profile_picture.png" class="node-image" alt="Default Profile">`
+                            }
+                            <div class="node-details">
+                                <div class="node-name">${member.name}</div>
+                                <div class="node-title">${member.title}</div>
+                            </div>
+                        </div>
+                    `,
+                    HTMLclass: "custom-node",
+                    children: []
+                };
+            });
+
+            // Build hierarchy
+            let rootNode = null;
+            data.forEach(member => {
+                if (member.parent_id) {
+                    if (nodes[member.parent_id]) {
+                        nodes[member.parent_id].children.push(nodes[member.id]);
+                    }
+                } else {
+                    rootNode = nodes[member.id];
+                }
+            });
+
+            if (rootNode) {
+                const chartConfig = {
+                    chart: {
+                        container: `#${containerId}`,
+                        nodeAlign: "BOTTOM",
+                        levelSeparation: 10,
+                        siblingSeparation: 20,
+                        subTeeSeparation: 20,
+                        connectors: {
+                            type: 'step',
+                            style: {
+                                'stroke-width': '2px'
+                            }
+                        },
+                        node: {
+                            HTMLclass: 'nodeExample1'
+                        },
+                        animation: {
+                            nodeAnimation: "easeOutBounce",
+                            nodeSpeed: 700,
+                            connectorsAnimation: "bounce",
+                            connectorsSpeed: 700
+                        },
+                        callback: {
+                            onTreeLoaded: function() {
+                                // Wait for the chart to be fully rendered
+                                setTimeout(() => {
+                                    const treant = contentDiv.querySelector('.Treant');
+                                    if (!treant) return;
+
+                                    // Get the actual dimensions of the rendered chart
+                                    const treantRect = treant.getBoundingClientRect();
+                                    const containerRect = container.getBoundingClientRect();
+
+                                    // Calculate and apply the scale
+                                    const scaleX = containerRect.width / treantRect.width;
+                                    const scaleY = containerRect.height / treantRect.height;
+                                    const scale = Math.min(scaleX, scaleY, 1) * 0.9; // 0.9 for padding
+
+                                    // Center the chart
+                                    const translateX = (containerRect.width - (treantRect.width * scale)) / 2;
+                                    const translateY = (containerRect.height - (treantRect.height * scale)) / 2;
+
+                                    treant.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+                                    treant.style.transformOrigin = 'top left';
+                                }, 100);
+                            }
+                        }
+                    },
+                    nodeStructure: rootNode
+                };
+
+                try {
+                    new Treant(chartConfig);
+                } catch (error) {
+                    console.error('Error creating preview org chart:', error);
+                    contentDiv.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
+                }
+            }
+        }
+
+        function scaleOrgChartInPreview(chartContainer) {
+            if (!chartContainer) {
+                console.warn('Container not provided to scaleOrgChart');
+                return;
+            }
+
+            const treant = chartContainer.querySelector('.Treant');
+            if (!treant) {
+                console.warn('Treant element not found in orgchart content');
+                return;
+            }
+
+            // Reset transform to get true dimensions
+            treant.style.transform = 'none';
+            
+            // Force a reflow
+            void treant.offsetHeight;
+
+            // Get dimensions
+            const containerRect = container.getBoundingClientRect();
+            const treantRect = treant.getBoundingClientRect();
+
+            // Calculate scale
+            const scaleX = containerRect.width / treantRect.width;
+            const scaleY = containerRect.height / treantRect.height;
+            const scale = Math.min(scaleX, scaleY, 1) * 0.9; // 0.9 for padding
+
+            // Calculate centering translations
+            const translateX = Math.max(0, (containerRect.width - (treantRect.width * scale)) / 2);
+            const translateY = Math.max(0, (containerRect.height - (treantRect.height * scale)) / 2);
+
+            // Apply transform with hardware acceleration
+            treant.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
+        }
 
         function fetchOrgChartData() {
             return $.ajax({
@@ -463,7 +833,7 @@ include 'misc/php/options_tv.php';
                             }
                         </div>
                         <div class="node-actions">
-                            <button onclick="openAddMemberModal(${member.id})" class="add-member-node-btn">
+                            <button type="button" onclick="openAddMemberModal(${member.id})" class="add-member-node-btn">
                                 <i class="fa fa-user-plus"></i>
                                 Add Member
                             </button>
@@ -576,8 +946,43 @@ include 'misc/php/options_tv.php';
             console.log("Org Chart Data:", orgChartData);
             
             const addMemberForm = document.getElementById('addMemberForm');
-            addMemberForm.reset();
+            // addMemberForm.reset();
 
+        }
+
+        // Function to update the clock
+        function updateClock() {
+            const clockElements = document.getElementsByClassName('live-clock');
+            const dateElements = document.getElementsByClassName('live-date');
+            
+            if (clockElements.length > 0 && dateElements.length > 0) {
+                const now = new Date();
+                const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+                
+                let hours = now.getHours();
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12; // Convert to 12-hour format
+                
+                const dayOfWeek = daysOfWeek[now.getDay()];
+                const month = months[now.getMonth()];
+                const day = now.getDate().toString().padStart(2, '0');
+                const year = now.getFullYear();
+
+                const timeString = `${hours}:${minutes} ${ampm}`;
+                const dateString = `${dayOfWeek}, ${month} ${day}, ${year}`;
+
+                // Update all clock elements
+                Array.from(clockElements).forEach(element => {
+                    element.textContent = timeString;
+                });
+
+                // Update all date elements
+                Array.from(dateElements).forEach(element => {
+                    element.textContent = dateString;
+                });
+            }
         }
     </script>
 </body>

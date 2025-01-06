@@ -51,7 +51,8 @@ class ContentHandler implements MessageComponentInterface
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
                 'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
-                'so' => ['table' => 'so_tb', 'idField' => 'so_id']
+                'so' => ['table' => 'so_tb', 'idField' => 'so_id'],
+                'orgchart' => ['table' => 'org_chart_members', 'idField' => 'orgchart_id']
             ];
             $type = $data['type'] ?? null;
 
@@ -87,7 +88,7 @@ class ContentHandler implements MessageComponentInterface
             $author_department = $data['author_department'];
             $evaluator_message = $data['evaluator_message'] ?? null;
             $evaluator_name = $data['evaluator_name'];
-            $content_tv_id = $data['tv_id'];
+            $content_tv_id = $data['tv_id'] ?? null;
 
             /*
                 $user_id = $data['user_id'];

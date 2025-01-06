@@ -156,10 +156,14 @@ const createEditButton = (text, iconClass, onClick) => {
 
 // Function to create content div
 const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, type) => {
-    let contentHtml = `
-        <div class="content-container-con">
-            ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-    `;
+    let contentHtml = '';
+
+    if (type !== 'orgchart') {
+        contentHtml += `
+            <div class="content-container-con">
+                ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+        `;
+    }
 
     // Add type-specific content
     switch(type) {
@@ -176,6 +180,17 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
                             <pre class="ann-body" style="word-break: break-word">${data[`${type}_description`]}</pre>
                             <pre class="ann-body" style="word-break: break-word">${data[`${type}_subdescription`]}</pre>`;
             break;
+        case 'orgchart':
+            contentHtml = `
+                <div class="content-container-con" id="orgChartParentContainer-${data.orgchart_id}">
+                    <div id="orgChartContainerParent-${data.orgchart_id}" class="orgchart-container" style="background-color: none; place-items: center">
+                        <div id="orgChartContainer-${data.orgchart_id}" class="orgchart-container-parent">
+                            <div class="orgchart-content"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            break;
         default:
             // For new features, only display content fields (skip metadata fields)
             for (let key in data) {
@@ -186,13 +201,15 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
             }
     }
 
-    contentHtml += `
-            <div class="line-separator"></div>
-            <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
-    `;
+    if (type !== 'orgchart') {
+        contentHtml += `
+                <div class="line-separator"></div>
+                <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
+        `;
+    }
 
     // Only add expiration date for content types that have it
-    if (type !== 'peo' && type !== 'so') {
+    if (type !== 'peo' && type !== 'so' && type !== 'orgchart') {
         contentHtml += `
             <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDateTime}</small></p>
             <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
@@ -210,18 +227,92 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
 
 // Function to update UI for announcement, event, news, etc.
 const updateUI = (data, type) => {
-    if (type === 'peo' || type === 'so') {
+    if (type === 'orgchart') {
+        // No status check needed for orgchart
+        if (!data[`${type}_id`]) {
+            return;
+        }
+    } else if (type === 'peo' || type === 'so') {
         if (data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) return;
     } else {
         if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 1 || 
             data.isTrashed === 1 || !data[`${type}_id`] || data.schedule_datetime !== null) return;
     }
 
+    // Special handling for orgchart type
+    if (type === 'orgchart') {
+        if (!data.orgchart_id) return;
+
+        const existingDiv = document.querySelector(`[data-${type}-id="${data.orgchart_id}"]`);
+        const formattedCreatedDateTime = null; // Not needed for orgchart
+        const formattedExpirationDateTime = null; // Not needed for orgchart
+
+        const contentHtml = createContentDiv(data, null, formattedCreatedDateTime, formattedExpirationDateTime, type);
+
+        if (existingDiv) {
+            existingDiv.querySelector('.content-container-con').innerHTML = contentHtml;
+        } else {
+            const containerDiv = document.createElement('div');
+            containerDiv.dataset[`${type}Id`] = data.orgchart_id;
+            containerDiv.setAttribute(`data-${type}-id`, data.orgchart_id);
+            containerDiv.innerHTML = contentHtml;
+
+            console.log("TV ID of orgchart:", data.tv_id);
+
+            containerDiv.style = `
+                background: #dffce5;
+                height: auto;
+                width: auto;
+                margin-bottom: 10px;
+                margin-right: 8px;
+                border-radius: 15px;
+                box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+                padding: 15px;
+            `;
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style = `
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 10px;
+            `;
+
+            // Add delete button for orgchart
+            const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data.orgchart_id, type, null, null, null, null, null, data.tv_id));
+            if (userType === 'Super Admin' || (userType === 'Admin' && data.user_type !== 'Super Admin') || data.author_id === parseInt(user_id)) {
+                buttonContainer.appendChild(deleteButton);
+            }
+
+            // Add edit button for orgchart
+            // const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => {
+            //     const queryParams = new URLSearchParams({
+            //         orgchart_id: data.orgchart_id,
+            //         type: type,
+            //         tv_id: data.tv_id,
+            //         action: 'edit'
+            //     }).toString();
+            //     window.location.href = `form_department_organizational_chart.php?${queryParams}`;
+            // });
+
+            // if (userType === 'Super Admin' || (userType === 'Admin' && data.user_type !== 'Super Admin') || data.author_id === parseInt(user_id)) {
+            //     buttonContainer.appendChild(editButton);
+            // }
+
+            containerDiv.appendChild(buttonContainer);
+            document.getElementById(`${type}CarouselContainer`).insertBefore(containerDiv, document.getElementById(`${type}CarouselContainer`).firstChild);
+
+            // Create the org chart after the container is added to the DOM
+            setTimeout(() => {
+                createOrgChart(data.orgchart_id, data);
+            }, 100);
+        }
+        return;
+    }
+
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
     // Only format expiration datetime for content types that have it
-    const formattedExpirationDateTime = (type !== 'peo' && type !== 'so') ? 
-    formatDateTime(data.expiration_datetime) : null;
+    const formattedExpirationDateTime = (type !== 'peo' && type !== 'so') ? formatDateTime(data.expiration_datetime) : null;
 
     let mediaContent = '';
     if (data.media_path) {
@@ -316,6 +407,155 @@ const updateUI = (data, type) => {
     }
 };
 
+const createOrgChart = (orgchartId, chartData) => {
+    // console.log("Orgchart ID:", orgchartId);
+    // console.log("Chart Data:", chartData);
+    const containerId = `orgChartContainer-${orgchartId}`;
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error(`Container not found for orgchart ${orgchartId}`);
+        return;
+    }
+
+    const contentDiv = container.querySelector('.orgchart-content');
+    if (!contentDiv) return;
+
+    contentDiv.innerHTML = '';
+
+    const orgchartContainer = document.querySelector('.orgchart-container');
+    if (!orgchartContainer) return;
+
+    const orgchartContainerParent = document.getElementById(`orgChartContainerParent-${orgchartId}`);
+
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+    const baseNodeWidth = Math.min(containerWidth * 0.15, 130);
+    const baseNodeHeight = Math.min(containerHeight * 0.15, 130);
+
+    const chartConfig = {
+        chart: {
+            container: `#${containerId}`,
+            nodeAlign: "BOTTOM",
+            levelSeparation: 25,
+            siblingSeparation: 35,
+            subTeeSeparation: 35,
+            connectors: {
+                type: 'step',
+                style: {
+                    'stroke-width': '1px'
+                }
+            },
+            node: {
+                HTMLclass: 'nodeExample1'
+            }
+        },
+        nodeStructure: createNodeStructure(chartData.chartData.members)
+    };
+
+    try {
+        new Treant(chartConfig);
+        const svg = document.querySelector('svg');
+        // assign id to svg
+        if (svg) {
+            svg.id = `orgChartSVG-${orgchartId}`;
+        }
+
+        requestAnimationFrame(() => {
+            scaleOrgChart(container, orgchartContainerParent, orgchartId);
+        });
+
+    } catch (error) {
+        console.error('Error creating org chart:', error);
+        orgchartContainer.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
+    }
+};
+
+function scaleOrgChart(orgchartContainer, orgchartContainerParent, orgchartId) {
+    // const orgchartContainer = document.querySelector('.orgchart-container');
+    console.log("Orgchart Container Parent:", orgchartContainerParent);
+    console.log("Orgchart Container:", orgchartContainer);
+    
+    if (!orgchartContainerParent || !orgchartContainer) return;
+
+    // Reset transform to get true dimensions
+    orgchartContainerParent.style.transform = 'none';
+    
+    // Calculate scale ratios
+    const containerWidth = orgchartContainerParent.offsetWidth;
+    const containerHeight = orgchartContainerParent.offsetHeight;
+    const orgchartContainerWidth = orgchartContainer.offsetWidth;
+    const orgchartContainerHeight = orgchartContainer.offsetHeight;
+
+    console.log("Container Width:", containerWidth);
+    console.log("Container Height:", containerHeight);
+    console.log("Orgchart Container Width:", orgchartContainerWidth);
+    console.log("Orgchart Container Height:", orgchartContainerHeight);
+
+
+    const scale = Math.min(
+        containerWidth / orgchartContainerWidth,
+        containerHeight / orgchartContainerHeight,
+        1
+    ) * 0.9; // 0.9 for padding
+
+    // Apply the transform
+    orgchartContainerParent.style.zoom = scale;
+    orgchartContainerParent.style.transformOrigin = 'top center';
+}
+
+function createNodeStructure(members) {
+    if (!members || members.length === 0) return null;
+
+    const nodeMap = new Map();
+    
+    // First pass: create all nodes with dynamic sizing
+    members.forEach(member => {
+        nodeMap.set(member.parent_node_id, {
+            text: {
+                name: member.name,
+                title: member.title,
+            },
+            image: member.picture,
+            innerHTML: `
+                <div class="node-content">
+                    ${member.picture ? 
+                        `<img src="${member.picture}" class="node-image" alt="${member.name}">` : 
+                        `<img src="images/profile_picture.png" class="node-image" alt="Default Profile">`
+                    }
+                    <div class="node-details">
+                        <div class="node-name">${member.name}</div>
+                        <div class="node-title">${member.title}</div>
+                    </div>
+                </div>
+            `,
+            HTMLclass: "custom-node",
+            children: []
+        });
+    });
+
+    // Second pass: build hierarchy
+    const rootNodes = [];
+    members.forEach(member => {
+        const node = nodeMap.get(member.parent_node_id);
+        if (member.parent_id && member.parent_id !== 'NULL') {
+            const parentNode = nodeMap.get(member.parent_id);
+            if (parentNode) {
+                parentNode.children.push(node);
+            } else {
+                rootNodes.push(node);
+            }
+        } else {
+            rootNodes.push(node);
+        }
+    });
+
+    return rootNodes.length === 1 ? rootNodes[0] : {
+        text: { name: "Department" },
+        HTMLclass: "hidden-node",
+        children: rootNodes
+    };
+}
+
 // Function to archive an item
 const archiveItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
     const evaluatorMessageArchive = document.getElementById('evaluator_message_archive');
@@ -401,13 +641,13 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
         type: contentType,
         [`${contentType}_id`]: contentId, // Dynamically set the ID based on the type
         user_id: user_id,
-        author_id: authorId,
-        author_name: authorName,
-        author_user_type: authorUserType,
-        author_department: authorDepartment,
-        evaluator_name: loggedInFullName,
-        evaluator_message: evaluatorMessage,
-        tv_id: tvId
+        author_id: authorId ? authorId : null,
+        author_name: authorName ? authorName : null,
+        author_user_type: authorUserType ? authorUserType : null,
+        author_department: authorDepartment ? authorDepartment : null,
+        evaluator_name: loggedInFullName ? loggedInFullName : null,
+        evaluator_message: evaluatorMessage ? evaluatorMessage : null,
+        tv_id: tvId ? tvId : null
     };
     confirmTrashModal.style.display = 'none';
     confirmDeleteModal.style.display = 'none';
@@ -443,7 +683,7 @@ const displayNoMessage = (type) => {
 };
 
 // Array of default content types
-const defaultContentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
+// const defaultContentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
 
 // Function to create modals dynamically
 const createModals = (contentTypes) => {
@@ -559,13 +799,17 @@ const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, aut
         padding: 15px;
     `;
 
-    const evaluatorMessageHtml = user_id != authorId ? `
-        <div class="floating-label-container">
-            <textarea name="evaluator_message_delete" id="evaluator_message_delete" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-            <label for="evaluator_message_delete" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
-        </div>
-        <br>
-    ` : '';
+    let evaluatorMessageHtml = '';
+
+    if (contentType !== 'orgchart') {
+        evaluatorMessageHtml = user_id != authorId ? `
+            <div class="floating-label-container">
+                <textarea name="evaluator_message_delete" id="evaluator_message_delete" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+                <label for="evaluator_message_delete" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+            </div>
+            <br>
+        ` : '';
+    }
     
     modalContent.innerHTML = `
         <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
@@ -596,6 +840,39 @@ const getFeatureInfo = async (type) => {
     }
 };
 
+const fetchOrgChartData = async (type, tvId) => {
+    try {
+        const response = await fetch(`database/fetch_orgchart.php?tvId=${tvId}`);
+        const data = await response.json();
+
+        // console.log("Fetched orgchart data:", data); // Debug log
+        
+        // Clear existing content
+        const carouselContainer = document.getElementById(`${type}CarouselContainer`);
+        if (carouselContainer) {
+            carouselContainer.innerHTML = '';
+        }
+
+        // Process each orgchart
+        Object.entries(data).forEach(([orgchartId, chartData]) => {
+            const orgchartData = {
+                orgchart_id: orgchartId,
+                display_time: chartData.display_time,
+                chartData: chartData, // Contains members array and other chart data
+                tv_id: tvId
+            };
+            updateUI(orgchartData, type);
+        });
+
+        if (Object.keys(data).length === 0) {
+            displayNoMessage(type);
+        }
+    } catch (error) {
+        console.error('Error fetching orgchart data:', error);
+        displayNoMessage(type);
+    }
+};
+
 // Function to fetch and update content for all types
 function fetchAndUpdate(type) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -603,8 +880,12 @@ function fetchAndUpdate(type) {
 
     // If we're not on a TV contents page, don't try to update the UI
     if (!tvId) return;
-
-    fetch(`database/fetch_content.php?type=${type}&tvId=${tvId}`)
+    
+    if (type === 'orgchart') {
+        fetchOrgChartData(type, tvId);
+        return;
+    } else if (type !== 'orgchart') {
+        fetch(`database/fetch_content.php?type=${type}&tvId=${tvId}`)
         .then(response => response.json())
         .then(data => {
             let filteredData;
@@ -668,6 +949,7 @@ function fetchAndUpdate(type) {
             // Set count to 0 if there's an error
             updateContentCount(type, 0);
         });
+    }
 }
 
 /* Web-Socket Server Connection */

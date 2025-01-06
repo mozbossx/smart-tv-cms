@@ -11,7 +11,7 @@ if (!$tvId) {
 }
 
 // Prepare and execute the query with proper parameter binding
-$statement = $pdo->prepare("SELECT * FROM org_chart_members WHERE tv_id = ? ORDER BY orgchart_id, parent_id");
+$statement = $pdo->prepare("SELECT * FROM org_chart_members WHERE tv_id = ? ORDER BY id ASC");
 $statement->execute([$tvId]);
 $chartData = $statement->fetchAll(PDO::FETCH_ASSOC);
 
