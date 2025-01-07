@@ -48,6 +48,7 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
         $containerNamePEO = 'Program Educational Objectives';
         $containerNameSO = 'Student Outcomes';
         $containerNameOrgChart = 'Department Organizational Chart';
+        $containerNameFacility = 'Facilities';
         $containerTypeAnnouncements = 'announcement';
         $containerTypeEvents = 'event';
         $containerTypeNews = 'news';
@@ -55,6 +56,7 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
         $containerTypePEO = 'peo';
         $containerTypeSO = 'so';
         $containerTypeOrgChart = 'orgchart';
+        $containerTypeFacility = 'facility';
         $containerVisibleAnnouncements = 1;
         $containerVisibleEvents = 1;
         $containerVisibleNews = 1;
@@ -62,6 +64,7 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
         $containerVisiblePEO = 0;
         $containerVisibleSO = 0;
         $containerVisibleOrgChart = 0;
+        $containerVisibleFacility = 0;
         $containerXaxisAnnouncements = 1.0;
         $containerYaxisAnnouncements = 5.0;
         $containerXaxisEvents = 415.0;
@@ -92,6 +95,9 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
 
         $sql_orgchart_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible) VALUES ($tvId, '$containerNameOrgChart', '$containerTypeOrgChart', $containerVisibleOrgChart)";
         mysqli_query($conn, $sql_orgchart_container);
+
+        $sql_facility_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible) VALUES ($tvId, '$containerNameFacility', '$containerTypeFacility', $containerVisibleFacility)";
+        mysqli_query($conn, $sql_facility_container);
 
         // Redirect to the same page with tvId as query parameter
         header("Location: tv2.php?tvId=$tvId");

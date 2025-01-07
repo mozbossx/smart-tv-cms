@@ -3696,6 +3696,201 @@ class ContentHandler implements MessageComponentInterface
                         }
                         $from->send(json_encode($response));
                     }
+                } else if ($data['type'] === 'facility') {
+                    // For Announcement, Event, News, Promotional Materials, PEO, and SO only
+                    foreach ($data['tv_ids'] as $tv_ids) {
+                        $category = match ($data['type']) {
+                            'facility' => 'Facility',
+                            default => 'Unknown'
+                        };
+
+                        $isArchived = 0;
+                                        
+                        // Determine media folder
+                        $mediaFolder = match ($data['type']) {
+                            'facility' => 'facility_media',
+                            default => null
+                        };
+                    
+                        if ($mediaFolder && !file_exists($mediaFolder)) {
+                            mkdir($mediaFolder, 0777, true);
+                        }
+                    
+                        $table = match ($data['type']) {
+                            'facility' => 'facility_tb',
+                            default => 'No Table Found'
+                        };
+    
+                        $idField = match ($data['type']) {
+                            'facility' => 'facility_id',
+                            default => 'No Content ID Found'
+                        };
+    
+                        $authorField = match ($data['type']) {
+                            'facility' => 'facility_author_id',
+                            default => 'No Author Found'
+                        };
+                    
+                        // Common fields for all types
+                        $fields = [
+                            'department', $authorField, 'tv_id', 'display_time',
+                            'category', 'isArchived'
+                        ];
+                        $values = [
+                            $department, $user_id, $tv_ids, $data['display_time'],
+                            $category, $isArchived
+                        ];
+
+                        $fields[] = 'facility_body';
+                        $values[] = $data['facility_body'];
+                            
+                        $fieldList = implode(', ', $fields);
+                        $placeholderList = implode(', ', array_fill(0, count($fields), '?'));
+                    
+                        $statement = $this->pdo->prepare(
+                            "INSERT INTO $table ($fieldList) VALUES ($placeholderList)"
+                        );
+                    
+                        $success = $statement->execute($values);
+                    
+                        if ($success) {
+                            $id = $this->pdo->lastInsertId();
+                            $data[$idField] = $id;
+                            $data[$authorField] = $user_id;
+                            $data['category'] = $category;
+
+                            if ($user_type == 'Admin' || $user_type == 'Super Admin') {
+                                // Check if post is scheduled
+                                $notification_type = 'content_post';
+
+                                // Insert notification for the user who posted his own content
+                                if ($user_id) {
+                                    // Prepare base query without schedule_datetime
+                                    $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
+                                    $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
+                                    $params = [$data[$idField], $user_id, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
+
+                                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb ($notificationFields) VALUES ($notificationValues)");
+                                    $stmt->execute($params);
+                                }
+
+                                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ?
+                                ");
+                                $stmtSelectDepartmentAdmins->execute([$department, $user_id]);
+                                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                                
+                                // Notify each Admin of the approved user's department
+                                if ($departmentAdmins) {
+                                    $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
+                                    $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
+                                    $baseParams = [$data[$idField], null, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
+
+                                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                                        INSERT INTO notifications_tb ($notificationFields)
+                                        VALUES ($notificationValues)
+                                    ");
+
+                                    foreach ($departmentAdmins as $admin) {
+                                        $params = $baseParams;
+                                        $params[1] = $admin['user_id']; // Set the user_id
+                                        $stmtNotifyDepartmentAdmins->execute($params);
+                                    }
+                                }
+
+                                $stmtSelectSuperAdmins = $this->pdo->prepare("
+                                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ?
+                                ");
+                                $stmtSelectSuperAdmins->execute([$user_id]);
+                                $superAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+                                
+                                // Notify each Admin of the approved user's department
+                                if ($superAdmins) {
+                                    $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
+                                    $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
+                                    $baseParams = [$data[$idField], null, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
+
+                                    $stmtNotifySuperAdmins = $this->pdo->prepare("
+                                        INSERT INTO notifications_tb ($notificationFields)
+                                        VALUES ($notificationValues)
+                                    ");
+
+                                    foreach ($superAdmins as $superAdmin) {
+                                        $params = $baseParams;
+                                        $params[1] = $superAdmin['user_id']; // Set the user_id
+                                        $stmtNotifySuperAdmins->execute($params);
+                                    }
+                                }
+
+                                // Increase the notification count of the user who posted the content
+                                $stmtUpdateUserWhoPosted = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1, last_post_date = CURRENT_TIMESTAMP WHERE user_id = ?");
+                                $stmtUpdateUserWhoPosted->execute([$user_id]);
+
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ? AND user_id != ?");
+                                $stmtUpdateAdminNotificationCount->execute([$department, $user_id]);
+
+                                // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
+                                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin' AND user_id != ?");
+                                $stmtUpdateSuperAdminNotificationCount->execute([$user_id]);
+                    
+                                // Broadcast update notification to all clients
+                                $this->broadcastNotification('new_notification');
+                                echo "Notification sent to all clients\n";
+                            }
+                    
+                            // Handle multiple images
+                            if (isset($data['media']) && is_array($data['media'])) {
+                                $imageNames = []; // Array to store image filenames
+                                
+                                // Create the media folder if it doesn't exist
+                                if (!file_exists($mediaFolder)) {
+                                    mkdir($mediaFolder, 0777, true);
+                                }
+
+                                // Process each image in the array
+                                foreach ($data['media'] as $index => $base64Data) {
+                                    // Skip empty entries
+                                    if (empty($base64Data)) continue;
+
+                                    // Clean the base64 string
+                                    $cleanedBase64 = preg_replace('#^data:image/\w+;base64,#i', '', $base64Data);
+                                    
+                                    // Decode the base64 data
+                                    $mediaData = base64_decode($cleanedBase64);
+                                    
+                                    // Generate unique filename using facility_id and index
+                                    $filename = "{$id}_{$index}.png";
+                                    $media_save = "{$mediaFolder}/{$filename}";
+                                    
+                                    // Save the file
+                                    if (file_put_contents($media_save, $mediaData)) {
+                                        $imageNames[] = $filename;
+                                        error_log("Saved image: " . $filename); // Debug log
+                                    } else {
+                                        error_log("Failed to save image: " . $filename); // Debug log
+                                    }
+                                }
+                                
+                                // Only update if we have images
+                                if (!empty($imageNames)) {
+                                    // Join image names with commas and update the record
+                                    $imageNamesString = implode(',', $imageNames);
+                                    $updateStatement = $this->pdo->prepare("UPDATE $table SET facility_images_array = ? WHERE $idField = ?");
+                                    $updateStatement->execute([$imageNamesString, $id]);
+                                    
+                                    $data['facility_images_array'] = $imageNamesString;
+                                    error_log("Stored image array: " . $imageNamesString); // Debug log
+                                }
+                            }
+
+                            $response = ['action' => 'post_content', 'success' => true, 'user_id' => $user_id, 'data' => $data];
+                            echo ucfirst($data['type']) . " " . (!empty($imageNames) ? 'with ' . count($imageNames) . ' images' : 'without media') . " uploaded!\n";
+                        } else {
+                            $response = ['action' => 'post_content', 'success' => false, 'error' => 'Error processing ' . $data['type'] . '. Try again later'];
+                        }
+                        $from->send(json_encode($response));
+                    }
                 } else {
                     // For New Features only
                     foreach ($data['tv_ids'] as $tv_ids) { 

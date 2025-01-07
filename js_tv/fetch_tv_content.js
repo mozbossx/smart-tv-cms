@@ -648,8 +648,8 @@ function scaleOrgChart(container, orgchartId) {
     let zoomLevel;
     if (containerRect.width > contentRect.width || containerRect.height > contentRect.height) {
         // Content is too big - scale down
-        const scaleX = (containerRect.width / contentRect.width) / 8.5;
-        const scaleY = (containerRect.height / contentRect.height) / 8.5;
+        const scaleX = (containerRect.width / contentRect.width) / 3.5;
+        const scaleY = (containerRect.height / contentRect.height) / 3.5;
         // console.log("scaleX: (scale-down)", scaleX);
         // console.log("scaleY: (scale-down)", scaleY);
         zoomLevel = Math.min(scaleX, scaleY) * 0.80; // Scale down by taking the smaller ratio, with 5% margin

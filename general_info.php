@@ -63,7 +63,7 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                             </a>
                         </div>
                         <div class="button-container">
-                            <a href="form_facilities.php?pageid=FacilitiesForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
+                            <a href="form_facility.php?pageid=FacilityForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
                                 <div class="button-icon"><i class="fa fa-building"></i></div>
                                 <div class="button-text">Facilities</div>
                             </a>

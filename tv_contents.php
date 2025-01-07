@@ -115,7 +115,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 <div class="content-grid-container">
                 <?php
                 // Array of content types
-                $contentTypes = ['announcement', 'event',  'news', 'promaterial', 'peo', 'so', 'orgchart'];
+                $contentTypes = ['announcement', 'event',  'news', 'promaterial', 'peo', 'so', 'orgchart', 'facility'];
                 // echo '<p>'; print_r($contentTypes); echo '</p>';
 
                 // Add new features to the content types array
@@ -140,6 +140,8 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO) <span id='soCount' style='color: #6E6E6E;'></span></h1>";
                     } else if ($type == 'orgchart') {
                         echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Department Organizational Chart <span id='orgchartCount' style='color: #6E6E6E;'></span></h1>";
+                    } else if ($type == 'facility') {
+                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-building' style='margin-right: 6px' aria-hidden='true'></i>Facilities <span id='facilityCount' style='color: #6E6E6E;'></span></h1>";
                     } else {
                         // For new features
                         $feature = array_filter($featuresNewFeatures, function($f) use ($type) {

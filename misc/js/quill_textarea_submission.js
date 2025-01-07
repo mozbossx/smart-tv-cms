@@ -181,38 +181,4 @@ function handleFormSubmission(event) {
     event.target.submit();
 }
 
-// function handleFormSubmission(event) {
-//     event.preventDefault();
-
-//     var announcementBodyQuillEditorContent = announcementBodyQuill.root.innerHTML;
-//     document.querySelector('input[name=announcement_body]').value = announcementBodyQuillEditorContent;
-
-//     var eventBodyQuillEditorContent = eventBodyQuill.root.innerHTML;
-//     document.querySelector('input[name=event_body]').value = eventBodyQuillEditorContent;
-
-//     var newsBodyQuillEditorContent = newsBodyQuill.root.innerHTML;
-//     document.querySelector('input[name=news_body]').value = newsBodyQuillEditorContent;
-
-//     var peoTitleQuillEditorContent = peoTitleQuill.root.innerHTML;
-//     document.querySelector('input[name=peo_title]').value = peoTitleQuillEditorContent;
-
-//     var peoDescriptionQuillEditorContent = peoDescriptionQuill.root.innerHTML;
-//     document.querySelector('input[name=peo_description]').value = peoDescriptionQuillEditorContent;
-
-//     var peoSubdescriptionQuillEditorContent = peoSubdescriptionQuill.root.innerHTML;
-//     document.querySelector('input[name=peo_subdescription]').value = peoSubdescriptionQuillEditorContent;
-
-//     var soTitleQuillEditorContent = soTitleQuill.root.innerHTML;
-//     document.querySelector('input[name=so_title]').value = soTitleQuillEditorContent;
-
-//     var soDescriptionQuillEditorContent = soDescriptionQuill.root.innerHTML;
-//     document.querySelector('input[name=so_description]').value = soDescriptionQuillEditorContent;
-
-//     var soSubdescriptionQuillEditorContent = soSubdescriptionQuill.root.innerHTML;
-//     document.querySelector('input[name=so_subdescription]').value = soSubdescriptionQuillEditorContent;
-
-//     // Now submit the form
-//     event.target.submit();
-// }
-
 form.onsubmit = handleFormSubmission;

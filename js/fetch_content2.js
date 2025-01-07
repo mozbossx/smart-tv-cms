@@ -191,6 +191,9 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
                 </div>
             `;
             break;
+        case 'facility':
+            contentHtml += `<pre class="ann-body" style="word-break: break-word">${data.facility_body}</pre>`;
+            break;
         default:
             // For new features, only display content fields (skip metadata fields)
             for (let key in data) {
@@ -209,7 +212,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
     }
 
     // Only add expiration date for content types that have it
-    if (type !== 'peo' && type !== 'so' && type !== 'orgchart') {
+    if (type !== 'peo' && type !== 'so' && type !== 'orgchart' && type !== 'facility') {
         contentHtml += `
             <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Expires on ${formattedExpirationDateTime}</small></p>
             <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs</p>
@@ -227,7 +230,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
 
 // Function to update UI for announcement, event, news, etc.
 const updateUI = (data, type) => {
-    if (type === 'orgchart') {
+    if (type === 'orgchart' || type === 'facility') {
         // No status check needed for orgchart
         if (!data[`${type}_id`]) {
             return;
@@ -312,14 +315,16 @@ const updateUI = (data, type) => {
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
     // Only format expiration datetime for content types that have it
-    const formattedExpirationDateTime = (type !== 'peo' && type !== 'so') ? formatDateTime(data.expiration_datetime) : null;
+    const formattedExpirationDateTime = (type !== 'peo' && type !== 'so' && type !== 'facility') ? formatDateTime(data.expiration_datetime) : null;
 
     let mediaContent = '';
-    if (data.media_path) {
+    if (data.media_path && type !== 'facility') {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
         mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; margin: 0 auto; border-radius: 5px">` :
             isVideo ? `<video width="100%" height="100%" controls style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
+    } else if (data.facility_images_array && type === 'facility') {
+        mediaContent = `<img src="servers/${type}_media/${data.facility_images_array[0]}" style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; margin: 0 auto; border-radius: 5px">`;
     }
 
     const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, type);
@@ -372,7 +377,7 @@ const updateUI = (data, type) => {
                 buttonContainer.appendChild(archiveButton);
             }
         } else {
-            // Only include deleteButton for non-standard contents
+            // Do not include trash and archive buttons for non-standard contents
             const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
             if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
                 buttonContainer.appendChild(deleteButton);
@@ -889,10 +894,12 @@ function fetchAndUpdate(type) {
         .then(response => response.json())
         .then(data => {
             let filteredData;
+            console.log("Data of ", type,":", data);
+
             if (Array.isArray(data)) {
                 filteredData = data.filter(item => {
-                    // Special handling for PEO and SO
-                    if (type === 'peo' || type === 'so') {
+                    // Special handling for PEO, SO, and Facility
+                    if (type === 'peo' || type === 'so' || type === 'facility') {
                         return item.tv_id === parseInt(tvId, 10) && 
                                item.isArchived === 0 && 
                                item.isTrashed === 0
@@ -907,8 +914,8 @@ function fetchAndUpdate(type) {
             } else if (typeof data === 'object' && data !== null) {
                 // If data is a single object, wrap it in an array
                 filteredData = [data].filter(item => {
-                    // Special handling for PEO and SO
-                    if (type === 'peo' || type === 'so') {
+                    // Special handling for PEO, SO, and Facility
+                    if (type === 'peo' || type === 'so' || type === 'facility') {
                         return item.tv_id === parseInt(tvId, 10) && 
                                item.isArchived === 0 && 
                                item.isTrashed === 0 

@@ -36,11 +36,11 @@ try {
               WHERE c.isArchived = :isArchived AND c.isTrashed = :isTrashed";
 
     // Add schedule_datetime condition only for tables that have this column
-    if ($scheduled && $type !== 'peo' && $type !== 'so') {
+    if ($scheduled && $type !== 'peo' && $type !== 'so' && $type !== 'facility' && $type !== 'orgchart') {
         $query .= " AND c.schedule_datetime IS NOT NULL";
     }
 
-    if ($scheduled && $type !== 'peo' && $type !== 'so') {
+    if ($scheduled && $type !== 'peo' && $type !== 'so' && $type !== 'facility' && $type !== 'orgchart') {
         $query .= " ORDER BY c.schedule_datetime ASC";
     }
     
