@@ -1,7 +1,7 @@
 <div id="errorModalVersion2" class="modal">
     <div class="modal-content" style="padding: 15px">
         <div class="red-bar-vertical">
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
             <p id="errorTextVersion2"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">

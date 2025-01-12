@@ -52,7 +52,8 @@ class ContentHandler implements MessageComponentInterface
                 'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id'],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id'],
                 'so' => ['table' => 'so_tb', 'idField' => 'so_id'],
-                'orgchart' => ['table' => 'org_chart_members', 'idField' => 'orgchart_id']
+                'orgchart' => ['table' => 'org_chart_members', 'idField' => 'orgchart_id'],
+                'facility' => ['table' => 'facility_tb', 'idField' => 'facility_id'],
             ];
             $type = $data['type'] ?? null;
 
@@ -111,8 +112,38 @@ class ContentHandler implements MessageComponentInterface
             $stmt->execute([$table]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Only fetch and handle media_path if the column exists
-            if ($result['column_exists']) {
+            // For facilities, handle multiple images
+            if ($type === 'facility') {
+                // Get the facility_images_array for this facility
+                $stmt = $this->pdo->prepare("SELECT facility_images_array FROM {$table} WHERE {$idField} = ?");
+                $stmt->execute([$content_id]);
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($result && !empty($result['facility_images_array'])) {
+                    $mediaFolder = "facility_media";
+                    // Split the comma-separated string into an array
+                    $imageNames = array_map('trim', explode(',', $result['facility_images_array']));
+                    
+                    // Delete each image file
+                    foreach ($imageNames as $imageName) {
+                        $fullPath = "{$mediaFolder}/{$imageName}";
+                        if (file_exists($fullPath)) {
+                            unlink($fullPath);
+                            error_log("Deleted facility image: {$fullPath}");
+                        }
+                    }
+                    
+                    // Optionally, delete the facility media directory if it's empty
+                    if (is_dir($mediaFolder)) {
+                        $files = glob($mediaFolder . "/*");
+                        if (empty($files)) {
+                            rmdir($mediaFolder);
+                            error_log("Deleted empty facility media directory");
+                        }
+                    }
+                }
+            } else if ($result['column_exists'] && $type !== 'facility') {
+                // Only fetch and handle media_path if the column exists
                 $stmt = $this->pdo->prepare("SELECT media_path FROM {$table} WHERE {$idField} = ?");
                 $stmt->execute([$content_id]);
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -874,7 +905,8 @@ class ContentHandler implements MessageComponentInterface
                 'news' => ['table' => 'news_tb', 'idField' => 'news_id', 'bodyField' => 'news_body'],
                 'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id', 'bodyField' => null],
                 'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id', 'bodyField' => null],
-                'so' => ['table' => 'so_tb', 'idField' => 'so_id', 'bodyField' => null]
+                'so' => ['table' => 'so_tb', 'idField' => 'so_id', 'bodyField' => null],
+                'facility' => ['table' => 'facility_tb', 'idField' => 'facility_id', 'bodyField' => 'facility_body']
             ];
 
             // Fetch new features from the database
@@ -905,7 +937,7 @@ class ContentHandler implements MessageComponentInterface
                 $params = [];
         
                 // Set status based on user type only for non-PEO/SO content
-                if ($type !== 'peo' && $type !== 'so') {
+                if ($type !== 'peo' && $type !== 'so' && $type !== 'facility') {
                     $status = ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') ? 'Pending' : 'Approved';
                     $updateFields[] = "status = ?";
                     $params[] = $status;
@@ -934,7 +966,7 @@ class ContentHandler implements MessageComponentInterface
                 }
         
                 // Add common fields only for non-PEO/SO content
-                if ($type !== 'peo' && $type !== 'so') {
+                if ($type !== 'peo' && $type !== 'so' && $type !== 'facility') {
                     if (isset($data['expiration_datetime'])) {
                         $updateFields[] = "expiration_datetime = ?";
                         $params[] = $data['expiration_datetime'];
@@ -4712,9 +4744,9 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                         <nav aria-label=\"breadcrumb\">
                             <ol class=\"breadcrumb\" style=\"background: none\">
                             <?php if (\$isEditMode): ?>
-                                <li class=\"breadcrumb-item\"><a href=\"user_home.php?pageid=UserHome?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\" style=\"color: #264B2B\">Home</a></li>
+                                <li class=\"breadcrumb-item\"><a href=\"user_home.php?pageid=UserHome?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\">Home</a></li>
                                 <li class=\"breadcrumb-item\">
-                                    <a href=\"tv_contents.php?tvId=<?php echo \$_GET['tv_id']; ?>&isIframe=true\" style=\"color: #264B2B\">
+                                    <a href=\"tv_contents.php?tvId=<?php echo \$_GET['tv_id']; ?>&isIframe=true\">
                                         <?php 
                                         // Fetch TV name based on tv_id
                                         \$stmt = \$conn->prepare(\"SELECT tv_name FROM smart_tvs_tb WHERE tv_id = ?\");
@@ -4729,7 +4761,7 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                                 <li class=\"breadcrumb-item active\" aria-current=\"page\">Edit</li>
                             <?php else: ?>
                                 <li class=\"breadcrumb-item\">
-                                    <a href=\"create_post.php?pageid=CreatePost?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\" style=\"color: #264B2B\">Create Post</a>
+                                    <a href=\"create_post.php?pageid=CreatePost?userId=<?php echo \$user_id; ?>''<?php echo \$full_name; ?>\">Create Post</a>
                                 </li>
                                 <li class=\"breadcrumb-item active\" aria-current=\"page\">{$featureName} Form</li>
                             <?php endif; ?>
@@ -4845,7 +4877,7 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
             return "
                 <div class=\"floating-label-container\">
                     <div id=\"quillEditorContainer_{$name}\" class=\"quill-editor-container-newfeature\">
-                        <label for=\"quillEditorContainer_{$name}\" style=\"position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold\">{$label}</label>
+                        <label for=\"quillEditorContainer_{$name}\" style=\"position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo \$theme_color; ?>; font-size: 12px; font-weight: bold\">{$label}</label>
                         <div id=\"{$name}\" style=\"height: 150px;\"></div>
                     </div>
                     <input type=\"hidden\" name=\"{$name}\" id=\"{$name}HiddenInput\">

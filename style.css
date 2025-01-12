@@ -5,27 +5,15 @@ width: 10px;
 }
 *::-webkit-scrollbar-track {
 border-radius: 5px;
-background-color: #DFE9EB;
+background-color: #efefef;
 }
 
 *::-webkit-scrollbar-track:hover {
-background-color: #B8C0C2;
+background-color: #c3c3c3;
 }
 
 *::-webkit-scrollbar-track:active {
-background-color: #B8C0C2;
-}
-
-*::-webkit-scrollbar-thumb {
-background-color: #315f37;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-background-color: #42804b;
-}
-
-*::-webkit-scrollbar-thumb:active {
-background-color: #315f37;
+background-color: #c1c1c1;
 }
 
 html{
@@ -1035,7 +1023,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .navbar a:hover{
-    background-color: #1e3b22;
     transition: 0.8s ease;
 }
 
@@ -1119,12 +1106,10 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     display: block;
 	padding: 18px;
 	text-decoration: none;
-	color: #FFFFFF;
 	font-size: 14px;
     border-radius: 6px;
     margin-top: 5px;
     background: none;
-    color: white;
     text-align: left;
     box-shadow: none;
     border: none;
@@ -1132,7 +1117,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .menu-button:hover {
-    background: #5BB467;
 	color: #444444;
 }
 
@@ -1169,7 +1153,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 	height: auto;
 	overflow: hidden;
 	width: 170px;
-	background: #316038;
+	/* background: #316038; */
 	position: absolute;
 	z-index: 99;
 	display: none;
@@ -1182,14 +1166,14 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 	width: 100%;
 }
 #menu ul.sub-menus a {
-	color: #FFFFFF;
+	/* color: #FFFFFF; */
 	font-size: 14px;
 }
 #menu li:hover ul.sub-menus {
 	display: block
 }
 #menu ul.sub-menus a:hover{
-	background: #5BB467;
+	/* background: #5BB467; */
 	color: #444444;
 }
 
@@ -1371,7 +1355,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .add-member-node-btn {
-    background: #316038;
     color: white;
     border: none;
     border-radius: 5px;
@@ -1387,7 +1370,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .add-member-node-btn:hover {
-    background: #264B2B;
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -1489,12 +1471,11 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .breadcrumb-item a {
-    color: #007bff; /* Link color */
-    font-weight: bold; /* Bold text */
+    font-weight: bold;
 }
 
 .breadcrumb-item a:hover {
-    text-decoration: underline; /* Underline on hover */
+    text-decoration: underline;
 }
 
 .breadcrumb-item.active {
@@ -1677,13 +1658,13 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     margin-bottom: 15px;
 }
 
-.content-container:nth-child(odd) {
+/* .content-container:nth-child(odd) {
     background: #f9fffa;
 }
 
 .content-container:nth-child(even) {
     background: #eefff1;
-}
+} */
 
 .content-container-con {
     display: flex;
@@ -1994,15 +1975,15 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .red-button {
-    color: #fff;
+    color: #ffffff;
     padding: 8px 16px;
     border-radius: 5px;
-    border: 1px solid rgb(126, 11, 34);
+    /* border: 1px solid rgb(126, 11, 34); */
     cursor: pointer;
     transition: background-color 0.3s;
-    color: #ffffff;
+    /* color: #ffffff; */
     text-decoration: none;
-    background-color: rgb(126, 11, 34);
+    /* background-color: rgb(126, 11, 34); */
     user-select: none;
     -moz-user-select: none;
     -webkit-user-drag: none;
@@ -2011,13 +1992,13 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .red-button:hover {
-    background: rgb(173, 15, 46);
+    /* background: rgb(173, 15, 46); */
     transition: 0.5s ease;
 }
 
 .green-button {
-    background-color: #316038;
-    color: #fff;
+    /* background-color: #316038; */
+    color: #ffffff;
     padding: 8px 16px;
     border-radius: 5px;
     border: 1px solid #264B2B;
@@ -2033,7 +2014,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .green-button:hover {
-    background: #326639;
+    /* background: #326639; */
     transition: 0.5s ease;
 }
 
@@ -2068,18 +2049,18 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .light-green-button {
-    background-color: #aad3b0;
-    color: black;
+    /* background-color: #aad3b0; */
+    color: #ffffff;
     padding: 8px 16px;
     border-radius: 5px;
-    border: 1px solid #3e7a47 ;
+    /* border: 1px solid #3e7a47 ; */
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
 .light-green-button:hover {
-    background: #3e7a47;
-    color: #fff;
+    /* background: #3e7a47; */
+    /* color: #fff; */
     transition: 0.5s ease;
 }
 
@@ -2287,11 +2268,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: #dadada; /* Match your table header background color */
-}
-
-#usersTable th, #smartTVsTable th {
-    background-color: #dadada; /* Match your table header background color */
 }
 
 #userTableContainerParent::-webkit-scrollbar-thumb, #smartTVsTableContainerParent::-webkit-scrollbar-thumb {
@@ -2504,10 +2480,6 @@ tr:nth-child(even) {
     position: relative;
     user-select: none;
     padding-right: 30px;
-}
-
-.notification:hover {
-    background-color: #d0f5d0;
 }
 
 .notifications-container {
@@ -2736,7 +2708,6 @@ tr:nth-child(even) {
 
 .close:hover,
 .close:focus {
-    color: #999;
     text-decoration: none;
     cursor: pointer;
 }
@@ -2835,9 +2806,6 @@ tr:nth-child(even) {
 }
 
 .scale-buttons button {
-    background-color: #264B2B;
-    color: white;
-    padding: 5px 10px;
     margin-left: 5px;
     border-radius: 5px;
     cursor: pointer;
@@ -3162,6 +3130,47 @@ input[type=range]:focus::-ms-fill-upper {
     border-radius: 12px;
     font-size: 11px;
     white-space: nowrap;
+}
+
+.theme-container {
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.color-carousel {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 10px;
+}
+
+.color-option-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 2px solid #fff;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+
+
+.color-label {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
 }
 
 /* Media query for smaller screens */

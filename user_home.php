@@ -5,6 +5,7 @@ include 'config_connection.php';
 
 // fetch user data for the currently logged-in user
 include 'get_session.php';
+include 'user_theme_color.php';
 
 // Fetch data from smart_tvs_tb
 if($user_type == 'Super Admin') {
@@ -30,6 +31,18 @@ $resultSelectExtistingTvs = mysqli_query($conn, $querySelectExtistingTvs);
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        
+
+        .green-button {
+            background: <?php echo $theme_color; ?>;
+            border: 1px solid <?php echo $theme_color; ?>;
+        }
+        .green-button:hover {
+            background: <?php echo $dark_theme_color_50_percent; ?>;
+            border: 1px solid <?php echo $dark_theme_color_50_percent; ?>;
+        }
+    </style>
     <title>Home</title>
 </head>
 <body>

@@ -6,9 +6,9 @@
             <input type="datetime-local" id="schedule_datetime" name="schedule_datetime" class="input-datetime">
         </div>
         <div style="text-align: right">
-            <button type="button" id="clearSchedulePost" class="green-button" style="background: none; border: none; color: #264B2B">Clear</button>
+            <button type="button" id="clearSchedulePost" class="green-button" style="background: none; border: none; color: <?php echo $theme_color; ?>">Clear</button>
             <button type="button" id="closeSchedulePostModal" class="grey-button">Cancel</button>
-            <button type="button" id="saveSchedulePostSelection" class="green-button" style="border: 1px solid #264B2B; margin-right: 0">Save</button>
+            <button type="button" id="saveSchedulePostSelection" class="green-button" style="border: 1px solid <?php echo $theme_color; ?>; margin-right: 0">Save</button>
         </div>
     </div>
 </div>

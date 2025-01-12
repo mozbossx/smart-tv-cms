@@ -5,6 +5,7 @@ include 'config_connection.php';
 
 // fetch user data for the currently logged-in user
 include 'get_session.php';
+include 'user_theme_color.php';
 
 // Fetch all features from the database
 $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
@@ -68,9 +69,9 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                             <i class="fa fa-trash" style="margin-right: 6px" aria-hidden="true"></i>Trash
                             <?php
                                 if ($user_type == 'Super Admin') {
-                                    echo '<p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for <button type="button" id="trashDaysButton" style="background: none; border: none; color: #264B2B; font-weight: bold; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="changeNumberOfTrashDays()"></button> before being permanently deleted.</p>';
+                                    echo '<p id="trashMessage2" style="font-size: 13px; color: '.$theme_color.';">Trashed items are stored for <button type="button" id="trashDaysButton" style="background: none; border: none; color: '.$dark_theme_color_50_percent.'; font-weight: bold; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="changeNumberOfTrashDays()"></button> before being permanently deleted.</p>';
                                 } else {
-                                    echo '<p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for <span id="trashDaysSpan" style="background: none; border: none; color: #264B2B; font-weight: bold; font-size: 13px;"></span> before being permanently deleted.</p>';
+                                    echo '<p id="trashMessage2" style="font-size: 13px; color: '.$theme_color.';">Trashed items are stored for <span id="trashDaysSpan" style="background: none; border: none; color: '.$dark_theme_color_50_percent.'; font-weight: bold; font-size: 13px;"></span> before being permanently deleted.</p>';
                                 }
                             ?>
                         </h1>

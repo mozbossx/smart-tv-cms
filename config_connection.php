@@ -7,7 +7,7 @@
 //     $dbname = 'smart_tv_cms_db';
 // } 
 
-if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '10.0.0.39:8080') {
+if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '192.168.1.14:8080') {
     // Localhost configuration (Testing purposes only)
     $server = 'localhost';
     $username = 'root';

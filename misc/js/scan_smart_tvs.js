@@ -29,8 +29,8 @@ function showLoadingIndicator() {
     loadingDiv.className = 'modal';
     loadingDiv.id = 'loadingIndicator';
     loadingDiv.innerHTML = `
-        <div class="modal-content" style="text-align: center;">
-            <h1><i class="fa fa-tv" style="color: #334b35; font-size: 50px;"></i></h1>
+        <div class="modal-content" style="text-align: center; padding: 15px;">
+            <h1><i class="fa fa-tv" style="font-size: 50px;"></i></h1>
             <h2>Scanning for Smart TVs...</h2>
             <p class="ann-author" style="color: #6E6E6E"><small>Make sure your Smart TV is connected to the same network as your phone or computer.</small></p>
             <div class="loader-container">
@@ -66,7 +66,7 @@ function showScanResults(discoveredTVs) {
         content += '</ul>';
     }
     modal.innerHTML = `
-    <div class="modal-content">
+    <div class="modal-content" style="padding: 15px;">
         <div style="height: 200px; overflow-y: auto;">
             ${content}
         </div>

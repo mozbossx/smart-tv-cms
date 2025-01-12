@@ -51,9 +51,9 @@ if (!$resultAllSmartTVs) {
                             <ol class="breadcrumb">
                                 <?php 
                                     if ($user_type == 'Super Admin') {
-                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Super Admin Options</a></li>';
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '">Super Admin Options</a></li>';
                                     } else {
-                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Admin Options</a></li>';
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '">Admin Options</a></li>';
                                     }
                                 ?>
                                 <li class="breadcrumb-item active" aria-current="page">Manage Smart TVs</li>
@@ -76,7 +76,7 @@ if (!$resultAllSmartTVs) {
                                 <button type="button" id="scanTVsButton" class="green-button" style="width: auto; margin-right: 0; height: 35px"><i class="fa fa-search" style="padding-right: 5px"></i>Scan for Smart TVs</button>
                             </div>
                         </div>
-                        <div class="table-container" id="smartTVsTableContainerParent" style="max-height: 55vh">
+                        <div class="table-container" id="smartTVsTableContainerParent" style="height: calc(100vh - 250px)">
                             <div id="smartTVTableContainer">
                                 <!-- Latest table of smart TVs will be displayed here -->
                             </div>

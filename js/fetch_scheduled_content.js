@@ -253,6 +253,7 @@ const updateUI = async (data, type) => {
         const containerDiv = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
         containerDiv.setAttribute(`data-${type}-id`, data[`${type}_id`]);
+        containerDiv.classList.add('content-container-main');
         
         // Create type label
         const typeLabel = document.createElement('div');
@@ -261,7 +262,6 @@ const updateUI = async (data, type) => {
         typeLabel.style = `
             display: inline-block;
             padding: 5px 10px;
-            background-color: rgb(227 227 227);
             border: 1px solid black;
             color: black;
             border-radius: 15px;
@@ -273,7 +273,7 @@ const updateUI = async (data, type) => {
         const scheduleInfo = document.createElement('div');
         scheduleInfo.className = 'schedule-info';
         scheduleInfo.innerHTML = `
-            <div style="color: #264B2B; margin-bottom: 10px;">
+            <div style="color: black; margin-bottom: 10px;">
                 <p style="font-weight: bold"><i class="fa fa-clock-o" aria-hidden="true"></i> 
                 Scheduled for: ${formatDateTime(data.schedule_datetime)}</p>
             </div>
@@ -284,7 +284,6 @@ const updateUI = async (data, type) => {
         contentContainer.className = 'content-container-con';
         contentContainer.innerHTML = contentDiv;
         contentContainer.style = `
-            background: #dffce5;
             border-radius: 15px;
             padding: 15px;
             color: black;
@@ -314,7 +313,6 @@ const updateUI = async (data, type) => {
             padding: 15px;
             border-radius: 15px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            background: rgb(223, 252, 229);
         `;
 
         // Append elements in the correct order
@@ -537,9 +535,9 @@ const showPostNowModal = async (contentId, contentType, authorId, loggedInFullNa
     ` : '';
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmPostNow${capitalizedType}Modal').style.display='none'" style="color: #316038"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmPostNow${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #316038; font-size: 50px"><i class="fa fa-share" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-share" aria-hidden="true"></i></h1>
         <p id="deleteMessage" style="text-align: center">Proceed to post this ${contentType} to TV: ${tvInfo.tv_display} even if it has not yet reached its scheduled date and time?</p>
         <p id="deleteMessage2" style="font-size: 13px; color: #316038;">Posting now will override the scheduled date and time.</p>
         <br>
@@ -572,9 +570,9 @@ const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, aut
     ` : '';
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
         <p id="deleteMessage" style="text-align: center">Proceed to delete forever?</p>
         <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Permanently deleted items cannot be recovered.</p>
         <br>

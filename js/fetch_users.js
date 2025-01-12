@@ -114,9 +114,10 @@ const showUserTableSummary = () => {
     `;
 
     const modal = createModal('userTableSummaryModal', `
-        <div class="modal-content" style="padding: 15px;">
-            <span class="close" onclick="closeModal('userTableSummary')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <div class="modal-content" style="padding: 25px;">
+            <span class="close" onclick="closeModal('userTableSummary')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
+            <h1 style="font-size: 50px"><i class="fa fa-table" aria-hidden="true"></i></h1>
             <p style="text-align: center">Users Table Summary</p>
             ${summaryHtml}
         </div>
@@ -222,12 +223,9 @@ const toggleMultiSelectMode = () => {
         });
 
         selectMultipleBtn.innerHTML = '<i class="fa fa-times" style="margin-right: 2px"></i> Cancel';
-        selectMultipleBtn.style.backgroundColor = '#334b353b';
-        selectMultipleBtn.style.color = 'black';
 
         selectMultipleBtnMobile.innerHTML = '<i class="fa fa-times" style="margin-right: 2px"></i> Cancel';
-        selectMultipleBtnMobile.style.backgroundColor = '#334b353b';
-        selectMultipleBtnMobile.style.color = 'black';
+        
         deleteSelectedBtn.style.display = '';
         deleteSelectedBtnMobile.style.display = '';
     }
@@ -242,13 +240,19 @@ const updateDeleteSelectedButton = () => {
     deleteSelectedBtnMobile.disabled = checkedBoxes.length === 0;
 };
 
-const showDeleteConfirmModal = (userCount, evaluatorName) => {
+const showDeleteConfirmModal = (userCount, evaluatorName, selectedUsers) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px">
-            <span class="close" id="closeDeleteConfirmModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" id="closeDeleteConfirmModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: rgb(126, 11, 34); font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
             <p id="deleteConfirmMessage" style="text-align: center">Proceed to delete ${userCount} user(s)?</p>
+            <p id="deleteMessage" style="text-align: center; font-size: 13px; color: #6E6E6E">This message will be sent thru the user's email.</p>
+            <div class="floating-label-container">
+                <textarea name="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area" id="evaluator_message"></textarea>
+                <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User</label>
+            </div>
+            <br>
             <br>
             <div style="text-align: right;">
                 <button id="cancelDeleteConfirmButton" class="grey-button" type="button">Cancel</button>
@@ -267,17 +271,19 @@ const showDeleteConfirmModal = (userCount, evaluatorName) => {
     document.getElementById('closeDeleteConfirmModalButton').onclick = closeModal;
     document.getElementById('cancelDeleteConfirmButton').onclick = closeModal;
     document.getElementById('confirmDeleteButton').onclick = () => {
-        const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
-        const userIds = Array.from(checkedBoxes).map(checkbox => checkbox.dataset.userId);
-
-        let deletedCount = 0;
-        userIds.forEach(userId => {
+        // Log each user being processed
+        selectedUsers.forEach(user => {
+            console.log("Processing user:", user);
             sendWebSocketMessage({
                 action: 'delete_user',
-                user_id: userId,
-                full_name: evaluatorName
+                user_id: user.userId,
+                email: user.email,
+                full_name: user.fullName,
+                user_type: user.userType,
+                department: user.department,
+                evaluator_name: evaluatorName,
+                evaluator_id: loggedInUserId
             });
-            deletedCount++;
         });
         // showMultiDeleteSuccessModal(deletedCount);
         refreshUserTable();
@@ -348,7 +354,36 @@ const deleteSelectedUsers = () => {
     const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
     const userCount = checkedBoxes.length;
     const evaluatorName = full_name;
+    const evaluatorId = user_id;
+    const userType = loggedInUserType;
+    const department = loggedInUserDepartment;
 
+    console.log("evaluatorName: " + evaluatorName);
+    console.log("evaluatorId: " + evaluatorId);
+    console.log("userType: " + userType);
+    console.log("department: " + department);
+
+    // Get user details from the table rows
+    const selectedUsers = Array.from(checkedBoxes).map(checkbox => {
+        const row = checkbox.closest('tr');
+        // Log the row data for debugging
+        console.log("Row data:", {
+            userId: checkbox.getAttribute('data-user-id'),
+            fullName: row.querySelector('td:nth-child(3)').textContent.trim(),
+            email: row.querySelector('td:nth-child(4)').textContent.trim(),
+            userType: row.querySelector('td:nth-child(5)').textContent.trim(),
+            department: row.querySelector('td:nth-child(6)').textContent.trim()
+        });
+        
+        return {
+            userId: checkbox.getAttribute('data-user-id'),
+            fullName: row.querySelector('td:nth-child(3)').textContent.trim(),
+            email: row.querySelector('td:nth-child(4)').textContent.trim(),
+            userType: row.querySelector('td:nth-child(5)').textContent.trim(),
+            department: row.querySelector('td:nth-child(6)').textContent.trim()
+        };
+    });
+            
     if (userCount === 0) {
         const modalContent = `
             <div class="modal-content" style="padding: 15px">
@@ -370,7 +405,7 @@ const deleteSelectedUsers = () => {
         document.getElementById('closePleaseSelectUsersModalButton').onclick = closeModal;
         document.getElementById('okayPleaseSelectUsersButton').onclick = closeModal;
     } else {
-        showDeleteConfirmModal(userCount, evaluatorName);
+        showDeleteConfirmModal(userCount, evaluatorName, selectedUsers);
     }
 
 };
@@ -483,9 +518,9 @@ const insertRejectUserModalContent = (userId) => createModal('RejectUserModal', 
 
 const insertDeleteUserModalContent = (userId) => createModal('DeleteUserModal', `
     <div class="modal-content" style="padding: 15px">
-        <span class="close" id="closeDeleteUserModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" id="closeDeleteUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: rgb(126, 11, 34); font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
         <p id="deleteMessage" style="text-align: center">Proceed to delete this user?</p>
         <p id="deleteMessage" style="text-align: center; font-size: 13px; color: #6E6E6E">This message will be sent thru the user's email.</p>
         <div class="floating-label-container">
@@ -532,9 +567,9 @@ const showAutoDeleteModal = () => {
             }
             const modalContent = `
                 <div class="modal-content" style="padding: 15px">
-                    <span class="close" id="closeAutoDeleteModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+                    <span class="close" id="closeAutoDeleteModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
                     <br>
-                    <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-user-times" aria-hidden="true"></i></h1>
+                    <h1 style="font-size: 50px"><i class="fa fa-user-times" aria-hidden="true"></i></h1>
                     <p style="text-align: center">Auto Delete User Due to Inactivity</p>
                     <p style="text-align: center; font-size: 13px; color: #6E6E6E">Set the number of days of inactivity before auto-deletion</p>
                     <form id="autoDeleteForm">
@@ -639,9 +674,9 @@ const updateAllInactivityDays = () => {
 const showAddUserModal = (userId) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px">
-            <span class="close" id="closeAddUserModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" id="closeAddUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-user-plus" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-user-plus" aria-hidden="true"></i></h1>
             <p id="addMessage" style="text-align: center">Add New User(s)</p>
             <form id="addUserForm" style="margin-top: 10px">
                 <div class="tab">
@@ -1059,9 +1094,9 @@ const deleteTableUser = (userId, email, fullName, userType, evaluatorName, depar
 const populateEditUserModal = (userId) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px">
-            <span class="close" id="closeEditUserModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" id="closeEditUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-pencil" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-pencil" aria-hidden="true"></i></h1>
             <p id="editMessage" style="text-align: center">Edit User</p>
             <form id="editUserForm">
                 <div class="floating-label-container">

@@ -104,11 +104,11 @@ const createTrashDaysModal = () => {
     modal.className = 'modal';
     modal.innerHTML = `
         <div class="modal-content" style="padding: 15px;">
-            <span class="close" onclick="document.getElementById('changeTrashDaysModal').style.display='none'" style="color: #264B2B">
+            <span class="close" onclick="document.getElementById('changeTrashDaysModal').style.display='none'">
                 <i class="fa fa-times-circle" aria-hidden="true"></i>
             </span>
             <br>
-            <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-clock-o" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-clock-o" aria-hidden="true"></i></h1>
             <p style="text-align: center">Change number of days before trashed items are permanently deleted</p>
             <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Minimum number of days is 10.</p>
             <br>
@@ -434,6 +434,7 @@ const updateUI = async (data, type) => {
         const containerDiv = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
         containerDiv.setAttribute(`data-${type}-id`, data[`${type}_id`]);
+        containerDiv.classList.add('content-container-main');
         
         // Create type label
         const typeLabel = document.createElement('div');
@@ -442,7 +443,6 @@ const updateUI = async (data, type) => {
         typeLabel.style = `
             display: inline-block;
             padding: 5px 10px;
-            background-color: rgb(227 227 227);
             border: 1px solid black;
             color: black;
             border-radius: 15px;
@@ -457,13 +457,11 @@ const updateUI = async (data, type) => {
         daysRemainingLabel.style = `
             display: inline-block;
             padding: 5px 10px;
-            background-color: rgb(227 227 227);
             color: black;
             border-radius: 15px;
             font-size: 0.8em;
             margin-bottom: 10px;
             margin-left: 10px;
-            background: #aad3b0;
         `;
 
         // Create content container
@@ -471,7 +469,6 @@ const updateUI = async (data, type) => {
         contentContainer.className = 'content-container-con';
         contentContainer.innerHTML = contentDiv;
         contentContainer.style = `
-            background: #dffce5;
             border-radius: 15px;
             padding: 15px;
             color: black;
@@ -503,7 +500,6 @@ const updateUI = async (data, type) => {
             padding: 15px;
             border-radius: 15px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            background: rgb(223, 252, 229);
         `;
 
         // Append elements in the correct order
@@ -863,9 +859,9 @@ const showRestoreModal = async (contentId, contentType, authorId, loggedInFullNa
     ` : '';
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'" style="color: #316038"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #316038; font-size: 50px"><i class="fa fa-refresh" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-refresh" aria-hidden="true"></i></h1>
         <p id="deleteMessage" style="text-align: center">Proceed to restore this ${contentType} to TV: ${tvInfo.tv_display}?</p>
         <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Restored items will be displayed in the TV.</p>
         <br>
@@ -899,9 +895,9 @@ const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, aut
     ` : '';
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
         <p id="deleteMessage" style="text-align: center">Proceed to delete forever?</p>
         <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Permanently deleted items cannot be recovered.</p>
         <br>
@@ -934,9 +930,9 @@ const showArchiveModal = (contentId, contentType, authorId, loggedInFullName, au
     ` : '';
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
         <p id="trashMessage" style="text-align: center">Proceed to archive?</p>
         <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for ${currentArchiveDays} days before being moved to Trash.</p>
         <br>

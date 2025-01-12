@@ -52,9 +52,9 @@ if ($isEditMode && isset($_GET['announcement_id'])) {
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb" style="background: none">
                             <?php if ($isEditMode): ?>
-                                <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
+                                <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Home</a></li>
                                 <li class="breadcrumb-item">
-                                    <a href="tv_contents.php?tvId=<?php echo $_GET['tv_id']; ?>&isIframe=true" style="color: #264B2B">
+                                    <a href="tv_contents.php?tvId=<?php echo $_GET['tv_id']; ?>&isIframe=true">
                                         <?php 
                                         // Fetch TV name based on tv_id
                                         $stmt = $conn->prepare("SELECT tv_name FROM smart_tvs_tb WHERE tv_id = ?");
@@ -69,7 +69,7 @@ if ($isEditMode && isset($_GET['announcement_id'])) {
                                 <li class="breadcrumb-item active" aria-current="page">Edit</li>
                             <?php else: ?>
                                 <li class="breadcrumb-item">
-                                    <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a>
+                                    <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Create Post</a>
                                 </li>
                                 <li class="breadcrumb-item active" aria-current="page">Announcement Form</li>
                             <?php endif; ?>
@@ -90,7 +90,7 @@ if ($isEditMode && isset($_GET['announcement_id'])) {
                             </div> -->
                             <div class="floating-label-container">
                                 <div id="quillEditorContainer">
-                                    <label for="quillEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">Announcement Body</label>
+                                    <label for="quillEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">Announcement</label>
                                     <div id="announcement_body" style="height: 150px;"></div>
                                 </div>
                                 <input type="hidden" name="announcement_body" id="announcementBodyHiddenInput">
@@ -110,7 +110,7 @@ if ($isEditMode && isset($_GET['announcement_id'])) {
                             <?php include('misc/php/schedule_post.php')?>
                             <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
                                 <div>
-                                    <button type="button" id="schedulePostButton" class="preview-button" style="background: none; color: #316038; border: #316038 solid 1px">
+                                    <button type="button" id="schedulePostButton" class="preview-button" style="background: none; color: <?php echo $theme_color; ?>;">
                                         <i class="fa fa-calendar" style="padding-right: 5px"></i> Schedule Post 
                                     </button>
                                 </div>

@@ -36,11 +36,11 @@ const displaySmartTVTable = (data) => {
 const insertDeleteSmartTVModalContent = (tvId) => {
     const modalContainer = document.getElementById('confirmDeleteSmartTVModal');
     modalContainer.innerHTML = `
-        <div class="modal-content">
+        <div class="modal-content" style="padding: 15px;">
             <div class="red-bar-vertical">
-                <span class="close" id="closeDeleteSmartTVModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+                <span class="close" id="closeDeleteSmartTVModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
                 <br>
-                <h1 style="color: rgb(126, 11, 34); font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+                <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
                 <p id="deleteMessage" style="text-align: center">Proceed to delete this smart TV?</p>
                 <br>
                 <div style="text-align: right;">
@@ -88,7 +88,7 @@ const sendWebSocketMessage = (data) => {
 
 const showSuccessModal = (message) => {
     const modalContent = `
-        <div class="modal-content" style="padding: 15px">
+        <div class="modal-content" style="padding: 15px;">
             <span class="close" id="closeSuccessModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
             <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
@@ -182,9 +182,9 @@ const populateEditSmartTVModal = (tvId) => {
     const modalContainer = document.getElementById('editSmartTVModal');
     modalContainer.innerHTML = `
         <div class="modal-content" style="padding: 15px">
-            <span class="close" id="closeEditSmartTVModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" id="closeEditSmartTVModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-pencil" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-pencil" aria-hidden="true"></i></h1>
             <p id="editMessage" style="text-align: center">Edit Smart TV</p>
             <form id="editSmartTVForm">
                 <div class="floating-label-container">

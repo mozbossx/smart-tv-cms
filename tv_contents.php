@@ -5,6 +5,7 @@ include 'config_connection.php';
 
 // fetch user data for the currently logged-in user
 include 'get_session.php';
+include 'user_theme_color.php';
 
 $tvId = $_GET['tvId'];
 
@@ -75,6 +76,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style_facility.css">
     <script src="misc/js/treant-js-master/vendor/jquery.min.js"></script>
     <script src="misc/js/treant-js-master/vendor/raphael.js"></script>
     <script src="misc/js/treant-js-master/Treant.js"></script>
@@ -89,7 +91,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             <div class="column1">
                 <nav aria-label="breadcrumb" style="margin: 10px;">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
+                        <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Home</a></li>
                         <li class="breadcrumb-item active" aria-current="page"><?php echo $tvName; ?></li>
                     </ol>
                 </nav>
@@ -105,9 +107,9 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
                     echo '<p id="tvBrand2UserHome_' . $tvId . '" style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($tvBrand) .'</p>';
                 echo "</div>";
-                echo "<div class='scale-buttons'>";
+                echo "<div class='scale-buttons' style='background: none;'>";
                 if ($user_type == 'Admin' || $user_type == 'Super Admin') {
-                    echo "<button class='green-button' style='margin-left: 20px' onclick=\"window.location.href='edit_template.php?tvId=$tvId&initialize=false'\"><i class='fa fa-window-restore' style='margin-right: 6px' aria-hidden='true'></i>Edit Template</button>";
+                    echo "<button class='light-green-button' style='padding: 8px 16px; margin-left: 20px' onclick=\"window.location.href='edit_template.php?tvId=$tvId&initialize=false'\"><i class='fa fa-window-restore' style='margin-right: 6px' aria-hidden='true'></i>Edit Template</button>";
                 }
                 echo "</div>";
                 echo "</div>";
@@ -167,12 +169,20 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     echo '<div style="display: flex; align-items: center; justify-content: flex-end;">';
                     echo '<label for="sortBy_' . $type . '" style="margin-top: 5px; margin-right: 10px;">Sort By:</label>';
                     echo '<select id="sortBy_' . $type . '" class="select-button" style="margin-top: 5px; height: 35px; width: 40%;">';
-                        echo '<option value="post_datetime_newest">Post Date/Time (Newest First)</option>';
-                        echo '<option value="post_datetime_oldest">Post Date/Time (Oldest First)</option>';
-                        echo '<option value="expiration_datetime_newest">Expiration Date/Time (Descending)</option>';
-                        echo '<option value="expiration_datetime_oldest">Expiration Date/Time (Ascending)</option>';
-                        echo '<option value="display_time_longest">Display Time (Longer Duration First)</option>';
-                        echo '<option value="display_time_shortest">Display Time (Shorter Duration First)</option>';
+                        if ($type !== 'facility' && $type !== 'orgchart' && $type !== 'peo' && $type !== 'so') {
+                            echo '<option value="post_datetime_newest">Post Date/Time (Newest First)</option>';
+                            echo '<option value="post_datetime_oldest">Post Date/Time (Oldest First)</option>';
+                            echo '<option value="expiration_datetime_newest">Expiration Date/Time (Descending)</option>';
+                            echo '<option value="expiration_datetime_oldest">Expiration Date/Time (Ascending)</option>';
+                            echo '<option value="display_time_longest">Display Time (Longer Duration First)</option>';
+                            echo '<option value="display_time_shortest">Display Time (Shorter Duration First)</option>';
+                        } else {
+                            echo '<option value="post_datetime_newest">Post Date/Time (Newest First)</option>';
+                            echo '<option value="post_datetime_oldest">Post Date/Time (Oldest First)</option>';
+                            echo '<option value="display_time_longest">Display Time (Longer Duration First)</option>';
+                            echo '<option value="display_time_shortest">Display Time (Shorter Duration First)</option>';
+                        }
+                        
                     echo '</select>';
                     echo '</div>';
                     echo "</div>";

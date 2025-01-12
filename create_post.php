@@ -89,7 +89,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     <h4>Added New Features</h4>
                     <?php 
                         if (count($featuresNewFeatures) == 0){
-                            echo '<p style="text-align: left; font-size: 20px; color: #7E0B22;">No new features added yet.</p>';
+                            echo '<p style="text-align: left; font-size: 20px; color: <?php echo $dark_theme_color_40_percent; ?>;">No new features added yet.</p>';
                         }
                     ?>
                     <div class="button-flex" style="margin-top: 10px;">
@@ -97,7 +97,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                             <div class="button-container" data-feature-id="<?php echo $feature['feature_id']; ?>">
                                 <?php if ($user_type === 'Super Admin' || $user_type === 'Admin'){ ?>
                                 <button 
-                                    style="display: block; position: absolute; margin-left: 10px; margin-top: 10px; margin-bottom: 5px; background-color: transparent; border: none; cursor: pointer; color: crimson; font-size: 25px; z-index: 1;" 
+                                    style="display: block; position: absolute; margin-left: 10px; margin-top: 10px; margin-bottom: 5px; background-color: transparent; border: none; cursor: pointer; color: <?php echo $dark_theme_color_40_percent; ?>; font-size: 25px; z-index: 1;" 
                                     onclick="deleteFeatureModal(<?php echo $feature['feature_id']; ?>)"><i class="fa fa-trash"></i>
                                 </button>
                                 <?php } ?>
@@ -121,9 +121,9 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     </div>
     <div id="confirmDeleteFeatureModal" class="modal">
         <div class="modal-content" style="padding: 15px;">
-            <span class="close" onclick="document.getElementById('confirmDeleteFeatureModal').style.display='none'" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" onclick="document.getElementById('confirmDeleteFeatureModal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
             <p id="deleteMessage" style="text-align: center">Proceed to delete this feature?</p>
             <p id="deleteMessage2" style="text-align: center; font-size: 15px; color: #808080;">This action cannot be undone.</p>
             <br>

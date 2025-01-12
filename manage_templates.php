@@ -48,9 +48,9 @@ $resultSelectExtistingTvs = mysqli_query($conn, $querySelectExtistingTvs);
                             <ol class="breadcrumb">
                                 <?php 
                                     if ($user_type == 'Super Admin') {
-                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Super Admin Options</a></li>';
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '">Super Admin Options</a></li>';
                                     } else {
-                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Admin Options</a></li>';
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '">Admin Options</a></li>';
                                     }
                                 ?>
                                 <li class="breadcrumb-item active" aria-current="page">Manage Templates</li>

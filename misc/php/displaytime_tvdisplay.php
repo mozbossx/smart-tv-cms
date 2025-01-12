@@ -60,7 +60,7 @@ $displayInterval = $displayTimeRange['display_interval'];
 <!-- TV Modal -->
 <div id="tvModal" class="modal">
     <div class="modal-content" style="padding: 10px">
-        <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-tv" aria-hidden="true"></i></h1>
+        <h1 style="color: <?php echo $theme_color; ?>; font-size: 50px"><i class="fa fa-tv" aria-hidden="true"></i></h1>
         <p>Select TV Displays</p>
         <br>
         <div id="tvCheckboxList" style="height: 150px; max-height: 200px; overflow: auto; text-align: left;">

@@ -43,9 +43,9 @@ include 'misc/php/options_tv.php';
                     <div class="content-form">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb" style="background: none">
-                                <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
-                                <li class="breadcrumb-item"><a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">General Information</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Department Organizational Chart</li>
+                                <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Create Post</a></li>
+                                <li class="breadcrumb-item"><a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">General Information</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Department Organizational Chart Form</li>
                             </ol>
                         </nav>
                         <form id="orgchartForm" enctype="multipart/form-data" class="main-form" style="max-width: 100%">
@@ -74,7 +74,7 @@ include 'misc/php/options_tv.php';
     <!-- Modal for Adding a Member -->
     <div class="modal" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
         <div class="modal-content" style="padding: 15px">
-            <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-user-plus" aria-hidden="true"></i></h1>
+            <h1 style="color: <?php echo $theme_color; ?>; font-size: 50px"><i class="fa fa-user-plus" aria-hidden="true"></i></h1>
             <p>Add New Member</p>
             <form id="addMemberForm" enctype="multipart/form-data">
                 <div class="floating-label-container">
@@ -720,7 +720,7 @@ include 'misc/php/options_tv.php';
                     new Treant(chartConfig);
                 } catch (error) {
                     console.error('Error creating preview org chart:', error);
-                    contentDiv.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
+                    contentDiv.innerHTML = '<p style="text-align: center; color: <?php echo $theme_color; ?>; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
                 }
             }
         }
@@ -876,7 +876,7 @@ include 'misc/php/options_tv.php';
                     nodeStructure: rootNode
                 });
             } else {
-                chartContainer.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">No members in the organizational chart. Please <a href="#" onclick="openAddMemberModal()">add</a> at least one member.</p>';
+                chartContainer.innerHTML = '<p style="text-align: center; color: <?php echo $theme_color; ?>; font-size: 1.2em; padding: 20px;">No members in the organizational chart. Please <a href="#" onclick="openAddMemberModal()">add</a> at least one member.</p>';
             }
         }
 

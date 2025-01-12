@@ -277,9 +277,9 @@ function updateNewFeaturePreviewContent(contentBody) {
                                     </div>` :
                                     `<div class="carousel-content" 
                                         style="position: relative;
-                                                transform: translate(5px, 5px);
-                                                width: 400px;
-                                                height: 400px;
+                                                transform: translate(${matchingContainer.xaxis}px, ${matchingContainer.yaxis}px);
+                                                width: ${matchingContainer.width_px}px;
+                                                height: ${matchingContainer.height_px}px;
                                                 background-color: ${matchingContainer.parent_background_color};
                                                 padding: 5px;
                                                 border-radius: 5px;

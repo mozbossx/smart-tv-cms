@@ -82,9 +82,9 @@ include 'admin_access_only.php';
                             <ol class="breadcrumb">
                                 <?php 
                                     if ($user_type == 'Super Admin') {
-                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Super Admin Options</a></li>';
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '">Super Admin Options</a></li>';
                                     } else {
-                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '" style="color: #264B2B">Admin Options</a></li>';
+                                        echo '<li class="breadcrumb-item"><a href="admin_options.php?pageid=AdminOptions?userId=' . $user_id . '&full_name=' . $full_name . '">Admin Options</a></li>';
                                     }
                                 ?>
                                 <li class="breadcrumb-item active" aria-current="page">Manage Users</li>
@@ -117,7 +117,7 @@ include 'admin_access_only.php';
                                 <button type="button" class="green-button" style="margin-right: 0; height: 35px;" onclick="showUserTableSummary()"><i class="fa fa-table" style="margin-right: 2px"></i> Table Summary</button>
                             </div>
                         </div>
-                        <div class="table-container" id="userTableContainerParent" style="max-height: 55vh">
+                        <div class="table-container" id="userTableContainerParent" style="height: calc(100vh - 250px)">
                             <div id="userTableContainer">
                                 <!-- Latest table of users will be displayed here -->
                             </div>

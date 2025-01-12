@@ -1,7 +1,7 @@
 <div id="errorModal" class="modal">
     <div class="modal-content">
         <div class="red-bar-vertical">
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
+            <h1 style="color: <?php echo $dark_theme_color_40_percent; ?>; font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
             <p id="errorText"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">
@@ -13,7 +13,7 @@
 <div id="errorModalVersion2" class="modal">
     <div class="modal-content">
         <div class="red-bar-vertical">
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
+            <h1 style="color: <?php echo $dark_theme_color_40_percent; ?>; font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
             <p id="errorTextVersion2" style="max-height: 200px; overflow: auto"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">

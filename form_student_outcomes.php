@@ -55,9 +55,9 @@ if ($isEditMode && isset($_GET['so_id'])) {
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb" style="background: none">
                             <?php if ($isEditMode): ?>
-                                <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
+                                <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Home</a></li>
                                 <li class="breadcrumb-item">
-                                    <a href="tv_contents.php?tvId=<?php echo $_GET['tv_id']; ?>&isIframe=true" style="color: #264B2B">
+                                    <a href="tv_contents.php?tvId=<?php echo $_GET['tv_id']; ?>&isIframe=true">
                                         <?php 
                                         // Fetch TV name based on tv_id
                                         $stmt = $conn->prepare("SELECT tv_name FROM smart_tvs_tb WHERE tv_id = ?");
@@ -72,10 +72,10 @@ if ($isEditMode && isset($_GET['so_id'])) {
                                 <li class="breadcrumb-item active" aria-current="page">Edit</li>
                             <?php else: ?>
                                 <li class="breadcrumb-item">
-                                    <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a>
+                                    <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Create Post</a>
                                 </li>
-                                <li class="breadcrumb-item"><a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">General Information</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Student Outcomes (SO)</li>
+                                <li class="breadcrumb-item"><a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">General Information</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Student Outcomes (SO) Form</li>
                             <?php endif; ?>
                             </ol>
                         </nav>
@@ -89,7 +89,7 @@ if ($isEditMode && isset($_GET['so_id'])) {
                             <h1 style="text-align: center">Student Outcomes (SO) Form</h1>
                             <div class="floating-label-container">
                                 <div id="quillSoTitleEditorContainer">
-                                    <label for="quillSoTitleEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">SO Title</label>
+                                    <label for="quillSoTitleEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">SO Title</label>
                                     <div id="so_title"></div>
                                 </div>
                                 <input type="hidden" name="so_title" id="soTitleHiddenInput">
@@ -99,7 +99,7 @@ if ($isEditMode && isset($_GET['so_id'])) {
                             </div>
                             <div class="floating-label-container">
                                 <div id="quillSoDescriptionEditorContainer">
-                                    <label for="quillSoDescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">SO Description</label>
+                                    <label for="quillSoDescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">SO Description</label>
                                     <div id="so_description" style="height: 100px;"></div>
                                 </div>
                                 <input type="hidden" name="so_description" id="soDescriptionHiddenInput">
@@ -109,7 +109,7 @@ if ($isEditMode && isset($_GET['so_id'])) {
                             </div>
                             <div class="floating-label-container">
                                 <div id="quillSoSubdescriptionEditorContainer">
-                                    <label for="quillSoSubdescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">SO Sub-Description (Optional)</label>
+                                    <label for="quillSoSubdescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">SO Sub-Description (Optional)</label>
                                     <div id="so_subdescription" style="height: 150px;"></div>
                                 </div>
                                 <input type="hidden" name="so_subdescription" id="soSubdescriptionHiddenInput">

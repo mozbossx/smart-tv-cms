@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('ws://10.0.0.39:8081');
+const Ws = new WebSocket('ws://192.168.1.14:8081');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -27,7 +27,8 @@ let currentIndex = {
     promaterial: 0,
     peo: 0, 
     so: 0,
-    orgchart: 0
+    orgchart: 0,
+    facility: 0
 };
 
 let contents = { 
@@ -37,7 +38,8 @@ let contents = {
     promaterial: [],
     peo: [],
     so: [],
-    orgcharts: []
+    orgcharts: [],
+    facilitys: []
 };
 
 let displayTimeIntervals = { 
@@ -47,7 +49,8 @@ let displayTimeIntervals = {
     promaterial: null,
     peo: null,
     so: null,
-    orgchart: null
+    orgchart: null,
+    facility: null
 };
 
 // Function to format date to "MM DD YYYY"
@@ -96,7 +99,7 @@ const updateUI = (data, type) => {
         if (!data[`${type}_id`]) {
             return;
         }
-    } else if (type === 'peo' || type === 'so') {
+    } else if (type === 'peo' || type === 'so' || type === 'facility') {
         if (data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) {
             return;
         }
@@ -312,6 +315,32 @@ const updateUI = (data, type) => {
                 </div>
             </div>
         `;
+    } else if (type === 'facility') {
+        const facilityBody = data.facility_body;
+        const images = data.facility_images_array.split(',');
+
+        contentHTML = `
+            <div class="content-container-con" id="facilityContentConContainer-${id}">
+                <div class="content-main" id="facilityContentMain-${id}">
+                    <div class="media-container" style="margin-bottom: 5px">
+                        <img src="servers/facility_media/${images[0]}" class="facility-image" alt="${facilityBody}" style="width: 100%; height: auto;">
+                    </div>
+                    <span class="main-message" style="word-break: break-word;">
+                        ${facilityBody}
+                    </span>
+                </div>
+                <div class="content-details">
+                    <div style="display: flex; flex-direction: row; margin: 0">
+                        <div>
+                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                        </div>
+                        <div style="margin-left: auto; margin-top: auto">
+                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     } else {
         // Generic handler for new features
         contentHTML = `
@@ -345,22 +374,33 @@ const updateUI = (data, type) => {
     }
 
     if (existingDiv) {
-        const contentDiv = existingDiv.querySelector('.content-container-con');
-        if (contentDiv) {
-            contentDiv.innerHTML = contentHTML;
-        }
-        resetCountdown(existingDiv, data.display_time, currentIndexKey);
-        updatePageNumber(currentIndexKey);
-
-        if (type !== 'orgchart') {
-            scaleContentContainer(type, id);
-            setupContentResizeObserver(type, id);
+        if (type === 'facility') {
+            existingDiv.innerHTML = contentHTML;
+            resetCountdown(existingDiv, data.display_time, currentIndexKey);
+        } else {
+            const contentDiv = existingDiv.querySelector('.content-container-con');
+            if (contentDiv) {
+                contentDiv.innerHTML = contentHTML;
+            }
+            resetCountdown(existingDiv, data.display_time, currentIndexKey);
+            updatePageNumber(currentIndexKey);
+    
+            if (type !== 'orgchart') {
+                scaleContentContainer(type, id);
+                setupContentResizeObserver(type, id);
+            }
         }
     } else {
         const containerDiv = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
         containerDiv.classList.add('carousel-item');
         containerDiv.dataset.displayTime = data.display_time;
+
+        if (type === 'facility') {
+            const images = data.facility_images_array.split(',');
+            containerDiv.dataset.images = images.join(',');
+            containerDiv.dataset.currentImageIndex = 0;
+        }
 
         const contentDiv = document.createElement('div');
 
@@ -404,6 +444,40 @@ const updateUI = (data, type) => {
         // }
     }
     // adjustFontSize(type);
+};
+
+// Function to show next image for facility
+const showNextFacilityImage = (facilityDiv) => {
+    const images = facilityDiv.dataset.images.split(',');
+    let currentImageIndex = parseInt(facilityDiv.dataset.currentImageIndex, 10);
+    currentImageIndex = (currentImageIndex + 1) % images.length;
+    facilityDiv.dataset.currentImageIndex = currentImageIndex;
+
+    const imageElement = facilityDiv.querySelector('.facility-image');
+    imageElement.src = `servers/facility_media/${images[currentImageIndex]}`;
+};
+
+// Override showNextContent for facility
+const showNextFacilityContent = () => {
+    const currentIndexKey = 'facility';
+    const contentsArray = contents.facilitys;
+
+    if (contentsArray.length > 0) {
+        const currentFacility = contentsArray[currentIndex[currentIndexKey]];
+        showNextFacilityImage(currentFacility);
+
+        if (parseInt(currentFacility.dataset.currentImageIndex, 10) === 0) {
+            // Move to next facility if all images have been shown
+            currentFacility.classList.remove('active');
+            currentIndex[currentIndexKey] = (currentIndex[currentIndexKey] + 1) % contentsArray.length;
+            contentsArray[currentIndex[currentIndexKey]].classList.add('active');
+            updatePageNumber(currentIndexKey);
+            resetDisplayTime('facility');
+        } else {
+            // Reset the countdown for the next image
+            resetDisplayTime('facility');
+        }
+    }
 };
 
 
@@ -936,7 +1010,11 @@ const resetDisplayTime = (type) => {
             displayTimeElement.innerHTML = `<i class="fa fa-hourglass-half" aria-hidden="true"></i> ${remainingTime}s`;
             if (remainingTime < 0) {
                 clearInterval(displayTimeIntervals[type]);
-                showNextContent(type);
+                if (type === 'facility') {
+                    showNextFacilityContent();
+                } else {
+                    showNextContent(type);
+                }
             }
         }, 1000);
     }
@@ -1236,6 +1314,7 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents(type);
         }
     } else if (data.action === 'post_content' || data.action === 'post_now_content') {
+        console.log("Received new content data:", data);
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');
         } else if (data.type === 'event') {
@@ -1255,6 +1334,16 @@ Ws.addEventListener('message', function (event) {
             const tvId = urlParams.get('tvId');
             console.log("TV IDS of orgchart: ", data.tv_ids);
             console.log("TV ID of orgchart: ", data.tv_id);
+
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
+                location.reload();
+            }
+        } else if (data.type === 'facility') {
+            // Refresh TV since there's an issue for the facility when posting it
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            console.log("TV IDS of facility: ", data.tv_ids);
+            console.log("TV ID of facility: ", data.tv_id);
 
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
                 location.reload();

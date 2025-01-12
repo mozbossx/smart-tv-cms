@@ -9,7 +9,7 @@
         </div>
         <!-- Operation buttons inside the Preview modal -->
         <div class="flex-button-modal">
-            <button type="button" class="green-button" id="closeButton" style="background: none; border: 1px solid #264B2B; color: #264B2B; margin-top: 0; margin-right: 5px" onclick="closePreviewModal()">Cancel</button>
+            <button type="button" class="grey-button" id="closeButton" style="margin-top: 0; margin-right: 5px" onclick="closePreviewModal()">Cancel</button>
             <button type="button" name="post" class="green-button" style="margin-top: 0; margin-right: 0" onclick="submitFormViaWebSocket()">Submit</button>
         </div>
     </div>
@@ -102,7 +102,7 @@
                 previewContainer += `
                     <div class="floating-label-container">
                         <div id="quillEditorContainer_${i}" class="quill-editor-container-newfeature">
-                            <label for="quillEditorContainer_${i}" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">${inputName}</label>
+                            <label for="quillEditorContainer_${i}" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">${inputName}</label>
                             <div id="preview_input_${i}" style="height: 150px;"></div>
                         </div>
                         <input type="hidden" name="preview_input_${i}" id="preview_input_hidden_${i}">
@@ -169,7 +169,7 @@
         const department = document.getElementById('department').value;
 
         var previewContent = '';
-        previewContent += '<p class="preview-input"><strong>Has Expiration Date: </strong><br>' + contentHasExpirationDate + '</p>';
+        // previewContent += '<p class="preview-input"><strong>Has Expiration Date: </strong><br>' + contentHasExpirationDate + '</p>';
         previewContent += '<p class="preview-input"><strong>Users Who Can Access: </strong><br>' + (selectedUserTypes || 'None selected') + '</p>';
         previewContent += '<p class="preview-input"><strong>Department: </strong><br>' + (department || 'None selected') + '</p>';
         

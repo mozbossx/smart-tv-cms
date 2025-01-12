@@ -1,0 +1,81 @@
+/* Image slideshow container */
+.image-slideshow-container {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Navigation buttons */
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 8px 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    z-index: 2;
+    transition: background-color 0.3s ease;
+}
+
+.nav-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.prev {
+    left: 10px;
+}
+
+.next {
+    right: 10px;
+}
+
+/* Dot indicators */
+.dot-indicators {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    z-index: 2;
+}
+
+.dot {
+    width: 20px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid #264B2B;
+    text-align: center;
+    font-size: 12px;
+    line-height: 18px;
+    color: #264B2B;
+    transition: all 0.3s ease;
+}
+
+.dot:hover {
+    background-color: rgba(38, 75, 43, 0.3);
+}
+
+.dot.active {
+    background-color: #264B2B;
+    border: 1px solid #264B2B;
+    color: white;
+}
+
+/* Image preview styles */
+.facility-image-preview {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    display: none;
+    margin: 0 auto;
+    border-radius: 5px;
+    transition: opacity 0.3s ease;
+}
+
+.facility-image-preview.active {
+    display: block;
+}

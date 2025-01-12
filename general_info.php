@@ -38,7 +38,7 @@ if($user_type == 'Student'|| $user_type == 'Faculty'){
                 <div class="content-inside-form">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb" style="background: none">
-                            <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
+                            <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Create Post</a></li>
                             <li class="breadcrumb-item active" aria-current="page">General Information</li>
                         </ol>
                     </nav>

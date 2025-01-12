@@ -82,11 +82,11 @@ $stmt->close();
 <div class="overlay" id="overlay"></div>
 
 <div id="logoutModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="padding: 15px">
         <div class="red-bar-vertical">
-            <span class="close" onclick="closeLogoutModal()" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" onclick="closeLogoutModal()"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-sign-out" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-sign-out" aria-hidden="true"></i></h1>
             <p>Proceed to logout?</p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">

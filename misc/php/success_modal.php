@@ -1,15 +1,15 @@
 <div id="successMessageModal" class="modal">
     <div class="modal-content" style="padding: 15px">
         <div class="green-bar-vertical">
-            <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
+            <h1 style="color: <?php echo $theme_color; ?>; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
             <p id="successMessage"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">
                 <?php
                     if (!isset($_GET['action']) || $_GET['action'] !== 'edit'){
-                        echo '<button type="button" id="createMoreButton" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B;" onclick="closeSuccessMessageModal()">Make More</button>';
+                        echo '<button type="button" id="createMoreButton" class="green-button" style="background: none; border: 1px solid ' . $theme_color . '; color: ' . $theme_color . ';" onclick="closeSuccessMessageModal()">Make More</button>';
                     } else if (isset($_GET['action']) && $_GET['action'] === 'edit'){
-                        echo '<button type="button" id="backToTvContentsButton" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B;" onclick="window.location.href=\'tv_contents.php?tvId=' . $_GET['tv_id'] . '&isIframe=true\'">Back to View Contents</button>';
+                        echo '<button type="button" id="backToTvContentsButton" class="green-button" style="background: none; border: 1px solid ' . $theme_color . '; color: ' . $theme_color . ';" onclick="window.location.href=\'tv_contents.php?tvId=' . $_GET['tv_id'] . '&isIframe=true\'">Back to View Contents</button>';
                     }
                 ?>
                 <button type="button" id="homeButton" class="green-button" style="margin-right: 0" onclick="resetFormAndGoHome()">Home</button>
@@ -20,7 +20,7 @@
 <div id="successMessageModalVersion2" class="modal">
     <div class="modal-content" style="padding: 15px">
         <div class="green-bar-vertical">
-            <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
+            <h1 style="color: <?php echo $theme_color; ?>; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
             <p id="successMessageVersion2" style="max-height: 200px; overflow: auto"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">

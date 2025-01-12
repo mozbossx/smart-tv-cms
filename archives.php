@@ -68,9 +68,9 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                             <i class="fa fa-archive" style="margin-right: 6px" aria-hidden="true"></i>Archives
                             <?php
                                 if ($user_type == 'Super Admin') {
-                                    echo '<p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for <button type="button" id="archiveDaysButton" style="background: none; border: none; color: #264B2B; font-weight: bold; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="changeNumberOfArchiveDays()"></button> before being moved to Trash.</p>';
+                                    echo '<p id="trashMessage2" style="font-size: 13px; color: '.$theme_color.';">Archived items are stored for <button type="button" id="archiveDaysButton" style="background: none; border: none; color: '.$dark_theme_color_50_percent.'; font-weight: bold; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="changeNumberOfArchiveDays()"></button> before being moved to Trash.</p>';
                                 } else {
-                                    echo '<p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for <span id="archiveDaysSpan" style="background: none; border: none; color: #264B2B; font-weight: bold; font-size: 13px;"></span> before being moved to Trash.</p>';
+                                    echo '<p id="trashMessage2" style="font-size: 13px; color: '.$theme_color.';">Archived items are stored for <span id="archiveDaysSpan" style="background: none; border: none; color: '.$dark_theme_color_50_percent.'; font-weight: bold; font-size: 13px;"></span> before being moved to Trash.</p>';
                                 }
                             ?>
                         </h1>

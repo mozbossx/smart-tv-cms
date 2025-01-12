@@ -159,10 +159,47 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
     let contentHtml = '';
 
     if (type !== 'orgchart') {
-        contentHtml += `
-            <div class="content-container-con">
-                ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-        `;
+        if (type !== 'facility') {
+            contentHtml += `
+                <div class="content-container-con">
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+            `;
+        } else {
+            contentHtml += `<div class="content-container-con">`;
+            contentHtml += `<p>Facility ID: ${data.facility_id}</p>`;
+        
+            // Special handling for facility type with multiple images
+            if (type === 'facility' && data.facility_images_array) {
+                const images = data.facility_images_array.split(',');
+                contentHtml += `
+                    <div class="image-slideshow-container" style="width: 100%; height: 300px; position: relative; margin-bottom: 5px;">
+                        <div class="image-slides" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                            ${images.map((image, index) => `
+                                <img src="servers/${type}_media/${image}" 
+                                    class="facility-image-preview ${index === 0 ? 'active' : ''}"
+                                    data-index="${index}"
+                                    style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: ${index === 0 ? 'block' : 'none'}; margin: 0 auto; border-radius: 5px">
+                            `).join('')}
+                        </div>
+                        ${images.length > 1 ? `
+                            <button type="button" class="nav-btn prev" onclick="changeFacilitySlide(${data.facility_id}, -1)">❮</button>
+                            <button type="button" class="nav-btn next" onclick="changeFacilitySlide(${data.facility_id}, 1)">❯</button>
+                        ` : ''}
+                    </div>
+                    ${images.length > 1 ? `
+                        <div class="dot-indicators" id="facility-dots-${data.facility_id}">
+                            ${images.map((_, index) => `
+                                <div class="dot ${index === 0 ? 'active' : ''}" 
+                                     onclick="goToFacilitySlide(${data.facility_id}, ${index})">${index + 1}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                `;
+            } else if (mediaContent) {
+                contentHtml += mediaContent;
+            }
+        }
+        
     }
 
     // Add type-specific content
@@ -228,6 +265,59 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
     return contentHtml;
 };
 
+const changeFacilitySlide = (facilityId, direction) => {
+    const container = document.querySelector(`[data-facility-id="${facilityId}"]`);
+    if (!container) return;
+
+    const images = container.querySelectorAll('.facility-image-preview');
+    const currentImage = container.querySelector('.facility-image-preview.active');
+    const currentIndex = parseInt(currentImage.dataset.index);
+    const newIndex = (currentIndex + direction + images.length) % images.length;
+
+    // Hide current image
+    currentImage.style.display = 'none';
+    currentImage.classList.remove('active');
+
+    // Show new image
+    const newImage = container.querySelector(`.facility-image-preview[data-index="${newIndex}"]`);
+    newImage.style.display = 'block';
+    newImage.classList.add('active');
+
+    // Update dots
+    updateFacilityDots(facilityId, newIndex);
+};
+
+const goToFacilitySlide = (facilityId, index) => {
+    const container = document.querySelector(`[data-facility-id="${facilityId}"]`);
+    if (!container) return;
+
+    const images = container.querySelectorAll('.facility-image-preview');
+    
+    // Hide all images
+    images.forEach(img => {
+        img.style.display = 'none';
+        img.classList.remove('active');
+    });
+
+    // Show selected image
+    const selectedImage = container.querySelector(`.facility-image-preview[data-index="${index}"]`);
+    selectedImage.style.display = 'block';
+    selectedImage.classList.add('active');
+
+    // Update dots
+    updateFacilityDots(facilityId, index);
+};
+
+const updateFacilityDots = (facilityId, activeIndex) => {
+    const dotsContainer = document.getElementById(`facility-dots-${facilityId}`);
+    if (!dotsContainer) return;
+
+    const dots = dotsContainer.querySelectorAll('.dot');
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === activeIndex);
+    });
+};
+
 // Function to update UI for announcement, event, news, etc.
 const updateUI = (data, type) => {
     if (type === 'orgchart' || type === 'facility') {
@@ -258,12 +348,12 @@ const updateUI = (data, type) => {
             const containerDiv = document.createElement('div');
             containerDiv.dataset[`${type}Id`] = data.orgchart_id;
             containerDiv.setAttribute(`data-${type}-id`, data.orgchart_id);
+            containerDiv.classList.add('content-container-main');
             containerDiv.innerHTML = contentHtml;
 
             console.log("TV ID of orgchart:", data.tv_id);
 
             containerDiv.style = `
-                background: #dffce5;
                 height: auto;
                 width: auto;
                 margin-bottom: 10px;
@@ -304,6 +394,8 @@ const updateUI = (data, type) => {
             containerDiv.appendChild(buttonContainer);
             document.getElementById(`${type}CarouselContainer`).insertBefore(containerDiv, document.getElementById(`${type}CarouselContainer`).firstChild);
 
+            updateContentCount(type, document.getElementById(`${type}CarouselContainer`).querySelectorAll(`[data-${type}-id]`).length);
+
             // Create the org chart after the container is added to the DOM
             setTimeout(() => {
                 createOrgChart(data.orgchart_id, data);
@@ -318,14 +410,19 @@ const updateUI = (data, type) => {
     const formattedExpirationDateTime = (type !== 'peo' && type !== 'so' && type !== 'facility') ? formatDateTime(data.expiration_datetime) : null;
 
     let mediaContent = '';
+
+    if (type === 'facility') {
+        // fetch facility images array by separating the comma in the facility_images_array
+        const facilityImagesArray = data.facility_images_array.split(',');
+        console.log("Facility Images Array:", facilityImagesArray);
+    }
+
     if (data.media_path && type !== 'facility') {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
         mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; margin: 0 auto; border-radius: 5px">` :
             isVideo ? `<video width="100%" height="100%" controls style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
-    } else if (data.facility_images_array && type === 'facility') {
-        mediaContent = `<img src="servers/${type}_media/${data.facility_images_array[0]}" style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; margin: 0 auto; border-radius: 5px">`;
-    }
+    } 
 
     const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, type);
     
@@ -336,10 +433,10 @@ const updateUI = (data, type) => {
         const buttonContainer = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
         containerDiv.setAttribute(`data-${type}-id`, data[`${type}_id`]);
+        containerDiv.classList.add('content-container-main');
         containerDiv.innerHTML = contentDiv;
 
         containerDiv.style = `
-            background: #dffce5;
             height: auto;
             width: auto;
             margin-bottom: 10px;
@@ -386,25 +483,27 @@ const updateUI = (data, type) => {
 
         // const trashButton = createTrashButton('Trash', 'fa fa-trash', () => showTrashModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
         // const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
-        const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => {
-            const queryParams = new URLSearchParams({
-                [`${type}_id`]: data[`${type}_id`],
-                type: type,
-                tv_id: data.tv_id,
-                action: 'edit'
-            }).toString();
-            if (type === 'promaterial') {
-                window.location.href = `form_promotional_material.php?${queryParams}`;
-            } else if (type === 'so') {
-                window.location.href = `form_student_outcomes.php?${queryParams}`;
-            } else {
-                window.location.href = `form_${type}.php?${queryParams}`;
+        if (type !== 'facility') {
+            const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => {
+                const queryParams = new URLSearchParams({
+                    [`${type}_id`]: data[`${type}_id`],
+                    type: type,
+                    tv_id: data.tv_id,
+                    action: 'edit'
+                }).toString();
+                if (type === 'promaterial') {
+                    window.location.href = `form_promotional_material.php?${queryParams}`;
+                } else if (type === 'so') {
+                    window.location.href = `form_student_outcomes.php?${queryParams}`;
+                } else {
+                    window.location.href = `form_${type}.php?${queryParams}`;
+                }
+            });
+            if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
+                buttonContainer.appendChild(editButton);
             }
-        });
-
-        if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
-            buttonContainer.appendChild(editButton);
         }
+        
         // Append the button container to the main container
         containerDiv.appendChild(buttonContainer);
 
@@ -471,7 +570,7 @@ const createOrgChart = (orgchartId, chartData) => {
 
     } catch (error) {
         console.error('Error creating org chart:', error);
-        orgchartContainer.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
+        orgchartContainer.innerHTML = '<p style="text-align: center; color: black; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
     }
 };
 
@@ -742,9 +841,9 @@ const showArchiveModal = (contentId, contentType, authorId, loggedInFullName, au
     ` : '';
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'" style="color: #dc7d09"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #dc7d09; font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
         <p id="trashMessage" style="text-align: center">Proceed to archive?</p>
         <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for ${currentArchiveDays} days before being moved to Trash.</p>
         <br>
@@ -777,9 +876,9 @@ const showTrashModal = (contentId, contentType, authorId, loggedInFullName, auth
     ` : '';
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmTrash${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmTrash${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
         <p id="trashMessage" style="text-align: center">Proceed to move to Trash?</p>
         <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for ${currentTrashDays} days before being permanently deleted.</p>
         <br>
@@ -817,9 +916,9 @@ const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, aut
     }
     
     modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
         <p id="deleteMessage" style="text-align: center">Proceed to delete forever?</p>
         <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Permanently deleted items cannot be recovered.</p>
         <br>
@@ -894,7 +993,7 @@ function fetchAndUpdate(type) {
         .then(response => response.json())
         .then(data => {
             let filteredData;
-            console.log("Data of ", type,":", data);
+            // console.log("Data of ", type,":", data);
 
             if (Array.isArray(data)) {
                 filteredData = data.filter(item => {

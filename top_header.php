@@ -1,3 +1,5 @@
+
+
 <?php
 include("config_connection.php");
 
@@ -8,6 +10,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 // Fetch user data for the currently logged-in user
 include 'get_session.php';
+include 'user_theme_color.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['full_name']) || !isset($_SESSION['email'])) {
@@ -46,7 +49,7 @@ $displayInterval = $displayTimeRange['display_interval'];
             <img src="images/USC Logo Full.png" class="logo-header" id="logo" onclick="goToHome()">
             <img src="images/usc_icon.png" class="logo-header-2" id="logo-2" onclick="goToHome()">
         </div>
-        <nav id='menu' style="z-index: 10000">
+        <nav id='menu' style="z-index: 10000; background-color: <?php echo $theme_color; ?>;">
             <input type='checkbox' id='responsive-menu' onclick='updatemenu()'><label for="responsive-menu"></label>
             <ul>
                 <li>
@@ -89,15 +92,15 @@ $displayInterval = $displayTimeRange['display_interval'];
                 </li>
                 <li>
                     <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives <span id="archivesContentCount" class="archives-content-count"></span></a>
+                    <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives <span id="archivesContentCount" class="archives-content-count" style="color: <?php echo $light_theme_color_50_percent; ?>;"></span></a>
                 </li>
                 <li>
                     <a href="trash.php?pageid=Trash?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'trash.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Trash <span id="trashContentCount" class="trash-content-count"></span></a>
+                    <?php echo $current_page === 'trash.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Trash <span id="trashContentCount" class="trash-content-count" style="color: <?php echo $light_theme_color_50_percent; ?>;"></span></a>
                 </li>
                 <li>
                     <a href="scheduled_posts.php?pageid=ScheduledPosts?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'scheduled_posts.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Scheduled Posts <span id="scheduleContentCount" class="schedule-content-count"></span></a>
+                    <?php echo $current_page === 'scheduled_posts.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Scheduled Posts <span id="scheduleContentCount" class="schedule-content-count" style="color: <?php echo $light_theme_color_50_percent; ?>;"></span></a>
                 </li>
                 <?php if ($user_type === 'Admin') { ?>
                 <li>
@@ -156,9 +159,9 @@ $displayInterval = $displayTimeRange['display_interval'];
 <div id="confirmDeleteContentModal" class="modal"></div>
 <div id="changeDisplayTimeModal" class="modal">
     <div class="modal-content" style="padding: 15px">
-        <span class="close" onclick="document.getElementById('changeDisplayTimeModal').style.display='none'" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" onclick="document.getElementById('changeDisplayTimeModal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-clock-o" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-clock-o" aria-hidden="true"></i></h1>
         <p id="addMessage" style="text-align: center">Change Display TIme</p>
         <form id="changeDisplayTimeForm" style="margin-top: 10px">
             <div class="floating-label-container">
@@ -295,3 +298,247 @@ $displayInterval = $displayTimeRange['display_interval'];
 </script>
 <script src="js/fetch_notifications.js"></script>
 <script src="js/fetch_user_session.js"></script>
+<style>
+    #menu ul.sub-menus, .menu-button {
+        background: <?php echo $light_theme_color_70_percent; ?>;
+    }
+    #menu ul.sub-menus a, .menu-button {
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    #menu ul.sub-menus a:hover, .menu-button:hover{
+        background: <?php echo $light_theme_color_90_percent; ?>;
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .content-container:nth-child(odd), .content-button {
+        background: <?php echo $light_theme_color_90_percent; ?>;
+    }
+
+    .content-container:nth-child(even), .content-button {
+        background: <?php echo $light_theme_color_90_percent; ?>;
+    }
+
+    .content-button:hover {
+        background: <?php echo $light_theme_color_70_percent; ?>;
+    }
+
+    .content-container-main:nth-child(odd) {
+        background: <?php echo $light_theme_color_75_percent; ?>;
+    }
+
+    .content-container-main:nth-child(even) {
+        background: <?php echo $light_theme_color_80_percent; ?>;
+    }
+
+    .green-button, .preview-button {
+        background: <?php echo $theme_color; ?>;
+        border: 1px solid <?php echo $theme_color; ?>;
+    }
+    .green-button:hover, .preview-button:hover {
+        background: <?php echo $dark_theme_color_50_percent; ?>;
+        border: 1px solid <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .red-button, .yellow-button {
+        background: <?php echo $dark_theme_color_50_percent; ?>;
+        border: 1px solid <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .red-button:hover, .yellow-button:hover {
+        background: <?php echo $dark_theme_color_90_percent; ?>;
+        border: 1px solid <?php echo $dark_theme_color_90_percent; ?>;
+    }
+    .light-green-button {
+        background: <?php echo $light_theme_color_50_percent; ?>;
+        border: 1px solid <?php echo $dark_theme_color_50_percent; ?>;
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .light-green-button:hover {
+        background: <?php echo $dark_theme_color_50_percent; ?>;
+        border: 1px solid <?php echo $dark_theme_color_50_percent; ?>;
+        color: <?php echo $light_theme_color_90_percent; ?>;
+    }
+    .grey-button {
+        background: <?php echo $light_theme_color_80_percent; ?>;
+        border: 1px solid <?php echo $light_theme_color_80_percent; ?>;
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .grey-button:hover {
+        background: <?php echo $dark_theme_color_50_percent; ?>;
+        border: 1px solid <?php echo $dark_theme_color_50_percent; ?>;
+        color: <?php echo $light_theme_color_90_percent; ?>;
+    }
+    *::-webkit-scrollbar-thumb {
+        background-color: <?php echo $theme_color; ?>;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+        background-color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+
+    *::-webkit-scrollbar-thumb:active {
+        background-color: <?php echo $theme_color; ?>;
+    }
+    .error-message {
+        background: crimson;
+        color: white;
+        border: 1px solid crimson;
+    }
+    .success-message {
+        background: <?php echo $light_theme_color_80_percent; ?>;
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+        border: 1px solid <?php echo $light_theme_color_80_percent; ?>;
+    }
+    .red-bar-vertical::after {
+        background: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .green-bar-vertical::after {
+        background: <?php echo $theme_color; ?>;
+    }
+    .content-container:nth-child(odd) {
+        background: <?php echo $light_theme_color_90_percent; ?>;
+    }
+
+    .content-container:nth-child(even) {
+        background: <?php echo $light_theme_color_90_percent; ?>;
+    }
+
+    .breadcrumb {
+        background-color: <?php echo $light_theme_color_90_percent; ?>;
+    }
+
+    .breadcrumb-item a {
+        color: <?php echo $theme_color; ?>;
+    }
+
+    .breadcrumb-item a:hover {
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+
+    .breadcrumb-item.active {
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .floating-label {
+        color: <?php echo $theme_color; ?>;
+    }
+    .floating-label-input:focus + .floating-label,
+    .floating-label-input:not(:placeholder-shown) + .floating-label {
+        color: <?php echo $theme_color; ?>;
+    }
+
+    .floating-label-input-text-area:focus + .floating-label-text-area,
+    .floating-label-input-text-area:not(:placeholder-shown) + .floating-label-text-area {
+        color: <?php echo $theme_color; ?>;
+    }
+
+    .dot {
+        background: <?php echo $light_theme_color_80_percent; ?>;
+        border: 1px solid <?php echo $light_theme_color_80_percent; ?>;
+        color: <?php echo $dark_theme_color_90_percent; ?>;
+    }
+
+    .dot:hover {
+        background: <?php echo $light_theme_color_70_percent; ?>;
+    }
+
+    .dot.active {
+        background: <?php echo $theme_color; ?>;
+        border: 1px solid <?php echo $theme_color; ?>;
+    }
+    .close {
+        color: <?php echo $theme_color; ?>;
+    }
+    .close:hover {
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .user-type-pill {
+        background: <?php echo $dark_theme_color_50_percent; ?>;
+        color: <?php echo $light_theme_color_90_percent; ?>;
+    }
+    .input-container-label {
+        color: <?php echo $theme_color; ?>;
+    }
+    .notification {
+        border-left: 5px solid <?php echo $dark_theme_color_30_percent; ?>;
+        background-color: <?php echo $light_theme_color_90_percent; ?>;
+    }
+    .days-remaining-label {
+        background: <?php echo $light_theme_color_90_percent; ?>;
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+        font-weight: bold;
+    }
+    .content-type-label {
+        background: <?php echo $light_theme_color_60_percent; ?>;
+        color: <?php echo $dark_theme_color_70_percent; ?>;
+        font-weight: bold;
+    }
+    .modal-content h1 {
+        color: <?php echo $dark_theme_color_60_percent; ?>;
+    }
+    .panel-close-btn button {
+        color: <?php echo $theme_color; ?>;
+        font-weight: bold;
+    }
+    .floating-menu button {
+        background: <?php echo $light_theme_color_90_percent; ?>;
+        color: <?php echo $theme_color; ?>;
+        font-weight: bold;
+    }
+    .floating-menu button:hover {
+        background: <?php echo $light_theme_color_70_percent; ?>;
+        color: <?php echo $theme_color; ?>;
+    }
+    .open-sidebar-button.open, #updateTemplateButton {
+        background: <?php echo $dark_theme_color_50_percent; ?>;
+        color: white;
+    }
+    .open-sidebar-button.open:hover, #updateTemplateButton:hover {
+        background: <?php echo $dark_theme_color_60_percent; ?>;
+        color: white;
+    }
+    .toggle {
+        background: <?php echo $theme_color; ?>;
+    }
+    .sidebar {
+        background: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .active-sidebar-content {
+        background: <?php echo $dark_theme_color_70_percent; ?>;
+    }
+    .active-sidebar-content:hover {
+        background: <?php echo $dark_theme_color_70_percent; ?>;
+    }
+    .archives-content-count, .trash-content-count, .schedule-content-count {
+        color: <?php echo $light_theme_color_50_percent; ?>;
+    }
+    .navbar a:hover{
+        background-color: <?php echo $dark_theme_color_70_percent; ?>;
+    }
+    .add-member-node-btn {
+        background: <?php echo $dark_theme_color_50_percent; ?>;
+        color: <?php echo $light_theme_color_90_percent; ?>;
+    }
+    .add-member-node-btn:hover {
+        background: <?php echo $dark_theme_color_70_percent; ?>;
+        color: <?php echo $light_theme_color_90_percent; ?>;
+    }
+    .theme-container {
+        background: <?php echo $light_theme_color_90_percent; ?>;
+    }
+    .color-option.active {
+        border: 5px solid <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    th {
+        background-color: <?php echo $light_theme_color_70_percent; ?>;
+    }
+
+    tr:nth-child(even) {
+        background-color: <?php echo $light_theme_color_95_percent; ?>;
+    }
+
+    tr:nth-child(odd) {
+        background-color: <?php echo $light_theme_color_90_percent; ?>;
+    }
+
+    #usersTable th, #smartTVsTable th {
+        background-color: <?php echo $light_theme_color_70_percent; ?>;
+    }
+</style>
+

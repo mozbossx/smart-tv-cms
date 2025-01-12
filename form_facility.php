@@ -5,22 +5,10 @@ include 'config_connection.php';
 
 // fetch user data for the currently logged-in user
 include 'get_session.php';
+include 'user_theme_color.php';
 
 // fetch tv data from the select options
 include 'misc/php/options_tv.php';
-
-// Check if we're in edit mode and have media data
-$isEditMode = isset($_GET['action']) && $_GET['action'] === 'edit';
-$contentData = null;
-
-if ($isEditMode && isset($_GET['facility_id'])) {
-    // Fetch the facility data
-    $stmt = $conn->prepare("SELECT * FROM facility_tb WHERE facility_id = ? AND tv_id = ?");
-    $stmt->bind_param("ii", $_GET['facility_id'], $_GET['tv_id']);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $contentData = $result->fetch_assoc();
-}
 
 ?>
 
@@ -39,7 +27,7 @@ if ($isEditMode && isset($_GET['facility_id'])) {
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <title><?php echo $isEditMode ? 'Edit Facility' : 'Create a Facility'; ?></title>
+    <title>Create a Facility</title>
     <style>
         .image-slideshow-container {
             position: relative;
@@ -71,12 +59,17 @@ if ($isEditMode && isset($_GET['facility_id'])) {
             position: absolute;
             bottom: 10px;
             right: 10px;
-            background: #264B2B;
+            background: <?php echo $theme_color; ?>;
             color: white;
             padding: 8px 16px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+        }
+
+        #add-more-btn:hover {
+            background: <?php echo $dark_theme_color_50_percent; ?>;
+            transition: background 0.3s;
         }
 
         .image-preview {
@@ -103,20 +96,32 @@ if ($isEditMode && isset($_GET['facility_id'])) {
             background-color: rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             cursor: pointer;
-            border: 1px solid #264B2B;
             text-align: center;
             font-size: 8px;
             place-content: center;
         }
 
         .dot.active {
-            background-color: #264B2B;
-            border: 1px solid #264B2B;
             text-align: center;
             font-size: 8px;
             color: white;
             font-weight: bold;
             place-content: center;
+        }
+
+        .delete-image-btn {
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .delete-image-btn:hover {
+            opacity: 1;
+        }
+
+        .image-preview-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
@@ -130,39 +135,15 @@ if ($isEditMode && isset($_GET['facility_id'])) {
                     <div class="content-form">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb" style="background: none">
-                            <?php if ($isEditMode): ?>
-                                <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Home</a></li>
-                                <li class="breadcrumb-item">
-                                    <a href="tv_contents.php?tvId=<?php echo $_GET['tv_id']; ?>&isIframe=true" style="color: #264B2B">
-                                        <?php 
-                                        // Fetch TV name based on tv_id
-                                        $stmt = $conn->prepare("SELECT tv_name FROM smart_tvs_tb WHERE tv_id = ?");
-                                        $stmt->bind_param("i", $_GET['tv_id']);
-                                        $stmt->execute();
-                                        $result = $stmt->get_result();
-                                        $tv = $result->fetch_assoc();
-                                        echo htmlspecialchars($tv['tv_name']); 
-                                        ?>
-                                    </a>
-                                </li>
-                                <li class="breadcrumb-item active" aria-current="page">Edit</li>
-                            <?php else: ?>
-                                <li class="breadcrumb-item">
-                                    <a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a>
-                                </li>
-                                <li class="breadcrumb-item active" aria-current="page">Facility Form</li>
-                            <?php endif; ?>
+                                <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Create Post</a></li>
+                                <li class="breadcrumb-item"><a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">General Information</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Facilities Form</li>
                             </ol>
                         </nav>
                         <form id="facilityForm" enctype="multipart/form-data" class="main-form">
                             <?php include('error_message.php'); ?>
                             <input type="hidden" name="type" value="facility">
-                            <!--    const isEditMode = form.querySelector('input[name="action"]')?.value === 'edit'; -->
-                            <?php if ($isEditMode && isset($_GET['facility_id'])): ?>
-                                <input type="hidden" name="facility_id" value="<?php echo htmlspecialchars($_GET['facility_id']); ?>">
-                                <input type="hidden" name="action_value" value="edit">
-                            <?php endif; ?>
-                            <h1 style="text-align: center">Facility Form</h1>
+                            <h1 style="text-align: center">Facilities Form</h1>
                             <!-- <div class="floating-label-container">
                                 <textarea name="facility_body" rows="6" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="facility_body"></textarea>
                                 <label for="facility_body" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">facility Body</label>
@@ -171,7 +152,7 @@ if ($isEditMode && isset($_GET['facility_id'])) {
                                 <div class="image-slideshow-container" style="width: 100%; height: 100%; position: relative;">
                                     <div class="image-slides" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                                         <input type="file" name="media[]" id="media" accept="image/*" onchange="handleImageUpload(event)" hidden multiple>
-                                        <label for="media" id="upload-label" style="cursor: pointer; font-size: 15px; font-weight: bold; color: #264B2B; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center">
+                                        <label for="media" id="upload-label" style="cursor: pointer; font-size: 15px; font-weight: bold; color: <?php echo $theme_color; ?>; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center">
                                             <i class="fa fa-upload" style="padding-right: 5px"></i> Add Image (.jpg, .png)
                                         </label>
                                     </div>
@@ -184,13 +165,10 @@ if ($isEditMode && isset($_GET['facility_id'])) {
                             <br><br>
                             <div class="floating-label-container">
                                 <div id="quillEditorContainer">
-                                    <label for="quillEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: #264B2B; font-size: 12px; font-weight: bold">Facility Body</label>
+                                    <label for="quillEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">Facility Body</label>
                                     <div id="facility_body" style="height: 150px;"></div>
                                 </div>
                                 <input type="hidden" name="facility_body" id="facilityBodyHiddenInput">
-                                <?php if ($isEditMode && $contentData): ?>
-                                    <input type="hidden" id="existing_facility_content" value="<?php echo htmlspecialchars($contentData['facility_body']); ?>">
-                                <?php endif; ?>
                             </div>
                             <div class="form-row">
                                 <?php 
@@ -198,7 +176,6 @@ if ($isEditMode && isset($_GET['facility_id'])) {
                                 ?>
                                 <?php include('misc/php/displaytime_tvdisplay.php')?>
                             </div>
-                            <?php if (!$isEditMode): ?>
                             <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
                                 <div>
                                     <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
@@ -206,15 +183,6 @@ if ($isEditMode && isset($_GET['facility_id'])) {
                                     </button>
                                 </div>
                             </div>
-                            <?php else: ?>
-                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
-                                <div>
-                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
-                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
-                                    </button>
-                                </div>
-                            </div>
-                            <?php endif; ?>
                         </form>
                     </div>
                 </div>
@@ -290,13 +258,43 @@ if ($isEditMode && isset($_GET['facility_id'])) {
                     if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
                         reader.onload = function(e) {
+                            const imgContainer = document.createElement('div');
+                            imgContainer.className = 'image-preview-container';
+                            imgContainer.style.position = 'relative';
+                            imgContainer.style.width = '100%';
+                            imgContainer.style.height = '100%';
+                            imgContainer.style.display = 'none';
+
                             const img = document.createElement('img');
                             img.src = e.target.result;
                             img.className = 'image-preview';
                             img.style.maxWidth = '100%';
                             img.style.maxHeight = '100%';
-                            uploadedImages.push(img);
-                            slideshowContainer.appendChild(img);
+                            img.style.display = 'block'; // Make sure the image is visible
+                            img.style.margin = 'auto'; // Center the image
+
+                            // Add delete button
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.className = 'delete-image-btn';
+                            deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
+                            deleteBtn.style.position = 'absolute';
+                            deleteBtn.style.top = '10px';
+                            deleteBtn.style.right = '10px';
+                            deleteBtn.style.background = '#ff4444';
+                            deleteBtn.style.color = 'white';
+                            deleteBtn.style.border = 'none';
+                            deleteBtn.style.borderRadius = '4px';
+                            deleteBtn.style.padding = '8px';
+                            deleteBtn.style.cursor = 'pointer';
+                            deleteBtn.onclick = (e) => {
+                                e.stopPropagation(); // Prevent slide change when clicking delete
+                                deleteImage(imgContainer);
+                            };
+
+                            imgContainer.appendChild(img);
+                            imgContainer.appendChild(deleteBtn);
+                            uploadedImages.push(imgContainer);
+                            slideshowContainer.appendChild(imgContainer);
                             resolve();
                         };
                         reader.readAsDataURL(file);
@@ -315,47 +313,94 @@ if ($isEditMode && isset($_GET['facility_id'])) {
                 currentSlide = uploadedImages.length - 1;
                 
                 // Update image visibility
-                uploadedImages.forEach((img, index) => {
-                    img.className = 'image-preview' + (index === currentSlide ? ' active' : '');
+                uploadedImages.forEach((container, index) => {
+                    container.style.display = index === currentSlide ? 'block' : 'none';
                 });
-                
-                // Update dot indicators
-                updateDotIndicators();
-                
-                // Show navigation buttons and add more button
-                updateNavigationButtons();
+
+                // Show navigation buttons if there are multiple images
+                const navBtns = document.querySelectorAll('.nav-btn');
+                navBtns.forEach(btn => {
+                    btn.style.display = uploadedImages.length > 1 ? 'block' : 'none';
+                });
+
+                // Show add more button
                 document.getElementById('add-more-btn').style.display = 'block';
+                
+                updateDotIndicators();
             });
+        }
+
+        // Function to handle image deletion
+        function deleteImage(imgContainer) {
+            const index = uploadedImages.indexOf(imgContainer);
+            if (index > -1) {
+                uploadedImages.splice(index, 1);
+                imgContainer.remove();
+
+                // If there are no images left, show the upload label and reset the input
+                if (uploadedImages.length === 0) {
+                    const uploadLabel = document.getElementById('upload-label');
+                    const mediaInput = document.getElementById('media');
+                    
+                    // Reset the file input
+                    mediaInput.value = '';
+                    
+                    // Show upload label and restore its functionality
+                    uploadLabel.style.display = 'flex';
+                    uploadLabel.style.cursor = 'pointer';
+                    // uploadLabel.onclick = () => mediaInput.click();
+                    
+                    // Hide navigation buttons
+                    document.querySelector('.nav-btn.prev').style.display = 'none';
+                    document.querySelector('.nav-btn.next').style.display = 'none';
+                    document.getElementById('add-more-btn').style.display = 'none';
+                    currentSlide = 0;
+                } else {
+                    // Adjust currentSlide if necessary
+                    if (currentSlide >= uploadedImages.length) {
+                        currentSlide = uploadedImages.length - 1;
+                    }
+                    // Show the new current slide
+                    uploadedImages.forEach((container, i) => {
+                        container.style.display = i === currentSlide ? 'block' : 'none';
+                    });
+                }
+                updateDotIndicators();
+                updateNavigationButtons();
+            }
         }
 
         function updateDotIndicators() {
             const dotContainer = document.querySelector('.dot-indicators');
             dotContainer.innerHTML = ''; // Clear existing dots
             
-            uploadedImages.forEach((_, index) => {
-                const dot = document.createElement('div');
-                dot.className = 'dot' + (index === currentSlide ? ' active' : '');
-                dot.onclick = () => goToSlide(index);
-                dotContainer.appendChild(dot);
-                
-                // Place page number on the dot
-                dot.textContent = index + 1;
-            });
+            // Only show dots if there are multiple images
+            if (uploadedImages.length > 1) {
+                uploadedImages.forEach((_, index) => {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot' + (index === currentSlide ? ' active' : '');
+                    dot.onclick = () => goToSlide(index);
+                    dotContainer.appendChild(dot);
+                    
+                    // Place page number on the dot
+                    dot.textContent = index + 1;
+                });
+            }
         }
 
         function goToSlide(index) {
-            uploadedImages[currentSlide].classList.remove('active');
+            uploadedImages[currentSlide].style.display = 'none';
             currentSlide = index;
-            uploadedImages[currentSlide].classList.add('active');
+            uploadedImages[currentSlide].style.display = 'block';
             updateDotIndicators();
         }
 
         function changeSlide(direction) {
             if (uploadedImages.length <= 1) return;
             
-            uploadedImages[currentSlide].classList.remove('active');
+            uploadedImages[currentSlide].style.display = 'none';
             currentSlide = (currentSlide + direction + uploadedImages.length) % uploadedImages.length;
-            uploadedImages[currentSlide].classList.add('active');
+            uploadedImages[currentSlide].style.display = 'block';
             updateDotIndicators();
         }
 
@@ -385,7 +430,6 @@ if ($isEditMode && isset($_GET['facility_id'])) {
             isFormDirty = false;
             const contentType = document.querySelector('[name="type"]').value;
             const form = document.getElementById(`${contentType}Form`);
-            const isEditMode = form.querySelector('input[name="action_value"]')?.value === 'edit';
 
             // Use the existing hidden input element to store the editor content
             const quillEditorContent = getQuillEditorContent(contentType);
@@ -401,13 +445,17 @@ if ($isEditMode && isset($_GET['facility_id'])) {
 
             const formData = new FormData(form);
             const data = { 
-                action: isEditMode ? 'update_content' : 'post_content',
+                action: 'post_content',
                 tv_ids: formData.getAll('tv_id[]')
             };
 
             // Handle multiple images
             if (uploadedImages.length > 0) {
-                data.media = uploadedImages.map(img => img.src); // Get all image sources
+                // Get base64 data from all uploaded images
+                data.media = uploadedImages.map(container => {
+                    const img = container.querySelector('img');
+                    return img.src;  // This will contain the base64 data
+                });
             }
 
             // Convert FormData to object, excluding empty schedule_datetime
@@ -415,7 +463,9 @@ if ($isEditMode && isset($_GET['facility_id'])) {
                 if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
                     return; // Skip empty schedule_datetime
                 }
-                data[key] = value;
+                if (key !== 'media[]') { // Skip the file input
+                    data[key] = value;
+                }
             });
 
             console.log('Form Data:', data);
@@ -425,7 +475,7 @@ if ($isEditMode && isset($_GET['facility_id'])) {
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
                 if (message.success) {
-                    const action = isEditMode ? 'updated' : 'processed';
+                    const action = 'processed';
                     document.getElementById('successMessage').textContent = `${capitalizeFirstLetter(contentType)} was successfully ${action}!`;                        
                     document.getElementById('successMessageModal').style.display = 'flex';
                     isFormDirty = false;
@@ -459,17 +509,9 @@ if ($isEditMode && isset($_GET['facility_id'])) {
         function resetFormAndGoHome() {
             const contentType = document.querySelector('[name="type"]').value;
             const form = document.getElementById(`${contentType}Form`);
-            const isEditMode = form.querySelector('input[name="action"]')?.value === 'edit';
 
-            if (isEditMode) {
-                // If in edit mode, go back to the TV contents page
-                const tvId = form.querySelector('input[name="tv_id"]').value;
-                location.href = `tv_contents.php?tvId=${tvId}&isIframe=true`;
-            } else {
-                // If in create mode, go to home page
-                form.reset();
-                location.href = `user_home.php?pageid=UserHome&userId=${user_id}&fullName=${full_name}`;
-            }
+            form.reset();
+            location.href = `user_home.php?pageid=UserHome&userId=${user_id}&fullName=${full_name}`; 
         }
 
         document.getElementById('closeButton').addEventListener('click', function() {

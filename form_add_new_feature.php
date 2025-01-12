@@ -40,7 +40,7 @@ include 'admin_access_only.php';
                     <div class="content-form">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb" style="background: none">
-                                <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" style="color: #264B2B">Create Post</a></li>
+                                <li class="breadcrumb-item"><a href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Create Post</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Add New Feature Form</li>
                             </ol>
                         </nav>
@@ -73,7 +73,7 @@ include 'admin_access_only.php';
                                 <!-- Inputs will be added here -->
                             </div>
                             <div id="userTypeAccess" style="display: none; background: #FFFFFF; border-radius: 5px; padding: 12px; box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px">
-                                <p style="color: #264B2B; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Users who can access this feature</b></p>
+                                <p style="border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Users who can access this feature</b></p>
                                 <br>
                                 <?php
                                     // fetch user type data
@@ -126,7 +126,7 @@ include 'admin_access_only.php';
                             </div>
                             <div id="featureIconsModal" class="modal">
                                 <div class="modal-content" style="padding: 10px">
-                                    <h1 style="color: #264B2B; font-size: 50px"><i class="fa fa-info-circle" aria-hidden="true"></i></h1>
+                                    <h1 style="font-size: 50px"><i class="fa fa-info-circle" aria-hidden="true"></i></h1>
                                     <p>Select Feature Icon</p>
                                     <br>
                                     <div id="featureIconsGridList" class="icon-grid" style="height: 150px; max-height: 200px; overflow: auto; text-align: left; padding-right: 10px">
@@ -134,7 +134,7 @@ include 'admin_access_only.php';
                                     </div>
                                     <br>
                                     <div style="display: flex; float: right">
-                                        <button type="button" id="cancelFeatureIconsModal" class="green-button" style="background: none; border: 1px solid #264B2B; color: #264B2B">Cancel</button>
+                                        <button type="button" id="cancelFeatureIconsModal" class="grey-button">Cancel</button>
                                     </div>
                                 </div>
                             </div>
@@ -166,7 +166,7 @@ include 'admin_access_only.php';
             // Create and append new input sections
             for (let i = 0; i < numberOfInputs; i++) {
                 const inputSection = `
-                    <p style="color: #264B2B;"><b>Input #${i+1}</b></p>
+                    <p><b>Input #${i+1}</b></p>
                     <div id="input_section_${i+1}">
                         <div class="floating-label-container" id="name_container_${i+1}">
                             <input type="text" name="name_of_input_${i+1}" id="name_of_input_${i+1}" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input" maxlength="35">
