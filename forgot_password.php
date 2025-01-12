@@ -36,7 +36,7 @@ if (isset($_POST["submit"])) {
         $_SESSION['reset_token'] = $token;
         $_SESSION['reset_email'] = $email;
 
-        $passwordResetLink = "http://192.168.1.3:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
+        $passwordResetLink = "http://192.168.1.14:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
 
         // Send an email to the user with the password reset link
         $mail = new PHPMailer();

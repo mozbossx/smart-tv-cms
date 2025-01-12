@@ -45,7 +45,7 @@ const insertDeleteSmartTVModalContent = (tvId) => {
                 <br>
                 <div style="text-align: right;">
                     <button id="cancelDeleteSmartTVModalButton" class="grey-button" type="button">Cancel</button>
-                    <button id="deleteSmartTVButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, I want to delete</b></button>
+                    <button id="deleteSmartTVButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Yes, I want to delete</button>
                 </div>
             </div>
         </div>
@@ -89,13 +89,13 @@ const sendWebSocketMessage = (data) => {
 const showSuccessModal = (message) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px;">
-            <span class="close" id="closeSuccessModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" id="closeSuccessModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
             <p id="successMessage" style="text-align: center">${message}</p>
             <br>
             <div style="text-align: right;">
-                <button id="okaySuccessModalButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Okay</b></button>
+                <button id="okaySuccessModalButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Okay</button>
             </div>
         </div>
     `;
@@ -110,13 +110,13 @@ const showSuccessModal = (message) => {
 const showErrorModal = (message) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px">
-            <span class="close" id="closeErrorModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" id="closeErrorModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: rgb(126, 11, 34); font-size: 50px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1>
             <p id="errorText" style="text-align: center">${message}</p>
             <br>
             <div style="text-align: right;">
-                <button id="okayErrorModalButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Okay</b></button>
+                <button id="okayErrorModalButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Okay</button>
             </div>
         </div>
     `;
@@ -215,7 +215,7 @@ const populateEditSmartTVModal = (tvId) => {
                 <br>
                 <div style="text-align: right;">
                     <button type="button" id="cancelEditSmartTVModalButton" class="grey-button">Cancel</button>
-                    <button type="submit" id="editSmartTVButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Update</b></button>
+                    <button type="submit" id="editSmartTVButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Update</button>
                 </div>
             </form>
         </div>
@@ -265,13 +265,6 @@ const showEditSmartTVModal = (tvId) => {
 
     closeEditSmartTVModalButton.onclick = function() {
         modal.style.display = 'none';
-    };
-
-    // Close modal when clicking outside the modal content
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
     };
 };
 

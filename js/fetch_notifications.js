@@ -1038,9 +1038,9 @@ function showConfirmApproveModal(userId, email, fullName, userType, evaluatorNam
     const modal = document.getElementById('confirmApproveUserModal');
     modal.innerHTML = `
         <div class="modal-content">
-            <span class="close" onclick="closeModal('confirmApproveUser')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" onclick="closeModal('confirmApproveUser')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-thumbs-up" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-thumbs-up" aria-hidden="true"></i></h1>
             <p>Proceed to approve this user?</p>
             <br>
             <div style="text-align: right;">
@@ -1056,9 +1056,9 @@ function showConfirmRejectModal(userId, email, fullName, userType, evaluatorName
     const modal = document.getElementById('confirmRejectUserModal');
     modal.innerHTML = `
         <div class="modal-content">
-            <span class="close" onclick="closeModal('confirmRejectUser')" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" onclick="closeModal('confirmRejectUser')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-thumbs-down" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-thumbs-down" aria-hidden="true"></i></h1>
             <p>Proceed to reject this user?</p>
             <br>
             <div class="floating-label-container">
@@ -1079,9 +1079,9 @@ function showConfirmApproveContentModal(contentId, contentType, fullName, depart
     const modal = document.getElementById('confirmApproveContentModal');
     modal.innerHTML = `
         <div class="modal-content" style="padding: 10px;">
-            <span class="close" onclick="closeModal('confirmApproveContent')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" onclick="closeModal('confirmApproveContent')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-thumbs-up" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-thumbs-up" aria-hidden="true"></i></h1>
             <p>Proceed to approve this ${contentType}?</p>
             <br>
             <div style="text-align: right;">
@@ -1097,9 +1097,9 @@ function showConfirmRejectContentModal(contentId, contentType, fullName, departm
     const modal = document.getElementById('confirmRejectContentModal');
     modal.innerHTML = `
         <div class="modal-content" style="padding: 10px;">
-            <span class="close" onclick="closeModal('confirmRejectContent')" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" onclick="closeModal('confirmRejectContent')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-thumbs-down" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-thumbs-down" aria-hidden="true"></i></h1>
             <p>Proceed to reject this ${contentType}?</p>
             <br>
             <div class="floating-label-container">
@@ -1129,9 +1129,9 @@ function showConfirmDeleteContentModal(contentId, contentType, authorId, loggedI
 
     confirmDeleteContentModal.innerHTML = `
         <div class="modal-content">
-            <span class="close" onclick="closeModal('confirmDeleteContent')" style="color: #7E0B22"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <span class="close" onclick="closeModal('confirmDeleteContent')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <br>
-            <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
+            <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
             <p>Proceed to delete this ${contentType}?</p>
             <br>
             ${evaluatorMessageHtml}
@@ -1570,8 +1570,8 @@ Ws.addEventListener('message', function(event) {
 
                 modal.innerHTML = `
                     <div class="modal-content" style="text-align: left; position: absolute; padding: 10px;">
-                        <p style="color: #334b35;">${capitalizeFirstLetter(contentType)}</p>
-                        <span class="close" onclick="closeModal('viewContent')" style="color: #334b35; position: absolute; right: 5px; top: 5px"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+                        <p>${capitalizeFirstLetter(contentType)}</p>
+                        <span class="close" onclick="closeModal('viewContent')" style="position: absolute; right: 5px; top: 5px"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
                         <br>
                         ${contentHtml}
                         <br>

@@ -151,6 +151,7 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
                                 <div class="color-option-container">
                                     <div class="color-option" data-color="#264b2b" style="background-color: #264b2b" onclick="updateTheme('#264b2b')"></div>
                                     <span class="color-label">Green</span>
+                                    <span class="color-label">(Default)</span>
                                 </div>
                                 <div class="color-option-container">
                                     <div class="color-option" data-color="#193b67" style="background-color: #193b67" onclick="updateTheme('#193b67')"></div>

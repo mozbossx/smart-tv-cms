@@ -299,13 +299,23 @@ $displayInterval = $displayTimeRange['display_interval'];
 <script src="js/fetch_notifications.js"></script>
 <script src="js/fetch_user_session.js"></script>
 <style>
-    #menu ul.sub-menus, .menu-button {
+    #menu ul.sub-menus {
         background: <?php echo $light_theme_color_70_percent; ?>;
+        box-shadow: rgba(0, 0, 0, 0.2) 0px 8px 16px 0px;
     }
-    #menu ul.sub-menus a, .menu-button {
+    #menu ul.sub-menus a {
         color: <?php echo $dark_theme_color_50_percent; ?>;
     }
-    #menu ul.sub-menus a:hover, .menu-button:hover{
+    #menu ul.sub-menus a:hover {
+        background: <?php echo $light_theme_color_90_percent; ?>;
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    
+    .menu-button {
+        background: <?php echo $light_theme_color_70_percent; ?>;
+        color: <?php echo $dark_theme_color_50_percent; ?>;
+    }
+    .menu-button:hover{
         background: <?php echo $light_theme_color_90_percent; ?>;
         color: <?php echo $dark_theme_color_50_percent; ?>;
     }
@@ -523,7 +533,7 @@ $displayInterval = $displayTimeRange['display_interval'];
         background: <?php echo $light_theme_color_90_percent; ?>;
     }
     .color-option.active {
-        border: 5px solid <?php echo $dark_theme_color_50_percent; ?>;
+        border: 5px solid <?php echo $dark_theme_color_20_percent; ?>;
     }
     th {
         background-color: <?php echo $light_theme_color_70_percent; ?>;

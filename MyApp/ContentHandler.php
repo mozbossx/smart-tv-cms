@@ -2633,65 +2633,6 @@ class ContentHandler implements MessageComponentInterface
             $tv = $stmt->rowCount() > 0;
 
             if ($tv) {
-                // Update notification status
-                $stmtUpdateEvaluatorNotification = $this->pdo->prepare("UPDATE notifications_tb SET user_id = ?, status = 'approved', notification_type = 'smart_tv_edited', evaluator_name = ?, created_at = NOW() WHERE user_id = ? AND content_tv_id = ?");
-                $stmtUpdateEvaluatorNotification->execute([$evaluator_id, $evaluator_name, $user_id, $content_id]);
-
-                // Notify the Admin or Super Admin who approved the user
-                $stmtUserIdEvaluator = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_id = ?");
-                $stmtUserIdEvaluator->execute([$evaluator_id]);
-                $evaluatorId = $stmtUserIdEvaluator->fetchAll(PDO::FETCH_ASSOC);
-
-                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
-                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
-                ");
-                $stmtSelectDepartmentAdmins->execute([$department, $evaluator_id, $user_id]);
-                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
-                
-                // Notify each Admin of the approved user's department
-                if ($departmentAdmins) {
-                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ");
-                    foreach ($departmentAdmins as $admin) {
-                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
-                    }
-                }
-                
-                // Notify all Super Admins except the one who approved the user
-                $stmtSelectSuperAdmins = $this->pdo->prepare("
-                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
-                ");
-                $stmtSelectSuperAdmins->execute([$evaluator_id, $user_id]);
-                $allSuperAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
-
-                // Notify all Super Admins
-                if ($allSuperAdmins) {
-                    error_log("allSuperAdmins called");
-                    $stmtNotifySuperAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ");
-                    foreach ($allSuperAdmins as $superAdmin) {
-                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
-                    }
-                }
-
-                // Notify the new user that an admin approved them
-                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id) 
-                                             VALUES (?, 'content_approved_by_admin', ?, 'approved', ?, ?, ?, ?)");
-                $stmt->execute([$user_id, $content_type, $evaluator_name, $full_name, $department, $content_tv_id]);
-
-                // Update notification counts for Admins, Super Admins, and the evaluator
-                $stmtUpdateNotificationCounts = $this->pdo->prepare("
-                    UPDATE users_tb 
-                    SET notification_count = notification_count + 1 
-                    WHERE (user_type = 'Admin' AND department = ?) 
-                    OR user_type = 'Super Admin'
-                    OR user_id = ? OR user_id = ?
-                ");
-                $stmtUpdateNotificationCounts->execute([$department, $evaluator_id, $user_id]);
                 // Prepare the response with the new TV name, brand, and department
                 $response = [
                     'action' => 'edit_smart_tv',

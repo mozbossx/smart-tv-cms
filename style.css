@@ -3485,7 +3485,7 @@ input[type=range]:focus::-ms-fill-upper {
 .topbar {
     height: 7.0vh;
     width: 100%;
-    background: #264B2B;
+    /* background: #264B2B; */
     display: flex;
     justify-content: space-between;
     align-items: center;

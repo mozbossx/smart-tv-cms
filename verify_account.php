@@ -57,26 +57,26 @@ if (isset($_SESSION['mail'])) {
         </div>
     </div>
     <div id="myModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="padding: 15px">
             <div class="green-bar-vertical">
                 <p style="text-align: center"><?php echo $successMessage; ?></p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
-                    <button id="proceedBtn" class="green-button" style="margin: 0">Okay</button>
+                    <button id="proceedBtn" class="green-button" style="margin: 0; background-color: #334b35;">Okay</button>
                 </div>
             </div>
         </div>
     </div>
     <div id="facultyOrStaffModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="padding: 15px">
             <div class="green-bar-vertical">
                 <span class="close" onclick="closeModal('facultyOrStaffModal')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
                 <br>
                 <p style="text-align: center">Are you a faculty or staff member?</p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
-                    <button id="facultyBtn" class="green-button" style="margin: 0">Faculty</button>
-                    <button id="staffBtn" class="green-button" style="margin: 0">Staff</button>
+                    <button id="facultyBtn" class="green-button" style="margin: 0; background-color: #334b35;">Faculty</button>
+                    <button id="staffBtn" class="green-button" style="margin: 0; background-color: #334b35;">Staff</button>
                 </div>
             </div>
         </div>
@@ -118,6 +118,9 @@ if (isset($_SESSION['mail'])) {
                                 // Display success modal
                                 document.getElementById('successMessageVersion2').textContent = "Registration successful!";
                                 document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                                document.querySelector('.green-button').style.backgroundColor = '#334b35';
+                                document.querySelector('.green-button').style.color = 'white';
+                                document.querySelector('.green-button').style.border = 'none';
                                 document.getElementById('errorModal').style.display = 'none';
 
                                 document.getElementById('okayButton').addEventListener('click', function() {
@@ -140,6 +143,9 @@ if (isset($_SESSION['mail'])) {
                     // Display error modal
                     document.getElementById('errorText').textContent = message.message || "Invalid OTP Code. Try Again.";
                     document.getElementById('errorModal').style.display = 'flex';
+                    document.querySelector('.red-button').style.backgroundColor = '#862b2b';
+                    document.querySelector('.red-button').style.color = 'white';
+                    document.querySelector('.red-button').style.border = 'none';
                 }
             };
 

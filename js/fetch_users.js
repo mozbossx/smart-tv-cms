@@ -249,14 +249,14 @@ const showDeleteConfirmModal = (userCount, evaluatorName, selectedUsers) => {
             <p id="deleteConfirmMessage" style="text-align: center">Proceed to delete ${userCount} user(s)?</p>
             <p id="deleteMessage" style="text-align: center; font-size: 13px; color: #6E6E6E">This message will be sent thru the user's email.</p>
             <div class="floating-label-container">
-                <textarea name="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area" id="evaluator_message"></textarea>
-                <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User</label>
+                <textarea name="evaluator_message_delete_multiple" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area" id="evaluator_message_delete_multiple"></textarea>
+                <label for="evaluator_message_delete_multiple" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User</label>
             </div>
             <br>
             <br>
             <div style="text-align: right;">
                 <button id="cancelDeleteConfirmButton" class="grey-button" type="button">Cancel</button>
-                <button id="confirmDeleteButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, delete</b></button>
+                <button id="confirmDeleteButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Yes, delete</button>
             </div>
         </div>
     `;
@@ -271,6 +271,12 @@ const showDeleteConfirmModal = (userCount, evaluatorName, selectedUsers) => {
     document.getElementById('closeDeleteConfirmModalButton').onclick = closeModal;
     document.getElementById('cancelDeleteConfirmButton').onclick = closeModal;
     document.getElementById('confirmDeleteButton').onclick = () => {
+        // Get the evaluator message when the confirm button is clicked
+        const evaluatorMessage = document.getElementById('evaluator_message_delete_multiple').value;
+        if (!evaluatorMessage.trim()) {
+            alert('Please enter a message for the users.');
+            return;
+        }
         // Log each user being processed
         selectedUsers.forEach(user => {
             console.log("Processing user:", user);
@@ -282,7 +288,8 @@ const showDeleteConfirmModal = (userCount, evaluatorName, selectedUsers) => {
                 user_type: user.userType,
                 department: user.department,
                 evaluator_name: evaluatorName,
-                evaluator_id: loggedInUserId
+                evaluator_id: loggedInUserId,
+                evaluator_message: evaluatorMessage
             });
         });
         // showMultiDeleteSuccessModal(deletedCount);
@@ -334,7 +341,7 @@ const resetMultiSelectMode = () => {
 //             <p id="multiDeleteSuccessMessage" style="text-align: center">${count} user(s) have been successfully deleted.</p>
 //             <br>
 //             <div style="text-align: right;">
-//                 <button id="okayMultiDeleteSuccessButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Okay</b></button>
+//                 <button id="okayMultiDeleteSuccessButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Okay</button>
 //             </div>
 //         </div>
 //     `;
@@ -387,13 +394,13 @@ const deleteSelectedUsers = () => {
     if (userCount === 0) {
         const modalContent = `
             <div class="modal-content" style="padding: 15px">
-                <span class="close" id="closePleaseSelectUsersModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+                <span class="close" id="closePleaseSelectUsersModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
                 <br>
-                <h1 style="color: rgb(126, 11, 34); font-size: 50px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1>
+                <h1 style="font-size: 50px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1>
                 <p id="deletePleaseSelectUsersMessage" style="text-align: center">Please select a user</p>
                 <br>
                 <div style="text-align: right;">
-                    <button id="okayPleaseSelectUsersButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Okay</b></button>
+                    <button id="okayPleaseSelectUsersButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Okay</button>
                 </div>
             </div>
         `;
@@ -485,23 +492,23 @@ const showModal = (modalId, actionButton, action) => {
 // Modal content insertion
 const insertApproveUserModalContent = (userId) => createModal('ApproveUserModal', `
     <div class="modal-content" style="padding: 15px">
-        <span class="close" id="closeApproveUserModalButton" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" id="closeApproveUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
         <p id="approveMessage" style="text-align: center">Proceed to approve this user?</p>
         <br>
         <div style="text-align: right;">
             <button id="cancelApproveUserModalButton" class="grey-button" type="button">Cancel</button>
-            <button id="approveUserButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, I want to approve</b></button>
+            <button id="approveUserButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Yes, approve</button>
         </div>
     </div>
 `);
 
 const insertRejectUserModalContent = (userId) => createModal('RejectUserModal', `
     <div class="modal-content" style="padding: 15px">
-        <span class="close" id="closeRejectUserModalButton" style="color: rgb(126, 11, 34)"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <span class="close" id="closeRejectUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <br>
-        <h1 style="color: rgb(126, 11, 34); font-size: 50px"><i class="fa fa-user-times" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px"><i class="fa fa-user-times" aria-hidden="true"></i></h1>
         <p id="rejectMessage" style="text-align: center">Proceed to reject this user?</p>
         <p id="deleteMessage" style="text-align: center; font-size: 13px; color: #6E6E6E">This message will be sent thru the user's email.</p>
         <div class="floating-label-container">
@@ -511,7 +518,7 @@ const insertRejectUserModalContent = (userId) => createModal('RejectUserModal', 
         <br>
         <div style="text-align: right;">
             <button id="cancelRejectUserModalButton" class="grey-button" type="button">Cancel</button>
-            <button id="rejectUserButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, I want to reject</b></button>
+            <button id="rejectUserButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Yes, reject</button>
         </div>
     </div>
 `);
@@ -530,7 +537,7 @@ const insertDeleteUserModalContent = (userId) => createModal('DeleteUserModal', 
         <br>
         <div style="text-align: right;">
             <button id="cancelDeleteUserModalButton" class="grey-button" type="button">Cancel</button>
-            <button id="deleteUserButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Yes, I want to delete</b></button>
+            <button id="deleteUserButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Yes, delete</button>
         </div>
     </div>
 `);
@@ -598,7 +605,7 @@ const showAutoDeleteModal = () => {
                         <br>
                         <div style="text-align: right;">
                             <button type="button" id="cancelAutoDeleteButton" class="grey-button">Cancel</button>
-                            <button type="submit" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Update All</b></button>
+                            <button type="submit" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Update All</button>
                         </div>
                     </form>
                 </div>
@@ -759,7 +766,7 @@ const showAddUserModal = (userId) => {
                 <br>
                 <div style="text-align: right;">
                     <button type="button" id="cancelAddUserModalButton" class="grey-button">Cancel</button>
-                    <button type="submit" id="addUserButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Add User(s)</b></button>
+                    <button type="submit" id="addUserButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Add User(s)</button>
                 </div>
             </form>
         </div>
@@ -937,7 +944,7 @@ const sendFormData = (formData) => {
                     if (message.success == true) {
                         let successMessage = `${message.addedCount} users added successfully! ${message.failedCount} users failed to add.`;
                         if (message.errorMessages && message.errorMessages.length > 0) {
-                            successMessage += "<p>Errors:</p><ul style='text-align: left; color: red; font-size: 14px'>" + 
+                            successMessage += "<p>Errors:</p><ul style='text-align: left; color: crimson; font-size: 14px'>" + 
                                 message.errorMessages.map(error => `<li>• ${error}</li>`).join('') + 
                                 "</ul>";
                         }
@@ -1118,7 +1125,7 @@ const populateEditUserModal = (userId) => {
                 <br>
                 <div style="text-align: right;">
                     <button type="button" id="cancelEditUserModalButton" class="grey-button">Cancel</button>
-                    <button type="submit" id="editUserButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Update</b></button>
+                    <button type="submit" id="editUserButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Update</button>
                 </div>
             </form>
         </div>

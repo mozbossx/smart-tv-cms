@@ -34,7 +34,7 @@ if (isset($_SESSION['reset_email'])) {
             <p class="ann-author" style="color: #6E6E6E; text-align: center"><small>Please check your email inbox and click the reset link</small></p>
             <br>
             <div class="button-flex" style="flex-direction: column; align-items: center;">
-                <a href="gmail.com" class="green-button" style="margin-bottom: 10px; margin-right: 0; text-decoration: none; font-size: 15px;">Open Gmail</a>
+                <a href="https://gmail.com" target="_blank" class="green-button" style="background-color: #334b35; margin-bottom: 10px; margin-right: 0; text-decoration: none; font-size: 15px;">Open Gmail</a>
                 <a href="login.php?pageid=Login" class="go-to-home-link" style="text-decoration: underline; font-size: 15px;">Back to Login Page</a>
             </div>
             

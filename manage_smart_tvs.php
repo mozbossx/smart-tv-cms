@@ -59,9 +59,9 @@ if (!$resultAllSmartTVs) {
                                 <li class="breadcrumb-item active" aria-current="page">Manage Smart TVs</li>
                             </ol>
                         </nav>
-                        <div class="button-container-mobile">
+                        <!-- <div class="button-container-mobile">
                             <button type="button" id="scanTVsButtonMobile" class="green-button" style="width: auto; margin-right: 0;"><i class="fa fa-search" style="padding-right: 5px"></i>Scan for Smart TVs</button>
-                        </div>
+                        </div> -->
                         <?php include('error_message.php'); ?>
                         <div style="display: flex; justify-content: space-between;">
                             <form class="search-form" style="width: 300px; max-width: 100%; margin: 0;">
@@ -72,9 +72,9 @@ if (!$resultAllSmartTVs) {
                                     </button>
                                 </div>
                             </form>
-                            <div class="button-container-desktop">
+                            <!-- <div class="button-container-desktop">
                                 <button type="button" id="scanTVsButton" class="green-button" style="width: auto; margin-right: 0; height: 35px"><i class="fa fa-search" style="padding-right: 5px"></i>Scan for Smart TVs</button>
-                            </div>
+                            </div> -->
                         </div>
                         <div class="table-container" id="smartTVsTableContainerParent" style="height: calc(100vh - 250px)">
                             <div id="smartTVTableContainer">

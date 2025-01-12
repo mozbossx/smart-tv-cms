@@ -125,13 +125,13 @@ if (isset($_POST["submit"])) {
     </div>
     <!-- Reset Password Successful Modal -->
     <div id="resetPasswordSuccessModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="padding: 15px">
             <div class="green-bar-vertical">
                 <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
                 <p><?php echo $successMessage; ?></p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
-                    <button id="proceedBtn" class="green-button" style="margin: 0">Login Page</button>
+                    <button id="proceedBtn" class="green-button" style="margin: 0; background-color: #334b35;">Login Page</button>
                 </div>
             </div>
         </div>
