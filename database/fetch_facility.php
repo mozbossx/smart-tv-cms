@@ -2,7 +2,7 @@
 // fetch_facility.php
 
 // Database Connection
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 // Fetch facility from the database
 $statement = $pdo->query("SELECT * FROM facility_tb");

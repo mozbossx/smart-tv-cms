@@ -2,7 +2,7 @@
 include '../config_connection.php';
 
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+    $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
     $stmt = $pdo->query("SELECT archive_days FROM archive_days_tb");
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     

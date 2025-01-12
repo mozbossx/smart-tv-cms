@@ -7,7 +7,7 @@
 //     $dbname = 'smart_tv_cms_db';
 // } 
 
-if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '192.168.1.14:8080') {
+if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '156.67.220.92:8080') {
     // Localhost configuration (Testing purposes only)
     $server = 'localhost';
     $username = 'root';
@@ -15,9 +15,9 @@ if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '192.168.1.
     $dbname = 'smart_tv_cms_db';
 } else {
     // Production server configuration
-    $server = '';
-    $username = '';
-    $password = '';
+    $server = 'localhost';
+    $username = 'root';
+    $password = 'Mozar@123456';
     $dbname = 'smart_tv_cms_db';
 }
 

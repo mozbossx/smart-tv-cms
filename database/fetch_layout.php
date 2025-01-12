@@ -2,7 +2,7 @@
 // fetch_layout.php
 
 // Database Connection
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 // Fetch layout from the database
 $statement = $pdo->query("SELECT * FROM containers_tb");

@@ -57,7 +57,7 @@ if (mysqli_num_rows($result) > 0) {
 }
 
 // Fetch all features from the database
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 $stmtNewFeatures = $pdo->query("SELECT * FROM features_tb WHERE department = '$tvDepartment'");
 $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
 

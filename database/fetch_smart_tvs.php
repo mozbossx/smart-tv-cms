@@ -2,7 +2,7 @@
 // fetch_smart_tvs.php
 
 // Database Connection
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 // Get tvId from the query string
 $tvId = isset($_GET['tvId']) ? intval($_GET['tvId']) : 0;

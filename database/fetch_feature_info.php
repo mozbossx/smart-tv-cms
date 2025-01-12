@@ -1,6 +1,6 @@
 <?php
 // Database connection
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 // Get the feature type from the query string
 $type = $_GET['type'] ?? '';

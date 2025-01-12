@@ -2,7 +2,7 @@
 // fetch_rejected_users.php
 
 // Database Connection
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 // Fetch users from the database
 $statement = $pdo->query("SELECT * FROM users_tb WHERE status = 'Rejected'");

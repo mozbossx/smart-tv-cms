@@ -17,7 +17,7 @@ if ($archiveDays < 10) {
 }
 
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+    $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
     
     // Update archive days record
     $stmt = $pdo->prepare("UPDATE archive_days_tb SET archive_days = ? WHERE archive_id = 1");

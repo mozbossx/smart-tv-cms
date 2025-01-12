@@ -2,7 +2,7 @@
 // fetch_so.php
 
 // Database Connectionz
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 // Fetch announcements from the database
 $statement = $pdo->query("SELECT * FROM so_tb");

@@ -1,6 +1,6 @@
 <?php
 // Database Connection
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 // Get TV ID from request
 $tvId = isset($_GET['tvId']) ? $_GET['tvId'] : null;

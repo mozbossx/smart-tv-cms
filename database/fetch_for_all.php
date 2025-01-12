@@ -1,7 +1,7 @@
 <?php
 // fetch_for_all.php
 // Database Connection
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 // Fetch for_all_tb from the database
 $statement = $pdo->query("SELECT * FROM for_all_tb");

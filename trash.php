@@ -8,7 +8,7 @@ include 'get_session.php';
 include 'user_theme_color.php';
 
 // Fetch all features from the database
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 if ($user_type == 'Super Admin') {
     $stmtNewFeatures = $pdo->query("SELECT * FROM features_tb");

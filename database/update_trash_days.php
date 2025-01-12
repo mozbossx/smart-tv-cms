@@ -17,7 +17,7 @@ if ($trashDays < 10) {
 }
 
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+    $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
     
     // Update trash days record
     $stmt = $pdo->prepare("UPDATE trash_days_tb SET trash_days = ? WHERE trash_id = 1");

@@ -1,7 +1,7 @@
 <?php
 // fetch_chemical_engineering_only.php
 // Database Connection
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 
 // Fetch chemical_engineering_only_tb from the database
 $statement = $pdo->query("SELECT * FROM chemical_engineering_only_tb");

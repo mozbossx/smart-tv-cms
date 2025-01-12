@@ -7,7 +7,7 @@ include 'config_connection.php';
 include 'get_session.php';
 
 // Fetch all features from the database
-$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "");
+$pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
 $stmtNewFeatures = $pdo->prepare("
     SELECT DISTINCT f.*, 
            GROUP_CONCAT(fut.user_type) as allowed_user_types 

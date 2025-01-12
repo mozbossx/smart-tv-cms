@@ -1,4 +1,4 @@
-const Ws = new WebSocket('ws://192.168.1.14:8081');
+const Ws = new WebSocket('ws://156.67.220.92:8081');
 
 function formatDateTime2(dateTimeString) {
     const dateTime = new Date(dateTimeString);
