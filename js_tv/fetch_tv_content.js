@@ -1,5 +1,5 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('wss://usccms.online:8081');
+const Ws = new WebSocket('wss://usccms.online/ws');
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
