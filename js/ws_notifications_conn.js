@@ -1,4 +1,4 @@
-const Ws = new WebSocket('wss://usccms.online:8081');
+const Ws = new WebSocket('wss://usccms.online/ws/');
 
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);

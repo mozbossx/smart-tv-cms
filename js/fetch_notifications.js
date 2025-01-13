@@ -1,4 +1,4 @@
-const Ws = new WebSocket('wss://usccms.online:8443');
+const Ws = new WebSocket('wss://usccms.online/ws/');
 
 function formatDateTime2(dateTimeString) {
     const dateTime = new Date(dateTimeString);

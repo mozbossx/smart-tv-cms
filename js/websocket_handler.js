@@ -1,9 +1,9 @@
-const Ws = new WebSocket('wss://usccms.online:8081');
+const Ws = new WebSocket('wss://usccms.online/ws/');
 
 // let Ws;
 
 // function initializeWebSocket() {
-//     Ws = new WebSocket('wss://usccms.online:8081');
+//     Ws = new WebSocket('wss://usccms.online/ws/');
 
 //     Ws.onopen = function(event) {
 //         console.log("WebSocket connection established");
