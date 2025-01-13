@@ -25,6 +25,13 @@ if (isset($_SESSION['mail'])) {
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <title>Email Verification</title>
+    <style>
+        .green-button {
+            background-color: #334b35;
+            color: white;
+            border: none;
+        }
+    </style>
 </head>
 <body class="main-body">
     <div class="container-body">
@@ -118,9 +125,6 @@ if (isset($_SESSION['mail'])) {
                                 // Display success modal
                                 document.getElementById('successMessageVersion2').textContent = "Registration successful!";
                                 document.getElementById('successMessageModalVersion2').style.display = 'flex';
-                                document.querySelector('.green-button').style.backgroundColor = '#334b35';
-                                document.querySelector('.green-button').style.color = 'white';
-                                document.querySelector('.green-button').style.border = 'none';
                                 document.getElementById('errorModal').style.display = 'none';
 
                                 document.getElementById('okayButton').addEventListener('click', function() {
