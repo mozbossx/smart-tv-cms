@@ -86,7 +86,7 @@ if (isset($_SESSION['mail'])) {
     <script>
         // Handle form submission via WebSocket
         const form = document.getElementById('pendingUserForm');
-        const ws = new WebSocket('wss://usccms.online:8081?email=<?php echo urlencode($email); ?>');
+        const ws = new WebSocket('wss://usccms.online/ws?email=<?php echo urlencode($email); ?>');
         
         form.addEventListener('submit', function (e) {
             e.preventDefault();
