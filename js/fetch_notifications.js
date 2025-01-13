@@ -1,17 +1,23 @@
 function connectWebSocket() {
-    const ws = new WebSocket('wss://usccms.online:8081');
+    console.log('Attempting WebSocket connection...');
+    
+    // Update to use /ws path instead of port 8081
+    const ws = new WebSocket('wss://usccms.online/ws');
     
     ws.onopen = function() {
-        console.log('WebSocket Connected');
+        console.log('WebSocket Connected Successfully');
     };
     
-    ws.onclose = function() {
-        console.log('WebSocket Disconnected - Reconnecting...');
-        setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+    ws.onclose = function(event) {
+        console.log('WebSocket Disconnected - Code:', event.code, 'Reason:', event.reason);
+        console.log('Attempting reconnection in 5 seconds...');
+        setTimeout(connectWebSocket, 5000);
     };
     
     ws.onerror = function(error) {
         console.error('WebSocket Error:', error);
+        console.log('WebSocket State:', ws.readyState);
+        console.log('WebSocket URL:', ws.url);
     };
     
     return ws;
