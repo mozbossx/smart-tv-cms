@@ -1,11 +1,12 @@
 <?php
-
 require __DIR__ . '/../vendor/autoload.php';
 
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
 use MyApp\ContentHandler;
+use React\EventLoop\Factory;
+use React\Socket\Server as SocketServer;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -16,16 +17,21 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 $contentHandler = new ContentHandler($pdo);
 
-// Create WebSocket server
-$server = IoServer::factory(
+// Create event loop
+$loop = Factory::create();
+
+// Bind to the server's IP address
+$webSock = new SocketServer('156.67.220.92:8081', $loop);
+
+// Create Ratchet server
+$server = new IoServer(
     new HttpServer(
         new WsServer(
             $contentHandler
         )
     ),
-    8081,
-    '127.0.0.1' // Bind to localhost only
+    $webSock
 );
 
-echo "WebSocket Server Started on port 8081\n";
-$server->run();
+echo "WebSocket Server Started on 156.67.220.92:8081\n";
+$loop->run();
