@@ -18,7 +18,7 @@ $contentHandler = new ContentHandler($pdo);
 
 // Set up React PHP server
 $loop = React\EventLoop\Factory::create();
-$reactServer = new ReactServer('0.0.0.0:8443', $loop);
+$reactServer = new ReactServer('0.0.0.0:8081', $loop);
 
 // SSL context options
 $sslContext = [
