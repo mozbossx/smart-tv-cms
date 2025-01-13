@@ -1,4 +1,23 @@
-const Ws = new WebSocket('wss://usccms.online:8081');
+function connectWebSocket() {
+    const ws = new WebSocket('wss://usccms.online:8081');
+    
+    ws.onopen = function() {
+        console.log('WebSocket Connected');
+    };
+    
+    ws.onclose = function() {
+        console.log('WebSocket Disconnected - Reconnecting...');
+        setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+    };
+    
+    ws.onerror = function(error) {
+        console.error('WebSocket Error:', error);
+    };
+    
+    return ws;
+}
+
+const Ws = connectWebSocket();
 
 function formatDateTime2(dateTimeString) {
     const dateTime = new Date(dateTimeString);

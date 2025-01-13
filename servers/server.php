@@ -24,8 +24,10 @@ $reactServer = new ReactServer('0.0.0.0:8081', $loop);
 $sslContext = [
     'local_cert' => '/etc/letsencrypt/live/usccms.online/fullchain.pem',
     'local_pk' => '/etc/letsencrypt/live/usccms.online/privkey.pem',
-    'allow_self_signed' => false, // Ensure this is false for production
-    'verify_peer' => true, // Enable peer verification for production
+    'allow_self_signed' => false,
+    'verify_peer' => false, // Changed to false for WebSocket
+    'verify_peer_name' => false, // Added to disable peer name verification
+    'security_level' => 1, // Added to set minimum security level
 ];
 $secureServer = new ReactSecureServer($reactServer, $loop, $sslContext);
 
