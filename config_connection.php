@@ -11,7 +11,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '156.67.220
     // Localhost configuration (Testing purposes only)
     $server = 'localhost';
     $username = 'root';
-    $password = '';
+    $password = 'Mozar@123456';
     $dbname = 'smart_tv_cms_db';
 } else {
     // Production server configuration

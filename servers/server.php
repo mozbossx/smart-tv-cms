@@ -10,7 +10,7 @@ use Ratchet\Wamp\TopicManager;
 use Ratchet\ConnectionInterface;
 
 // Database connection
-$pdo = new PDO('mysql:host=localhost;dbname=smart_tv_cms_db', 'root', '');
+$pdo = new PDO('mysql:host=localhost;dbname=smart_tv_cms_db', 'root', 'Mozar@123456');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 $contentHandler = new ContentHandler($pdo);
