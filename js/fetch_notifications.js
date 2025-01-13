@@ -1,16 +1,4 @@
-let Ws;
-
-if (window.location.hostname === 'usccms.online') {
-    Ws = new WebSocket('wss://usccms.online:8081');
-    if (Ws.readyState !== WebSocket.OPEN) {
-        console.error('WebSocket connection failed to usccms.online', Ws.readyState, Ws.error);
-    }
-} else {
-    Ws = new WebSocket('wss://156.67.220.92:8081');
-    if (Ws.readyState !== WebSocket.OPEN) {
-        console.error('WebSocket connection failed to 156.67.220.92', Ws.readyState, Ws.error);
-    }
-}
+const Ws = new WebSocket('wss://usccms.online:8081');
 
 function formatDateTime2(dateTimeString) {
     const dateTime = new Date(dateTimeString);
