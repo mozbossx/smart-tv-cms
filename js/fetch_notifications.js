@@ -1,30 +1,29 @@
-// function connectWebSocket() {
-//     console.log('Attempting WebSocket connection...');
+function connectWebSocket() {
+    console.log('Attempting WebSocket connection...');
     
-//     // Update to use /ws path instead of port 8081
-//     const ws = new WebSocket('wss://usccms.online/ws');
+    // Update to use /ws path instead of port 8081
+    const ws = new WebSocket('wss://usccms.online/ws');
     
-//     ws.onopen = function() {
-//         console.log('WebSocket Connected Successfully');
-//     };
+    ws.onopen = function() {
+        console.log('WebSocket Connected Successfully');
+    };
     
-//     ws.onclose = function(event) {
-//         console.log('WebSocket Disconnected - Code:', event.code, 'Reason:', event.reason);
-//         console.log('Attempting reconnection in 5 seconds...');
-//         setTimeout(connectWebSocket, 5000);
-//     };
+    ws.onclose = function(event) {
+        console.log('WebSocket Disconnected - Code:', event.code, 'Reason:', event.reason);
+        console.log('Attempting reconnection in 5 seconds...');
+        setTimeout(connectWebSocket, 5000);
+    };
     
-//     ws.onerror = function(error) {
-//         console.error('WebSocket Error:', error);
-//         console.log('WebSocket State:', ws.readyState);
-//         console.log('WebSocket URL:', ws.url);
-//     };
+    ws.onerror = function(error) {
+        console.error('WebSocket Error:', error);
+        console.log('WebSocket State:', ws.readyState);
+        console.log('WebSocket URL:', ws.url);
+    };
     
-//     return ws;
-// }
+    return ws;
+}
 
-// const Ws = connectWebSocket();
-const Ws = new WebSocket('wss://usccms.online/ws');
+const Ws = connectWebSocket();
 
 function formatDateTime2(dateTimeString) {
     const dateTime = new Date(dateTimeString);
