@@ -1,29 +1,70 @@
 function connectWebSocket() {
     console.log('Attempting WebSocket connection...');
     
-    // Update to use /ws path instead of port 8081
-    const ws = new WebSocket('wss://usccms.online/ws');
+    // Determine if we're in localhost or production
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname === '192.168.1.14';
     
-    ws.onopen = function() {
-        console.log('WebSocket Connected Successfully');
-    };
+    // Choose WebSocket URL based on environment
+    const wsUrl = isLocalhost 
+        ? 'ws://192.168.1.14:8081'
+        : 'wss://usccms.online/ws';
     
-    ws.onclose = function(event) {
-        console.log('WebSocket Disconnected - Code:', event.code, 'Reason:', event.reason);
-        console.log('Attempting reconnection in 5 seconds...');
-        setTimeout(connectWebSocket, 5000);
-    };
-    
-    ws.onerror = function(error) {
-        console.error('WebSocket Error:', error);
-        console.log('WebSocket State:', ws.readyState);
-        console.log('WebSocket URL:', ws.url);
-    };
-    
-    return ws;
+    try {
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = function() {
+            console.log('WebSocket Connected Successfully to:', wsUrl);
+            const loadingWebsocketConnectionModal = document.getElementById('loadingWebsocketConnectionModal');
+            const successWebsocketConnectionModal = document.getElementById('successWebsocketConnectionModal');
+            if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
+                loadingWebsocketConnectionModal.style.display = 'none';
+                successWebsocketConnectionModal.style.display = 'flex';
+                document.getElementById('successWebsocketConnectionMessage').textContent = 'WebSocket Connected Successfully!';
+            }
+        };
+        
+        ws.onclose = function(event) {
+            console.log('WebSocket Disconnected from:', wsUrl);
+            console.log('Code:', event.code, 'Reason:', event.reason);
+            console.log('Attempting reconnection in 4 seconds...');
+            const loadingWebsocketConnectionModal = document.getElementById('loadingWebsocketConnectionModal');
+            const successWebsocketConnectionModal = document.getElementById('successWebsocketConnectionModal');
+            if (loadingWebsocketConnectionModal) {
+                loadingWebsocketConnectionModal.style.display = 'flex';
+                successWebsocketConnectionModal.style.display = 'none';
+                document.getElementById('loadingWebsocketConnectionMessage').textContent = 'WebSocket Disconnected. Reconnecting...';
+            }
+            setTimeout(connectWebSocket, 5000);
+        };
+        
+        ws.onerror = function(error) {
+            console.error('WebSocket Error:', error);
+            console.log('WebSocket State:', ws.readyState);
+            console.log('WebSocket URL:', ws.url);
+            console.log('Protocol:', ws.protocol);
+            console.log('Extensions:', ws.extensions);
+            // setTimeout(connectWebSocket, 5000);
+        };
+        
+        return ws;
+    } catch (error) {
+        console.error('Error creating WebSocket:', error);
+        console.log('Attempting reconnection in 4 seconds...');
+        // setTimeout(connectWebSocket, 5000);
+        return null;
+    }
 }
 
-const Ws = connectWebSocket();
+let Ws = null;
+try {
+    Ws = connectWebSocket();
+} catch (error) {
+    console.error('Error initializing WebSocket:', error);
+    console.log('Attempting reconnection in 4 seconds...');
+    // setTimeout(connectWebSocket, 5000);
+}
 
 function formatDateTime2(dateTimeString) {
     const dateTime = new Date(dateTimeString);
@@ -354,7 +395,8 @@ function createNotificationDiv(notification) {
                 <div class="notification-buttons">
                     <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Approve</button>
                     <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Reject</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button>
+                    <!-- <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button> -->
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
                 </div>
             `;
         }
@@ -369,7 +411,8 @@ function createNotificationDiv(notification) {
                 <div class="notification-buttons">
                     <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Approve</button>
                     <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Reject</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button>
+                    <!-- <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button> -->
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
                 </div>
             `;
         }
@@ -379,9 +422,11 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('pending-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your ${notification.content_type} is pending for approval.</p>
+                    <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your ${notification.content_type} is pending for approval to be posted on TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                    <div class="notification-buttons" style="margin-top: 0;"></div>
+                    <div class="notification-buttons">
+                        <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
+                    </div>
                 </div>
             `;
         } 
@@ -390,9 +435,11 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('pending-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your scheduled ${notification.content_type} to be posted in ${formatDateTime2(notification.content_schedule_datetime)} is pending for approval.</p>
+                    <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your scheduled ${notification.content_type} to be posted on ${formatDateTime2(notification.content_schedule_datetime)} on TV: ${notification.content_tv_name} is pending for approval.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                    <div class="notification-buttons" style="margin-top: 0;"></div>
+                    <div class="notification-buttons">
+                        <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
+                    </div>
                 </div>
             `;
         } 
@@ -629,7 +676,6 @@ function createNotificationDiv(notification) {
         if (notification.action_user_name == full_name) {
             notificationDiv.classList.add('approved-notification');
             content = `
-                <p>${notification.notification_id}</p>
                 <div class="notification-details">
                     <p class="user-approved-notification">You have been added by ${notification.evaluator_name} as ${notification.action_user_type} in ${notification.action_user_department} department.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
@@ -813,7 +859,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('archived-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You archived your ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
+                    <p class="content-approved-notification">You archived your ${notification.content_type}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
             `;
@@ -823,7 +869,7 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('archived-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You archived ${notification.action_user_name}'s ${notification.content_type} in the TV: ${notification.content_tv_name}.</p>
+                    <p class="content-approved-notification">You archived ${notification.action_user_name}'s ${notification.content_type}.</p>
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
@@ -856,7 +902,7 @@ function createNotificationDiv(notification) {
         notificationDiv.classList.add('archived-notification');
         content = `
             <div class="notification-details">
-                <p class="content-approved-notification">Your ${notification.content_type} has been archived by ${notification.evaluator_name} in the TV: ${notification.content_tv_name}.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} in TV: ${notification.content_tv_name} has been archived by ${notification.evaluator_name}.</p>
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
             </div>
@@ -1486,7 +1532,7 @@ function fetchScheduledPostsCount() {
         const totalCount = results.reduce((count, data, index) => {
             return count + data.filter(item => {
                 // Basic trash conditions
-                const basicConditions = item.isArchived === 0 && item.isTrashed === 0 && item.schedule_datetime;
+                const basicConditions = item.isArchived === 0 && item.isTrashed === 0 && item.schedule_datetime && item.status === 'Approved';
 
                 // Permission conditions
                 let hasPermission = false;

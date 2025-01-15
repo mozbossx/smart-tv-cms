@@ -13,7 +13,11 @@ $user_type = urlencode($_SESSION['user_type']);
 $department = urlencode($_SESSION['department']);
 $email = urlencode($_SESSION['email']);
 
-$websocket_url = "wss://usccms.online/ws?user_id={$user_id}&full_name={$full_name}&user_type={$user_type}&department={$department}&email={$email}";
+if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.14') {
+    $websocket_url = "ws://192.168.1.14:8081?user_id={$user_id}&full_name={$full_name}&user_type={$user_type}&department={$department}&email={$email}";
+} else {
+    $websocket_url = "wss://usccms.online/ws?user_id={$user_id}&full_name={$full_name}&user_type={$user_type}&department={$department}&email={$email}";
+}
 
 echo $websocket_url;
 ?>

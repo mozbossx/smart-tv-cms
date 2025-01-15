@@ -52,10 +52,10 @@ include 'admin_access_only.php';
                             </a>
                         </div>
                         <div class="button-container">
-                            <button onclick="changeDisplayTimeModal()" class="content-button" style="width: 100%; cursor: pointer">
-                                <div class="button-icon" style="margin: 0 auto"><i class="fa fa-clock-o"></i></div>
-                                <div class="button-text" style="margin: 0 auto">Change Display Time</div>
-                            </button>
+                            <span class="content-button" onclick="changeDisplayTimeModal()">
+                                <div class="button-icon"><i class="fa fa-clock-o"></i></div>
+                                <div class="button-text">Change Display Time</div>
+                            </span>
                         </div>
                     </div>
                 </div>

@@ -24,6 +24,10 @@ function getQuillEditorContent(contentType) {
 }
 
 function submitFormViaWebSocket() {
+    // Show loading modal immediately when submission starts
+    const loadingModal = document.getElementById('loadingModal');
+    loadingModal.style.display = 'flex';
+
     isFormDirty = false;
     const contentType = document.querySelector('[name="type"]').value;
     const form = document.getElementById(`${contentType}Form`);
@@ -86,7 +90,7 @@ function submitFormViaWebSocket() {
             form.appendChild(subdescriptionInput);
         }
         subdescriptionInput.setAttribute('value', quillEditorContent.subdescription);
-    } else {
+    } else if (contentType !== 'promaterial') {
         let quillHiddenInput = form.querySelector(`input[name="${contentType}_body"]`);
         if (!quillHiddenInput) {
             quillHiddenInput = document.createElement('input');
@@ -129,6 +133,9 @@ function submitFormViaWebSocket() {
     if (mediaInput && mediaInput.files.length > 0) {
         const mediaFile = mediaInput.files[0];
         const reader = new FileReader();
+        
+        // Update loading message for media upload
+        document.getElementById('loadingMessage').textContent = 'Uploading media file, please wait...';
 
         reader.onload = function (e) {
             const base64Data = e.target.result;
@@ -137,12 +144,12 @@ function submitFormViaWebSocket() {
             // Convert FormData to object, excluding empty schedule_datetime
             formData.forEach((value, key) => {
                 if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
-                    return; // Skip empty schedule_datetime
+                    return;
                 }
                 data[key] = value;
             });
 
-            ws.send(JSON.stringify(data));
+            sendDataToWebSocket(data, loadingModal);
         };
 
         reader.readAsDataURL(mediaFile);
@@ -150,20 +157,55 @@ function submitFormViaWebSocket() {
         // Convert FormData to object, excluding empty schedule_datetime
         formData.forEach((value, key) => {
             if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
-                return; // Skip empty schedule_datetime
+                return;
             }
             data[key] = value;
         });
 
-        console.log('Form Data:', data);
-        ws.send(JSON.stringify(data));
+        sendDataToWebSocket(data, loadingModal);
     }
+
+    // Listen for messages from the WebSocket server
+    // ws.onmessage = function(event) {
+    //     const message = JSON.parse(event.data);
+    //     if (message.success) {
+    //         const action = isEditMode ? 'updated' : 'processed';
+    //         if (contentType === 'peo') {
+    //             document.getElementById('successMessage').textContent = `Program Educational Objective was successfully ${action}!`;                        
+    //         } else if (contentType === 'so') {
+    //             document.getElementById('successMessage').textContent = `Student Outcome was successfully ${action}!`;                        
+    //         } else if (userType === 'Student' || userType === 'Faculty') {
+    //             document.getElementById('successMessage').textContent = isEditMode 
+    //                 ? `Your post has been updated and will be reviewed by an admin.`
+    //                 : "Your post will still be in pending mode until an admin approves it.";
+    //         } else {
+    //             document.getElementById('successMessage').textContent = `${capitalizeFirstLetter(contentType)} was successfully ${action}!`;                        
+    //         }
+    //         document.getElementById('successMessageModal').style.display = 'flex';
+    //         isFormDirty = false;
+    //     } 
+    // };
+}
+
+function sendDataToWebSocket(data, loadingModal) {
+    // Update loading message for data processing
+    document.getElementById('loadingMessage').textContent = 'Processing your content...';
+    
+    ws.send(JSON.stringify(data));
 
     // Listen for messages from the WebSocket server
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
-        if (message.success) {
+        
+        if (message.success == true) {
+            // Hide loading modal
+            loadingModal.style.display = 'none';
+
+            const contentType = document.querySelector('[name="type"]').value;
+            const form = document.getElementById(`${contentType}Form`);
+            const isEditMode = form.querySelector('input[name="action_value"]')?.value === 'edit';
             const action = isEditMode ? 'updated' : 'processed';
+            
             if (contentType === 'peo') {
                 document.getElementById('successMessage').textContent = `Program Educational Objective was successfully ${action}!`;                        
             } else if (contentType === 'so') {
@@ -177,7 +219,26 @@ function submitFormViaWebSocket() {
             }
             document.getElementById('successMessageModal').style.display = 'flex';
             isFormDirty = false;
-        } 
+        } else if (message.success == false) {
+            // Hide loading modal
+            loadingModal.style.display = 'none';
+            // Handle error case if needed
+            document.getElementById('errorText').textContent = message.error || 'An error occurred while processing your request.';
+            document.getElementById('errorModal').style.display = 'flex';
+        }
+    };
+
+    ws.onclose = function(event) {
+        loadingModal.style.display = 'none';
+        document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
+        document.getElementById('errorModal').style.display = 'flex';
+    };
+
+    // Add error handling for WebSocket connection
+    ws.onerror = function(error) {
+        loadingModal.style.display = 'none';
+        document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
+        document.getElementById('errorModal').style.display = 'flex';
     };
 }
 

@@ -93,7 +93,60 @@ if (isset($_SESSION['mail'])) {
     <script>
         // Handle form submission via WebSocket
         const form = document.getElementById('pendingUserForm');
-        const ws = new WebSocket('wss://usccms.online/ws?email=<?php echo urlencode($email); ?>');
+        // const ws = new WebSocket('wss://usccms.online/ws?email=<?php echo urlencode($email); ?>');
+
+        function connectWebSocket() {
+            console.log('Attempting WebSocket connection...');
+            
+            // Determine if we're in localhost or production
+            const isLocalhost = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1' ||
+                            window.location.hostname === '192.168.1.14';
+            
+            // Choose WebSocket URL based on environment
+            const wsUrl = isLocalhost 
+                ? 'ws://192.168.1.14:8081?email=<?php echo urlencode($email); ?>'
+                : 'wss://usccms.online/ws?email=<?php echo urlencode($email); ?>';
+            
+            try {
+                const Ws = new WebSocket(wsUrl);
+                
+                Ws.onopen = function() {
+                    console.log('WebSocket Connected Successfully to:', wsUrl);
+                };
+                
+                Ws.onclose = function(event) {
+                    console.log('WebSocket Disconnected from:', wsUrl);
+                    console.log('Code:', event.code, 'Reason:', event.reason);
+                    console.log('Attempting reconnection in 2 seconds...');
+                    setTimeout(connectWebSocket, 2000);
+                };
+                
+                Ws.onerror = function(error) {
+                    console.error('WebSocket Error:', error);
+                    console.log('WebSocket State:', ws.readyState);
+                    console.log('WebSocket URL:', ws.url);
+                    console.log('Protocol:', ws.protocol);
+                    console.log('Extensions:', ws.extensions);
+                };
+                
+                return Ws;
+            } catch (error) {
+                console.error('Error creating WebSocket:', error);
+                console.log('Attempting reconnection in 2 seconds...');
+                setTimeout(connectWebSocket, 2000);
+                return null;
+            }
+        }
+
+        let ws = null;
+        try {
+            ws = connectWebSocket();
+        } catch (error) {
+            console.error('Error initializing WebSocket:', error);
+            console.log('Attempting reconnection in 2 seconds...');
+            setTimeout(connectWebSocket, 2000);
+        }
         
         form.addEventListener('submit', function (e) {
             e.preventDefault();

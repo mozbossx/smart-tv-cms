@@ -183,7 +183,34 @@ $displayInterval = $displayTimeRange['display_interval'];
         </form>
     </div>
 </div>
-    <!-- Modal content will be dynamically inserted here -->
+
+<!-- Loading Websocket Connection Modal -->
+<div id="loadingWebsocketConnectionModal" class="modal">
+    <div class="modal-content" style="padding: 15px; text-align: center;">
+        <div class="loading-spinner">
+            <i class="fa fa-spinner fa-spin" style="font-size: 50px; color: <?php echo $theme_color; ?>"></i>
+        </div>
+        <p id="loadingWebsocketConnectionMessage"></p>
+        <div style="align-items: right; text-align: right; right: 0">
+            <button type="button" class="green-button" style="margin-right: 0" onclick="document.getElementById('loadingWebsocketConnectionModal').style.display='none'">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Websocket Connection Modal -->
+<div id="successWebsocketConnectionModal" class="modal">
+    <div class="modal-content" style="padding: 15px; text-align: center;">
+        <div class="green-bar-vertical">
+            <h1 style="color: <?php echo $theme_color; ?>; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
+            <p id="successWebsocketConnectionMessage"></p>
+            <br>
+            <div style="align-items: right; text-align: right; right: 0">
+                <button type="button" class="green-button" style="margin-right: 0" onclick="document.getElementById('successWebsocketConnectionModal').style.display='none'">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="misc/js/capitalize_first_letter.js"></script>
 <script>
     const userType = '<?php echo $user_type; ?>';

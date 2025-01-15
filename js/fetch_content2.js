@@ -243,8 +243,8 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
 
     if (type !== 'orgchart') {
         contentHtml += `
-                <div class="line-separator"></div>
-                <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
+            <div class="line-separator"></div>
+            <p class="ann-author" style="color: #6E6E6E"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
         `;
     }
 
@@ -421,7 +421,7 @@ const updateUI = (data, type) => {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
         mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; margin: 0 auto; border-radius: 5px">` :
-            isVideo ? `<video width="100%" height="100%" controls style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
+            isVideo ? `<video width="100%" height="100%" controls controlsList="nodownload nofullscreen nopictureinpicture nopictureinpicture" style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     } 
 
     const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, type);

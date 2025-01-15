@@ -944,7 +944,7 @@ class ContentHandler implements MessageComponentInterface
                 }
         
                 // Handle different content types
-                if ($bodyField) {
+                if ($bodyField && $type !== 'promaterial') {
                     // For announcement, event, news
                     $updateFields[] = "$bodyField = ?";
                     $params[] = $data["{$type}_body"];
@@ -1109,13 +1109,13 @@ class ContentHandler implements MessageComponentInterface
                         ];
                     }
 
-                    error_log("Content updated successfully!");
+                    error_log($type . " updated successfully!");
                 } else {
                     $response = [
                         'success' => false,
                         'message' => 'Failed to update ' . $type
                     ];
-                    error_log("Failed to update content!");
+                    error_log($type . " update failed!");
                 }
         
                 $from->send(json_encode($response));

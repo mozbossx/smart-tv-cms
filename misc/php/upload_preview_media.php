@@ -49,28 +49,76 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
 </div>
 
 <script>
+    // Store original display time options when page loads
+    let originalDisplayTimeOptions = '';
+    document.addEventListener('DOMContentLoaded', function() {
+        const displayTimeSelect = document.getElementById('display_time');
+        if (displayTimeSelect) {
+            // Store original options for later use
+            originalDisplayTimeOptions = displayTimeSelect.innerHTML;
+            
+            // If in edit mode and there's a video, set display time to video duration
+            <?php if ($isEditMode && isset($contentData['media_path']) && preg_match('/\.(mp4|mov|wmv|avi|mkv)$/i', $contentData['media_path'])): ?>
+                const videoElement = document.getElementById('video-preview');
+                if (videoElement) {
+                    videoElement.onloadedmetadata = function() {
+                        const videoDuration = Math.ceil(this.duration);
+                        displayTimeSelect.innerHTML = `<option value="${videoDuration}">${videoDuration} seconds</option>`;
+                        displayTimeSelect.value = videoDuration;
+                        displayTimeSelect.style.color = 'black';
+                    };
+                }
+            <?php endif; ?>
+        }
+    });
     // Function to preview selected video or image
     function previewMedia() {
         var mediaInput = document.getElementById('media');
         var videoPreview = document.getElementById('video-preview');
         var imagePreview = document.getElementById('image-preview');
         var previewMedia = document.querySelector('.preview-media'); 
+        var displayTimeSelect = document.getElementById('display_time');
         if (document.getElementById('cancelMediaButton')) {
             var cancelMediaButton = document.getElementById('cancelMediaButton');
         }
 
         if (mediaInput.files && mediaInput.files[0]) {
             var reader = new FileReader();
+            var fileType = mediaInput.files[0].type;
 
             reader.onload = function (e) {
-                var fileType = mediaInput.files[0].type;
-
+                // If it's a video file
                 if (fileType.startsWith('video/')) {
+                    // Create a temporary video element to get duration
+                    var tempVideo = document.createElement('video');
+                    tempVideo.src = e.target.result;
+                    
+                    tempVideo.onloadedmetadata = function() {
+                        // Round up the duration to nearest second
+                        const videoDuration = Math.ceil(tempVideo.duration);
+                        
+                        // Set the video duration as display time
+                        if (displayTimeSelect) {                           
+                            displayTimeSelect.innerHTML = `<option value="${videoDuration}">${videoDuration} seconds</option>`;
+                            displayTimeSelect.value = videoDuration;
+                            displayTimeSelect.style.color = 'black';
+                        }
+                    };
+
                     // Display video preview
                     videoPreview.src = e.target.result;
                     videoPreview.style.display = 'block';
                     imagePreview.style.display = 'none';
-                } else if (fileType.startsWith('image/')) {
+                } 
+                
+                // If it's an image file
+                else if (fileType.startsWith('image/')) {
+                    // For images, enable display time selection
+                    if (displayTimeSelect) {
+                        displayTimeSelect.innerHTML = originalDisplayTimeOptions;
+                        displayTimeSelect.style.color = '';
+                    }
+
                     // Display image preview
                     imagePreview.src = e.target.result;
                     imagePreview.style.display = 'block';
@@ -96,6 +144,12 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         var previewMedia = document.querySelector('.preview-media');
         if (document.getElementById('cancelMediaButton')) {
             var cancelMediaButton = document.getElementById('cancelMediaButton');
+        }
+        // Re-enable display time selection and restore original options
+        var displayTimeSelect = document.getElementById('display_time');
+        if (displayTimeSelect) {
+            displayTimeSelect.innerHTML = originalDisplayTimeOptions;
+            displayTimeSelect.style.color = '';
         }
 
         // If in edit mode and there's an existing media path, delete it via AJAX

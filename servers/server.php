@@ -23,5 +23,5 @@ $server = IoServer::factory(
     ),
     8081
 );
-
+echo "Server is running on port 8081";
 $server->run();

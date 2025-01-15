@@ -110,7 +110,7 @@ if ($isEditMode && isset($_GET['announcement_id'])) {
                             <?php include('misc/php/schedule_post.php')?>
                             <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
                                 <div>
-                                    <button type="button" id="schedulePostButton" class="preview-button" style="background: none; color: <?php echo $theme_color; ?>;">
+                                    <button type="button" id="schedulePostButton" class="green-button" style="background: none; color: <?php echo $theme_color; ?>;">
                                         <i class="fa fa-calendar" style="padding-right: 5px"></i> Schedule Post 
                                     </button>
                                 </div>

@@ -63,7 +63,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
         <?php include('sidebar.php'); ?>
         <div class="main-container">
             <div class="column1">
-                <div class="content-inside-form">
+                <div class="content-inside-form" style="max-width: 800px; margin: 0 auto;">
                     <div id="trashList" class="content-container" style="height: calc(100vh - 160px); overflow: hidden;">
                         <h1 class="content-title" style="text-align: center;">
                             <i class="fa fa-trash" style="margin-right: 6px" aria-hidden="true"></i>Trash

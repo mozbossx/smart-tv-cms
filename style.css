@@ -3165,12 +3165,27 @@ input[type=range]:focus::-ms-fill-upper {
     transform: scale(1.1);
 }
 
-
-
 .color-label {
     font-size: 12px;
     color: #666;
     text-align: center;
+}
+
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Prevent modal from being closed by clicking outside */
+#loadingModal.modal {
+    background-color: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+#loadingModal .modal-content {
+    pointer-events: auto;
 }
 
 /* Media query for smaller screens */

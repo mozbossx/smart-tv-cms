@@ -91,10 +91,10 @@ if (!$resultAllSmartTVs) {
 
     <div id="editSmartTVModal" class="modal"></div>
     <div id="confirmDeleteSmartTVModal" class="modal"></div>
-    <div id="scanResultsModal" class="modal"></div>
+    <!-- <div id="scanResultsModal" class="modal"></div> -->
 
     <script src="js/fetch_smart_tvs.js"></script>
-    <script src="misc/js/scan_smart_tvs.js"></script>
+    <!-- <script src="misc/js/scan_smart_tvs.js"></script> -->
     <script>
         function searchSmartTVsTable() {
             var input, filter, table, tr, td, i, txtValue;
@@ -214,10 +214,10 @@ if (!$resultAllSmartTVs) {
             return null;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('scanTVsButton').addEventListener('click', scanForSmartTVs);
-            document.getElementById('scanTVsButtonMobile').addEventListener('click', scanForSmartTVs);
-        });
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     document.getElementById('scanTVsButton').addEventListener('click', scanForSmartTVs);
+        //     document.getElementById('scanTVsButtonMobile').addEventListener('click', scanForSmartTVs);
+        // });
     </script>
 </body>
 </html>

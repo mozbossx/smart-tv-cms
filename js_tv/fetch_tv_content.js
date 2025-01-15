@@ -1,5 +1,57 @@
 // fetch_tv_content.js
-const Ws = new WebSocket('wss://usccms.online/ws');
+function connectWebSocket() {
+    console.log('Attempting WebSocket connection...');
+    
+    // Determine if we're in localhost or production
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname === '192.168.1.14';
+    
+    // Choose WebSocket URL based on environment
+    const wsUrl = isLocalhost 
+        ? 'ws://192.168.1.14:8081'
+        : 'wss://usccms.online/ws';
+    
+    try {
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = function() {
+            // console.log('WebSocket Connected Successfully to:', wsUrl);
+        };
+        
+        ws.onclose = function(event) {
+            // console.log('WebSocket Disconnected from:', wsUrl);
+            // console.log('Code:', event.code, 'Reason:', event.reason);
+            // console.log('Attempting reconnection in 2 seconds...');
+            setTimeout(connectWebSocket, 2000);
+        };
+        
+        ws.onerror = function(error) {
+            // console.error('WebSocket Error:', error);
+            // console.log('WebSocket State:', ws.readyState);
+            // console.log('WebSocket URL:', ws.url);
+            // console.log('Protocol:', ws.protocol);
+            // console.log('Extensions:', ws.extensions);
+            // setTimeout(connectWebSocket, 2000);
+        };
+        
+        return ws;
+    } catch (error) {
+        // console.error('Error creating WebSocket:', error);
+        // console.log('Attempting reconnection in 2 seconds...');
+        // setTimeout(connectWebSocket, 2000);
+        return null;
+    }
+}
+
+let Ws = null;
+try {
+    Ws = connectWebSocket();
+} catch (error) {
+    console.error('Error initializing WebSocket:', error);
+    console.log('Attempting reconnection in 2 seconds...');
+    // setTimeout(connectWebSocket, 2000);
+}
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -121,7 +173,7 @@ const updateUI = (data, type) => {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
         mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}">` :
-            isVideo ? `<video controls><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
+            isVideo ? `<video><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
     // Special handling for orgchart type

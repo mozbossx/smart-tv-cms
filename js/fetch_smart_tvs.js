@@ -74,7 +74,13 @@ const sendWebSocketMessage = (data) => {
                             showSuccessModal(successMessage);
                             break;
                     }
-                    displaySmartTVTable(data);
+                    // Fetch fresh data after successful operation
+                    fetch('database/fetch_smart_tvs2.php')
+                        .then(response => response.json())
+                        .then(tvData => {
+                            displaySmartTVTable(tvData);
+                        })
+                        .catch(error => console.error('Error fetching updated smart TVs:', error));
                 } else if (message.success == false) {
                     let errorMessage = message.message || 'An error occurred. Please try again.';
                     showErrorModal(errorMessage);
@@ -281,26 +287,26 @@ const editSmartTV = (tv_id, tv_name, tv_brand, tv_department) => {
     sendWebSocketMessage(data);
 };
 
-Ws.addEventListener('message', function (event) {
-    const data = JSON.parse(event.data);
-    if (data.action === 'delete_smart_tv' && data.success) {
-        // Fetch all smart TVs and refresh the table
-        fetch('database/fetch_smart_tvs2.php')
-            .then(response => response.json())
-            .then(data => {
-                displaySmartTVTable(data);
-            })
-            .catch(error => console.error('Error fetching updated smart TVs:', error));
-    } else if (data.action === 'edit_smart_tv' && data.success) {
-        // Fetch all smart TVs and refresh the table
-        fetch('database/fetch_smart_tvs2.php')
-            .then(response => response.json())
-            .then(data => {
-                displaySmartTVTable(data);
-            })
-            .catch(error => console.error('Error fetching updated smart TVs:', error));
-    } 
-});
+// Ws.addEventListener('message', function (event) {
+//     const data = JSON.parse(event.data);
+//     if (data.action === 'delete_smart_tv' && data.success) {
+//         // Fetch all smart TVs and refresh the table
+//         fetch('database/fetch_smart_tvs2.php')
+//             .then(response => response.json())
+//             .then(data => {
+//                 displaySmartTVTable(data);
+//             })
+//             .catch(error => console.error('Error fetching updated smart TVs:', error));
+//     } else if (data.action === 'edit_smart_tv' && data.success) {
+//         // Fetch all smart TVs and refresh the table
+//         fetch('database/fetch_smart_tvs2.php')
+//             .then(response => response.json())
+//             .then(data => {
+//                 displaySmartTVTable(data);
+//             })
+//             .catch(error => console.error('Error fetching updated smart TVs:', error));
+//     } 
+// });
 
 document.addEventListener('DOMContentLoaded', () => {
     fetch('database/fetch_smart_tvs2.php')
