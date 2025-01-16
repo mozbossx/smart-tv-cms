@@ -185,7 +185,7 @@ $displayInterval = $displayTimeRange['display_interval'];
 </div>
 
 <!-- Loading Websocket Connection Modal -->
-<div id="loadingWebsocketConnectionModal" class="modal">
+<div id="loadingWebsocketConnectionModal" class="modal" style="z-index: 10000000000000;">
     <div class="modal-content" style="padding: 15px; text-align: center;">
         <div class="loading-spinner">
             <i class="fa fa-spinner fa-spin" style="font-size: 50px; color: <?php echo $theme_color; ?>"></i>
@@ -198,14 +198,14 @@ $displayInterval = $displayTimeRange['display_interval'];
 </div>
 
 <!-- Success Websocket Connection Modal -->
-<div id="successWebsocketConnectionModal" class="modal">
+<div id="successWebsocketConnectionModal" class="modal" style="z-index: 10000000000000;">
     <div class="modal-content" style="padding: 15px; text-align: center;">
         <div class="green-bar-vertical">
             <h1 style="color: <?php echo $theme_color; ?>; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
             <p id="successWebsocketConnectionMessage"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">
-                <button type="button" class="green-button" style="margin-right: 0" onclick="document.getElementById('successWebsocketConnectionModal').style.display='none'">Okay</button>
+                <button type="button" class="green-button" style="margin-right: 0" onclick="window.location.reload()">Okay</button>
             </div>
         </div>
     </div>

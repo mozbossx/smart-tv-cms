@@ -221,12 +221,18 @@ function searchArchives() {
         if (item.id === 'noResultsMessage') return;
 
         const textContent = item.textContent.toLowerCase();
-        const itemType = item.querySelector('.content-type-label')?.textContent.toLowerCase();
+        const itemTypeElement = item.querySelector('.content-type-label');
+        const itemType = itemTypeElement ? itemTypeElement.textContent.toLowerCase().trim() : '';
         
-        if (!itemType) return; // Skip if not a content item
+        // Add debug logging
+        console.log('Item type:', itemType);
+        console.log('Content type to match:', contentType.toLowerCase());
 
         const matchesKeyword = keyword === '' || textContent.includes(keyword);
-        const matchesType = contentType === 'all' || itemType.includes(contentType.toLowerCase());
+        // Update the type matching logic to handle dynamic feature names
+        const matchesType = contentType === 'all' || 
+                          itemType.includes(contentType.toLowerCase()) ||
+                          itemType.includes(contentType.replace(/_/g, ' ').toLowerCase());
         
         item.style.display = (matchesKeyword && matchesType) ? 'block' : 'none';
         if (matchesKeyword && matchesType) hasVisibleItems = true;
@@ -258,58 +264,91 @@ function clearSearch() {
 
 // Function to populate content type dropdown
 function populateContentTypeDropdown() {
-    const select = document.getElementById('contentType');
-    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
-    
-    if (userType === 'Admin' || userType === 'Super Admin') {
-        contentTypes.push('peo', 'so');
-    }
-
-    // Clear existing options except "All"
-    while (select.options.length > 1) {
-        select.remove(1);
-    }
-
-    // Fetch counts for all content types
-    Promise.all(contentTypes.map(type =>
-        fetch(`database/fetch_content.php?type=${type}&archived=true`)
-            .then(response => response.json())
-    ))
-    .then(results => {
-        let totalCount = 0;
-        const typeCounts = {};
-
-        // Calculate counts for each type
-        results.forEach((data, index) => {
-            const type = contentTypes[index];
-            const count = data.filter(item => 
-                item.isArchived === 1 && 
-                item.isTrashed === 0 && 
-                (type === 'peo' || type === 'so' || item.status === 'Approved') &&
-                hasPermissionToView({ ...item, contentType: type })
-            ).length;
+    // First fetch all features
+    fetch('database/fetch_feature_info.php?type=all')
+        .then(response => response.json())
+        .then(features => {
+            const select = document.getElementById('contentType');
+            const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
             
-            typeCounts[type] = count;
-            totalCount += count;
+            // Add dynamic features
+            if (Array.isArray(features)) {
+                features.forEach(feature => {
+                    const featureType = feature.type;
+                    if (!contentTypes.includes(featureType)) {
+                        contentTypes.push(featureType);
+                        // Store the icon for this feature type if needed
+                        featureIcons[featureType] = feature.icon;
+                    }
+                });
+            }
+            
+            // Add admin-only content types
+            if (userType === 'Admin' || userType === 'Super Admin') {
+                if (!contentTypes.includes('peo')) contentTypes.push('peo');
+                if (!contentTypes.includes('so')) contentTypes.push('so');
+            }
+
+            // Clear existing options except "All"
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+
+            // Fetch counts for all content types
+            Promise.all(contentTypes.map(type =>
+                fetch(`database/fetch_content.php?type=${type}&archived=true`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(`Error fetching ${type}:`, data.error);
+                            return { type, count: 0 };
+                        }
+
+                        const count = data.filter(item => 
+                            item.isArchived === 1 && 
+                            item.isTrashed === 0 && 
+                            (item.status === 'Approved' || type === 'peo' || type === 'so') &&
+                            hasPermissionToView({ ...item, contentType: type })
+                        ).length;
+
+                        return { type, count };
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${type}:`, error);
+                        return { type, count: 0 };
+                    })
+            ))
+            .then(results => {
+                let totalCount = 0;
+
+                // Calculate total count and store individual counts
+                results.forEach(({ type, count }) => {
+                    totalCount += count;
+                });
+
+                // Update "All" option with total count
+                select.options[0].textContent = `All (${totalCount})`;
+
+                // Add options for each content type with counts
+                results.forEach(({ type, count }) => {
+                    if (count > 0 || type === 'announcement' || type === 'event' || type === 'news' || type === 'promaterial' || type === 'peo' || type === 'so') {
+                        const option = document.createElement('option');
+                        option.value = type;
+                        option.textContent = `${formatContentType(type)} (${count})`;
+                        select.appendChild(option);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching content type counts:', error);
+            });
+
+            // Add change event listener
+            select.addEventListener('change', searchArchives);
+        })
+        .catch(error => {
+            console.error('Error fetching features:', error);
         });
-
-        // Update "All" option with total count
-        select.options[0].textContent = `All (${totalCount})`;
-
-        // Add options for each content type with counts
-        contentTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = `${formatContentType(type)} (${typeCounts[type]})`;
-            select.appendChild(option);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching content type counts:', error);
-    });
-
-    // Add change event listener
-    select.addEventListener('change', searchArchives);
 }
 
 const createTrashButton = (text, iconClass, onClick) => {
@@ -367,13 +406,11 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
                             <pre class="ann-body" style="word-break: break-word">${data[`${type}_subdescription`]}</pre>`;
             break;
         default:
-            // For new features, dynamically add all fields
+            // For dynamic features, display all content fields except metadata
             for (let key in data) {
-                if (key !== `${type}_id` && key !== 'created_datetime' && key !== 'expiration_datetime' 
-                    && key !== 'display_time' && key !== 'status' && key !== 'isArchived' 
-                    && key !== 'tv_id' && key !== `${type}_author_id` && key !== 'type' && key !== 'department' 
-                    && key !== 'user_type' && key !== 'category' && key !== 'evaluated_by' && key !== 'evaluated_message' && key !== 'author_name') {
-                        contentHtml += `<p>${data[key]}</p>`;
+                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
+                    && !key.endsWith('_id')) {
+                    contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[key]}</pre>`;
                 }
             }
     }
@@ -381,6 +418,9 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
     contentHtml += `
             <div class="line-separator"></div>
             <p class="ann-author" style="color: #6E6E6E; margin-top: 10px"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
+            ${formattedExpirationDateTime && !['peo', 'so'].includes(type) ? 
+                `<p class="ann-author" style="color: #6E6E6E;"><small>Expires on ${formattedExpirationDateTime}</small></p>` : 
+                ''}
             <p class="ann-author" style="color: #6E6E6E; margin-bottom: 10px"><small>Archived on ${formattedArchivedDateTime}</small></p>
             <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs  |  <i class="fa fa-tv" aria-hidden="true" style="margin-left: 5px"></i> ${tvDisplay}</p>
         </div>
@@ -402,7 +442,7 @@ const updateUI = async (data, type) => {
 
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
-    const formattedExpirationDateTime = formatDateTime(data.expiration_datetime);
+    const formattedExpirationDateTime = ['peo', 'so'].includes(type) ? null : formatDateTime(data.expiration_datetime);
     const formattedArchivedDateTime = formatDateTime(data.datetime_archived);
 
     let mediaContent = '';
@@ -518,7 +558,8 @@ const hasPermissionToView = (content) => {
 
 // Helper function to get icon for content type
 const getTypeIcon = (type) => {
-    const icons = {
+    // Default icons for built-in types
+    const defaultIcons = {
         announcement: 'fa-bullhorn',
         event: 'fa-calendar-check-o',
         news: 'fa-newspaper-o',
@@ -526,11 +567,14 @@ const getTypeIcon = (type) => {
         peo: 'fa-map',
         so: 'fa-graduation-cap'
     };
-    return icons[type] || 'fa-file';
+
+    // Return the dynamic icon if it exists, otherwise use default or fallback
+    return featureIcons[type] || defaultIcons[type] || 'fa-file';
 };
 
 // Helper function to format content type for display
 const formatContentType = (type) => {
+    // Default formats for built-in types
     const formats = {
         announcement: 'Announcement',
         event: 'Event',
@@ -539,7 +583,17 @@ const formatContentType = (type) => {
         peo: 'PEO',
         so: 'SO'
     };
-    return formats[type] || type;
+
+    // If it's a built-in type, use the predefined format
+    if (formats[type]) {
+        return formats[type];
+    }
+
+    // For dynamic features, capitalize each word
+    return type
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
 };
 
 // Include tv_name
@@ -733,36 +787,42 @@ const displayNoMessage = (type) => {
 // const defaultContentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
 
 // Function to create modals dynamically
-const createModals = (contentTypes) => {
-    const modalContainer = document.createElement('div');
-    modalContainer.id = 'dynamicModals';
-
-    contentTypes.forEach(type => {
-        const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+const createModals = async () => {
+    try {
+        // Get all available features
+        const features = await getFeatureInfo('all');
+        const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
         
-        // Restore Modal
-        const restoreModal = document.createElement('div');
-        restoreModal.id = `confirmRestore${capitalizedType}Modal`;
-        restoreModal.className = 'modal';
-        restoreModal.innerHTML = `<div id="restore${capitalizedType}ModalContent"></div>`;
-        modalContainer.appendChild(restoreModal);
+        // Add dynamic features
+        if (features && Array.isArray(features)) {
+            features.forEach(feature => {
+                if (!contentTypes.includes(feature.type)) {
+                    contentTypes.push(feature.type);
+                }
+            });
+        }
 
-        // Trash Modal
-        const trashModal = document.createElement('div');
-        trashModal.id = `confirmTrash${capitalizedType}Modal`;
-        trashModal.className = 'modal';
-        trashModal.innerHTML = `<div id="trash${capitalizedType}ModalContent"></div>`;
-        modalContainer.appendChild(trashModal);
+        const modalContainer = document.createElement('div');
+        modalContainer.id = 'dynamicModals';
 
-        // Delete Modal
-        const deleteModal = document.createElement('div');
-        deleteModal.id = `confirmDelete${capitalizedType}Modal`;
-        deleteModal.className = 'modal';
-        deleteModal.innerHTML = `<div id="delete${capitalizedType}ModalContent"></div>`;
-        modalContainer.appendChild(deleteModal);
-    });
+        // Create modals for all content types
+        contentTypes.forEach(type => {
+            const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+            
+            // Create restore, trash, and delete modals for each type
+            ['Restore', 'Trash', 'Delete'].forEach(action => {
+                const modal = document.createElement('div');
+                modal.id = `confirm${action}${capitalizedType}Modal`;
+                modal.className = 'modal';
+                modal.innerHTML = `<div id="${action.toLowerCase()}${capitalizedType}ModalContent"></div>`;
+                modalContainer.appendChild(modal);
+            });
+        });
 
-    document.body.appendChild(modalContainer);
+        document.body.appendChild(modalContainer);
+    } catch (error) {
+        console.error('Error creating modals:', error);
+    }
 };
 
 // Function to show restore modal
@@ -899,14 +959,36 @@ const getFeatureInfo = async (type) => {
     }
 };
 
+let featureIcons = {};
+
 // Function to fetch and update content for all types
 const fetchAndUpdateAll = async () => {
-    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
-    if (userType === 'Admin' || userType === 'Super Admin') {
-        contentTypes.push('peo', 'so');
-    }
-
     try {
+        // Get all available features first
+        const response = await fetch('database/fetch_feature_info.php?type=all');
+        const features = await response.json();
+        console.log(features);
+        
+        // Start with default content types
+        const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
+        
+        // Add dynamic features and store their icons
+        if (Array.isArray(features)) {
+            features.forEach(feature => {
+                const featureType = feature.type;
+                if (!contentTypes.includes(featureType)) {
+                    contentTypes.push(featureType);
+                    // Store the icon for this feature
+                    featureIcons[featureType] = feature.icon;
+                }
+            });
+        }
+
+        // Add admin-only content types
+        if (userType === 'Admin' || userType === 'Super Admin') {
+            contentTypes.push('peo', 'so');
+        }
+
         const archivesContainer = document.getElementById('archivesContainer');
         if (!archivesContainer) {
             console.error('Archives container not found');
@@ -919,20 +1001,30 @@ const fetchAndUpdateAll = async () => {
         // Fetch all content types
         const allContent = [];
         for (const type of contentTypes) {
-            const response = await fetch(`database/fetch_content.php?type=${type}&archived=true`);
-            const data = await response.json();
-            const filteredData = data.filter(item => 
-                item.isArchived === 1 && 
-                item.isTrashed === 0 && 
-                (type === 'peo' || type === 'so' || item.status === 'Approved') &&
-                hasPermissionToView({ ...item, contentType: type })
-            );
-            
-            // Add content type to each item
-            filteredData.forEach(item => {
-                item.contentType = type;
-                allContent.push(item);
-            });
+            try {
+                const response = await fetch(`database/fetch_content.php?type=${type}&archived=true`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error(`Error fetching ${type}:`, data.error);
+                    continue;
+                }
+
+                const filteredData = data.filter(item => 
+                    item.isArchived === 1 && 
+                    item.isTrashed === 0 && 
+                    (item.status === 'Approved' || type === 'peo' || type === 'so') &&
+                    hasPermissionToView({ ...item, contentType: type.toLowerCase() })
+                );
+                
+                // Add content type to each item
+                filteredData.forEach(item => {
+                    item.contentType = type;
+                    allContent.push(item);
+                });
+            } catch (error) {
+                console.error(`Error fetching ${type}:`, error);
+            }
         }
 
         // Sort all content by archived datetime
@@ -989,9 +1081,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchArchiveDays();
     await fetchTrashDays();
 
-    // Create modals for all content types
-    const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
-    createModals(contentTypes);
+    // Create modals with dynamic features
+    await createModals();
 
     // Initialize search functionality
     populateContentTypeDropdown();

@@ -464,8 +464,10 @@ const updateUI = (data, type) => {
 
         // Only create archive and trash buttons for specific content types
         const isStandardContent = ['announcement', 'event', 'news', 'promaterial'].includes(type);
+        const isDynamicFeature = type !== 'orgchart' && type !== 'facility';
 
-        if (isStandardContent) {
+        // for standard content types and dynamic features, create archive and trash buttons
+        if (isStandardContent || isDynamicFeature) {
             const trashButton = createTrashButton('Trash', 'fa fa-trash', () => showTrashModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
             const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
             

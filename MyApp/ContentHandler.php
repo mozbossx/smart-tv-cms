@@ -2822,7 +2822,7 @@ class ContentHandler implements MessageComponentInterface
                 // ];
 
         
-                echo "Content approved and notification updated!\n";
+                echo $content_type . " approved and notification updated!\n";
             } else {
                 $response = ['action' => 'approve_post', 'success' => false, 'message' => 'Failed to approve content'];
             }
@@ -4366,6 +4366,9 @@ class ContentHandler implements MessageComponentInterface
                     category VARCHAR(255) NOT NULL,
                     isArchived TINYINT(1) DEFAULT 0,
                     isTrashed TINYINT(1) DEFAULT 0,
+                    isScheduled TINYINT(1) DEFAULT 0,
+                    datetime_archived DATETIME DEFAULT NULL,
+                    datetime_trashed DATETIME DEFAULT NULL,
                     schedule_datetime DATETIME DEFAULT NULL,
                     created_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (tv_id) REFERENCES smart_tvs_tb(tv_id),

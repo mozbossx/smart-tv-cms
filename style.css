@@ -2499,7 +2499,14 @@ tr:nth-child(even) {
     flex-direction: column;
 }
 
-.notification-buttons {
+.notification-buttons-non-deletable {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.notification-buttons-deletable {
     display: flex;
     flex-direction: row;
     gap: 5px;

@@ -31,14 +31,10 @@ try {
     $query = "SELECT c.*, u.full_name as author_name, u.user_type as author_user_type, u.department as author_department, u.user_id as author_id
               FROM {$tableName} c 
               LEFT JOIN users_tb u ON c.{$authorIdField} = u.user_id
-              WHERE c.status = :status";
-
-    $params = [
-        ':status' => 'Pending'
-    ];
+              WHERE c.status = 'Pending'";
 
     $statement = $pdo->prepare($query);
-    $statement->execute($params);
+    $statement->execute();
     $content = $statement->fetchAll(PDO::FETCH_ASSOC);
 
     // Return JSON response

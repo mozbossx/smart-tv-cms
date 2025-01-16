@@ -1,3 +1,6 @@
+// Add a global variable to track connection status
+let isConnected = false;
+
 function connectWebSocket() {
     console.log('Attempting WebSocket connection...');
     
@@ -16,6 +19,7 @@ function connectWebSocket() {
         
         ws.onopen = function() {
             console.log('WebSocket Connected Successfully to:', wsUrl);
+            isConnected = true;
             const loadingWebsocketConnectionModal = document.getElementById('loadingWebsocketConnectionModal');
             const successWebsocketConnectionModal = document.getElementById('successWebsocketConnectionModal');
             if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
@@ -26,9 +30,7 @@ function connectWebSocket() {
         };
         
         ws.onclose = function(event) {
-            console.log('WebSocket Disconnected from:', wsUrl);
-            console.log('Code:', event.code, 'Reason:', event.reason);
-            console.log('Attempting reconnection in 4 seconds...');
+            isConnected = false;
             const loadingWebsocketConnectionModal = document.getElementById('loadingWebsocketConnectionModal');
             const successWebsocketConnectionModal = document.getElementById('successWebsocketConnectionModal');
             if (loadingWebsocketConnectionModal) {
@@ -36,23 +38,18 @@ function connectWebSocket() {
                 successWebsocketConnectionModal.style.display = 'none';
                 document.getElementById('loadingWebsocketConnectionMessage').textContent = 'WebSocket Disconnected. Reconnecting...';
             }
-            setTimeout(connectWebSocket, 5000);
-        };
-        
-        ws.onerror = function(error) {
-            console.error('WebSocket Error:', error);
-            console.log('WebSocket State:', ws.readyState);
-            console.log('WebSocket URL:', ws.url);
-            console.log('Protocol:', ws.protocol);
-            console.log('Extensions:', ws.extensions);
-            // setTimeout(connectWebSocket, 5000);
+            setTimeout(() => {
+                Ws = connectWebSocket();
+            }, 5000);
         };
         
         return ws;
     } catch (error) {
         console.error('Error creating WebSocket:', error);
-        console.log('Attempting reconnection in 4 seconds...');
-        // setTimeout(connectWebSocket, 5000);
+        isConnected = false;
+        setTimeout(() => {
+            Ws = connectWebSocket();
+        }, 5000);
         return null;
     }
 }
@@ -378,7 +375,7 @@ function createNotificationDiv(notification) {
                     <p class="user-registration-notification">${notification.action_user_name} wants to join as a ${notification.action_user_type} in ${notification.action_user_department} department.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
-                <div class="notification-buttons">
+                <div class="notification-buttons-non-deletable">
                     <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveModal(${notification.user_id}, '${notification.action_user_email}', '${notification.action_user_name}', '${notification.action_user_type}', '${full_name}', '${notification.action_user_department}', ${user_id})">Approve</button>
                     <button type="button" class="red-button" style="margin: 0;" onclick="showConfirmRejectModal(${notification.user_id}, '${notification.action_user_email}', '${notification.action_user_name}', '${notification.action_user_type}', '${full_name}', '${notification.action_user_department}', ${user_id})">Reject</button>
                 </div>
@@ -389,13 +386,12 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('pending-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-post-notification">${notification.action_user_name} wants to post ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
+                    <p class="content-post-notification">${notification.action_user_name} wants to post ${notification.content_type} on the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
-                <div class="notification-buttons">
+                <div class="notification-buttons-non-deletable">
                     <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Approve</button>
                     <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Reject</button>
-                    <!-- <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button> -->
                     <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
                 </div>
             `;
@@ -405,13 +401,12 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('pending-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-post-notification">${notification.action_user_name} wants to schedule ${notification.content_type} to be posted in ${formatDateTime2(notification.content_schedule_datetime)} in the TV: ${notification.content_tv_name}.</p>
+                    <p class="content-post-notification">${notification.action_user_name} wants to schedule ${notification.content_type} on ${formatDateTime2(notification.content_schedule_datetime)} on TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
-                <div class="notification-buttons">
+                <div class="notification-buttons-non-deletable">
                     <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Approve</button>
                     <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Reject</button>
-                    <!-- <button type="button" class="light-green-button" style="margin: 0;" onclick="viewContent(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">View</button> -->
                     <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
                 </div>
             `;
@@ -424,8 +419,8 @@ function createNotificationDiv(notification) {
                 <div class="notification-details">
                     <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your ${notification.content_type} is pending for approval to be posted on TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                    <div class="notification-buttons">
-                        <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
+                    <div class="notification-buttons-non-deletable">
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
                     </div>
                 </div>
             `;
@@ -435,10 +430,10 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('pending-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your scheduled ${notification.content_type} to be posted on ${formatDateTime2(notification.content_schedule_datetime)} on TV: ${notification.content_tv_name} is pending for approval.</p>
+                    <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your scheduled ${notification.content_type} on ${formatDateTime2(notification.content_schedule_datetime)} on TV: ${notification.content_tv_name} is pending for approval.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                    <div class="notification-buttons">
-                        <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
+                    <div class="notification-buttons-non-deletable">
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
                     </div>
                 </div>
             `;
@@ -711,8 +706,11 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('approved-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">You approved ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
+                    <p class="content-approved-notification">You approved ${notification.action_user_name}'s ${notification.content_type} on the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                    <div class="notification-buttons-deletable">
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_approved_contents.php?pageid=ViewApprovedContents&userId=${user_id}&userType=${userType}'">View</button>
+                    </div>
                 </div>
             `;
         }
@@ -721,8 +719,11 @@ function createNotificationDiv(notification) {
             notificationDiv.classList.add('approved-notification');
             content = `
                 <div class="notification-details">
-                    <p class="content-approved-notification">${notification.evaluator_name} approved ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
+                    <p class="content-approved-notification">${notification.evaluator_name} approved ${notification.action_user_name}'s ${notification.content_type} on the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                    <div class="notification-buttons-deletable">
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_approved_contents.php?pageid=ViewApprovedContents&userId=${user_id}&userType=${userType}'">View</button>
+                    </div>
                 </div>
             `;
         }
@@ -732,8 +733,11 @@ function createNotificationDiv(notification) {
         notificationDiv.classList.add('approved-notification');
         content = `
             <div class="notification-details">
-                <p class="content-approved-notification">Your ${notification.content_type} has been approved by ${notification.evaluator_name} to be posted in the TV: ${notification.content_tv_name}.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} has been approved by ${notification.evaluator_name} to be posted on TV: ${notification.content_tv_name}.</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                <div class="notification-buttons-deletable">
+                    <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_approved_contents.php?pageid=ViewApprovedContents&userId=${user_id}&userType=${userType}'">View</button>
+                </div>
             </div>
         `;
     } 
@@ -746,6 +750,9 @@ function createNotificationDiv(notification) {
                     <p class="content-approved-notification">You rejected ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                    <div class="notification-buttons-deletable">
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_rejected_contents.php?pageid=ViewRejectedContents&userId=${user_id}&userType=${userType}'">View</button>
+                    </div>
                 </div>
             `;
         }
@@ -757,6 +764,9 @@ function createNotificationDiv(notification) {
                     <p class="content-approved-notification">${notification.evaluator_name} rejected ${notification.action_user_name}'s ${notification.content_type} to be posted in the TV: ${notification.content_tv_name}.</p>
                     <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+                    <div class="notification-buttons-deletable">
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_rejected_contents.php?pageid=ViewRejectedContents&userId=${user_id}&userType=${userType}'">View</button>
+                    </div>
                 </div>
             `;
         }
@@ -764,14 +774,21 @@ function createNotificationDiv(notification) {
 
     if (notification.notification_type === 'content_rejected_by_admin' && notification.status == 'rejected' && notification.user_id == user_id) {
         notificationDiv.classList.add('rejected-notification');
+        const queryParams = new URLSearchParams({
+            [`${notification.content_type}_id`]: notification.content_id,
+            type: notification.content_type,
+            tv_id: notification.content_tv_id,
+            action: 'edit'
+        }).toString();
         content = `
             <div class="notification-details">
                 <p class="content-approved-notification">Your ${notification.content_type} has been rejected by ${notification.evaluator_name}.</p>
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                <div class="notification-buttons">
-                    <button type="button" class="green-button" style="margin: 0;" onclick="showEditContentContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}')">Edit</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmDeleteContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}', '${notification.action_user_name}', '${notification.action_user_type}', '${notification.action_user_department}', ${notification.content_tv_id})">Delete Content</button>
+                <div class="notification-buttons-non-deletable">
+                    <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_rejected_contents.php?pageid=ViewRejectedContents&userId=${user_id}&userType=${userType}'">View</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href = 'form_${notification.content_type}.php?${queryParams}'">Edit</button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmDeleteContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}', '${notification.action_user_name}', '${notification.action_user_type}', '${notification.action_user_department}', ${notification.content_tv_id})">Delete</button>
                 </div>
             </div>
         `;
@@ -1092,7 +1109,7 @@ function createNotificationDiv(notification) {
     }
 
     // Check if the content includes notification-buttons
-    if (!content.includes('notification-buttons')) {
+    if (!content.includes('notification-buttons-non-deletable')) {
         // Add delete button only if there are no notification-buttons
         content += `<button class="delete-notification" onclick="deleteNotification(${notification.notification_id})"><i class="fa fa-times-circle" aria-hidden="true"></i></button>`;
     }
@@ -1403,70 +1420,182 @@ function viewContent(contentId, contentType, userId, fullName) {
 }
 
 // Function to update archives count
-function updateArchivesCount(count) {
-    const archivesCountElement = document.getElementById('archivesContentCount');
-    const archivesCountMobileElement = document.getElementById('archivesContentCountMobile');
-    if (archivesCountElement) {
-        archivesCountElement.textContent = count > 0 ? count : '0';
-        archivesCountElement.style.display = count > 0 ? 'inline' : 'inline';
-    }
-    if (archivesCountMobileElement) {
-        archivesCountMobileElement.textContent = count > 0 ? count : '0';
-        archivesCountMobileElement.style.display = count > 0 ? 'inline' : 'inline';
-    }
+function updateArchivesCount() {
+    // First fetch all features
+    fetch('database/fetch_feature_info.php?type=all')
+        .then(response => response.json())
+        .then(features => {
+            // Start with default content types
+            const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+            
+            // Add dynamic features
+            if (Array.isArray(features)) {
+                features.forEach(feature => {
+                    const featureType = feature.type;
+                    if (!contentTypes.includes(featureType)) {
+                        contentTypes.push(featureType);
+                    }
+                });
+            }
+
+            // Add admin-only content types
+            if (userType === 'Admin' || userType === 'Super Admin') {
+                if (!contentTypes.includes('peo')) contentTypes.push('peo');
+                if (!contentTypes.includes('so')) contentTypes.push('so');
+            }
+
+            // Create array of promises for all content type fetches
+            const fetchPromises = contentTypes.map(type =>
+                fetch(`database/fetch_content.php?type=${type}&archived=true`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(`Error fetching ${type}:`, data.error);
+                            return 0;
+                        }
+
+                        return data.filter(item => {
+                            // Basic archive conditions
+                            const basicConditions = item.isArchived === 1 && 
+                                item.isTrashed === 0 && 
+                                (type === 'peo' || type === 'so' || item.status === 'Approved');
+
+                            // Permission conditions
+                            let hasPermission = false;
+                            if (userType === 'Super Admin') {
+                                hasPermission = true;
+                            } else if (userType === 'Admin') {
+                                hasPermission = item.author_department === department;
+                            } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+                                hasPermission = parseInt(item[`${type}_author_id`]) === parseInt(user_id);
+                            }
+
+                            return basicConditions && hasPermission;
+                        }).length;
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${type} archives count:`, error);
+                        return 0;
+                    })
+            );
+
+            // Wait for all fetches to complete and sum the counts
+            Promise.all(fetchPromises)
+                .then(counts => {
+                    const totalCount = counts.reduce((sum, count) => sum + count, 0);
+                    
+                    // Update UI elements
+                    const archivesCountElement = document.getElementById('archivesContentCount');
+                    const archivesCountMobileElement = document.getElementById('archivesContentCountMobile');
+                    
+                    if (archivesCountElement) {
+                        archivesCountElement.textContent = totalCount > 0 ? totalCount : '0';
+                        archivesCountElement.style.display = 'inline';
+                    }
+                    if (archivesCountMobileElement) {
+                        archivesCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
+                        archivesCountMobileElement.style.display = 'inline';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error calculating total archives count:', error);
+                });
+        })
+        .catch(error => {
+            console.error('Error fetching features:', error);
+        });
 }
 
 // Function to fetch archives count
 function fetchArchivesCount() {
-    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
-    if (userType === 'Admin' || userType === 'Super Admin') {
-        contentTypes.push('peo', 'so');
-    }
-
-    Promise.all(contentTypes.map(type =>
-        fetch(`database/fetch_content.php?type=${type}&archived=true`)
-            .then(response => response.json())
-    ))
-    .then(results => {
-        const totalCount = results.reduce((count, data, index) => {
-            return count + data.filter(item => {
-                // Basic archive conditions
-                const basicConditions = item.isArchived === 1 && 
-                    item.isTrashed === 0 && 
-                    (contentTypes[index] === 'peo' || contentTypes[index] === 'so' || item.status === 'Approved');
-
-                // Permission conditions
-                let hasPermission = false;
-                if (userType === 'Super Admin') {
-                    hasPermission = true;
-                } else if (userType === 'Admin') {
-                    hasPermission = item.author_department === department;
-                } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
-                    hasPermission = parseInt(item[`${contentTypes[index]}_author_id`]) === parseInt(user_id);
-                }
-
-                return basicConditions && hasPermission;
-            }).length;
-        }, 0);
-        updateArchivesCount(totalCount);
-    })
-    .catch(error => {
-        console.error('Error fetching archives count:', error);
-    });
+    updateArchivesCount();
 }
 
 // Function to update trash count
-function updateTrashCount(count) {
-    const trashCountElement = document.getElementById('trashContentCount');
-    const trashCountMobileElement = document.getElementById('trashContentCountMobile');
-    if (trashCountElement) {
-        trashCountElement.textContent = count > 0 ? count : '0';
-        trashCountElement.style.display = count > 0 ? 'inline' : 'inline';
-    }
-    if (trashCountMobileElement) {
-        trashCountMobileElement.textContent = count > 0 ? count : '0';
-        trashCountMobileElement.style.display = count > 0 ? 'inline' : 'inline';
-    }
+function updateTrashCount() {
+    // First fetch all features
+    fetch('database/fetch_feature_info.php?type=all')
+        .then(response => response.json())
+        .then(features => {
+            // Start with default content types
+            const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+            
+            // Add dynamic features
+            if (Array.isArray(features)) {
+                features.forEach(feature => {
+                    const featureType = feature.type;
+                    if (!contentTypes.includes(featureType)) {
+                        contentTypes.push(featureType);
+                    }
+                });
+            }
+
+            // Add admin-only content types
+            if (userType === 'Admin' || userType === 'Super Admin') {
+                if (!contentTypes.includes('peo')) contentTypes.push('peo');
+                if (!contentTypes.includes('so')) contentTypes.push('so');
+            }
+
+            // Create array of promises for all content type fetches
+            const fetchPromises = contentTypes.map(type =>
+                fetch(`database/fetch_content.php?type=${type}&trashed=true`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(`Error fetching ${type}:`, data.error);
+                            return 0;
+                        }
+
+                        return data.filter(item => {
+                            // Basic archive conditions
+                            const basicConditions = item.isArchived === 0 && 
+                                item.isTrashed === 1 && 
+                                (type === 'peo' || type === 'so' || item.status === 'Approved');
+
+                            // Permission conditions
+                            let hasPermission = false;
+                            if (userType === 'Super Admin') {
+                                hasPermission = true;
+                            } else if (userType === 'Admin') {
+                                hasPermission = item.author_department === department;
+                            } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+                                hasPermission = parseInt(item[`${type}_author_id`]) === parseInt(user_id);
+                            }
+
+                            return basicConditions && hasPermission;
+                        }).length;
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${type} archives count:`, error);
+                        return 0;
+                    })
+            );
+
+            // Wait for all fetches to complete and sum the counts
+            Promise.all(fetchPromises)
+                .then(counts => {
+                    const totalCount = counts.reduce((sum, count) => sum + count, 0);
+                    
+                    // Update UI elements
+                    const trashCountElement = document.getElementById('trashContentCount');
+                    const trashCountMobileElement = document.getElementById('trashContentCountMobile');
+                    
+                    if (trashCountElement) {
+                        trashCountElement.textContent = totalCount > 0 ? totalCount : '0';
+                        trashCountElement.style.display = 'inline';
+                    }
+                    if (trashCountMobileElement) {
+                        trashCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
+                        trashCountMobileElement.style.display = 'inline';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error calculating total trash count:', error);
+                });
+        })
+        .catch(error => {
+            console.error('Error fetching features:', error);
+        });
 }
 
 // Function to update scheduled posts count
@@ -1485,39 +1614,7 @@ function updateScheduledPostsCount(count) {
 
 // Function to fetch trash count
 function fetchTrashCount() {
-    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
-    if (userType === 'Admin' || userType === 'Super Admin') {
-        contentTypes.push('peo', 'so');
-    }
-
-    Promise.all(contentTypes.map(type =>
-        fetch(`database/fetch_content.php?type=${type}&trashed=true`)
-            .then(response => response.json())
-    ))
-    .then(results => {
-        const totalCount = results.reduce((count, data, index) => {
-            return count + data.filter(item => {
-                // Basic trash conditions
-                const basicConditions = item.isArchived === 0 && item.isTrashed === 1;
-
-                // Permission conditions
-                let hasPermission = false;
-                if (userType === 'Super Admin') {
-                    hasPermission = true;
-                } else if (userType === 'Admin') {
-                    hasPermission = item.author_department === department;
-                } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
-                    hasPermission = parseInt(item[`${contentTypes[index]}_author_id`]) === parseInt(user_id);
-                }
-
-                return basicConditions && hasPermission;
-            }).length;
-        }, 0);
-        updateTrashCount(totalCount);
-    })
-    .catch(error => {
-        console.error('Error fetching trash count:', error);
-    });
+    updateTrashCount();
 }
 
 // Function to fetch trash count

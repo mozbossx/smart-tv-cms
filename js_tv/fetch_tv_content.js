@@ -1,3 +1,5 @@
+let isConnectedToWebSocket = false;
+
 // fetch_tv_content.js
 function connectWebSocket() {
     console.log('Attempting WebSocket connection...');
@@ -16,42 +18,30 @@ function connectWebSocket() {
         const ws = new WebSocket(wsUrl);
         
         ws.onopen = function() {
+            isConnectedToWebSocket = true;
             // console.log('WebSocket Connected Successfully to:', wsUrl);
         };
         
         ws.onclose = function(event) {
+            isConnectedToWebSocket = false;
             // console.log('WebSocket Disconnected from:', wsUrl);
             // console.log('Code:', event.code, 'Reason:', event.reason);
             // console.log('Attempting reconnection in 2 seconds...');
             setTimeout(connectWebSocket, 2000);
         };
         
-        ws.onerror = function(error) {
-            // console.error('WebSocket Error:', error);
-            // console.log('WebSocket State:', ws.readyState);
-            // console.log('WebSocket URL:', ws.url);
-            // console.log('Protocol:', ws.protocol);
-            // console.log('Extensions:', ws.extensions);
-            // setTimeout(connectWebSocket, 2000);
-        };
-        
         return ws;
     } catch (error) {
-        // console.error('Error creating WebSocket:', error);
-        // console.log('Attempting reconnection in 2 seconds...');
-        // setTimeout(connectWebSocket, 2000);
+        console.error('Error creating WebSocket:', error);
+        isConnectedToWebSocket = false;
+        setTimeout(() => {
+            Ws = connectWebSocket();
+        }, 5000);
         return null;
     }
 }
 
-let Ws = null;
-try {
-    Ws = connectWebSocket();
-} catch (error) {
-    console.error('Error initializing WebSocket:', error);
-    console.log('Attempting reconnection in 2 seconds...');
-    // setTimeout(connectWebSocket, 2000);
-}
+let Ws = connectWebSocket();
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {
@@ -1161,7 +1151,7 @@ const startCarousel = (type) => {
 // Function to display a message when no content is available
 const displayNoMessage = (type) => {
     const { carouselContainer } = getContainerElements(type);
-    carouselContainer.innerHTML = `<p style="text-align: center; font-size: 1.2em; margin-top: auto;">No content available</p>`; // Display no content message
+    carouselContainer.innerHTML = `<p style="text-align: center; font-size: 1.8em; margin-top: auto; margin-bottom: auto; font-weight: bold;">No content available</p>`; // Display no content message
 };
 
 // Function to fetch and update contents
@@ -1335,6 +1325,14 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('peo');
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
+        } else {
+            // For new features 
+            // Refresh TV since there's an issue for the new feature when posting it
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                location.reload();
+            }
         }
     } else if (data.action === 'update_content') {
         if (data.type === 'announcement') {
