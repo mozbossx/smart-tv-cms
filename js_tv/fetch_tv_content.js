@@ -1,6 +1,5 @@
 let isConnectedToWebSocket = false;
 
-// fetch_tv_content.js
 function connectWebSocket() {
     console.log('Attempting WebSocket connection...');
     
@@ -16,24 +15,86 @@ function connectWebSocket() {
     
     try {
         const ws = new WebSocket(wsUrl);
+        let clientPingInterval;
+        let clientPingTimeout;
+
+        const heartbeat = () => {
+            clearTimeout(clientPingTimeout);
+            clientPingTimeout = setTimeout(() => {
+                console.log('Client: Connection lost - no pong received');
+                ws.close();
+            }, 20000); // 20 second timeout
+        };
         
         ws.onopen = function() {
+            console.log('Client: WebSocket Connected Successfully to:', wsUrl);
             isConnectedToWebSocket = true;
-            // console.log('WebSocket Connected Successfully to:', wsUrl);
+
+            // Client-initiated pings
+            clientPingInterval = setInterval(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    console.log('Client: Sending ping to server');
+                    ws.send(JSON.stringify({ action: 'ping' }));
+                    heartbeat();
+                }
+            }, 15000); // 15 second interval
+
+            if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
+                loadingWebsocketConnectionModal.style.display = 'none';
+                successWebsocketConnectionModal.style.display = 'flex';
+                successWebsocketConnectionMessage.textContent = 'WebSocket Connected Successfully! Reloading in 3 seconds...';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            }
+        };
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            // Handle ping/pong messages
+            switch(data.action) {
+                case 'ping':
+                    // Respond to server's ping
+                    console.log('Client: Received ping from server, sending pong!');
+                    ws.send(JSON.stringify({ action: 'pong' }));
+                    return;
+                case 'pong':
+                    // Reset client's heartbeat timeout
+                    console.log('Client: Received pong from server, resetting heartbeat timeout!');
+                    heartbeat();
+                    return;
+            }
         };
         
         ws.onclose = function(event) {
+            console.log('Client: WebSocket connection closed');
             isConnectedToWebSocket = false;
-            // console.log('WebSocket Disconnected from:', wsUrl);
-            // console.log('Code:', event.code, 'Reason:', event.reason);
-            // console.log('Attempting reconnection in 2 seconds...');
-            setTimeout(connectWebSocket, 2000);
+            clearInterval(clientPingInterval);
+            clearTimeout(clientPingTimeout);
+            console.log('Client: Cleared all timers');
+
+            if (loadingWebsocketConnectionModal) {
+                loadingWebsocketConnectionModal.style.display = 'flex';
+                successWebsocketConnectionModal.style.display = 'none';
+                loadingWebsocketConnectionMessage.textContent = 'WebSocket Disconnected. Reconnecting...';
+            }
+
+            // Attempt to reconnect
+            setTimeout(() => {
+                console.log('Client: Attempting to reconnect.......');
+                Ws = connectWebSocket();
+            }, 5000);
         };
         
         return ws;
     } catch (error) {
-        console.error('Error creating WebSocket:', error);
+        console.error('Client: Error creating WebSocket:', error.message);
         isConnectedToWebSocket = false;
+        
+        loadingWebsocketConnectionModal.style.display = 'none';
+        successWebsocketConnectionModal.style.display = 'flex';
+        successWebsocketConnectionMessage.textContent = 'There was an error connecting to the WebSocket. Please try again later.';
         setTimeout(() => {
             Ws = connectWebSocket();
         }, 5000);
@@ -41,7 +102,17 @@ function connectWebSocket() {
     }
 }
 
-let Ws = connectWebSocket();
+let Ws = null;
+
+try {
+    Ws = connectWebSocket();
+} catch (error) {
+    console.error('Error initializing WebSocket:', error);
+    console.log('Attempting reconnection in 5 seconds...');
+    setTimeout(() => {
+        Ws = connectWebSocket();
+    }, 5000);
+}
 
 // Function to get the containers based on type
 const getContainerElements = (type) => {

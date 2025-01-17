@@ -5,6 +5,7 @@ use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
 use MyApp\ContentHandler;
+use React\EventLoop\Loop;
 use Ratchet\Wamp\WampServer;
 use Ratchet\Wamp\TopicManager;
 use Ratchet\ConnectionInterface;
@@ -23,5 +24,5 @@ $server = IoServer::factory(
     ),
     8081
 );
-echo "Server is running on port 8081";
+echo "Server is running on port 8081 \n";
 $server->run();

@@ -9,10 +9,13 @@ class ContentHandler implements MessageComponentInterface
 {
     protected $clients;
     protected $pdo;
-
+    protected $pingTimeouts = []; // Store timeouts for each client
+    protected $loop; // Add event loop property
+    
     public function __construct($pdo) {
         $this->clients = new \SplObjectStorage;
         $this->pdo = $pdo;
+        $this->loop = \React\EventLoop\Loop::get(); // Get the event loop
         echo "Content Server Started!\n";
     }
 
@@ -38,10 +41,56 @@ class ContentHandler implements MessageComponentInterface
 
         $this->clients->attach($conn);
         echo "New connection! ({$conn->resourceId})\n";
+
+        // Start monitoring this connection
+        $this->startConnectionMonitoring($conn);
+    }
+
+    private function startConnectionMonitoring(ConnectionInterface $conn) {
+        // Send ping every 15 seconds
+        $conn->pingInterval = $this->loop->addPeriodicTimer(15, function() use ($conn) {
+            if ($conn->isConnected()) {
+                try {
+                    echo "Server: Sending ping to client {$conn->resourceId}\n";
+                    $conn->send(json_encode(['action' => 'ping']));
+                    
+                    // Set timeout for pong response
+                    $this->pingTimeouts[$conn->resourceId] = $this->loop->addTimer(20, function() use ($conn) {
+                        echo "Server: No pong received from client {$conn->resourceId}, closing connection\n";
+                        $conn->close();
+                    });
+                } catch (\Exception $e) {
+                    echo "Server: Error sending ping to client {$conn->resourceId}: {$e->getMessage()}\n";
+                    $conn->close();
+                }
+            }
+        });
+        echo "Server: Started monitoring connection {$conn->resourceId}\n";
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
         $data = json_decode($msg, true);
+
+        // Handle ping/pong messages
+        if (isset($data['action'])) {
+            switch ($data['action']) {
+                case 'ping':
+                    // Respond to client's ping
+                    echo "Server: Received ping from client {$from->resourceId}, sending pong!\n";
+                    $from->send(json_encode(['action' => 'pong']));
+                    return;
+                    
+                case 'pong':
+                    // Clear the timeout for this client
+                    echo "Server: Received pong from client {$from->resourceId}!\n";
+                    if (isset($this->pingTimeouts[$from->resourceId])) {
+                        $this->loop->cancelTimer($this->pingTimeouts[$from->resourceId]);
+                        unset($this->pingTimeouts[$from->resourceId]);
+                        echo "Server: Cleared ping timeout for client {$from->resourceId}!\n";
+                    }
+                    return;
+            }
+        }
         
         // Handle delete actions
         if (isset($data['action']) && $data['action'] === 'delete_content') {
@@ -4588,6 +4637,19 @@ class ContentHandler implements MessageComponentInterface
     }
 
     public function onClose(ConnectionInterface $conn) {
+        echo "Server: Connection {$conn->resourceId} is closing\n";
+
+        // Clean up monitoring timers
+        if (isset($conn->pingInterval)) {
+            $this->loop->cancelTimer($conn->pingInterval);
+            echo "Server: Cancelled ping interval for client {$conn->resourceId}\n";
+        }
+        if (isset($this->pingTimeouts[$conn->resourceId])) {
+            $this->loop->cancelTimer($this->pingTimeouts[$conn->resourceId]);
+            unset($this->pingTimeouts[$conn->resourceId]);
+            echo "Server: Cancelled ping timeout for client {$conn->resourceId}\n";
+        }
+
         $this->clients->detach($conn);
         echo "Connection {$conn->resourceId} has disconnected\n";
     }

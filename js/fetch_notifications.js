@@ -1,5 +1,9 @@
 // Add a global variable to track connection status
 let isConnected = false;
+const loadingWebsocketConnectionModal = document.getElementById('loadingWebsocketConnectionModal');
+const successWebsocketConnectionModal = document.getElementById('successWebsocketConnectionModal');
+const loadingWebsocketConnectionMessage = document.getElementById('loadingWebsocketConnectionMessage');
+const successWebsocketConnectionMessage = document.getElementById('successWebsocketConnectionMessage');
 
 function connectWebSocket() {
     console.log('Attempting WebSocket connection...');
@@ -16,37 +20,83 @@ function connectWebSocket() {
     
     try {
         const ws = new WebSocket(wsUrl);
+        let clientPingInterval;
+        let clientPingTimeout;
+
+        const heartbeat = () => {
+            clearTimeout(clientPingTimeout);
+            clientPingTimeout = setTimeout(() => {
+                console.log('Client: Connection lost - no pong received');
+                ws.close();
+            }, 20000); // 20 second timeout
+        };
         
         ws.onopen = function() {
-            console.log('WebSocket Connected Successfully to:', wsUrl);
+            console.log('Client: WebSocket Connected Successfully to:', wsUrl);
             isConnected = true;
-            const loadingWebsocketConnectionModal = document.getElementById('loadingWebsocketConnectionModal');
-            const successWebsocketConnectionModal = document.getElementById('successWebsocketConnectionModal');
+
+            // Client-initiated pings
+            clientPingInterval = setInterval(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    console.log('Client: Sending ping to server');
+                    ws.send(JSON.stringify({ action: 'ping' }));
+                    heartbeat();
+                }
+            }, 15000); // 15 second interval
+
             if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
                 loadingWebsocketConnectionModal.style.display = 'none';
                 successWebsocketConnectionModal.style.display = 'flex';
-                document.getElementById('successWebsocketConnectionMessage').textContent = 'WebSocket Connected Successfully!';
+                successWebsocketConnectionMessage.textContent = 'WebSocket Connected Successfully!';
+            }
+        };
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            // Handle ping/pong messages
+            switch(data.action) {
+                case 'ping':
+                    // Respond to server's ping
+                    console.log('Client: Received ping from server, sending pong!');
+                    ws.send(JSON.stringify({ action: 'pong' }));
+                    return;
+                case 'pong':
+                    // Reset client's heartbeat timeout
+                    console.log('Client: Received pong from server, resetting heartbeat timeout!');
+                    heartbeat();
+                    return;
             }
         };
         
         ws.onclose = function(event) {
+            console.log('Client: WebSocket connection closed');
             isConnected = false;
-            const loadingWebsocketConnectionModal = document.getElementById('loadingWebsocketConnectionModal');
-            const successWebsocketConnectionModal = document.getElementById('successWebsocketConnectionModal');
+            clearInterval(clientPingInterval);
+            clearTimeout(clientPingTimeout);
+            console.log('Client: Cleared all timers');
+
             if (loadingWebsocketConnectionModal) {
                 loadingWebsocketConnectionModal.style.display = 'flex';
                 successWebsocketConnectionModal.style.display = 'none';
-                document.getElementById('loadingWebsocketConnectionMessage').textContent = 'WebSocket Disconnected. Reconnecting...';
+                loadingWebsocketConnectionMessage.textContent = 'WebSocket Disconnected. Reconnecting...';
             }
+
+            // Attempt to reconnect
             setTimeout(() => {
+                console.log('Client: Attempting to reconnect.......');
                 Ws = connectWebSocket();
             }, 5000);
         };
         
         return ws;
     } catch (error) {
-        console.error('Error creating WebSocket:', error);
+        console.error('Client: Error creating WebSocket:', error.message);
         isConnected = false;
+        
+        loadingWebsocketConnectionModal.style.display = 'none';
+        successWebsocketConnectionModal.style.display = 'flex';
+        successWebsocketConnectionMessage.textContent = 'There was an error connecting to the WebSocket. Please try again later.';
         setTimeout(() => {
             Ws = connectWebSocket();
         }, 5000);
@@ -55,12 +105,15 @@ function connectWebSocket() {
 }
 
 let Ws = null;
+
 try {
     Ws = connectWebSocket();
 } catch (error) {
     console.error('Error initializing WebSocket:', error);
-    console.log('Attempting reconnection in 4 seconds...');
-    // setTimeout(connectWebSocket, 5000);
+    console.log('Attempting reconnection in 5 seconds...');
+    setTimeout(() => {
+        Ws = connectWebSocket();
+    }, 5000);
 }
 
 function formatDateTime2(dateTimeString) {

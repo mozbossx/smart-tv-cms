@@ -18,3 +18,21 @@
         <span id="live-date" class="date" style="color: <?php echo $topbarDateColor; ?>; font-style: <?php echo $topbarDateFontStyle; ?>; font-family: <?php echo $topbarDateFontFamily; ?>;"></span>
     </div>
 </div>
+
+<!-- Loading Websocket Connection Modal -->
+<div id="loadingWebsocketConnectionModal" class="modal" style="z-index: 10000000000000;">
+    <div class="modal-content" style="padding: 15px; text-align: center;">
+        <div class="loading-spinner">
+            <i class="fa fa-spinner fa-spin" style="font-size: 50px; color: <?php echo $topbarColor; ?>"></i>
+        </div>
+        <p id="loadingWebsocketConnectionMessage"></p>
+    </div>
+</div>
+
+<!-- Success Websocket Connection Modal -->
+<div id="successWebsocketConnectionModal" class="modal" style="z-index: 10000000000000;">
+    <div class="modal-content" style="padding: 15px; text-align: center;">
+        <h1 style="color: <?php echo $topbarColor; ?>; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
+        <p id="successWebsocketConnectionMessage"></p>
+    </div>
+</div>
