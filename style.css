@@ -2379,6 +2379,9 @@ tr:nth-child(even) {
 
 .notifications-tablinks.active, .archives-tablinks.active {
     background-color: #ccc;
+    font-weight: bold;
+    font-size: 18px;
+    transition: 0.3s ease;
 }
 
 .notifications-tabcontent, .archives-tabcontent {

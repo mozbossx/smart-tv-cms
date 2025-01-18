@@ -28,7 +28,14 @@ body {
     flex: 1; /* Takes up available space */
     padding-left: 10px;
     display: flex;
+    flex-direction: row;
+}
+
+.tv-id-text {
+    display: flex;
     flex-direction: column;
+    align-self: center;
+    margin-left: 10px;
 }
 
 .tv-name {
@@ -159,9 +166,10 @@ body {
 
 .content-main {
     flex: 1;
-    /* overflow: hidden; */
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Prevent content overflow */
+    position: relative; /* For proper child positioning */
 }
 
 .content-details {
@@ -203,12 +211,29 @@ body {
     margin: 0;
 }
 
-.main-message {
+.message-wrapper {
+    position: relative;
     flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
-    /* font-size: clamp(12px, 2vw, 24px); */
-    /* line-height: 1.4; */
-    margin: 10px 0;
+}
+
+.main-message {
+    width: 100%;
+    height: 100%;
+    display: block; /* Changed from flex to block for better text containment */
+    text-align: left;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: normal;
+    padding: 5px;
+    box-sizing: border-box; /* Include padding in size calculation */
+    overflow: hidden; /* Prevent text overflow */
+    text-align: justify;
 }
 
 .page-number-container {
@@ -420,7 +445,7 @@ body {
     .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message{
         font-size: 1.50vh;
     }
-    .tv-name, .content-title, .main-message {
+    .tv-name, .content-title {
         font-size: 2.50vh;
     }
     .carousel-container {
@@ -433,7 +458,7 @@ body {
     .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
         font-size: 1.75vh;
     }
-    .tv-name, .content-title, .main-message {
+    .tv-name, .content-title {
         font-size: 2.75vh;
     }
     .carousel-container {
@@ -446,7 +471,7 @@ body {
     .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
         font-size: 2.00vh;
     }
-    .tv-name, .content-title, .main-message {
+    .tv-name, .content-title {
         font-size: 3.00vh;
     }
     .carousel-container {
@@ -459,7 +484,7 @@ body {
     .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
         font-size: 2.25vh;
     }
-    .tv-name, .content-title, .main-message {
+    .tv-name, .content-title {
         font-size: 3.25vh;
     }
     .carousel-container {
@@ -472,7 +497,7 @@ body {
     .tv-id, .date-time, .author, .expiration-date, .display-time, .page-number-container, .no-announcements-message {
         font-size: 2.50vh;
     }
-    .tv-name, .content-title, .main-message {
+    .tv-name, .content-title {
         font-size: 3.50vh;
     }
     .carousel-container {

@@ -616,7 +616,7 @@ const fetchTVInfo = async (type, tv_id) => {
 
 // Function to restore an item
 const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId, isExpired) => {
-    const evaluatorMessageElement = document.getElementById('evaluator_message');
+    const evaluatorMessageElement = document.getElementById('evaluator_message_restore');
     let evaluatorMessage = null;
 
     if (evaluatorMessageElement) {
@@ -629,6 +629,8 @@ const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorN
 
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
     const modal = document.getElementById(`confirmRestore${capitalizedType}Modal`);
+
+    console.log(evaluatorMessage);
     
     let action = 'restore_content';
     let data = {

@@ -6,16 +6,16 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
 
 <div class="right-flex">
     <div class="rounded-container-media">
-        <p class="input-container-label">Upload Media</p>
+        <p class="input-container-label">Upload Media (.mp4, .jpg, .png)</p>
         <br>
         <input type="file" name="media" id="media" accept="video/*, image/*" onchange="previewMedia()" hidden>
-        <label for="media" class="green-button">Choose File (.mp4, .jpg, .png)</label>
+        <label for="media" class="green-button">Choose File</label>
         <?php 
         // Only show cancel button if NOT in promaterial edit mode
         if (!($isEditMode && isset($_GET['type']) && $_GET['type'] === 'promaterial')): 
         ?>
             <button type="button" id="cancelMediaButton" class="red-button" onclick="cancelMedia()" style="display: none;">
-                <i class="fa fa-times" aria-hidden="true"></i> Cancel
+                <i class="fa fa-times" aria-hidden="true"></i>
             </button>
         <?php endif; ?>
         <div class="preview-media" style="border: #000 1px solid; border-radius: 5px; background: white; text-align: center; width: 100%; height: 350px; display: none; justify-content: center; align-items: center; margin-top: 15px">

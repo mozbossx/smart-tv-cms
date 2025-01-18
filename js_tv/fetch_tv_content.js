@@ -77,7 +77,7 @@ function connectWebSocket() {
             if (loadingWebsocketConnectionModal) {
                 loadingWebsocketConnectionModal.style.display = 'flex';
                 successWebsocketConnectionModal.style.display = 'none';
-                loadingWebsocketConnectionMessage.textContent = 'WebSocket Disconnected. Reconnecting...';
+                loadingWebsocketConnectionMessage.textContent = 'Server Disconnected. Reconnecting...';
             }
 
             // Attempt to reconnect
@@ -118,6 +118,7 @@ try {
 const getContainerElements = (type) => {
     const carouselContainer = document.getElementById(`${type}CarouselContainer`);
     const pageNumberContainer = document.getElementById(`${type}PageNumberContainer`);
+    const containerName = document.getElementById(`${type}ContainerName`);
 
     // Check if the containers are found
     if (!carouselContainer) {
@@ -127,9 +128,14 @@ const getContainerElements = (type) => {
         console.error(`Page number container for ${type} not found from getContainerElements in fetch_tv_content.js.`);
     }
 
+    if (!containerName) {
+        console.error(`Container name for ${type} not found from getContainerElements in fetch_tv_content.js.`);
+    }
+
     return {
         carouselContainer,
-        pageNumberContainer
+        pageNumberContainer,
+        containerName
     };
 };
 
@@ -299,9 +305,11 @@ const updateUI = (data, type) => {
             <div class="content-container-con" id="${type}ContentConContainer-${id}">
                 <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <span class="main-message" style="word-break: break-word;">
-                        ${data.announcement_body}
-                    </span>
+                    <div class="message-wrapper" id="${type}MessageWrapper-${id}">
+                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                            ${data.announcement_body}
+                        </span>
+                    </div>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -320,9 +328,11 @@ const updateUI = (data, type) => {
             <div class="content-container-con" id="${type}ContentConContainer-${id}">
                 <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <span class="main-message" style="word-break: break-word;">
-                        ${data.event_body}
-                    </span>
+                    <div class="message-wrapper" id="${type}MessageWrapper-${id}">
+                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                            ${data.event_body}
+                        </span>
+                    </div>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -341,9 +351,11 @@ const updateUI = (data, type) => {
             <div class="content-container-con" id="${type}ContentConContainer-${id}">
                 <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <span class="main-message" style="word-break: break-word;">
-                        ${data.news_body}
-                    </span>
+                    <div class="message-wrapper" id="${type}MessageWrapper-${id}">
+                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                            ${data.news_body}
+                        </span>
+                    </div>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -361,7 +373,7 @@ const updateUI = (data, type) => {
         contentHTML = `
             <div class="content-container-con" id="${type}ContentConContainer-${id}">
                 <div class="content-main" id="${type}ContentMain-${id}">
-                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">${mediaContent}</div>` : ''}
+                    ${mediaContent ? `<div class="media-container" style="margin-bottom: auto; margin-top: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">${mediaContent}</div>` : ''}
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -379,15 +391,21 @@ const updateUI = (data, type) => {
         contentHTML = `
             <div class="content-container-con" id="${type}ContentConContainer-${id}">
                 <div class="content-main" id="${type}ContentMain-${id}">
-                    <span class="main-message" style="word-break: break-word;">
-                        <b>${data.peo_title}</b>
-                    </span>
-                    <span class="main-message" style="word-break: break-word;">
-                        ${data.peo_description}
-                    </span>
-                    <span class="main-message" style="word-break: break-word;">
-                        ${data.peo_subdescription}
-                    </span>
+                    <div class="message-wrapper" id="${type}MessageWrapper-${id}">
+                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                            ${data.peo_title}
+                        </span>
+                    </div>
+                    <div class="message-wrapper" id="${type}MessageWrapper2-${id}">
+                        <span class="main-message" id="${type}Message2-${id}" style="word-break: break-word;">
+                            ${data.peo_description}
+                        </span>
+                    </div>
+                    <div class="message-wrapper" id="${type}MessageWrapper3-${id}">
+                        <span class="main-message" id="${type}Message3-${id}" style="word-break: break-word;">
+                            ${data.peo_subdescription}
+                        </span>
+                    </div>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -405,16 +423,21 @@ const updateUI = (data, type) => {
         contentHTML = `
             <div class="content-container-con" id="${type}ContentConContainer-${id}">
                 <div class="content-main" id="${type}ContentMain-${id}">
-                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <span class="main-message" style="word-break: break-word;">
-                        <b>${data.so_title}</b>
-                    </span>
-                    <span class="main-message" style="word-break: break-word;">
-                        ${data.so_description}
-                    </span>
-                    <span class="main-message" style="word-break: break-word;">
-                        ${data.so_subdescription}
-                    </span>
+                    <div class="message-wrapper" id="${type}MessageWrapper-${id}">
+                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                            ${data.so_title}
+                        </span>
+                    </div>
+                    <div class="message-wrapper" id="${type}MessageWrapper2-${id}">
+                        <span class="main-message" id="${type}Message2-${id}" style="word-break: break-word;">
+                            ${data.so_description}
+                        </span>
+                    </div>
+                    <div class="message-wrapper" id="${type}MessageWrapper3-${id}">
+                        <span class="main-message" id="${type}Message3-${id}" style="word-break: break-word;">
+                            ${data.so_subdescription}
+                        </span>
+                    </div>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -497,12 +520,9 @@ const updateUI = (data, type) => {
             }
             resetCountdown(existingDiv, data.display_time, currentIndexKey);
             updatePageNumber(currentIndexKey);
-    
-            if (type !== 'orgchart') {
-                scaleContentContainer(type, id);
-                setupContentResizeObserver(type, id);
-            }
         }
+        // Apply text fitting after updating content
+        setTimeout(() => initializeTextFitting(type, id), 0);
     } else {
         const containerDiv = document.createElement('div');
         containerDiv.dataset[`${type}Id`] = data[`${type}_id`];
@@ -548,16 +568,87 @@ const updateUI = (data, type) => {
             updatePageNumber(currentIndexKey);
         }
 
-        setTimeout(() => {
-            scaleContentContainer(type, id);
-            setupContentResizeObserver(type, id);
-        }, 100);
-        // if (type === 'orgchart') {
-        //     createOrgChart(data.orgchart_id, data.chartData);
-        // }
+        // Apply text fitting after updating content
+        setTimeout(() => initializeTextFitting(type, id), 0);
     }
-    // adjustFontSize(type);
 };
+
+function initializeTextFitting(type, id) {
+    const containerDiv = document.getElementById(`${type}ContentMain-${id}`);
+    
+    if (!containerDiv) {
+        console.warn(`Container element not found for ${type}ContentMain-${id}`);
+        return;
+    }
+
+    // Handle PEO's multiple messages
+    if (type === 'peo' || type === 'so') {
+        // Array of message IDs for PEO
+        const messageIds = [
+            `${type}Message-${id}`,
+            `${type}Message2-${id}`,
+            `${type}Message3-${id}`
+        ];
+
+        // Initial text fitting for all messages
+        messageIds.forEach(messageId => fitText(messageId));
+
+        // Set up resize observer for continuous monitoring
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => {
+                messageIds.forEach(messageId => fitText(messageId));
+            });
+        });
+
+        resizeObserver.observe(containerDiv);
+        
+        // Observe parent container as well
+        const parentContainer = containerDiv.closest('.content-container');
+        if (parentContainer) {
+            resizeObserver.observe(parentContainer);
+        }
+    } else {
+        // Original code for other content types
+        const messageId = `${type}Message-${id}`;
+        fitText(messageId);
+
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => {
+                fitText(messageId);
+            });
+        });
+
+        resizeObserver.observe(containerDiv);
+    }
+}
+
+function fitText(messageId) {
+    const messageElement = $(`#${messageId}`);
+    if (!messageElement.length) {
+        console.warn(`Message element not found for ID: ${messageId}`);
+        return;
+    }
+
+    const messageWrapper = messageElement.parent();
+    if (!messageWrapper.length) {
+        console.warn(`Message wrapper not found for ID: ${messageId}`);
+        return;
+    }
+
+    try {
+        messageWrapper.textfill({
+            maxFontPixels: -1, // 0 means no maximum size
+            minFontPixels: 8,
+            widthOnly: false,
+            explicitWidth: messageWrapper.width(),
+            explicitHeight: messageWrapper.height(),
+            changeLineHeight: true,
+            innerTag: 'p'
+        });
+    } catch (error) {
+        console.error(`Error fitting text for ${messageId}:`, error);
+    }
+}
 
 // Function to show next image for facility
 const showNextFacilityImage = (facilityDiv) => {
@@ -852,79 +943,6 @@ function scaleOrgChart(container, orgchartId) {
     contentConContainer.style.overflow = 'hidden';
 }
 
-function scaleContentContainer(type, id) {
-    const contentConContainer = document.getElementById(`${type}ContentConContainer-${id}`);
-    const contentMain = document.getElementById(`${type}ContentMain-${id}`);
-    
-    if (!contentConContainer || !contentMain) {
-        console.warn(`Container elements not found for ${type} with id ${id}`);
-        return;
-    }
-
-    // Reset zoom and transform to get true dimensions
-    contentMain.style.zoom = '1';
-    contentConContainer.style.transform = 'none';
-    
-    // Force a reflow
-    void contentMain.offsetHeight;
-
-    // Get dimensions
-    const containerRect = contentConContainer.getBoundingClientRect();
-    const contentRect = contentMain.getBoundingClientRect();
-
-    // Calculate zoom level needed to fit the content
-    let zoomLevel;
-    if (containerRect.width > contentRect.width || containerRect.height > contentRect.height) {
-        // Content is too big - scale down
-        const scaleX = containerRect.width / contentRect.width;
-        const scaleY = containerRect.height / contentRect.height;
-        zoomLevel = Math.min(scaleX, scaleY) * 0.90; // Scale down by taking the smaller ratio, with 5% margin
-        // console.log("zoomLevel (scale-down) of type ", type, " : ", zoomLevel);
-    } else {
-        // Content fits or is too small - keep at 1 or scale up slightly if too small
-        const scaleX = containerRect.width / contentRect.width;
-        const scaleY = containerRect.height / contentRect.height;
-        const minScale = Math.min(scaleX, scaleY);
-        zoomLevel = minScale > 1 ? Math.min(minScale, 1.2) : 1; // Cap the scale up at 1.2
-
-        // console.log("zoomLevel (scale-up) of type ", type, " : ", zoomLevel);
-    }
-
-    // Apply zoom with smooth transition
-    contentMain.style.transition = 'zoom 0.3s ease-in-out';
-    contentMain.style.zoom = zoomLevel;
-
-    // Ensure container doesn't show scrollbars
-    // contentConContainer.style.overflow = 'hidden';
-}
-
-// Resize observer for content containers
-function setupContentResizeObserver(type, id) {
-    const contentConContainer = document.getElementById(`${type}ContentConContainer-${id}`);
-    if (!contentConContainer) return;
-
-    let resizeTimeout;
-    const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-            // Clear any existing timeout
-            if (resizeTimeout) {
-                clearTimeout(resizeTimeout);
-            }
-
-            // Set a new timeout to debounce the resize event
-            resizeTimeout = setTimeout(() => {
-                const activeItem = entry.target.closest('.carousel-item');
-                if (activeItem && activeItem.classList.contains('active')) {
-                    scaleContentContainer(type, id);
-                }
-            }, 100);
-        }
-    });
-
-    resizeObserver.observe(contentConContainer);
-    return resizeObserver;
-}
-
 // Add resize observer to handle container resizing
 function setupOrgChartResizeObserver(container) {
     let resizeTimeout;
@@ -1171,6 +1189,24 @@ const fetchSmartTVDetails = () => {
         console.error('TV ID not found in URL');
     }
 };
+
+const fetchSmartTVContainers = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tvId = urlParams.get('tvId');
+    fetch(`database/fetch_containers.php?tvId=${tvId}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Fetched containers:", data);
+            const containersVisible = data.visible;
+            const containerHeightPx = data.height_px;
+            const containerWidthPx = data.width_px;
+            const containerXAxis = data.xaxis;
+            const containerYAxis = data.yaxis;
+
+
+            updateContainers(containersVisible);
+        })
+}
 
 const updateTvDetails = (tvName, tvBrand, tvDepartment, tvId) => {
     const tvNameElement = document.querySelector('.tv-name');
@@ -1483,13 +1519,114 @@ Ws.addEventListener('message', function (event) {
         }, 500);
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVDetails();
-        // location.reload();
-    } else if (data.action === 'update_container_positions'|| data.action === 'delete_smart_tv' || data.action === 'show_hide_content' || data.action === 'update_background_type' || data.action === 'update_background_image' || data.action === 'update_department_logo' || data.action === 'update_topbar_position' || data.action === 'delete_feature') {
+    } else if (data.action === 'delete_smart_tv' || data.action === 'delete_feature') {
         const urlParams = new URLSearchParams(window.location.search);
         const tvId = urlParams.get('tvId');
         if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
             location.reload();
         }
+    } else if (data.action === 'update_topbar_position') {
+        if (data.success) {
+            const topbarElement = document.getElementById('topbar');
+            const mainContainer = document.getElementById('main-container');
+            
+            // Remove topbar from its current position
+            topbarElement.remove();
+            
+            if (data.topbar_position === 'top') {
+                // Insert before main container
+                mainContainer.parentNode.insertBefore(topbarElement, mainContainer);
+            } else {
+                // Insert after main container
+                mainContainer.parentNode.insertBefore(topbarElement, mainContainer.nextSibling);
+            }
+        }
+    } else if (data.action === 'update_department_logo') {
+        if (data.success) {
+            const departmentLogoTopbar = document.getElementById('department_logo_topbar');
+            departmentLogoTopbar.src = '';
+            departmentLogoTopbar.src = data.department_logo_path;
+        }
+    } else if (data.action === 'update_background_image') {
+        if (data.success) {
+            const backgroundElement = document.getElementById('tvBackgroundColor');
+            backgroundElement.style.backgroundImage = '';
+            backgroundElement.style.backgroundImage = `url('servers/tv_backgrounds/${data.tv_id}/${data.background_image_path}')`;
+        }
+    } else if (data.action === 'update_background_type') {
+        if (data.success) {
+            const backgroundElement = document.getElementById('tvBackgroundColor');
+            if (data.isStaticBackground == 1) {
+                // Handle static background color
+                backgroundElement.style.background = data.background_hex_color;
+                // Clear any existing background image
+                backgroundElement.style.backgroundImage = '';
+                backgroundElement.style.backgroundSize = '';
+                backgroundElement.style.backgroundPosition = '';
+                backgroundElement.style.backgroundRepeat = '';
+            } else if (data.isImageBackground == 1) {
+                // Handle background image
+                backgroundElement.style.backgroundImage = `url('servers/tv_backgrounds/${data.tv_id}/${data.background_image_path}')`;
+                backgroundElement.style.backgroundSize = 'cover';
+                backgroundElement.style.backgroundPosition = 'center';
+                backgroundElement.style.backgroundRepeat = 'no-repeat';
+                // Clear any existing background color
+            }
+        }
+    } else if (data.action === 'update_container_positions') {
+        if (data.success) {
+            const containers = data.containers;
+            containers.forEach(container => {
+                const containerElement = document.querySelector(`[data-container-id="${container.container_id}"]`);
+                if (containerElement) {
+                    containerElement.style.transform = `translate(${container.xaxis}px, ${container.yaxis}px)`;
+                    containerElement.style.height = `${container.height_px}px`;
+                    containerElement.style.width = `${container.width_px}px`;
+                }
+            });
+        }
+    } else if (data.action === 'show_hide_content') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tvId = urlParams.get('tvId');
+        if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+            location.reload();
+        }
+        // TODO: Fix this
+        // if (data.success) {
+        //     const containers = data.containers;
+        //     const mainContainer = document.getElementById('main-container');
+            
+        //     containers.forEach(container => {
+        //         const containerElement = document.querySelector(`[data-container-id="${container.container_id}"]`);
+        //         const type = container.type;
+                
+        //         if (container.visible == 0 && containerElement) {
+        //             // Remove container from DOM if it's being hidden
+        //             containerElement.remove();
+                    
+        //             // Clear its content array
+        //             contents[`${type}s`] = [];
+                    
+        //             // Clear any existing intervals
+        //             if (displayTimeIntervals[type]) {
+        //                 clearInterval(displayTimeIntervals[type]);
+        //                 displayTimeIntervals[type] = null;
+        //             }
+        //         } else if (container.visible == 1 && !containerElement) {
+        //             // Create and add the new container
+        //             const newContainer = createContainerElement(container);
+        //             mainContainer.appendChild(newContainer);
+                    
+        //             // Initialize the content for this container
+        //             currentIndex[type] = 0;
+        //             contents[`${type}s`] = [];
+        //             displayTimeIntervals[type] = null;
+                    
+        //             // Fetch and load content for the new container
+        //             fetchAndUpdateContents(type);
+        //         }
+        //     });
+        // }
     } else if (data.action === 'update_background_color') {
         if (data.success) {
             const backgroundElement = document.getElementById('tvBackgroundColor');
@@ -1521,11 +1658,12 @@ Ws.addEventListener('message', function (event) {
                     }
                     
                     // Update the page number container styles
-                    const { pageNumberContainer } = getContainerElements(container.type);
+                    const { pageNumberContainer, containerName } = getContainerElements(container.type);
                     if (pageNumberContainer) {
                         pageNumberContainer.style.color = container.parent_font_color; // Change the color
                         pageNumberContainer.style.fontFamily = container.parent_font_family; // Change the font family
                         pageNumberContainer.style.fontStyle = container.parent_font_style; // Change the font style
+                        containerName.style.textAlign = container.container_name_text_align;
                     } else {
                         console.error(`Page number container not found for type: ${container.type}`);
                     }
@@ -1565,6 +1703,52 @@ Ws.addEventListener('message', function (event) {
         }
     }
 });
+
+// Helper function to create a new container element
+function createContainerElement(container) {
+    const containerDiv = document.createElement('div');
+    containerDiv.className = 'content-container';
+    containerDiv.id = container.container_name;
+    containerDiv.setAttribute('data-container-id', container.container_id);
+    containerDiv.style.transform = `translate(${container.xaxis}px, ${container.yaxis}px)`;
+    containerDiv.style.height = `${container.height_px}px`;
+    containerDiv.style.width = `${container.width_px}px`;
+    containerDiv.style.backgroundColor = container.parent_background_color;
+    containerDiv.setAttribute('data-x', container.xaxis);
+    containerDiv.setAttribute('data-y', container.yaxis);
+
+    // Create title element
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'content-title';
+    titleDiv.textContent = container.container_name;
+    titleDiv.style.color = container.parent_font_color;
+    titleDiv.style.fontFamily = container.parent_font_family;
+    titleDiv.style.fontStyle = container.parent_font_style;
+
+    // Create carousel container
+    const carouselDiv = document.createElement('div');
+    carouselDiv.id = `${container.type}CarouselContainer`;
+    carouselDiv.className = 'carousel-container';
+    carouselDiv.style.backgroundColor = container.child_background_color;
+    carouselDiv.style.color = container.child_font_color;
+    carouselDiv.style.fontFamily = container.child_font_family;
+    carouselDiv.style.fontStyle = container.child_font_style;
+
+    // Create page number container
+    const pageNumberDiv = document.createElement('div');
+    pageNumberDiv.id = `${container.type}PageNumberContainer`;
+    pageNumberDiv.className = 'page-number';
+    pageNumberDiv.style.color = container.parent_font_color;
+    pageNumberDiv.style.fontFamily = container.parent_font_family;
+    pageNumberDiv.style.fontStyle = container.parent_font_style;
+
+    // Assemble the container
+    containerDiv.appendChild(titleDiv);
+    containerDiv.appendChild(carouselDiv);
+    containerDiv.appendChild(pageNumberDiv);
+
+    return containerDiv;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get all content types from the containers

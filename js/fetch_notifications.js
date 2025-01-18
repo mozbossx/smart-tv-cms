@@ -26,19 +26,19 @@ function connectWebSocket() {
         const heartbeat = () => {
             clearTimeout(clientPingTimeout);
             clientPingTimeout = setTimeout(() => {
-                console.log('Client: Connection lost - no pong received');
+                // console.log('Client: Connection lost - no pong received');
                 ws.close();
             }, 20000); // 20 second timeout
         };
         
         ws.onopen = function() {
-            console.log('Client: WebSocket Connected Successfully to:', wsUrl);
+            // console.log('Client: WebSocket Connected Successfully to:', wsUrl);
             isConnected = true;
 
             // Client-initiated pings
             clientPingInterval = setInterval(() => {
                 if (ws.readyState === WebSocket.OPEN) {
-                    console.log('Client: Sending ping to server');
+                    // console.log('Client: Sending ping to server');
                     ws.send(JSON.stringify({ action: 'ping' }));
                     heartbeat();
                 }
@@ -58,40 +58,40 @@ function connectWebSocket() {
             switch(data.action) {
                 case 'ping':
                     // Respond to server's ping
-                    console.log('Client: Received ping from server, sending pong!');
+                    // console.log('Client: Received ping from server, sending pong!');
                     ws.send(JSON.stringify({ action: 'pong' }));
                     return;
                 case 'pong':
                     // Reset client's heartbeat timeout
-                    console.log('Client: Received pong from server, resetting heartbeat timeout!');
+                    // console.log('Client: Received pong from server, resetting heartbeat timeout!');
                     heartbeat();
                     return;
             }
         };
         
         ws.onclose = function(event) {
-            console.log('Client: WebSocket connection closed');
+            // console.log('Client: WebSocket connection closed');
             isConnected = false;
             clearInterval(clientPingInterval);
             clearTimeout(clientPingTimeout);
-            console.log('Client: Cleared all timers');
+            // console.log('Client: Cleared all timers');
 
             if (loadingWebsocketConnectionModal) {
                 loadingWebsocketConnectionModal.style.display = 'flex';
                 successWebsocketConnectionModal.style.display = 'none';
-                loadingWebsocketConnectionMessage.textContent = 'WebSocket Disconnected. Reconnecting...';
+                loadingWebsocketConnectionMessage.textContent = 'Server Disconnected. Reconnecting...';
             }
 
             // Attempt to reconnect
             setTimeout(() => {
-                console.log('Client: Attempting to reconnect.......');
+                // console.log('Client: Attempting to reconnect.......');
                 Ws = connectWebSocket();
             }, 5000);
         };
         
         return ws;
     } catch (error) {
-        console.error('Client: Error creating WebSocket:', error.message);
+        // console.error('Client: Error creating WebSocket:', error.message);
         isConnected = false;
         
         loadingWebsocketConnectionModal.style.display = 'none';
@@ -109,8 +109,8 @@ let Ws = null;
 try {
     Ws = connectWebSocket();
 } catch (error) {
-    console.error('Error initializing WebSocket:', error);
-    console.log('Attempting reconnection in 5 seconds...');
+    // console.error('Error initializing WebSocket:', error);
+    // console.log('Attempting reconnection in 5 seconds...');
     setTimeout(() => {
         Ws = connectWebSocket();
     }, 5000);
@@ -1203,8 +1203,8 @@ function showConfirmRejectModal(userId, email, fullName, userType, evaluatorName
             <p>Proceed to reject this user?</p>
             <br>
             <div class="floating-label-container">
-                <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-                <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+                <textarea name="evaluator_message_reject_user" id="evaluator_message_reject_user" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+                <label for="evaluator_message_reject_user" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
             </div>
             <br>
             <div style="text-align: right;">
@@ -1244,8 +1244,8 @@ function showConfirmRejectContentModal(contentId, contentType, fullName, departm
             <p>Proceed to reject this ${contentType}?</p>
             <br>
             <div class="floating-label-container">
-                <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-                <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User's Content (required)</label>
+                <textarea name="evaluator_message_reject_content" id="evaluator_message_reject_content" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+                <label for="evaluator_message_reject_content" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User's Content (required)</label>
             </div>
             <br>
             <div style="text-align: right;">
@@ -1262,8 +1262,8 @@ function showConfirmDeleteContentModal(contentId, contentType, authorId, loggedI
 
     const evaluatorMessageHtml = user_id != authorId ? `
         <div class="floating-label-container">
-            <textarea name="evaluator_message" id="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-            <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+            <textarea name="evaluator_message_delete_content_notification" id="evaluator_message_delete_content_notification" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
+            <label for="evaluator_message_delete_content_notification" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
         </div>
         <br>
     ` : '';
@@ -1301,7 +1301,7 @@ function approveUser(userId, email, fullName, userType, evaluatorName, departmen
 }
 
 function rejectUser(userId, email, fullName, userType, evaluatorName, department, evaluatorId) {
-    const evaluatorMessage = document.getElementById('evaluator_message').value;
+    const evaluatorMessage = document.getElementById('evaluator_message_reject_user').value;
     if (!evaluatorMessage) {
         alert('Evaluator message is required.');
         return;
@@ -1337,7 +1337,7 @@ function approveContent(contentId, contentType, fullName, department, userId, co
 }
 
 function rejectContent(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId) {
-    const evaluatorMessage = document.getElementById('evaluator_message').value;
+    const evaluatorMessage = document.getElementById('evaluator_message_reject_content').value;
     if (!evaluatorMessage) {
         alert('Evaluator message is required.');
         return;
@@ -1358,7 +1358,7 @@ function rejectContent(contentId, contentType, fullName, department, userId, con
 }
 
 function deleteContent(contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) {
-    const evaluatorMessageElement = document.getElementById('evaluator_message');
+    const evaluatorMessageElement = document.getElementById('evaluator_message_delete_content_notification');
     let evaluatorMessage = null;
 
     if (evaluatorMessageElement) {
@@ -1452,8 +1452,10 @@ function deleteNotification(notificationId) {
     // Update the UI for the current tab
     filterNotifications(activeTabName);
     
-    // Set the header text using the display name
-    document.getElementById('notificationsHeader').textContent = displayName;
+    const notificationsHeader = document.getElementById('notificationsHeader');
+    if (notificationsHeader) {
+        notificationsHeader.textContent = displayName;
+    }
 
     // Send websocket message
     Ws.send(JSON.stringify({
@@ -1844,7 +1846,11 @@ document.addEventListener('click', function(event) {
     const triangle = document.getElementById('triangle');
     const triangleMobile = document.getElementById('triangleMobile');
 
-    // Fix the condition by properly grouping the logical operators
+    // Add check for delete button clicks
+    if (event.target.closest('.delete-notification') || event.target.classList.contains('delete-notification')) {
+        return; // Exit early if clicking the delete button (does not close the dropdown if it is open)
+    }
+
     if ((notificationsDropdown.style.display === 'block' || notificationsDropdownMobile.style.display === 'block') && 
         !notificationsDropdown.contains(event.target) && 
         !notificationsDropdownMobile.contains(event.target) && 

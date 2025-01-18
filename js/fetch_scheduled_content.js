@@ -390,7 +390,7 @@ const fetchTVInfo = async (type, tv_id) => {
 
 // Function to post now an item
 const postNowItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
-    const evaluatorMessageElement = document.getElementById('evaluator_message');
+    const evaluatorMessageElement = document.getElementById('evaluator_message_post_now');
     let evaluatorMessage = null;
 
     if (evaluatorMessageElement) {

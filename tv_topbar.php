@@ -1,14 +1,17 @@
 <div class="topbar" id="topbar" style="background: <?php echo $topbarColor; ?>">
-    <?php 
-        if ($departmentLogoPath == NULL) {
-            echo '<img src="images/soe_icon.png" alt="" style="width: 6vh; height: 6vh; margin-left: 5px">';
-        } else {
-            echo '<img src="servers/tv_department_logos/' . $_SESSION['tv_id'] . '/' . $departmentLogoPath . '" alt="" style="width: 6vh; height: 6vh; margin-left: 5px">';
-        }
-    ?>
     <div class="tv-id" style="color: <?php echo $topbarTvIdColor; ?>; font-style: <?php echo $topbarTvIdFontStyle; ?>; font-family: <?php echo $topbarTvIdFontFamily; ?>;">
-        <p id="tvDepartment_<?php echo $_SESSION['tv_id']; ?>"><?php echo htmlspecialchars($_SESSION['tv_department']); ?></p>
-        <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: <?php echo htmlspecialchars($_SESSION['tv_id']); ?></p>
+        
+        <?php 
+            if ($departmentLogoPath == NULL) {
+                echo '<img src="images/soe_icon.png" alt="" style="width: 6vh; height: 6vh;" id="department_logo_topbar">';
+            } else {
+                echo '<img src="servers/tv_department_logos/' . $_SESSION['tv_id'] . '/' . $departmentLogoPath . '" alt="" style="width: 6vh; height: 6vh;" id="department_logo_topbar">';
+            }
+        ?>
+        <div class="tv-id-text">
+            <p id="tvDepartment_<?php echo $_SESSION['tv_id']; ?>"><?php echo htmlspecialchars($_SESSION['tv_department']); ?></p>
+            <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: <?php echo htmlspecialchars($_SESSION['tv_id']); ?></p>
+        </div>
     </div>
     <h1 class="tv-name" style="color: <?php echo $topbarTvNameColor; ?>; font-style: <?php echo $topbarTvNameFontStyle; ?>; font-family: <?php echo $topbarTvNameFontFamily; ?>;">
         <?php echo htmlspecialchars($_SESSION['tv_name']); ?>

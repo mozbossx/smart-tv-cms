@@ -1182,12 +1182,18 @@ class ContentHandler implements MessageComponentInterface
             $success = $stmt->execute([$isStaticBackground, $isImageBackground, $tvId]);
 
             if ($success) {
+                $stmtSelect = $this->pdo->prepare("SELECT * FROM background_tv_tb WHERE tv_id = ?");
+                $stmtSelect->execute([$tvId]);
+                $result = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+
                 $response = [
                     'action' => 'update_background_type',
                     'success' => true,
                     'tv_id' => $tvId,
                     'isStaticBackground' => $isStaticBackground,
-                    'isImageBackground' => $isImageBackground
+                    'isImageBackground' => $isImageBackground,
+                    'background_hex_color' => $result['background_hex_color'],
+                    'background_image_path' => $result['background_image_path']
                 ];
                 error_log("Background type updated successfully!");
             } else {
@@ -1286,11 +1292,15 @@ class ContentHandler implements MessageComponentInterface
                     $success = $stmt->execute([$filename, $tvId]);
                     
                     if ($success) {
+                        $stmtSelect = $this->pdo->prepare("SELECT background_image_path FROM background_tv_tb WHERE tv_id = ?");
+                        $stmtSelect->execute([$tvId]);
+                        $result = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+
                         $response = [
                             'action' => 'update_background_image',
                             'success' => true,
                             'tv_id' => $tvId,
-                            'background_image_path' => $relativeFilePath
+                            'background_image_path' => $result['background_image_path']
                         ];
                         error_log("Background image updated successfully! Path: $relativeFilePath");
                     } else {
@@ -1377,11 +1387,17 @@ class ContentHandler implements MessageComponentInterface
                     $success = $stmt->execute([$filename, $tvId]);
                     
                     if ($success) {
+                        $stmtSelect = $this->pdo->prepare("SELECT department_logo_path FROM topbar_tv_tb WHERE tv_id = ?");
+                        $stmtSelect->execute([$tvId]);
+                        $result = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+
+                        $departmentLogoPath = "servers/tv_department_logos/$tvId/" . $result['department_logo_path'];
+                        
                         $response = [
                             'action' => 'update_department_logo',
                             'success' => true,
                             'tv_id' => $tvId,
-                            'department_logo_path' => $relativeFilePath
+                            'department_logo_path' => $departmentLogoPath
                         ];
                         error_log("Department logo updated successfully! Path: $relativeFilePath");
                     } else {
@@ -1574,7 +1590,7 @@ class ContentHandler implements MessageComponentInterface
             $containers = $data['containers'] ?? [];
             
             if ($tvId !== null && !empty($containers)) {
-                $stmtUpdateColors = $this->pdo->prepare("UPDATE {$table} SET parent_background_color = ?, parent_font_color = ?, parent_font_style = ?, parent_font_family = ?, child_background_color = ?, child_font_color = ?, child_font_style = ?, child_font_family = ? WHERE {$idField} = ? AND tv_id = ?");
+                $stmtUpdateColors = $this->pdo->prepare("UPDATE {$table} SET parent_background_color = ?, parent_font_color = ?, parent_font_style = ?, parent_font_family = ?, child_background_color = ?, child_font_color = ?, child_font_style = ?, child_font_family = ?, container_name_text_align = ? WHERE {$idField} = ? AND tv_id = ?");
                 
                 foreach ($containers as $containerId => $colors) {
                     $bgColor = $colors['bg_color'] ?? null;
@@ -1585,9 +1601,10 @@ class ContentHandler implements MessageComponentInterface
                     $cardFontColor = $colors['fcard_color'] ?? null;
                     $cardFontStyle = $colors['fcardstyle'] ?? null;
                     $cardFontFamily = $colors['fcardfamily'] ?? null;
+                    $textAlign = $colors['textalign'] ?? null;
             
                     if ($bgColor !== null && $fontColor !== null && $cardBgColor !== null) {
-                        $params = [$bgColor, $fontColor, $fontStyle, $fontFamily, $cardBgColor, $cardFontColor, $cardFontStyle, $cardFontFamily,$containerId, $tvId];
+                        $params = [$bgColor, $fontColor, $fontStyle, $fontFamily, $cardBgColor, $cardFontColor, $cardFontStyle, $cardFontFamily, $textAlign, $containerId, $tvId];
                         if (!$stmtUpdateColors->execute($params)) {
                             error_log("Failed to execute update query for container_id {$containerId}: " . implode(", ", $stmtUpdateColors->errorInfo()));
                             $from->send(json_encode(['action' => 'update_container_colors', 'success' => false, 'message' => "Failed to update container_id {$containerId}"]));
@@ -1599,7 +1616,7 @@ class ContentHandler implements MessageComponentInterface
                 }
                 
                 // Fetch the updated container colors to send back to the client
-                $stmtFetchColors = $this->pdo->prepare("SELECT container_id, type, parent_background_color, parent_font_color, parent_font_style, parent_font_family, child_background_color, child_font_color, child_font_style, child_font_family FROM {$table} WHERE tv_id = ?");
+                $stmtFetchColors = $this->pdo->prepare("SELECT container_id, type, parent_background_color, parent_font_color, parent_font_style, parent_font_family, child_background_color, child_font_color, child_font_style, child_font_family, container_name_text_align FROM {$table} WHERE tv_id = ?");
                 $stmtFetchColors->execute([$tvId]);
                 $updatedContainers = $stmtFetchColors->fetchAll(PDO::FETCH_ASSOC);
         
@@ -1641,11 +1658,16 @@ class ContentHandler implements MessageComponentInterface
                         error_log("Failed to update position for container_id {$position['id']}: " . implode(", ", $stmt->errorInfo()));
                     }
                 }
+
+                $stmtSelect = $this->pdo->prepare("SELECT container_id, xaxis, yaxis, width_px, height_px FROM containers_tb WHERE tv_id = ?");
+                $stmtSelect->execute([$tvId]);
+                $updatedContainers = $stmtSelect->fetchAll(PDO::FETCH_ASSOC);
         
                 $response = [
                     'action' => 'update_container_positions',
                     'success' => true,
-                    'tv_id' => $tvId
+                    'tv_id' => $tvId,
+                    'containers' => $updatedContainers
                 ];
         
                 // Notify all clients about the update
@@ -1688,8 +1710,18 @@ class ContentHandler implements MessageComponentInterface
                         return;
                     }
                 }
-        
-                $response = ['action' => 'show_hide_content', 'success' => true, 'tv_id' => $tvId];
+
+                // Fetch updated visibility status
+                $stmtSelect = $this->pdo->prepare("SELECT * FROM {$table} WHERE tv_id = ?");
+                $stmtSelect->execute([$tvId]);
+                $containersVisible = $stmtSelect->fetchAll(PDO::FETCH_ASSOC);
+                        
+                $response = [
+                    'action' => 'show_hide_content', 
+                    'success' => true, 
+                    'tv_id' => $tvId, 
+                    'containers' => $containersVisible
+                ];
                 echo "Visibility for containers updated!\n";
         
                 // Notify other clients about the update

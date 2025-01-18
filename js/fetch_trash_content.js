@@ -631,7 +631,7 @@ const fetchTVInfo = async (type, tv_id) => {
 
 // Function to restore an item
 const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId, isExpired) => {
-    const evaluatorMessageElement = document.getElementById('evaluator_message');
+    const evaluatorMessageElement = document.getElementById('evaluator_message_restore');
     let evaluatorMessage = null;
 
     if (evaluatorMessageElement) {

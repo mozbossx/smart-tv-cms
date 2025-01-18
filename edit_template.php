@@ -461,7 +461,6 @@ $conn->close();
         </div>
     </div>
     <script>
-        let ws;
         var containers = <?php echo json_encode($containers); ?>;
         const contentContainerForm = document.getElementById('editContentContainerForm');
         let currentTarget = null;
@@ -517,29 +516,6 @@ $conn->close();
             scaleButtons.classList.remove('open');
             openSidebarButton.classList.add('open');
         }
-        // Function to initialize WebSocket connection
-        function initializeWebSocket() {
-            fetch('websocket_conn.php')
-                .then(response => response.text())
-                .then(url => {
-                    ws = new WebSocket(url);
-
-                    ws.onopen = () => console.log("WebSocket connection established.");
-
-                    ws.onmessage = function (event) {
-                        const message = JSON.parse(event.data);
-                    };
-
-                    ws.onerror = function (error) {
-                        console.error('WebSocket Error:', error);
-                    };
-                })
-                .catch(error => {
-                    console.error('Error fetching WebSocket URL:', error);
-                });
-        }
-            
-        initializeWebSocket();
 
         document.getElementById('updateTemplateButton').addEventListener('click', function() {
             const iframe = document.getElementById('tv-iframe');
@@ -589,9 +565,9 @@ $conn->close();
         });
 
         function updateContainerPositionsOnServer(positions) {
-            // Assuming you have a WebSocket connection established
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
+            // Send via WebSocket
+            if (typeof Ws !== 'undefined' && Ws.readyState === WebSocket.OPEN) {
+                Ws.send(JSON.stringify({
                     action: 'update_container_positions',
                     tv_id: <?php echo $tvId; ?>,
                     positions: positions
@@ -653,6 +629,14 @@ $conn->close();
                                 <option value="Libre Baskerville" ${container.parent_font_family == 'Libre Baskerville' ? 'selected' : ''} style="font-family: Libre Baskerville">Libre Baskerville</option>
                             </select>
                             <label for="container_${container.container_id}_fontfamily" class="floating-label">Font Family</label>
+                        </div>
+                        <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
+                            <select id="container_${container.container_id}_textalign" name="container_${container.container_id}_textalign" class="floating-label-input" style="background: <?php echo $light_theme_color_80_percent; ?>; box-shadow: none; height: 100%;">
+                                <option value="left" ${container.container_name_text_align == 'left' ? 'selected' : ''} style="font-family: Questrial">Left</option>
+                                <option value="center" ${container.container_name_text_align == 'center' ? 'selected' : ''} style="font-family: Questrial">Center</option>
+                                <option value="right" ${container.container_name_text_align == 'right' ? 'selected' : ''} style="font-family: Questrial">Right</option>
+                            </select>
+                            <label for="container_${container.container_id}_textalign" class="floating-label">Text Align</label>
                         </div>
                         <div class="line-separator" style="margin: 0px"></div>
                         <p style="color: <?php echo $theme_color; ?>; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Card Container</b></p>
@@ -719,6 +703,8 @@ $conn->close();
                                 colorsData[containerId]['fontfamily'] = colorInput.value;
                             } else if (colorType === 'fontstyle') {
                                 colorsData[containerId]['fontstyle'] = colorInput.value;
+                            } else if (colorType === 'textalign') {
+                                colorsData[containerId]['textalign'] = colorInput.value;
                             }
                         });
 
@@ -727,7 +713,7 @@ $conn->close();
                             tv_id: <?php echo $tvId; ?>,
                             containers: colorsData
                         };
-                        ws.send(JSON.stringify(data));
+                        Ws.send(JSON.stringify(data));
                     });
                 });
             } else {
@@ -872,9 +858,9 @@ $conn->close();
                     reader.onload = function(e) {
                         imagePreview.src = e.target.result;
                         
-                        // Send via WebSocket (your existing code)
-                        if (typeof ws !== 'undefined' && ws.readyState === WebSocket.OPEN) {
-                            ws.send(JSON.stringify({
+                        // Send via WebSocket
+                        if (typeof Ws !== 'undefined' && Ws.readyState === WebSocket.OPEN) {
+                            Ws.send(JSON.stringify({
                                 action: 'update_background_image',
                                 tv_id: <?php echo $tvId; ?>,
                                 image: e.target.result
@@ -901,8 +887,8 @@ $conn->close();
                     reader.onload = function(e) {
                         departmentLogoPreview.src = e.target.result;
                         // Send via WebSocket
-                        if (typeof ws !== 'undefined' && ws.readyState === WebSocket.OPEN) {
-                            ws.send(JSON.stringify({
+                        if (typeof Ws !== 'undefined' && Ws.readyState === WebSocket.OPEN) {
+                            Ws.send(JSON.stringify({
                                 action: 'update_department_logo',
                                 tv_id: <?php echo $tvId; ?>,
                                 logo: e.target.result
@@ -915,7 +901,7 @@ $conn->close();
 
             document.getElementById('topbar_position').addEventListener('change', function() {
                 const position = this.value;
-                ws.send(JSON.stringify({
+                Ws.send(JSON.stringify({
                     action: 'update_topbar_position',
                     tv_id: <?php echo $tvId; ?>,
                     topbar_position: position
@@ -945,8 +931,8 @@ $conn->close();
                 }
 
                 // Send update to server via WebSocket
-                if (typeof ws !== 'undefined' && ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({
+                if (typeof Ws !== 'undefined' && Ws.readyState === WebSocket.OPEN) {
+                    Ws.send(JSON.stringify({
                         action: 'update_background_type',
                         tv_id: <?php echo $tvId; ?>,
                         isStaticBackground: staticCheckbox.checked ? 1 : 0,
@@ -959,8 +945,8 @@ $conn->close();
             imageCheckbox.addEventListener('change', updateSections);
 
             // Handle WebSocket response
-            if (typeof ws !== 'undefined') {
-                ws.addEventListener('message', function(event) {
+            if (typeof Ws !== 'undefined') {
+                Ws.addEventListener('message', function(event) {
                     const response = JSON.parse(event.data);
                     if (response.action === 'update_background_type' && response.success) {
                         // Update checkboxes
@@ -1090,7 +1076,7 @@ $conn->close();
                     data[key] = value;
                 });
 
-                ws.send(JSON.stringify(data));
+                Ws.send(JSON.stringify(data));
             });
 
             const topbarFields = [
@@ -1105,7 +1091,7 @@ $conn->close();
             // Function to send WebSocket message
             function sendTopbarUpdate() {
                 const formData = new FormData(topBarColorForm);
-                ws.send(JSON.stringify({
+                Ws.send(JSON.stringify({
                     action: 'update_topbar_color',
                     tv_id: <?php echo $tvId; ?>,
                     topbar_hex_color: formData.get('topbar_color'),
@@ -1148,7 +1134,7 @@ $conn->close();
                         containers: containersData
                     };
 
-                    ws.send(JSON.stringify(data));
+                    Ws.send(JSON.stringify(data));
                 });
             });
         });
