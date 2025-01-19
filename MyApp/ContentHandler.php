@@ -213,92 +213,94 @@ class ContentHandler implements MessageComponentInterface
                 
             $deleted = $stmt->rowCount() > 0;
             if ($deleted) {
-                $stmtSearchForRejectedByAdminNotification = $this->pdo->prepare("SELECT * FROM notifications_tb WHERE user_id = ? AND content_id = ? AND notification_type = 'content_rejected_by_admin'");
-                $stmtSearchForRejectedByAdminNotification->execute([$user_id, $content_id]);
-                $rejectedByAdminNotification = $stmtSearchForRejectedByAdminNotification->fetchAll(PDO::FETCH_ASSOC);
+                if ($type !== 'orgchart') {
+                    $stmtSearchForRejectedByAdminNotification = $this->pdo->prepare("SELECT * FROM notifications_tb WHERE user_id = ? AND content_id = ? AND notification_type = 'content_rejected_by_admin'");
+                    $stmtSearchForRejectedByAdminNotification->execute([$user_id, $content_id]);
+                    $rejectedByAdminNotification = $stmtSearchForRejectedByAdminNotification->fetchAll(PDO::FETCH_ASSOC);
 
-                if ($rejectedByAdminNotification) {
-                    $stmtDeleteRejectedByAdminNotification = $this->pdo->prepare("DELETE FROM notifications_tb WHERE user_id = ? AND content_id = ? AND notification_type = 'content_rejected_by_admin'");
-                    $stmtDeleteRejectedByAdminNotification->execute([$user_id, $content_id]);
-                }
-
-                // Insert notification for the user who deleted his own content
-                if ($author_id == $user_id && $evaluator_name != "System") {
-                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
-                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmt->execute([$content_id, $user_id, $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
-
-                    $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                    $stmtUpdateUser1->execute([$user_id]);
-                } else if ($author_id == $user_id && $evaluator_name == "System") {
-                    $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
-                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmt->execute([$content_id, $user_id, $type, 'content_deleted_by_system', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
-
-                    $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                    $stmtUpdateUser1->execute([$user_id]);
-                }
-
-                $stmtSelectDepartmentAdmins = $this->pdo->prepare("
-                    SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
-                ");
-                $stmtSelectDepartmentAdmins->execute([$author_department, $author_id, $user_id]);
-                $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
-                
-                // Notify each Admin of the approved user's department
-                if ($departmentAdmins) {
-                    $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ");
-                    foreach ($departmentAdmins as $admin) {
-                        $stmtNotifyDepartmentAdmins->execute([$content_id, $admin['user_id'], $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
-
-                        $stmtUpdateDepartmentAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                        $stmtUpdateDepartmentAdmin->execute([$admin['user_id']]);
+                    if ($rejectedByAdminNotification) {
+                        $stmtDeleteRejectedByAdminNotification = $this->pdo->prepare("DELETE FROM notifications_tb WHERE user_id = ? AND content_id = ? AND notification_type = 'content_rejected_by_admin'");
+                        $stmtDeleteRejectedByAdminNotification->execute([$user_id, $content_id]);
                     }
-                }
 
-                $stmtSelectSuperAdmins = $this->pdo->prepare("
-                    SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
-                ");
-                $stmtSelectSuperAdmins->execute([$author_id, $user_id]);
-                $superAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
-                
-                // Notify each Admin of the approved user's department
-                if ($superAdmins) {
-                    $stmtNotifySuperAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ");
-                    foreach ($superAdmins as $superAdmin) {
-                        $stmtNotifySuperAdmins->execute([$content_id, $superAdmin['user_id'], $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
-                        
-                        $stmtUpdateSuperAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                        $stmtUpdateSuperAdmin->execute([$superAdmin['user_id']]);
+                    // Insert notification for the user who deleted his own content
+                    if ($author_id == $user_id && $evaluator_name != "System") {
+                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$content_id, $user_id, $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateUser1->execute([$user_id]);
+                    } else if ($author_id == $user_id && $evaluator_name == "System") {
+                        $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$content_id, $user_id, $type, 'content_deleted_by_system', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtUpdateUser1 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateUser1->execute([$user_id]);
                     }
+
+                    $stmtSelectDepartmentAdmins = $this->pdo->prepare("
+                        SELECT * FROM users_tb WHERE user_type = 'Admin' AND department = ? AND user_id != ? AND user_id != ?
+                    ");
+                    $stmtSelectDepartmentAdmins->execute([$author_department, $author_id, $user_id]);
+                    $departmentAdmins = $stmtSelectDepartmentAdmins->fetchAll(PDO::FETCH_ASSOC);
+                    
+                    // Notify each Admin of the approved user's department
+                    if ($departmentAdmins) {
+                        $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
+                            INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        foreach ($departmentAdmins as $admin) {
+                            $stmtNotifyDepartmentAdmins->execute([$content_id, $admin['user_id'], $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                            $stmtUpdateDepartmentAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                            $stmtUpdateDepartmentAdmin->execute([$admin['user_id']]);
+                        }
+                    }
+
+                    $stmtSelectSuperAdmins = $this->pdo->prepare("
+                        SELECT * FROM users_tb WHERE user_type = 'Super Admin' AND user_id != ? AND user_id != ?
+                    ");
+                    $stmtSelectSuperAdmins->execute([$author_id, $user_id]);
+                    $superAdmins = $stmtSelectSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
+                    
+                    // Notify each Admin of the approved user's department
+                    if ($superAdmins) {
+                        $stmtNotifySuperAdmins = $this->pdo->prepare("
+                            INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        foreach ($superAdmins as $superAdmin) {
+                            $stmtNotifySuperAdmins->execute([$content_id, $superAdmin['user_id'], $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+                            
+                            $stmtUpdateSuperAdmin = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                            $stmtUpdateSuperAdmin->execute([$superAdmin['user_id']]);
+                        }
+                    }
+                    
+                    // Insert notification for the user own the content but got deleted by admin
+                    if ($author_id != $user_id) {
+                        $stmtNotifyUser = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmtNotifyUser->execute([$content_id, $user_id, $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtNotifyUser2 = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
+                                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmtNotifyUser2->execute([$content_id, $author_id, $type, 'content_deleted_by_admin', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
+
+                        $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateUser2->execute([$author_id]);
+
+                        $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtUpdateUser2->execute([$user_id]);
+                    }
+            
+                    // Broadcast new notification to all clients
+                    $this->broadcastNotification('new_notification');
                 }
                 
-                // Insert notification for the user own the content but got deleted by admin
-                if ($author_id != $user_id) {
-                    $stmtNotifyUser = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
-                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmtNotifyUser->execute([$content_id, $user_id, $type, 'content_deleted', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
-
-                    $stmtNotifyUser2 = $this->pdo->prepare("INSERT INTO notifications_tb (content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_message, evaluator_name, content_tv_id) 
-                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmtNotifyUser2->execute([$content_id, $author_id, $type, 'content_deleted_by_admin', 'deleted', $author_name, $author_user_type, $author_department, $evaluator_message, $evaluator_name, $content_tv_id]);
-
-                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                    $stmtUpdateUser2->execute([$author_id]);
-
-                    $stmtUpdateUser2 = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
-                    $stmtUpdateUser2->execute([$user_id]);
-                }
-        
-                // Broadcast new notification to all clients
-                $this->broadcastNotification('new_notification');
-
                 $response = [
                     'action' => 'delete_content', 
                     'success' => $deleted, 

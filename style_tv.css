@@ -134,14 +134,28 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
+    background: transparent;
 }
 
-.orgchart-content, .orgchart-content-parent {
-    position: absolute;
-    width: auto; /* Allow content to take its natural width */
-    height: auto; /* Allow content to take its natural height */
+.orgchart-content {
+    /* position: absolute;
+    width: auto; 
+    height: auto;
     transform-origin: center center;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease; */
+
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.orgchart-content svg {
+    width: 100%;
+    height: 100%;
 }
 
 .resize-handle {
@@ -265,51 +279,62 @@ body {
 }
 
 .custom-node {
-    padding: 5px;
-    border-radius: 8px;
+    padding: 3px;
+    border-radius: 6px;
     background-color: white;
     border: 1px solid #000000;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 3px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
 }
 
 .node-content {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    flex-wrap: nowrap;
+    justify-content: center;
+    padding: 2px;
 }
 
 .node-image {
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #264B2B;
+    border: 1px solid #264B2B;
     flex-shrink: 0;
 }
 
 .node-details {
-    flex: 1;
-    min-width: 0;
+    text-align: center;
+    width: 100%;
+    overflow: hidden;
+}
+
+.node-text-wrapper {
+    width: 100%;
+    height: 20px; /* Adjust based on your needs */
+    margin: 2px 0;
     overflow: hidden;
 }
 
 .node-name {
     font-weight: bold;
-    color: #264B2B;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+.node-title {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.node-title {
-    color: #666;
-    font-style: italic;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.hidden-node {
+    display: none !important;
 }
 
 .node-actions {
@@ -382,7 +407,6 @@ body {
 }
 
 .custom-node .node-title {
-    font-style: italic; /* Italic title */
     margin-bottom: 5px; /* Space below the title */
 }
 
@@ -392,15 +416,12 @@ body {
     width: auto !important; /* Override any fixed width */
     height: auto !important; /* Override any fixed height */
     transition: transform 0.3s ease;
-    transform-origin: center center;
-    display: flex;
-    justify-content: center;
-    overflow: hidden;
 }
 
 .Treant .node {
     width: auto;
     position: absolute;
+    overflow: hidden;
 }
 
 .modal {

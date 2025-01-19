@@ -798,7 +798,7 @@ include 'misc/php/options_tv.php';
 
             // Apply the transform
             treant.style.transform = `scale(${scale})`;
-            treant.style.transformOrigin = 'top center';
+            treant.style.transformOrigin = 'center center';
         }
 
         function createOrgChart(data) {

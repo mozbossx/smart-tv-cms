@@ -279,7 +279,7 @@ const updateUI = (data, type) => {
             existingDiv.innerHTML = contentHTML;
             existingDiv.chartData = data.chartData;
             resetCountdown(existingDiv, data.display_time, currentIndexKey);
-            // setupOrgChartResizeObserver(existingDiv.querySelector('.orgchart-container'));
+            setupOrgChartResizeObserver(existingDiv.querySelector('.orgchart-container'));
         } else {
             contentsArray.push(containerDiv);
             carouselContainer.appendChild(containerDiv);
@@ -289,7 +289,7 @@ const updateUI = (data, type) => {
                 // Render the first chart immediately
                 setTimeout(() => {
                     createOrgChart(id, data.chartData);
-                    // setupOrgChartResizeObserver(containerDiv.querySelector('.orgchart-container'));
+                    setupOrgChartResizeObserver(containerDiv.querySelector('.orgchart-container'));
                 }, 100);
             }
         }
@@ -758,84 +758,90 @@ const showNextFacilityContent = () => {
 // Function to create org chart
 const createOrgChart = (orgchartId, chartData) => {
     const containerId = `orgChartContainer-${orgchartId}`;
+    const containerParentId = `orgChartContainerParent-${orgchartId}`;
+
     const container = document.getElementById(containerId);
+    const containerParent = document.getElementById(containerParentId);
+
     if (!container) {
         console.error(`Container not found for orgchart ${orgchartId}`);
         return;
     }
 
     // Clear any existing chart
-    const contentDiv = container.querySelector('.orgchart-content');
+    const contentDiv = document.querySelector('.orgchart-content');
     if (!contentDiv) {
         return;
     }
 
     contentDiv.innerHTML = '';
 
-    // Calculate base node size based on container size
-    const containerWidth = container.offsetWidth;
-    const containerHeight = container.offsetHeight;
-    const baseNodeWidth = Math.min(containerWidth * 0.15, 130); // 15% of container width, max 100px
-    const baseNodeHeight = Math.min(containerHeight * 0.15, 130); // 15% of container height, max 100px
+    // Create a unique chart ID
+    const uniqueChartId = `treant-${orgchartId}`;
+    contentDiv.id = uniqueChartId;
 
     // Update chart configuration with dynamic spacing
     const chartConfig = {
         chart: {
             container: `#${containerId}`,
             nodeAlign: "BOTTOM",
-            // levelSeparation: containerHeight * 0.08, // Dynamic level separation
-            // siblingSeparation: containerWidth * 0.03, // Dynamic sibling separation
-            // subTeeSeparation: containerWidth * 0.03, // Dynamic subtree separation
-            levelSeparation: 15, // Dynamic level separation
-            siblingSeparation: 20, // Dynamic sibling separation
-            subTeeSeparation: 20, // Dynamic subtree separation
+            levelSeparation: 50, // Dynamic level separation
+            siblingSeparation: 50, // Dynamic sibling separation
+            subTeeSeparation: 50, // Dynamic subtree separation
             connectors: {
                 type: 'step',
                 style: {
-                    'stroke-width': '1px'
+                    'stroke-width': '2px'
                 }
             },
             node: {
                 HTMLclass: 'nodeExample1'
-            },
-            animation: {
-                nodeAnimation: "easeOutBounce",
-                nodeSpeed: 700,
-                connectorsAnimation: "bounce",
-                connectorsSpeed: 700
             }
         },
-        nodeStructure: createNodeStructure(chartData.members, baseNodeWidth, baseNodeHeight)
+        nodeStructure: createNodeStructure(chartData.members)
     };
 
     try {
-        // Create and store the Treant instance
-        container.treant = new Treant(chartConfig);
+        // Create the Treant instance
+        new Treant(chartConfig, () => {
+            const treant = document.querySelector(`#${containerId}`).closest('.Treant');
+            const svg = treant ? treant.querySelector('svg') : null;
 
-        // Get the SVG element and add a unique ID
-        // const svg = container.querySelector('svg');
-        // if (svg) {
-        //     // Add unique ID to the SVG
-        //     svg.id = `orgchart-svg-${orgchartId}`;
-            
-        //     // Get the SVG dimensions
-        //     const svgWidth = svg.getBoundingClientRect().width;
-        //     const svgHeight = svg.getBoundingClientRect().height;
-            
-        //     console.log(`Org Chart SVG dimensions for ${orgchartId}:`, {
-        //         svgId: svg.id,
-        //         width: svgWidth,
-        //         height: svgHeight
-        //     });
+            if (!treant) {
+                console.error(`Treant not found for orgchart ${orgchartId}`);
+                return;
+            }
 
-        //     // Store dimensions as data attributes
-        //     container.dataset.svgWidth = svgWidth;
-        //     container.dataset.svgHeight = svgHeight;
-        // }
-        
-        // Initial scaling
-        requestAnimationFrame(() => {
-            scaleOrgChart(container, orgchartId);
+            if (!svg) {
+                console.error(`SVG not found for orgchart ${orgchartId}`);
+                return;
+            }
+
+            // First, make the Treant match the SVG dimensions
+            const svgWidth = svg.width.baseVal.value;
+            const svgHeight = svg.height.baseVal.value;
+            console.log("svgWidth: ", svgWidth);
+            console.log("svgHeight: ", svgHeight);
+            
+            // Set both width and height of Treant to match SVG
+            treant.style.width = `${svgWidth}px`;
+            treant.style.height = `${svgHeight}px`;
+
+            // Reset transform to get true dimensions
+            treant.style.transform = 'none';
+            
+            // Calculate scale ratios
+            const containerWidth = containerParent.offsetWidth;
+            const containerHeight = containerParent.offsetHeight;
+            const scale = Math.min(
+                containerWidth / svgWidth,
+                containerHeight / svgHeight,
+                1
+            ) * 0.9;
+
+            // Apply the transform
+            treant.style.zoom = `${scale}`;
+            treant.style.transformOrigin = 'center center';
         });
     } catch (error) {
         console.error('Error creating org chart:', error);
@@ -844,7 +850,7 @@ const createOrgChart = (orgchartId, chartData) => {
 };
 
 // Helper function to create node structure with dynamic sizing
-const createNodeStructure = (members, baseNodeWidth, baseNodeHeight) => {
+const createNodeStructure = (members) => {
     const nodeMap = new Map();
     
     // First pass: create all nodes with dynamic sizing
@@ -856,14 +862,14 @@ const createNodeStructure = (members, baseNodeWidth, baseNodeHeight) => {
             },
             image: member.picture,
             innerHTML: `
-                <div class="node-content" style="width: ${baseNodeWidth}px; ">
+                <div class="node-content" style="width: auto">
                     ${member.picture ? 
-                        `<img src="${member.picture}" class="node-image" alt="${member.name}" style="width: ${baseNodeWidth * 0.4}px; height: ${baseNodeWidth * 0.4}px;">` : 
-                        `<img src="images/profile_picture.png" class="node-image" alt="Default Profile" style="width: ${baseNodeWidth * 0.4}px; height: ${baseNodeWidth * 0.4}px;">`
+                        `<img src="${member.picture}" class="node-image" alt="${member.name}" style="width: 40px; height: 40px;">` : 
+                        `<img src="images/profile_picture.png" class="node-image" alt="Default Profile" style="width: 40px; height: 40px;">`
                     }
-                    <div class="node-details">
-                        <div class="node-name" style="font-size: ${baseNodeWidth * 0.15}px">${member.name}</div>
-                        <div class="node-title" style="font-size: ${baseNodeWidth * 0.13}px">${member.title}</div>
+                    <div class="node-details" style="width: auto; max-width: 500px;">
+                        <div class="node-name" style="font-size: 25px;">${member.name}</div>
+                        <div class="node-title" style="font-size: 18px;">${member.title}</div>
                     </div>
                 </div>
             `,
@@ -944,46 +950,31 @@ function scaleOrgChart(container, orgchartId) {
 }
 
 // Add resize observer to handle container resizing
-function setupOrgChartResizeObserver(container) {
+const setupOrgChartResizeObserver = (container) => {
     let resizeTimeout;
     const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-            if (entry.target === container) {
-                // Clear any existing timeout
-                if (resizeTimeout) {
-                    clearTimeout(resizeTimeout);
-                }
-
-                // Set a new timeout to debounce the resize event
-                resizeTimeout = setTimeout(() => {
-                    const activeItem = entry.target.closest('.carousel-item');
-                    if (activeItem && activeItem.classList.contains('active')) {
-                        const chartData = activeItem.chartData;
-                        if (chartData) {
-                            // First try to scale the existing chart
-                            const existingChart = container.querySelector('.Treant');
-                            if (existingChart) {
-                                scaleOrgChart(container);
-                            }
-
-                            // If scaling doesn't provide good results, recreate the chart
-                            const containerRect = container.getBoundingClientRect();
-                            const chartRect = existingChart?.getBoundingClientRect();
-                            if (!chartRect || 
-                                chartRect.width > containerRect.width * 1.5 || 
-                                chartRect.height > containerRect.height * 1.5) {
-                                createOrgChart(activeItem.dataset.orgchartId, chartData);
-                            }
-                        }
-                    }
-                }, 100); // Small delay for performance
-            }
+        // Clear any existing timeout
+        if (resizeTimeout) {
+            clearTimeout(resizeTimeout);
         }
+
+        // Set a new timeout to debounce the resize event
+        resizeTimeout = setTimeout(() => {
+            for (const entry of entries) {
+                const activeItem = entry.target.closest('.carousel-item');
+                if (activeItem && activeItem.classList.contains('active')) {
+                    const chartData = activeItem.chartData;
+                    if (chartData) {
+                        createOrgChart(activeItem.dataset.orgchartId, chartData);
+                    }
+                }
+            }
+        }, 100); // Small delay for performance
     });
 
     resizeObserver.observe(container);
     return resizeObserver;
-}
+};
 
 const renderVisibleOrgChart = () => {
     const activeItem = document.querySelector('.carousel-item.active');
