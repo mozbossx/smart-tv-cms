@@ -27,62 +27,85 @@ try {
     $defaultTypes = ['announcement', 'event', 'news', 'promaterial'];
     $contentTypes = array_merge($defaultTypes, $contentTypes);
     
-    $currentDateTime = new DateTime();
-    
     foreach ($contentTypes as $type) {
         if ($type == 'announcement' || $type == 'event' || $type == 'promaterial') {
             $tableName = "{$type}s_tb";
         } else {
             $tableName = "{$type}_tb";
         }
+        
         logMessage("Processing table: $tableName");
 
-        // Fetch active content that has reached expiration
+        // Update expired content to trashed status
         $stmt = $pdo->prepare("
-            SELECT * FROM $tableName 
+            UPDATE $tableName 
+            SET isTrashed = 1,
+                datetime_trashed = NOW()
             WHERE isArchived = 0 
             AND isTrashed = 0 
             AND expiration_datetime <= NOW()
             AND expiration_datetime IS NOT NULL
         ");
         $stmt->execute();
-        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $trashedCount = $stmt->rowCount();
         
-        logMessage("Found " . count($items) . " expired items in $tableName");
-
-        foreach ($items as $item) {
-            logMessage("Processing expired item {$item["{$type}_id"]} (expires on {$item['expiration_datetime']})");
-
-            // Create message data for ContentHandler
-            $messageData = [
-                'action' => 'trash_content',
-                'type' => $type,
-                "{$type}_id" => $item["{$type}_id"],
-                'user_id' => $item["{$type}_author_id"],
-                'author_id' => $item["{$type}_author_id"],
-                'author_name' => 'System',
-                'author_user_type' => 'System',
-                'author_department' => 'System',
-                'evaluator_message' => "Content automatically moved to Trash upon reaching expiration date ({$item['expiration_datetime']})",
-                'evaluator_name' => 'System',
-                'tv_id' => $item['tv_id']
-            ];
-
-            // Use ContentHandler to process the trashing
-            require_once '/var/www/smart-tv-cms/MyApp/ContentHandler.php';
-            $contentHandler = new \MyApp\ContentHandler($pdo);
+        if ($trashedCount > 0) {
+            logMessage("Trashed $trashedCount expired items in $tableName");
             
-            // Create a mock connection for the ContentHandler
-            $mockConnection = new class {
-                public function send($message) {
-                    // Log the message instead of sending it
-                    logMessage("Would send WebSocket message: " . $message);
-                }
-            };
+            // Fetch the trashed items to create notifications
+            $stmt = $pdo->prepare("
+                SELECT *, {$type}_author_id as author_id 
+                FROM $tableName 
+                WHERE isTrashed = 1 
+                AND datetime_trashed = NOW()
+            ");
+            $stmt->execute();
+            $trashedItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($trashedItems as $item) {
+                // Insert notification for the content author
+                $stmt = $pdo->prepare("
+                    INSERT INTO notifications_tb (
+                        content_id, 
+                        user_id, 
+                        content_type, 
+                        notification_type, 
+                        status, 
+                        action_user_name,
+                        action_user_type,
+                        action_user_department,
+                        evaluator_message,
+                        evaluator_name,
+                        content_tv_id
+                    ) VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    )
+                ");
+                
+                $stmt->execute([
+                    $item["{$type}_id"],
+                    $item['author_id'],
+                    $type,
+                    'content_deleted_by_system',
+                    'deleted',
+                    'System',
+                    'System',
+                    'System',
+                    "Content automatically moved to Trash upon reaching expiration date ({$item['expiration_datetime']})",
+                    'System',
+                    $item['tv_id']
+                ]);
 
-            // Process the trash action through ContentHandler
-            $contentHandler->onMessage($mockConnection, json_encode($messageData));
-            logMessage("Trash request processed through ContentHandler for item {$item["{$type}_id"]}");
+                // Update notification count for the user
+                $stmt = $pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE user_id = ?
+                ");
+                $stmt->execute([$item['author_id']]);
+                
+                logMessage("Created notification for user {$item['author_id']} about trashed content {$item["{$type}_id"]}");
+            }
         }
     }
 
