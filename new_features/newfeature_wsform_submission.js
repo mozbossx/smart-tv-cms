@@ -15,6 +15,9 @@ function getNewFeatureQuillEditorContent(form) {
 }
 
 function submitFormViaWebSocket() {
+    const loadingModal = document.getElementById('loadingModal');
+    loadingModal.style.display = 'flex';
+
     const contentType = document.querySelector('[name="type"]').value;
     const contentTypeWithNoUnderscores = contentType
         .split('_')
@@ -70,7 +73,7 @@ function submitFormViaWebSocket() {
                 data[key] = value;
             });
 
-            ws.send(JSON.stringify(data));
+            sendDataToWebSocket(data, loadingModal, contentType, isEditMode);
         };
 
         reader.readAsDataURL(mediaFile);
@@ -84,18 +87,56 @@ function submitFormViaWebSocket() {
         });
 
         console.log('Form Data:', data);
-        ws.send(JSON.stringify(data));
+        sendDataToWebSocket(data, loadingModal, contentType, isEditMode);
     }
+
+    // Listen for messages from the WebSocket server
+    // ws.onmessage = function(event) {
+    //     const message = JSON.parse(event.data);
+    //     if (message.success) {
+    //         document.getElementById('successMessageVersion2').textContent = message.message || 
+    //             `${contentTypeWithNoUnderscores} was successfully ${isEditMode ? 'updated' : 'processed'}!`;
+    //         document.getElementById('successMessageModalVersion2').style.display = 'flex';
+    //         isFormDirty = false;
+    //     } 
+    // };
+}
+
+function sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, isEditMode) {
+    // Update loading message for data processing
+    document.getElementById('loadingMessage').textContent = 'Processing your content...';
+
+    ws.send(JSON.stringify(data));
 
     // Listen for messages from the WebSocket server
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
-        if (message.success) {
+        if (message.success === true) {
+            loadingModal.style.display = 'none';
             document.getElementById('successMessageVersion2').textContent = message.message || 
                 `${contentTypeWithNoUnderscores} was successfully ${isEditMode ? 'updated' : 'processed'}!`;
             document.getElementById('successMessageModalVersion2').style.display = 'flex';
             isFormDirty = false;
-        } 
+        } else if (message.success === false) {
+            // Hide loading modal
+            loadingModal.style.display = 'none';
+            // Handle error case if needed
+            document.getElementById('errorText').textContent = message.error || 'An error occurred while processing your request.';
+            document.getElementById('errorModal').style.display = 'flex';
+        }
+    };
+
+    ws.onclose = function(event) {
+        loadingModal.style.display = 'none';
+        document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
+        document.getElementById('errorModal').style.display = 'flex';
+    };
+
+    // Add error handling for WebSocket connection
+    ws.onerror = function(error) {
+        loadingModal.style.display = 'none';
+        document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
+        document.getElementById('errorModal').style.display = 'flex';
     };
 }
 

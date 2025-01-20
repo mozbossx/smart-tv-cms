@@ -458,12 +458,14 @@ const updateUI = (data, type) => {
         contentHTML = `
             <div class="content-container-con" id="facilityContentConContainer-${id}">
                 <div class="content-main" id="facilityContentMain-${id}">
-                    <div class="media-container" style="margin-bottom: 5px">
-                        <img src="servers/facility_media/${images[0]}" class="facility-image" alt="${facilityBody}" style="width: 100%; height: auto;">
+                    <div class="media-container" style="margin-bottom: 5px; height: 70%; max-height: 70%;">
+                        <img src="servers/facility_media/${images[0]}" class="facility-image" style="width: 100%; height: 100%; object-fit: contain;">
                     </div>
-                    <span class="main-message" style="word-break: break-word;">
-                        ${facilityBody}
-                    </span>
+                    <div class="message-wrapper" id="${type}MessageWrapper-${id}">
+                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                            ${facilityBody}
+                        </span>
+                    </div>
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0">
@@ -479,34 +481,69 @@ const updateUI = (data, type) => {
         `;
     } else {
         // Generic handler for new features
-        contentHTML = `
-            <div class="content-container-con" id="${type}ContentConContainer-${id}">
-                <div class="content-main" id="${type}ContentMain-${id}">
-                    ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
-                    <div class="main-message" style="word-break: break-word;">
-                        ${Object.entries(data)
-                            .filter(([key]) => !['id', 'created_datetime', 'display_time', 'status', 'expiration_datetime', 
-                                'isArchived', 'isTrashed', 'tv_id', 'author_id', 'type', 
-                                'department', 'user_type', 'category', 'evaluated_by', `${type}_author_id`, `${type}_id`,
-                                'evaluated_message', 'author_name', 'schedule_datetime', 
-                                'author_user_type', 'author_department', 'datetime_archived', 
-                                'datetime_trashed', 'media_path'].includes(key))
-                            .map(([key, value]) => `<p>${value}</p>`)
-                            .join('')}
+        // 25 filtered keys
+        const contentKeys = Object.entries(data).filter(([key]) => 
+            !['id', 'created_datetime', 'display_time', 'status', 'expiration_datetime', 
+            'isArchived', 'isTrashed', 'isScheduled', 'tv_id', 'author_id', 'type', 
+            'department', 'user_type', 'category', 'evaluated_by', `${type}_author_id`, `${type}_id`,
+            'evaluated_message', 'author_name', 'schedule_datetime', 
+            'author_user_type', 'author_department', 'datetime_archived', 
+            'datetime_trashed', 'media_path'].includes(key)
+        );
+
+        // Check if there's only media content
+        const hasOnlyMedia = mediaContent && contentKeys.length === 1;
+
+        if (hasOnlyMedia == true) {
+            contentHTML = `
+                <div class="content-container-con" id="${type}ContentConContainer-${id}">
+                    <div class="content-main" id="${type}ContentMain-${id}">
+                        ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px; height: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">${mediaContent}</div>` : ''}
+                    </div>
+                    <div class="content-details">
+                        <div style="display: flex; flex-direction: row; margin: 0">
+                            <div>
+                                <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                            </div>
+                            <div style="margin-left: auto; margin-top: auto">
+                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+            `;
+        } else {
+            contentHTML = `
+                <div class="content-container-con" id="${type}ContentConContainer-${id}">
+                    <div class="content-main" id="${type}ContentMain-${id}">
+                        ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
+                        <div class="message-wrapper" id="${type}MessageWrapper-${id}">
+                            <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                                ${Object.entries(data)
+                                    .filter(([key]) => !['id', 'created_datetime', 'display_time', 'status', 'expiration_datetime', 
+                                        'isArchived', 'isTrashed', 'isScheduled', 'tv_id', 'author_id', 'type', 
+                                        'department', 'user_type', 'category', 'evaluated_by', `${type}_author_id`, `${type}_id`,
+                                        'evaluated_message', 'author_name', 'schedule_datetime', 
+                                        'author_user_type', 'author_department', 'datetime_archived', 
+                                        'datetime_trashed', 'media_path'].includes(key))
+                                    .map(([key, value]) => `${value}`)
+                                    .join('')}
+                            </span>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                    </div>
+                    <div class="content-details">
+                        <div style="display: flex; flex-direction: row; margin: 0">
+                            <div>
+                                <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                            </div>
+                            <div style="margin-left: auto; margin-top: auto">
+                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
     }
 
     if (existingDiv) {
@@ -581,22 +618,26 @@ function initializeTextFitting(type, id) {
         return;
     }
 
-    // Handle PEO's multiple messages
-    if (type === 'peo' || type === 'so') {
-        // Array of message IDs for PEO
-        const messageIds = [
-            `${type}Message-${id}`,
-            `${type}Message2-${id}`,
-            `${type}Message3-${id}`
-        ];
+    // Find all message elements within the container
+    const messageElements = containerDiv.querySelectorAll('.main-message');
+    if (!messageElements.length) {
+        console.warn(`No message elements found for ${type} with id ${id}`);
+        return;
+    }
 
-        // Initial text fitting for all messages
-        messageIds.forEach(messageId => fitText(messageId));
+    // Apply text fitting to each message element
+    messageElements.forEach((messageElement, index) => {
+        const messageId = messageElement.id || `${type}Message${index}-${id}`;
+        if (!messageElement.id) {
+            messageElement.id = messageId;
+        }
+        
+        fitText(messageId);
 
         // Set up resize observer for continuous monitoring
         const resizeObserver = new ResizeObserver(() => {
             requestAnimationFrame(() => {
-                messageIds.forEach(messageId => fitText(messageId));
+                fitText(messageId);
             });
         });
 
@@ -607,19 +648,47 @@ function initializeTextFitting(type, id) {
         if (parentContainer) {
             resizeObserver.observe(parentContainer);
         }
-    } else {
-        // Original code for other content types
-        const messageId = `${type}Message-${id}`;
-        fitText(messageId);
+    });
 
-        const resizeObserver = new ResizeObserver(() => {
-            requestAnimationFrame(() => {
-                fitText(messageId);
-            });
-        });
+    // // Handle PEO's multiple messages
+    // if (type === 'peo' || type === 'so') {
+    //     // Array of message IDs for PEO
+    //     const messageIds = [
+    //         `${type}Message-${id}`,
+    //         `${type}Message2-${id}`,
+    //         `${type}Message3-${id}`
+    //     ];
 
-        resizeObserver.observe(containerDiv);
-    }
+    //     // Initial text fitting for all messages
+    //     messageIds.forEach(messageId => fitText(messageId));
+
+    //     // Set up resize observer for continuous monitoring
+    //     const resizeObserver = new ResizeObserver(() => {
+    //         requestAnimationFrame(() => {
+    //             messageIds.forEach(messageId => fitText(messageId));
+    //         });
+    //     });
+
+    //     resizeObserver.observe(containerDiv);
+        
+    //     // Observe parent container as well
+    //     const parentContainer = containerDiv.closest('.content-container');
+    //     if (parentContainer) {
+    //         resizeObserver.observe(parentContainer);
+    //     }
+    // } else {
+    //     // Original code for other content types
+    //     const messageId = `${type}Message-${id}`;
+    //     fitText(messageId);
+
+    //     const resizeObserver = new ResizeObserver(() => {
+    //         requestAnimationFrame(() => {
+    //             fitText(messageId);
+    //         });
+    //     });
+
+    //     resizeObserver.observe(containerDiv);
+    // }
 }
 
 function fitText(messageId) {
@@ -791,7 +860,7 @@ const createOrgChart = (orgchartId, chartData) => {
             connectors: {
                 type: 'step',
                 style: {
-                    'stroke-width': '2px'
+                    'stroke-width': '6px'
                 }
             },
             node: {
@@ -820,8 +889,8 @@ const createOrgChart = (orgchartId, chartData) => {
             // First, make the Treant match the SVG dimensions
             const svgWidth = svg.width.baseVal.value;
             const svgHeight = svg.height.baseVal.value;
-            console.log("svgWidth: ", svgWidth);
-            console.log("svgHeight: ", svgHeight);
+            // console.log("svgWidth: ", svgWidth);
+            // console.log("svgHeight: ", svgHeight);
             
             // Set both width and height of Treant to match SVG
             treant.style.width = `${svgWidth}px`;
@@ -1187,7 +1256,7 @@ const fetchSmartTVContainers = () => {
     fetch(`database/fetch_containers.php?tvId=${tvId}`)
         .then(response => response.json())
         .then(data => {
-            console.log("Fetched containers:", data);
+            // console.log("Fetched containers:", data);
             const containersVisible = data.visible;
             const containerHeightPx = data.height_px;
             const containerWidthPx = data.width_px;
@@ -1446,12 +1515,12 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
         } else if (data.type === 'orgchart') {
-            console.log("Received new orgchart data:", data);
+            // console.log("Received new orgchart data:", data);
             // Refresh TV since there's an issue for the orgchart when posting it
             const urlParams = new URLSearchParams(window.location.search);
             const tvId = urlParams.get('tvId');
-            console.log("TV IDS of orgchart: ", data.tv_ids);
-            console.log("TV ID of orgchart: ", data.tv_id);
+            // console.log("TV IDS of orgchart: ", data.tv_ids);
+            // console.log("TV ID of orgchart: ", data.tv_id);
 
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
                 location.reload();
@@ -1462,7 +1531,7 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents(type);
         }
     } else if (data.action === 'post_content' || data.action === 'post_now_content') {
-        console.log("Received new content data:", data);
+        // console.log("Received new content data:", data);
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');
         } else if (data.type === 'event') {
@@ -1476,12 +1545,12 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
         } else if (data.type === 'orgchart') {
-            console.log("Received new orgchart data:", data);
+            // console.log("Received new orgchart data:", data);
             // Refresh TV since there's an issue for the orgchart when posting it
             const urlParams = new URLSearchParams(window.location.search);
             const tvId = urlParams.get('tvId');
-            console.log("TV IDS of orgchart: ", data.tv_ids);
-            console.log("TV ID of orgchart: ", data.tv_id);
+            // console.log("TV IDS of orgchart: ", data.tv_ids);
+            // console.log("TV ID of orgchart: ", data.tv_id);
 
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
                 location.reload();
@@ -1490,8 +1559,8 @@ Ws.addEventListener('message', function (event) {
             // Refresh TV since there's an issue for the facility when posting it
             const urlParams = new URLSearchParams(window.location.search);
             const tvId = urlParams.get('tvId');
-            console.log("TV IDS of facility: ", data.tv_ids);
-            console.log("TV ID of facility: ", data.tv_id);
+            // console.log("TV IDS of facility: ", data.tv_ids);
+            // console.log("TV ID of facility: ", data.tv_id);
 
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
                 location.reload();

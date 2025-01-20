@@ -24,6 +24,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '192.168.1.
 $conn = mysqli_connect($server, $username, $password, $dbname);
 
 if (!$conn) {
+    error_log('Connection Failed: ' . mysqli_connect_error());
     die('Connection Failed: ' . mysqli_connect_error());
 }
 ?>

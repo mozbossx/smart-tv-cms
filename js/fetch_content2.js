@@ -165,9 +165,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
             `;
         } else {
-            contentHtml += `<div class="content-container-con">`;
-            contentHtml += `<p>Facility ID: ${data.facility_id}</p>`;
-        
+            contentHtml += `<div class="content-container-con">`;       
             // Special handling for facility type with multiple images
             if (type === 'facility' && data.facility_images_array) {
                 const images = data.facility_images_array.split(',');
@@ -234,7 +232,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         default:
             // For new features, only display content fields (skip metadata fields)
             for (let key in data) {
-                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
+                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isScheduled|isTrashed|tv_id|author_id|type|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
                     && !key.endsWith('_id')) {
                     contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[key]}</pre>`;
                 }
@@ -351,8 +349,6 @@ const updateUI = (data, type) => {
             containerDiv.classList.add('content-container-main');
             containerDiv.innerHTML = contentHtml;
 
-            console.log("TV ID of orgchart:", data.tv_id);
-
             containerDiv.style = `
                 height: auto;
                 width: auto;
@@ -414,7 +410,7 @@ const updateUI = (data, type) => {
     if (type === 'facility') {
         // fetch facility images array by separating the comma in the facility_images_array
         const facilityImagesArray = data.facility_images_array.split(',');
-        console.log("Facility Images Array:", facilityImagesArray);
+        // console.log("Facility Images Array:", facilityImagesArray);
     }
 
     if (data.media_path && type !== 'facility') {
@@ -514,41 +510,40 @@ const updateUI = (data, type) => {
 };
 
 const createOrgChart = (orgchartId, chartData) => {
-    // console.log("Orgchart ID:", orgchartId);
-    // console.log("Chart Data:", chartData);
     const containerId = `orgChartContainer-${orgchartId}`;
+    const containerParentId = `orgChartContainerParent-${orgchartId}`;
+
     const container = document.getElementById(containerId);
+    const containerParent = document.getElementById(containerParentId);
+
     if (!container) {
         console.error(`Container not found for orgchart ${orgchartId}`);
         return;
     }
 
-    const contentDiv = container.querySelector('.orgchart-content');
-    if (!contentDiv) return;
+    // Clear any existing chart
+    const contentDiv = document.querySelector('.orgchart-content');
+    if (!contentDiv) {
+        return;
+    }
 
     contentDiv.innerHTML = '';
 
-    const orgchartContainer = document.querySelector('.orgchart-container');
-    if (!orgchartContainer) return;
-
-    const orgchartContainerParent = document.getElementById(`orgChartContainerParent-${orgchartId}`);
-
-    const containerWidth = container.offsetWidth;
-    const containerHeight = container.offsetHeight;
-    const baseNodeWidth = Math.min(containerWidth * 0.15, 130);
-    const baseNodeHeight = Math.min(containerHeight * 0.15, 130);
+    // Create a unique chart ID
+    const uniqueChartId = `treant-${orgchartId}`;
+    contentDiv.id = uniqueChartId;
 
     const chartConfig = {
         chart: {
             container: `#${containerId}`,
             nodeAlign: "BOTTOM",
-            levelSeparation: 25,
-            siblingSeparation: 35,
-            subTeeSeparation: 35,
+            levelSeparation: 40,
+            siblingSeparation: 40,
+            subTeeSeparation: 40,
             connectors: {
                 type: 'step',
                 style: {
-                    'stroke-width': '1px'
+                    'stroke-width': '5px'
                 }
             },
             node: {
@@ -559,55 +554,52 @@ const createOrgChart = (orgchartId, chartData) => {
     };
 
     try {
-        new Treant(chartConfig);
-        const svg = document.querySelector('svg');
-        // assign id to svg
-        if (svg) {
-            svg.id = `orgChartSVG-${orgchartId}`;
-        }
+        // Create the Treant instance
+        new Treant(chartConfig, () => {
+            const treant = document.querySelector(`#${containerId}`).closest('.Treant');
+            const svg = treant ? treant.querySelector('svg') : null;
 
-        requestAnimationFrame(() => {
-            scaleOrgChart(container, orgchartContainerParent, orgchartId);
+            if (!treant) {
+                console.error(`Treant not found for orgchart ${orgchartId}`);
+                return;
+            }
+
+            if (!svg) {
+                console.error(`SVG not found for orgchart ${orgchartId}`);
+                return;
+            }
+
+            // First, make the Treant match the SVG dimensions
+            const svgWidth = svg.width.baseVal.value;
+            const svgHeight = svg.height.baseVal.value;
+            // console.log("svgWidth: ", svgWidth);
+            // console.log("svgHeight: ", svgHeight);
+            
+            // Set both width and height of Treant to match SVG
+            treant.style.width = `${svgWidth}px`;
+            treant.style.height = `${svgHeight}px`;
+
+            // Reset transform to get true dimensions
+            treant.style.transform = 'none';
+            
+            // Calculate scale ratios
+            const containerWidth = containerParent.offsetWidth;
+            const containerHeight = containerParent.offsetHeight;
+            const scale = Math.min(
+                containerWidth / svgWidth,
+                containerHeight / svgHeight,
+                1
+            ) * 0.9;
+
+            // Apply the transform
+            treant.style.zoom = `${scale}`;
+            treant.style.transformOrigin = 'center center';
         });
-
     } catch (error) {
         console.error('Error creating org chart:', error);
-        orgchartContainer.innerHTML = '<p style="text-align: center; color: black; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
+        contentDiv.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
     }
 };
-
-function scaleOrgChart(orgchartContainer, orgchartContainerParent, orgchartId) {
-    // const orgchartContainer = document.querySelector('.orgchart-container');
-    console.log("Orgchart Container Parent:", orgchartContainerParent);
-    console.log("Orgchart Container:", orgchartContainer);
-    
-    if (!orgchartContainerParent || !orgchartContainer) return;
-
-    // Reset transform to get true dimensions
-    orgchartContainerParent.style.transform = 'none';
-    
-    // Calculate scale ratios
-    const containerWidth = orgchartContainerParent.offsetWidth;
-    const containerHeight = orgchartContainerParent.offsetHeight;
-    const orgchartContainerWidth = orgchartContainer.offsetWidth;
-    const orgchartContainerHeight = orgchartContainer.offsetHeight;
-
-    console.log("Container Width:", containerWidth);
-    console.log("Container Height:", containerHeight);
-    console.log("Orgchart Container Width:", orgchartContainerWidth);
-    console.log("Orgchart Container Height:", orgchartContainerHeight);
-
-
-    const scale = Math.min(
-        containerWidth / orgchartContainerWidth,
-        containerHeight / orgchartContainerHeight,
-        1
-    ) * 0.9; // 0.9 for padding
-
-    // Apply the transform
-    orgchartContainerParent.style.zoom = scale;
-    orgchartContainerParent.style.transformOrigin = 'top center';
-}
 
 function createNodeStructure(members) {
     if (!members || members.length === 0) return null;
@@ -623,7 +615,7 @@ function createNodeStructure(members) {
             },
             image: member.picture,
             innerHTML: `
-                <div class="node-content">
+                <div class="node-content" style="width: auto; max-width: 400px;">
                     ${member.picture ? 
                         `<img src="${member.picture}" class="node-image" alt="${member.name}">` : 
                         `<img src="images/profile_picture.png" class="node-image" alt="Default Profile">`
@@ -1082,7 +1074,7 @@ Ws.addEventListener('message', function(event) {
                 const remainingItems = deletedContainer.querySelectorAll(`[data-${type}-id]`).length;
                 updateContentCount(type, Math.max(0, remainingItems));
             }
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been deleted.`);
+            // console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been deleted.`);
             break;
         
         case 'trash_content':
@@ -1101,7 +1093,7 @@ Ws.addEventListener('message', function(event) {
                 const remainingItems = trashedContainer.querySelectorAll(`[data-${type}-id]`).length;
                 updateContentCount(type, Math.max(0, remainingItems));
             }
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been moved to Trash.`);
+            // console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been moved to Trash.`);
             break;
 
         case 'archive_content':
@@ -1116,7 +1108,7 @@ Ws.addEventListener('message', function(event) {
                 const remainingItems = archivedContainer.querySelectorAll(`[data-${type}-id]`).length;
                 updateContentCount(type, Math.max(0, remainingItems));
             }
-            console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been archived.`);
+            // console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been archived.`);
             break;
         case 'update_content':
         case 'restore_content':

@@ -18,6 +18,16 @@
     </div>
 </div>
 
+<!-- Loading Modal -->
+<div id="loadingModal" class="modal">
+    <div class="modal-content" style="padding: 15px; text-align: center;">
+        <div class="loading-spinner">
+            <i class="fa fa-spinner fa-spin" style="font-size: 50px; color: <?php echo $theme_color; ?>"></i>
+        </div>
+        <p id="loadingMessage">Uploading content, please wait...</p>
+    </div>
+</div>
+
 <script>
     function closeSuccessMessageModalVersion2() {
         var successMessageModalVersion2 = document.getElementById('successMessageModalVersion2');

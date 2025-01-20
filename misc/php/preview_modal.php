@@ -442,19 +442,21 @@
                                                                         </div>` : 
                                                                         ''
                                                                     }
-                                                                    <div class="main-message" style="margin: 0; word-break: break-word;">
-                                                                        ${selectedType === 'peo' ? 
-                                                                            `<h2>${quillEditors.peoTitleQuill.root.innerHTML}</h2>
-                                                                            <div>${quillEditors.peoDescriptionQuill.root.innerHTML}</div>
-                                                                            <div>${quillEditors.peoSubdescriptionQuill.root.innerHTML}</div>` :
-                                                                        selectedType === 'so' ? 
-                                                                            `<h2>${quillEditors.soTitleQuill.root.innerHTML}</h2>
-                                                                            <div>${quillEditors.soDescriptionQuill.root.innerHTML}</div>
-                                                                            <div>${quillEditors.soSubdescriptionQuill.root.innerHTML}</div>` :
-                                                                        selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
-                                                                        selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
-                                                                        selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
-                                                                        ''}
+                                                                    <div class="message-wrapper">
+                                                                        <span class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                            ${selectedType === 'peo' ? 
+                                                                                `${quillEditors.peoTitleQuill.root.innerHTML}
+                                                                                ${quillEditors.peoDescriptionQuill.root.innerHTML}
+                                                                                ${quillEditors.peoSubdescriptionQuill.root.innerHTML}` :
+                                                                            selectedType === 'so' ? 
+                                                                                `${quillEditors.soTitleQuill.root.innerHTML}
+                                                                                ${quillEditors.soDescriptionQuill.root.innerHTML}
+                                                                                ${quillEditors.soSubdescriptionQuill.root.innerHTML}` :
+                                                                            selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
+                                                                            selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
+                                                                            selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
+                                                                            ''}
+                                                                        </span>
                                                                     </div>`
                                                                 }
                                                             </div>
@@ -546,6 +548,9 @@
             const items = document.querySelectorAll('.carousel-item');
             items[0].style.display = 'block';
 
+            // Initialize text fitting for the first visible item
+            initializePreviewTextFitting();
+
             // Initialize the current index
             let currentIndex = 0;
 
@@ -590,6 +595,7 @@
                 setTimeout(() => {
                     updateTvName();
                     fitFrameToParent();
+                    initializePreviewTextFitting();
                 }, 0);
             };
 
@@ -634,6 +640,62 @@
             // window.addEventListener('resize', fitFrameToParent);
         } else {
             previewContainer.innerHTML = '<p>No container found for the selected TVs.</p>'; // Fallback message
+        }
+    }
+
+    function initializePreviewTextFitting() {
+        const activeItem = document.querySelector('.carousel-item.active');
+        if (!activeItem) return;
+
+        const tvId = activeItem.getAttribute('data-tv-id');
+        const messageElement = document.getElementById(`previewMessage-${tvId}`);
+        
+        if (!messageElement) {
+            console.warn('Message element not found');
+            return;
+        }
+
+        // Set up resize observer for continuous monitoring
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => {
+                fitPreviewText(`previewMessage-${tvId}`);
+            });
+        });
+
+        const containerDiv = messageElement.closest('.carousel-content');
+        if (containerDiv) {
+            resizeObserver.observe(containerDiv);
+        }
+
+        // Initial text fitting
+        fitPreviewText(`previewMessage-${tvId}`);
+    }
+
+    function fitPreviewText(messageId) {
+        const messageElement = $(`#${messageId}`);
+        if (!messageElement.length) {
+            console.warn(`Message element not found for ID: ${messageId}`);
+            return;
+        }
+
+        const messageWrapper = messageElement.parent();
+        if (!messageWrapper.length) {
+            console.warn(`Message wrapper not found for ID: ${messageId}`);
+            return;
+        }
+
+        try {
+            messageWrapper.textfill({
+                maxFontPixels: -1,
+                minFontPixels: 8,
+                widthOnly: false,
+                explicitWidth: messageWrapper.width(),
+                explicitHeight: messageWrapper.height(),
+                changeLineHeight: true,
+                innerTag: 'p'
+            });
+        } catch (error) {
+            console.error(`Error fitting text for ${messageId}:`, error);
         }
     }
 

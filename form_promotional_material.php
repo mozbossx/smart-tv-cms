@@ -38,6 +38,8 @@ if ($isEditMode && isset($_GET['promaterial_id'])) {
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="jquery-textfill-master/dist/jquery.textfill.min.js"></script>
+    <script src="jquery-textfill-master/dist/jquery.textfill.js"></script>
     <title><?php echo $isEditMode ? 'Edit Promotional Material' : 'Create a Promotional Material'; ?></title>
 </head>
 <body>

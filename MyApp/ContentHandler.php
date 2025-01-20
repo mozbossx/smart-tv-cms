@@ -4771,6 +4771,8 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
     <link rel=\"stylesheet\" href=\"style.css\">
     <link href=\"https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css\" rel=\"stylesheet\" />
     <script src=\"https://code.jquery.com/jquery-3.2.1.min.js\"></script>
+    <script src=\"jquery-textfill-master/dist/jquery.textfill.min.js\"></script>
+    <script src=\"jquery-textfill-master/dist/jquery.textfill.js\"></script>
     <title><?php echo \$isEditMode ? 'Edit {$featureName}' : 'Create a {$featureName}'; ?></title>
 </head>
 <body>

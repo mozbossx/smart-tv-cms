@@ -1,6 +1,8 @@
 <?php
 // start the session
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 include 'config_connection.php';
 
 // fetch user data for the currently logged-in user
