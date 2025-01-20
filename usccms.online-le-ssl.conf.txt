@@ -1,0 +1,31 @@
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+    ServerName usccms.online
+
+    DocumentRoot /var/www/smart-tv-cms
+    <Directory /var/www/smart-tv-cms>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    # WebSocket Proxy Configuration
+    ProxyRequests Off
+    ProxyPreserveHost On
+
+        # WebSocket proxy configuration
+    ProxyPass /ws ws://usccms.online:8081/
+    ProxyPassReverse /ws ws://usccms.online:8081/
+
+    RequestHeader set X-Forwarded-Proto "https"
+    RequestHeader set X-Forwarded-Ssl "on"
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/usccms.online/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/usccms.online/privkey.pem
+    Include /etc/letsencrypt/options-ssl-apache.conf
+</VirtualHost>
+</IfModule>

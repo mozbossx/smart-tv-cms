@@ -433,7 +433,7 @@
                                                 <div class="carousel-item-2 active" style="width: auto; margin-bottom: 5px; height: 100%; border-radius: 5px;">
                                                     <div style="border: none; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: justify; height: 100%; bottom: 0;">
                                                         <div class="content-container-con" style="height: 100%">
-                                                            <div class="content-main">
+                                                            <div class="content-main" id="${selectedType}ContentMain-${matchingContainer.tv_id}">
                                                                 ${selectedType === 'promaterial' ? 
                                                                     mediaContent : 
                                                                     `${mediaContent ? 
@@ -442,22 +442,47 @@
                                                                         </div>` : 
                                                                         ''
                                                                     }
-                                                                    <div class="message-wrapper">
-                                                                        <span class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
-                                                                            ${selectedType === 'peo' ? 
-                                                                                `${quillEditors.peoTitleQuill.root.innerHTML}
+                                                                    ${selectedType === 'peo' ? 
+                                                                        `<div class="message-wrapper">
+                                                                            <span class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                                ${quillEditors.peoTitleQuill.root.innerHTML}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div class="message-wrapper">
+                                                                            <span class="main-message" id="previewMessage2-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
                                                                                 ${quillEditors.peoDescriptionQuill.root.innerHTML}
-                                                                                ${quillEditors.peoSubdescriptionQuill.root.innerHTML}` :
-                                                                            selectedType === 'so' ? 
-                                                                                `${quillEditors.soTitleQuill.root.innerHTML}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div class="message-wrapper">
+                                                                            <span class="main-message" id="previewMessage3-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                                ${quillEditors.peoSubdescriptionQuill.root.innerHTML}
+                                                                            </span>
+                                                                        </div>` : 
+                                                                    selectedType === 'so' ? 
+                                                                        `<div class="message-wrapper">
+                                                                            <span class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                                ${quillEditors.soTitleQuill.root.innerHTML}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div class="message-wrapper">
+                                                                            <span class="main-message" id="previewMessage2-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
                                                                                 ${quillEditors.soDescriptionQuill.root.innerHTML}
-                                                                                ${quillEditors.soSubdescriptionQuill.root.innerHTML}` :
-                                                                            selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
-                                                                            selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
-                                                                            selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
-                                                                            ''}
-                                                                        </span>
-                                                                    </div>`
+                                                                            </span>
+                                                                        </div>
+                                                                        <div class="message-wrapper">
+                                                                            <span class="main-message" id="previewMessage3-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                                ${quillEditors.soSubdescriptionQuill.root.innerHTML}
+                                                                            </span>
+                                                                        </div>` :
+                                                                        `<div class="message-wrapper">
+                                                                            <span class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                                ${selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
+                                                                                selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
+                                                                                selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
+                                                                                ''}
+                                                                            </span>
+                                                                        </div>`
+                                                                    }`
                                                                 }
                                                             </div>
                                                             <div class="content-details">
@@ -549,7 +574,7 @@
             items[0].style.display = 'block';
 
             // Initialize text fitting for the first visible item
-            initializePreviewTextFitting();
+            initializePreviewTextFitting(selectedType, matchingContainers[0].tv_id);
 
             // Initialize the current index
             let currentIndex = 0;
@@ -595,7 +620,7 @@
                 setTimeout(() => {
                     updateTvName();
                     fitFrameToParent();
-                    initializePreviewTextFitting();
+                    initializePreviewTextFitting(selectedType, matchingContainers[currentIndex].tv_id);
                 }, 0);
             };
 
@@ -643,32 +668,27 @@
         }
     }
 
-    function initializePreviewTextFitting() {
-        const activeItem = document.querySelector('.carousel-item.active');
-        if (!activeItem) return;
+    function initializePreviewTextFitting(selectedType, matchingContainer) {
+        const containerDiv = document.getElementById(`${selectedType}ContentMain-${matchingContainer}`);
+        if (!containerDiv) return;
 
-        const tvId = activeItem.getAttribute('data-tv-id');
-        const messageElement = document.getElementById(`previewMessage-${tvId}`);
-        
-        if (!messageElement) {
-            console.warn('Message element not found');
+        // Find all message elements within the container
+        const messageElements = containerDiv.querySelectorAll('.main-message');
+        if (!messageElements.length) {
             return;
         }
+        console.log(messageElements);
 
-        // Set up resize observer for continuous monitoring
-        const resizeObserver = new ResizeObserver(() => {
-            requestAnimationFrame(() => {
-                fitPreviewText(`previewMessage-${tvId}`);
-            });
+        // Apply text fitting to each message element
+        messageElements.forEach((messageElement, index) => {
+            const messageId = messageElement.id || `previewMessage${index}-${matchingContainer}`;
+            if (!messageElement.id) {
+                messageElement.id = messageId;
+            }
+            console.log("messageId: ", messageId);
+            
+            fitPreviewText(messageId);
         });
-
-        const containerDiv = messageElement.closest('.carousel-content');
-        if (containerDiv) {
-            resizeObserver.observe(containerDiv);
-        }
-
-        // Initial text fitting
-        fitPreviewText(`previewMessage-${tvId}`);
     }
 
     function fitPreviewText(messageId) {
@@ -683,11 +703,12 @@
             console.warn(`Message wrapper not found for ID: ${messageId}`);
             return;
         }
+        console.log("messageWrapper: ", messageWrapper);
 
         try {
             messageWrapper.textfill({
-                maxFontPixels: -1,
-                minFontPixels: 8,
+                maxFontPixels: -5,
+                minFontPixels: 2,
                 widthOnly: false,
                 explicitWidth: messageWrapper.width(),
                 explicitHeight: messageWrapper.height(),

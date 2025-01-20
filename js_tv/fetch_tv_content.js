@@ -970,54 +970,6 @@ const createNodeStructure = (members) => {
     };
 };
 
-// Add this new function to handle scaling
-function scaleOrgChart(container, orgchartId) {
-    const contentConContainer = document.getElementById(`orgChartParentContainer-${orgchartId}`);
-    const contentMain = document.getElementById(`orgChartContainer-${orgchartId}`);
-
-    // console.log("contentConContainer: ", contentConContainer);
-    // console.log("contentMain: ", contentMain);
-    
-    if (!contentConContainer || !contentMain) {
-        console.warn(`Container elements not found for ${type} with id ${id}`);
-        return;
-    }
-
-    // Reset zoom and transform to get true dimensions
-    contentMain.style.zoom = '1';
-    contentConContainer.style.transform = 'none';
-    
-    // Force a reflow
-    void contentMain.offsetHeight;
-
-    // Get dimensions
-    const containerRect = contentConContainer.getBoundingClientRect();
-    const contentRect = contentMain.getBoundingClientRect();
-
-    // console.log("containerRect: ", containerRect);
-    // console.log("contentRect: ", contentRect);
-
-    // Calculate zoom level needed to fit the content
-    let zoomLevel;
-    if (containerRect.width > contentRect.width || containerRect.height > contentRect.height) {
-        // Content is too big - scale down
-        const scaleX = (containerRect.width / contentRect.width) / 3.5;
-        const scaleY = (containerRect.height / contentRect.height) / 3.5;
-        // console.log("scaleX: (scale-down)", scaleX);
-        // console.log("scaleY: (scale-down)", scaleY);
-        zoomLevel = Math.min(scaleX, scaleY) * 0.80; // Scale down by taking the smaller ratio, with 5% margin
-        // console.log("zoomLevel (scale-down) of type ", type, " : ", zoomLevel);
-    } 
-
-    // Apply zoom with smooth transition
-    contentMain.style.transition = 'zoom 0.3s ease-in-out';
-    contentMain.style.zoom = zoomLevel;
-    contentMain.style.display = 'block';
-
-    // Ensure container doesn't show scrollbars
-    contentConContainer.style.overflow = 'hidden';
-}
-
 // Add resize observer to handle container resizing
 const setupOrgChartResizeObserver = (container) => {
     let resizeTimeout;

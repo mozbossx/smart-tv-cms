@@ -1,9 +1,11 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/www/smart-tv-cms/cron_auto_trash_expired_items_error.log');
 
 // Log file setup
-$logFile = __DIR__ . '/expired_content_log.txt';
+$logFile = '/var/www/smart-tv-cms/expired_content_log.txt';
 function logMessage($message) {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
@@ -22,7 +24,7 @@ try {
     $contentTypes = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
     // Add default content types
-    $defaultTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
+    $defaultTypes = ['announcement', 'event', 'news', 'promaterial'];
     $contentTypes = array_merge($defaultTypes, $contentTypes);
     
     $currentDateTime = new DateTime();
@@ -67,7 +69,7 @@ try {
             ];
 
             // Use ContentHandler to process the trashing
-            require_once __DIR__ . '/../MyApp/ContentHandler.php';
+            require_once '/var/www/smart-tv-cms/MyApp/ContentHandler.php';
             $contentHandler = new \MyApp\ContentHandler($pdo);
             
             // Create a mock connection for the ContentHandler

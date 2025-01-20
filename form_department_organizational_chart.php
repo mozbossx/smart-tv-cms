@@ -414,9 +414,9 @@ include 'misc/php/options_tv.php';
                                                     <div class="carousel-item-2 active" style="width: auto; margin-bottom: 5px; height: 100%; border-radius: 5px;">
                                                         <div style="border: none; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: justify; height: 100%; bottom: 0;">
                                                             <div class="content-container-con" style="height: 100%;">
-                                                                <div class="content-main" style="place-content: center; align-self: center">
-                                                                    <div id="previewOrgChartContainer-${matchingContainer.tv_id}" class="chart-parent-container-preview" style="place-items: center; background-color: transparent; box-shadow: none">
-                                                                        <div class="chart-container-preview" style="width: auto;"></div>
+                                                                <div id="previewOrgChartContainerParent-${matchingContainer.tv_id}" class="orgchart-container">
+                                                                    <div id="previewOrgChartContainer-${matchingContainer.tv_id}"  class="orgchart-container-parent">
+                                                                        <div class="orgchart-content"></div>
                                                                     </div>
                                                                 </div>
                                                                 <div class="content-details">
@@ -599,7 +599,7 @@ include 'misc/php/options_tv.php';
 
             // After creating the preview structure, create the org charts
             matchingContainers.forEach((matchingContainer, index) => {
-                createPreviewOrgChart(orgChartData, `previewOrgChartContainer-${matchingContainer.tv_id}`);
+                createPreviewOrgChart(orgChartData, `previewOrgChartContainer-${matchingContainer.tv_id}`, matchingContainer.tv_id);
             });
         }
 
@@ -611,7 +611,7 @@ include 'misc/php/options_tv.php';
             });
         });
 
-        function createPreviewOrgChart(data, containerId) {
+        function createPreviewOrgChart(data, containerId, tvId) {
             const container = document.getElementById(containerId);
             if (!container) {
                 console.error(`Container not found for orgchart ${containerId}`);
@@ -619,7 +619,7 @@ include 'misc/php/options_tv.php';
             }
 
             // Clear any existing chart
-            const contentDiv = container.querySelector('.chart-container-preview');
+            const contentDiv = container.querySelector('.orgchart-content');
             if (!contentDiv) {
                 console.warn("contentDiv not found");
                 return;
@@ -680,84 +680,50 @@ include 'misc/php/options_tv.php';
                         },
                         node: {
                             HTMLclass: 'nodeExample1'
-                        },
-                        animation: {
-                            nodeAnimation: "easeOutBounce",
-                            nodeSpeed: 700,
-                            connectorsAnimation: "bounce",
-                            connectorsSpeed: 700
-                        },
-                        callback: {
-                            onTreeLoaded: function() {
-                                // Wait for the chart to be fully rendered
-                                setTimeout(() => {
-                                    const treant = contentDiv.querySelector('.Treant');
-                                    if (!treant) return;
-
-                                    // Get the actual dimensions of the rendered chart
-                                    const treantRect = treant.getBoundingClientRect();
-                                    const containerRect = container.getBoundingClientRect();
-
-                                    // Calculate and apply the scale
-                                    const scaleX = containerRect.width / treantRect.width;
-                                    const scaleY = containerRect.height / treantRect.height;
-                                    const scale = Math.min(scaleX, scaleY, 1) * 0.9; // 0.9 for padding
-
-                                    // Center the chart
-                                    const translateX = (containerRect.width - (treantRect.width * scale)) / 2;
-                                    const translateY = (containerRect.height - (treantRect.height * scale)) / 2;
-
-                                    treant.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-                                    treant.style.transformOrigin = 'top left';
-                                }, 100);
-                            }
                         }
                     },
                     nodeStructure: rootNode
                 };
 
                 try {
-                    new Treant(chartConfig);
+                    new Treant(chartConfig, () => {
+                        const treant = document.querySelector(`#${containerId}`).closest('.Treant');
+                        const svg = treant ? treant.querySelector('svg') : null;
+
+                        if (!treant || !svg) {
+                            console.error('Treant or SVG not found');
+                            return;
+                        }
+
+                        // First, make the Treant match the SVG dimensions
+                        const svgWidth = svg.width.baseVal.value;
+                        const svgHeight = svg.height.baseVal.value;
+                        
+                        // Set both width and height of Treant to match SVG
+                        treant.style.width = `${svgWidth}px`;
+                        treant.style.height = `${svgHeight}px`;
+
+                        // Reset transform to get true dimensions
+                        treant.style.transform = 'none';
+                        
+                        // Calculate scale ratios
+                        const containerWidth = container.offsetWidth;
+                        const containerHeight = container.offsetHeight;
+                        const scale = Math.min(
+                            containerWidth / svgWidth,
+                            containerHeight / svgHeight,
+                            1
+                        ) * 0.9; // 0.9 for padding
+
+                        // Apply the transform using zoom instead of scale
+                        treant.style.zoom = `${scale}`;
+                        treant.style.transformOrigin = 'center center';
+                    });
                 } catch (error) {
                     console.error('Error creating preview org chart:', error);
                     contentDiv.innerHTML = '<p style="text-align: center; color: <?php echo $theme_color; ?>; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
                 }
             }
-        }
-
-        function scaleOrgChartInPreview(chartContainer) {
-            if (!chartContainer) {
-                console.warn('Container not provided to scaleOrgChart');
-                return;
-            }
-
-            const treant = chartContainer.querySelector('.Treant');
-            if (!treant) {
-                console.warn('Treant element not found in orgchart content');
-                return;
-            }
-
-            // Reset transform to get true dimensions
-            treant.style.transform = 'none';
-            
-            // Force a reflow
-            void treant.offsetHeight;
-
-            // Get dimensions
-            const containerRect = container.getBoundingClientRect();
-            const treantRect = treant.getBoundingClientRect();
-
-            // Calculate scale
-            const scaleX = containerRect.width / treantRect.width;
-            const scaleY = containerRect.height / treantRect.height;
-            const scale = Math.min(scaleX, scaleY, 1) * 0.9; // 0.9 for padding
-
-            // Calculate centering translations
-            const translateX = Math.max(0, (containerRect.width - (treantRect.width * scale)) / 2);
-            const translateY = Math.max(0, (containerRect.height - (treantRect.height * scale)) / 2);
-
-            // Apply transform with hardware acceleration
-            treant.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
         }
 
         function fetchOrgChartData() {

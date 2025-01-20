@@ -1,0 +1,31 @@
+VirtualHost 80
+    ServerName usccms.online
+    DocumentRoot varwwwsmart-tv-cms
+
+# WebSocket Configuration
+    ProxyRequests Off
+    ProxyPreserveHost On
+
+    # Simple WebSocket proxy
+    ProxyPass ws wsusccms.online8081
+    ProxyPassReverse ws wsusccms.online8081
+
+
+    Directory varwwwsmart-tv-cms
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    Directory
+
+# Add headers for WebSocket
+    RequestHeader set X-Forwarded-Proto http
+
+    ErrorLog ${APACHE_LOG_DIR}error.log
+    CustomLog ${APACHE_LOG_DIR}access.log combined
+
+# Redirect all HTTP traffic to HTTPS except WebSocket connections
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteCond %{REQUEST_URI} !^ws [NC]
+    RewriteRule ^(.)$ https%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+VirtualHost

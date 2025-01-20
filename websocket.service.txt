@@ -1,0 +1,16 @@
+[Unit]
+Description=WebSocket Server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/smart-tv-cms/servers
+ExecStart=/usr/bin/php server.php
+Restart=always
+StandardOutput=append:/var/log/websocket.log
+StandardError=append:/var/log/websocket.error.log
+
+[Install]
+WantedBy=multi-user.target
