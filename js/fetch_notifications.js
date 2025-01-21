@@ -917,7 +917,7 @@ function createNotificationDiv(notification) {
         notificationDiv.classList.add('deleted-notification');
         content = `
             <div class="notification-details">
-                <p class="content-approved-notification">Your ${notification.content_type} has been permanently deleted by the System.</p>
+                <p class="content-approved-notification">Your ${notification.content_type} has been moved to Trash by the System.</p>
                 <p class="evaluator-message-notification">System-generated Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
             </div>

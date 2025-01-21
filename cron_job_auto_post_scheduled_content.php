@@ -1,9 +1,11 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/www/smart-tv-cms/cron_auto_post_scheduled_content_error.log');
 
 // Log file setup
-$logFile = __DIR__ . '/scheduled_content_log.txt';
+$logFile = '/var/www/smart-tv-cms/scheduled_content_log.txt';
 function logMessage($message) {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
@@ -46,42 +48,55 @@ try {
         foreach ($items as $item) {
             logMessage("Processing {$type} ID: {$item[$config['idField']]}");
 
-            // Create message data for ContentHandler
-            $messageData = [
-                'action' => 'post_now_content',
-                'type' => $type,
-                "{$config['idField']}" => $item[$config['idField']],
-                'user_id' => $item[$config['authorField']],
-                'full_name' => $item['full_name'],
-                'user_type' => $item['user_type'],
-                'department' => $item['department']
-            ];
+            // Update the content to be posted
+            $updateStmt = $pdo->prepare("
+                UPDATE {$config['table']}
+                SET schedule_datetime = NULL,
+                    status = 'Approved'
+                WHERE {$config['idField']} = ?
+            ");
+            $updateStmt->execute([$item[$config['idField']]]);
 
-            // Use ContentHandler to process the posting
-            require_once __DIR__ . '/../MyApp/ContentHandler.php';
-            $contentHandler = new \MyApp\ContentHandler($pdo);
-            
-            // Create a mock connection for the ContentHandler
-            $mockConnection = new class {
-                public $user_id;
-                public $full_name;
-                public $user_type;
-                public $department;
+            // Create notification for the content author
+            $notifyStmt = $pdo->prepare("
+                INSERT INTO notifications_tb (
+                    content_id,
+                    user_id,
+                    content_type,
+                    notification_type,
+                    status,
+                    action_user_name,
+                    action_user_type,
+                    action_user_department,
+                    evaluator_message,
+                    evaluator_name,
+                    content_tv_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
 
-                public function send($message) {
-                    logMessage("Would send WebSocket message: " . $message);
-                }
-            };
+            $notifyStmt->execute([
+                $item[$config['idField']],
+                $item[$config['authorField']],
+                $type,
+                'content_posted_by_system',
+                'posted',
+                'System',
+                'System',
+                'System',
+                "Your scheduled content has been automatically posted",
+                'System',
+                $item['tv_id']
+            ]);
 
-            // Set the user properties on the mock connection
-            $mockConnection->user_id = $item[$config['authorField']];
-            $mockConnection->full_name = $item['full_name'];
-            $mockConnection->user_type = $item['user_type'];
-            $mockConnection->department = $item['department'];
+            // Update notification count for the user
+            $updateCountStmt = $pdo->prepare("
+                UPDATE users_tb 
+                SET notification_count = notification_count + 1 
+                WHERE user_id = ?
+            ");
+            $updateCountStmt->execute([$item[$config['authorField']]]);
 
-            // Process the post action through ContentHandler
-            $contentHandler->onMessage($mockConnection, json_encode($messageData));
-            logMessage("Post request processed through ContentHandler for {$type} {$item[$config['idField']]}");
+            logMessage("Successfully posted {$type} ID: {$item[$config['idField']]}");
         }
     }
 

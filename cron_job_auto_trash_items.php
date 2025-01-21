@@ -2,9 +2,11 @@
 // Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/www/smart-tv-cms/cron_auto_trash_items_error.log');
 
 // Log file setup
-$logFile = __DIR__ . '/cron_log.txt';
+$logFile = '/var/www/smart-tv-cms/archive_trash_log.txt';
 function logMessage($message) {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
@@ -16,7 +18,7 @@ try {
     $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    logMessage("Starting expired items check...");
+    logMessage("Starting archived items check...");
 
     // Fetch archive days setting
     $stmt = $pdo->query("SELECT archive_days FROM archive_days_tb WHERE archive_id = 1");
@@ -32,7 +34,7 @@ try {
     $contentTypes = array_merge($defaultTypes, $contentTypes);
     
     foreach ($contentTypes as $type) {
-        if ($type == 'announcement' || $type == 'event' ||$type == 'promaterial') {
+        if ($type == 'announcement' || $type == 'event' || $type == 'promaterial') {
             $tableName = "{$type}s_tb";
         } else {
             $tableName = "{$type}_tb";
@@ -40,7 +42,11 @@ try {
         logMessage("Processing table: $tableName");
 
         // Fetch archived items
-        $stmt = $pdo->prepare("SELECT * FROM $tableName WHERE isArchived = 1 AND isTrashed = 0");
+        $stmt = $pdo->prepare("
+            SELECT * FROM $tableName 
+            WHERE isArchived = 1 
+            AND isTrashed = 0
+        ");
         $stmt->execute();
         $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
@@ -53,43 +59,62 @@ try {
             $today = new DateTime();
 
             if ($today > $expiryDate) {
-                logMessage("Processing expired item {$item["{$type}_id"]} (archived on {$item['datetime_archived']})");
+                logMessage("Processing expired archive item {$item["{$type}_id"]} (archived on {$item['datetime_archived']})");
 
-                // Create message data for ContentHandler
-                $messageData = [
-                    'action' => 'trash_content',
-                    'type' => $type,
-                    "{$type}_id" => $item["{$type}_id"],
-                    'user_id' => $item["{$type}_author_id"],
-                    'author_id' => $item["{$type}_author_id"],
-                    'author_name' => 'System',
-                    'author_user_type' => 'System',
-                    'author_department' => 'System',
-                    'evaluator_message' => "Content automatically moved to Trash after {$archiveDays} days in Archives",
-                    'evaluator_name' => 'System',
-                    'tv_id' => $item['tv_id']
-                ];
-
-                // Use ContentHandler to process the trashing
-                require_once __DIR__ . '/../MyApp/ContentHandler.php';
-                $contentHandler = new \MyApp\ContentHandler($pdo);
+                // Update the item to trashed status
+                $stmt = $pdo->prepare("
+                    UPDATE $tableName 
+                    SET isTrashed = 1,
+                        datetime_trashed = NOW()
+                    WHERE {$type}_id = ?
+                ");
+                $stmt->execute([$item["{$type}_id"]]);
                 
-                // Create a mock connection for the ContentHandler
-                $mockConnection = new class {
-                    public function send($message) {
-                        // Log the message instead of sending it
-                        logMessage("Would send WebSocket message: " . $message);
-                    }
-                };
+                // Create notification for the content author
+                $stmt = $pdo->prepare("
+                    INSERT INTO notifications_tb (
+                        content_id,
+                        user_id,
+                        content_type,
+                        notification_type,
+                        status,
+                        action_user_name,
+                        action_user_type,
+                        action_user_department,
+                        evaluator_message,
+                        evaluator_name,
+                        content_tv_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+                
+                $stmt->execute([
+                    $item["{$type}_id"],
+                    $item["{$type}_author_id"],
+                    $type,
+                    'content_trashed_by_system',
+                    'trashed',
+                    'System',
+                    'System',
+                    'System',
+                    "Content automatically moved to Trash after {$archiveDays} days in Archives",
+                    'System',
+                    $item['tv_id']
+                ]);
 
-                // Process the trash action through ContentHandler
-                $contentHandler->onMessage($mockConnection, json_encode($messageData));
-                logMessage("Trash request processed through ContentHandler for item {$item["{$type}_id"]}");
+                // Update notification count for the user
+                $stmt = $pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE user_id = ?
+                ");
+                $stmt->execute([$item["{$type}_author_id"]]);
+                
+                logMessage("Created notification for user {$item["{$type}_author_id"]} about trashed content {$item["{$type}_id"]}");
             }
         }
     }
 
-    logMessage("Completed expired items check successfully");
+    logMessage("Completed archived items check successfully to be moved to trash");
 
 } catch (Exception $e) {
     logMessage("ERROR: " . $e->getMessage());
