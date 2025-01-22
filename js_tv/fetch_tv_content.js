@@ -1449,7 +1449,7 @@ const checkScheduledContent = () => {
     
     contentTypes.forEach(type => {
         // Skip types that don't use scheduling
-        if (type === 'orgchart' || type === 'facility') return;
+        if (type !== 'announcement' || type !== 'event' || type !== 'news' || type !== 'promaterial') return;
 
         const containers = document.querySelectorAll(`[data-${type}-id]`);
         containers.forEach(container => {
@@ -1859,7 +1859,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fetch content for each type
         fetchAndUpdateContents(type);
     });
-    
+
     checkAllContentForExpiration();
     checkScheduledContent();
     // initializeOrgCharts();
