@@ -566,6 +566,10 @@ const updateUI = (data, type) => {
         containerDiv.classList.add('carousel-item');
         containerDiv.dataset.displayTime = data.display_time;
 
+        if (data.expiration_datetime) {
+            containerDiv.dataset.expirationDatetime = data.expiration_datetime;
+        }
+
         if (type === 'facility') {
             const images = data.facility_images_array.split(',');
             containerDiv.dataset.images = images.join(',');
@@ -1399,6 +1403,44 @@ const fetchAndUpdateContents = (type) => {
         console.error('TV ID not found in URL');
     }
 };
+
+// Function to check all visible content for expiration
+const checkAllContentForExpiration = () => {
+    // Get all content types from the containers
+    const containers = document.querySelectorAll('[id$="CarouselContainer"]');
+    const contentTypes = Array.from(containers).map(container => 
+        container.id.replace('CarouselContainer', '')
+    );
+    
+    contentTypes.forEach(type => {
+        // Skip types that don't use expiration
+        if (type === 'orgchart' || type === 'facility') return;
+
+        const containers = document.querySelectorAll(`[data-${type}-id]`);
+        containers.forEach(container => {
+            if (container.dataset.expirationDatetime) {
+                const expirationDate = new Date(container.dataset.expirationDatetime);
+                const now = new Date();
+                
+                if (now >= expirationDate) {
+                    // Prepare and send the trash request
+                    const trashData = {
+                        action: 'trash_content',
+                        type: type,
+                        [`${type}_id`]: container.dataset[`${type}Id`]
+                    };
+                    
+                    if (isConnectedToWebSocket && Ws) {
+                        Ws.send(JSON.stringify(trashData));
+                    }
+                }
+            }
+        });
+    });
+};
+
+// Add periodic check for expired content (every minute)
+setInterval(checkAllContentForExpiration, 60000);
 
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);

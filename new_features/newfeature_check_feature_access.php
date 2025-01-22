@@ -16,7 +16,7 @@ $featureData = $result->fetch_assoc();
 
 if ($featureData) {
     // Check department access
-    $hasDepartmentAccess = ($featureData['department'] === $department);
+    $hasDepartmentAccess = ($featureData['department'] === $department || $user_type === 'Super Admin');
     
     // Check user type access
     $stmt = $conn->prepare("
@@ -32,8 +32,12 @@ if ($featureData) {
     
     // Redirect if user doesn't have access
     if (!$hasDepartmentAccess || !$hasUserTypeAccess) {
-        header("Location: user_home.php?pageid=UserHome&userId=" . $user_id . "&fullName=" . $full_name);
-        exit();
+        echo '
+            <script>
+                alert("You are not authorized to access this page!"); 
+                window.location.href = "user_home.php";
+            </script>';
+        exit;
     }
 } else {
     // Feature not found, redirect

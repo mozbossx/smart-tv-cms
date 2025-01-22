@@ -7,6 +7,9 @@ include 'config_connection.php';
 include 'get_session.php';
 include 'user_theme_color.php';
 
+// check if the user is not Super Admin or Admin
+include 'admin_access_only.php';
+
 // fetch tv data from the select options
 include 'misc/php/options_tv.php';
 

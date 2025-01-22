@@ -78,12 +78,12 @@ try {
                 $item[$config['idField']],
                 $item[$config['authorField']],
                 $type,
-                'content_posted_by_system',
-                'posted',
+                'content_scheduled_posted',
+                'approved',
                 'System',
                 'System',
                 'System',
-                "Your scheduled content has been automatically posted",
+                "Your scheduled content has been automatically posted by the System",
                 'System',
                 $item['tv_id']
             ]);

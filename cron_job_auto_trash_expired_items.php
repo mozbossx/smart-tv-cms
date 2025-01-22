@@ -36,76 +36,113 @@ try {
         
         logMessage("Processing table: $tableName");
 
-        // Update expired content to trashed status
+        // Get expired content that hasn't been trashed yet
         $stmt = $pdo->prepare("
-            UPDATE $tableName 
-            SET isTrashed = 1,
-                datetime_trashed = NOW()
+            SELECT *, 
+                   {$type}_author_id as author_id,
+                   expiration_datetime,
+                   tv_id
+            FROM $tableName 
             WHERE isArchived = 0 
             AND isTrashed = 0 
             AND expiration_datetime <= NOW()
             AND expiration_datetime IS NOT NULL
         ");
         $stmt->execute();
-        $trashedCount = $stmt->rowCount();
+        $expiredItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        if ($trashedCount > 0) {
-            logMessage("Trashed $trashedCount expired items in $tableName");
-            
-            // Fetch the trashed items to create notifications
+        foreach ($expiredItems as $item) {
+            // Update the item status
             $stmt = $pdo->prepare("
-                SELECT *, {$type}_author_id as author_id 
-                FROM $tableName 
-                WHERE isTrashed = 1 
-                AND datetime_trashed = NOW()
+                UPDATE $tableName 
+                SET isTrashed = 1,
+                    datetime_trashed = NOW()
+                WHERE {$type}_id = ?
             ");
-            $stmt->execute();
-            $trashedItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->execute([$item["{$type}_id"]]);
             
-            foreach ($trashedItems as $item) {
-                // Insert notification for the content author
-                $stmt = $pdo->prepare("
-                    INSERT INTO notifications_tb (
-                        content_id, 
-                        user_id, 
-                        content_type, 
-                        notification_type, 
-                        status, 
-                        action_user_name,
-                        action_user_type,
-                        action_user_department,
-                        evaluator_message,
-                        evaluator_name,
-                        content_tv_id
-                    ) VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                    )
-                ");
-                
-                $stmt->execute([
-                    $item["{$type}_id"],
-                    $item['author_id'],
-                    $type,
-                    'content_deleted_by_system',
-                    'deleted',
-                    'System',
-                    'System',
-                    'System',
-                    "Content automatically moved to Trash upon reaching expiration date ({$item['expiration_datetime']})",
-                    'System',
-                    $item['tv_id']
-                ]);
+            // Get author details
+            $stmt = $pdo->prepare("
+                SELECT full_name, user_type, department 
+                FROM users_tb 
+                WHERE user_id = ?
+            ");
+            $stmt->execute([$item['author_id']]);
+            $author = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Insert notification
+            $stmt = $pdo->prepare("
+                INSERT INTO notifications_tb (
+                    content_id, 
+                    user_id, 
+                    content_type, 
+                    notification_type, 
+                    status, 
+                    action_user_name,
+                    action_user_type,
+                    action_user_department,
+                    evaluator_message,
+                    evaluator_name,
+                    content_tv_id
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
+            ");
+            
+            $stmt->execute([
+                $item["{$type}_id"],
+                $item['author_id'],
+                $type,
+                'content_deleted_by_system',
+                'deleted',
+                'System',
+                'System',
+                'System',
+                "Content automatically moved to Trash upon reaching expiration date ({$item['expiration_datetime']})",
+                'System',
+                $item['tv_id']
+            ]);
 
-                // Update notification count for the user
-                $stmt = $pdo->prepare("
-                    UPDATE users_tb 
-                    SET notification_count = notification_count + 1 
-                    WHERE user_id = ?
-                ");
-                $stmt->execute([$item['author_id']]);
-                
-                logMessage("Created notification for user {$item['author_id']} about trashed content {$item["{$type}_id"]}");
+            // Update notification count for the user
+            $stmt = $pdo->prepare("
+                UPDATE users_tb 
+                SET notification_count = notification_count + 1 
+                WHERE user_id = ?
+            ");
+            $stmt->execute([$item['author_id']]);
+            
+            // Send notification to WebSocket server using cURL
+            $trashData = [
+                'action' => 'trash_content',
+                'type' => $type,
+                "{$type}_id" => $item["{$type}_id"],
+                'user_id' => $item['author_id'],
+                'author_id' => $item['author_id'],
+                'author_name' => $author['full_name'] ?? 'System',
+                'author_user_type' => $author['user_type'] ?? 'System',
+                'author_department' => $author['department'] ?? 'System',
+                'evaluator_name' => 'System',
+                'evaluator_message' => "Content automatically moved to Trash upon reaching expiration date ({$item['expiration_datetime']})",
+                'tv_id' => $item['tv_id']
+            ];
+
+            // Use cURL to send the WebSocket message
+            $ch = curl_init('https://usccms.online/ws');
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($trashData));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen(json_encode($trashData))
+            ]);
+            
+            $result = curl_exec($ch);
+            if (curl_errno($ch)) {
+                logMessage("WebSocket notification error: " . curl_error($ch));
             }
+            curl_close($ch);
+            
+            logMessage("Trashed expired item {$item["{$type}_id"]} in $tableName and sent WebSocket notification");
         }
     }
 

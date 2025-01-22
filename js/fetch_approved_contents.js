@@ -42,26 +42,6 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         <div class="content-container-con" style="padding: 0">
     `;
 
-    if (data.evaluator_name === full_name) {
-        contentHtml += `
-            <p class="ann-author" style="margin-bottom: 15px; font-size: 15px; color: #6E6E6E; font-weight: bold">
-                <i class="fa fa-times-circle" aria-hidden="true"></i> You approved ${data.author_name}'s ${type} to be posted on TV: ${tvDisplay}
-            </p>
-        `;
-    } else if (data.evaluator_name !== full_name && data.author_name2 !== full_name) {
-        contentHtml += `
-            <p class="ann-author" style="margin-bottom: 15px; font-size: 15px; color: #6E6E6E; font-weight: bold">
-                <i class="fa fa-times-circle" aria-hidden="true"></i> ${data.evaluator_name} approved ${data.author_name}'s ${type} to be posted on TV: ${tvDisplay}
-            </p>
-        `;
-    } else if (data.evaluator_name !== full_name && data.author_name2 === full_name) {
-        contentHtml += `
-            <p class="ann-author" style="margin-bottom: 15px; font-size: 15px; color: #6E6E6E; font-weight: bold">
-                <i class="fa fa-times-circle" aria-hidden="true"></i> ${data.evaluator_name} approved your ${type} to be posted on TV: ${tvDisplay}
-            </p>
-        `;
-    }
-
     // Add media content if exists
     contentHtml += `
         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
@@ -79,17 +59,19 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         default:
             // For dynamic features, display all content fields except metadata
             for (let key in data) {
-                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed|evaluator_message|notification_content_type|evaluator_name|author_name2)$/) 
+                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isScheduled|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed|evaluator_message|notification_content_type|evaluator_name|author_name2)$/) 
                     && !key.endsWith('_id')) {
                     contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[key]}</pre>`;
                 }
             }
     }
 
+    // if (data.author_name === full_name, display "Posted by you on ${formattedCreatedDateTime}"
+    // else display "Posted by ${data.author_name} on ${formattedCreatedDateTime}"
     contentHtml += `
             <div class="line-separator"></div>
             <p class="expiration-date" style="color: #6E6E6E"><small>Expires on ${formattedExpirationDateTime}</small></p>
-            <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Posted on ${formattedCreatedDateTime}</small></p>
+            <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>${data.author_name === full_name ? 'Posted by you' : `Posted by ${data.author_name}`} on ${formattedCreatedDateTime}</small></p>
             <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs  |  <i class="fa fa-tv" aria-hidden="true" style="margin-left: 5px"></i> ${tvDisplay}</p>
         </div>
     `;
@@ -224,7 +206,7 @@ const updateUI = async (data, type) => {
         );
 
 
-        if (data.evaluator_name !== full_name && data.author_name2 === full_name) {
+        if (data.author_name === full_name) {
             buttonContainer.appendChild(editButton);
             buttonContainer.appendChild(deleteButton);
         }

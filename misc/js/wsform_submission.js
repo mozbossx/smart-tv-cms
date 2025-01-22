@@ -210,7 +210,7 @@ function sendDataToWebSocket(data, loadingModal) {
                 document.getElementById('successMessage').textContent = `Program Educational Objective was successfully ${action}!`;                        
             } else if (contentType === 'so') {
                 document.getElementById('successMessage').textContent = `Student Outcome was successfully ${action}!`;                        
-            } else if (userType === 'Student' || userType === 'Faculty') {
+            } else if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
                 document.getElementById('successMessage').textContent = isEditMode 
                     ? `Your post has been updated and will be reviewed by an admin.`
                     : "Your post will still be in pending mode until an admin approves it.";

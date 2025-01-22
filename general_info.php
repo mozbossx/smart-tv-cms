@@ -6,11 +6,8 @@ include 'config_connection.php';
 // fetch user data for the currently logged-in user
 include 'get_session.php';
 
-// Student and Faculty do not have access to this page
-if($user_type == 'Student'|| $user_type == 'Faculty'){
-    header("location: user_home.php?pageid=UserHome&userId=$user_id''$full_name");
-    exit;
-}
+// check if the user is not Super Admin or Admin
+include 'admin_access_only.php';
 
 ?>
 

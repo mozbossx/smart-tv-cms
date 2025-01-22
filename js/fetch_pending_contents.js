@@ -214,7 +214,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         default:
             // For dynamic features, display all content fields except metadata
             for (let key in data) {
-                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
+                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isScheduled|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
                     && !key.endsWith('_id')) {
                     contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[key]}</pre>`;
                 }
@@ -368,18 +368,18 @@ const updateUI = async (data, type) => {
             )
         );
 
-        const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => 
-            showDeleteModal(
-                data[`${type}_id`], 
-                type, 
-                data[`${type}_author_id`], 
-                full_name, 
-                data.author_name, 
-                data.author_user_type, 
-                data.author_department, 
-                data.tv_id
-            )
-        );
+        // const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => 
+        //     showDeleteModal(
+        //         data[`${type}_id`], 
+        //         type, 
+        //         data[`${type}_author_id`], 
+        //         full_name, 
+        //         data.author_name, 
+        //         data.author_user_type, 
+        //         data.author_department, 
+        //         data.tv_id
+        //     )
+        // );
 
 
         if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin')) {
@@ -387,9 +387,9 @@ const updateUI = async (data, type) => {
             buttonContainer.appendChild(rejectButton);
         }
 
-        if (data[`${type}_author_id`] === parseInt(user_id)) {
-            buttonContainer.appendChild(deleteButton);
-        }
+        // if (data[`${type}_author_id`] === parseInt(user_id)) {
+        //     buttonContainer.appendChild(deleteButton);
+        // }
 
         // Set main container styles
         containerDiv.style = `

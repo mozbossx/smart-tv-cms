@@ -316,6 +316,36 @@ const updateFacilityDots = (facilityId, activeIndex) => {
     });
 };
 
+// Function to check if content is expired and trash it if necessary
+const checkAndTrashExpiredContent = (data, type) => {
+    if (!data.expiration_datetime) return false;
+    
+    const now = new Date();
+    const expirationDate = new Date(data.expiration_datetime);
+    
+    if (now >= expirationDate) {
+        // Prepare the trash data
+        const trashData = {
+            action: 'trash_content',
+            type: type,
+            [`${type}_id`]: data[`${type}_id`],
+            user_id: data[`${type}_author_id`], // Using author as the user
+            author_id: data[`${type}_author_id`],
+            author_name: data.author_name || 'System',
+            author_user_type: data.author_user_type || 'System',
+            author_department: data.author_department || 'System',
+            evaluator_name: 'System',
+            evaluator_message: `Content automatically moved to Trash upon reaching expiration date (${formatDateTime(data.expiration_datetime)})`,
+            tv_id: data.tv_id
+        };
+        
+        // Send the trash request through WebSocket
+        Ws.send(JSON.stringify(trashData));
+        return true;
+    }
+    return false;
+};
+
 // Function to update UI for announcement, event, news, etc.
 const updateUI = (data, type) => {
     if (type === 'orgchart' || type === 'facility') {
@@ -464,6 +494,9 @@ const updateUI = (data, type) => {
 
         // for standard content types and dynamic features, create archive and trash buttons
         if (isStandardContent || isDynamicFeature) {
+            if (checkAndTrashExpiredContent(data, type)) {
+                return; // Skip UI update if content was trashed
+            }
             const trashButton = createTrashButton('Trash', 'fa fa-trash', () => showTrashModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
             const archiveButton = createArchiveButton('Archive', 'fa fa-archive', () => showArchiveModal(data[`${type}_id`], type, data[`${type}_author_id`], full_name, data.author_name, data.author_user_type, data.author_department, data.tv_id));
             
@@ -1052,6 +1085,57 @@ function fetchAndUpdate(type) {
     }
 }
 
+// Function to check all visible content for expiration
+const checkAllContentForExpiration = () => {
+    // Get all content types from the DOM
+    const contentTypes = Array.from(document.querySelectorAll('.content-container'))
+        .map(container => container.id.replace('List', ''));
+    
+    contentTypes.forEach(type => {
+        // Skip types that don't use expiration
+        if (type === 'orgchart' || type === 'facility') return;
+
+        const containers = document.querySelectorAll(`[data-${type}-id]`);
+        containers.forEach(container => {
+            const expirationElement = container.querySelector('.expiration-datetime');
+            if (expirationElement && expirationElement.dataset.expiration) {
+                const expirationDate = new Date(expirationElement.dataset.expiration);
+                const now = new Date();
+                
+                if (now >= expirationDate) {
+                    // Get the necessary data from the container
+                    const contentId = container.dataset[`${type}Id`];
+                    const authorId = container.dataset.authorId;
+                    const authorName = container.dataset.authorName;
+                    const authorUserType = container.dataset.authorUserType;
+                    const authorDepartment = container.dataset.authorDepartment;
+                    const tvId = container.dataset.tvId;
+                    
+                    // Prepare and send the trash request
+                    const trashData = {
+                        action: 'trash_content',
+                        type: type,
+                        [`${type}_id`]: contentId,
+                        user_id: authorId,
+                        author_id: authorId,
+                        author_name: authorName || 'System',
+                        author_user_type: authorUserType || 'System',
+                        author_department: authorDepartment || 'System',
+                        evaluator_name: 'System',
+                        evaluator_message: `Content automatically moved to Trash upon reaching expiration date (${formatDateTime(expirationDate)})`,
+                        tv_id: tvId
+                    };
+                    
+                    Ws.send(JSON.stringify(trashData));
+                }
+            }
+        });
+    });
+};
+
+// Add periodic check for expired content (every minute)
+setInterval(checkAllContentForExpiration, 60000);
+
 /* Web-Socket Server Connection */
 Ws.addEventListener('message', function(event) {
     const data = JSON.parse(event.data);
@@ -1126,6 +1210,8 @@ Ws.addEventListener('message', function(event) {
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchArchiveDays();
     await fetchTrashDays();
+
+    checkAllContentForExpiration();
     // Get all content types from the DOM
     const contentTypes = Array.from(document.querySelectorAll('.content-container'))
         .map(container => container.id.replace('List', ''));

@@ -51,21 +51,21 @@ class ContentHandler implements MessageComponentInterface
         $conn->pingInterval = $this->loop->addPeriodicTimer(15, function() use ($conn) {
             if ($conn->isConnected()) {
                 try {
-                    echo "Server: Sending ping to client {$conn->resourceId}\n";
+                    // echo "Server: Sending ping to client {$conn->resourceId}\n";
                     $conn->send(json_encode(['action' => 'ping']));
                     
                     // Set timeout for pong response
                     $this->pingTimeouts[$conn->resourceId] = $this->loop->addTimer(20, function() use ($conn) {
-                        echo "Server: No pong received from client {$conn->resourceId}, closing connection\n";
+                        // echo "Server: No pong received from client {$conn->resourceId}, closing connection\n";
                         $conn->close();
                     });
                 } catch (\Exception $e) {
-                    echo "Server: Error sending ping to client {$conn->resourceId}: {$e->getMessage()}\n";
+                    // echo "Server: Error sending ping to client {$conn->resourceId}: {$e->getMessage()}\n";
                     $conn->close();
                 }
             }
         });
-        echo "Server: Started monitoring connection {$conn->resourceId}\n";
+        // echo "Server: Started monitoring connection {$conn->resourceId}\n";
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
@@ -76,17 +76,17 @@ class ContentHandler implements MessageComponentInterface
             switch ($data['action']) {
                 case 'ping':
                     // Respond to client's ping
-                    echo "Server: Received ping from client {$from->resourceId}, sending pong!\n";
+                    // echo "Server: Received ping from client {$from->resourceId}, sending pong!\n";
                     $from->send(json_encode(['action' => 'pong']));
                     return;
                     
                 case 'pong':
                     // Clear the timeout for this client
-                    echo "Server: Received pong from client {$from->resourceId}!\n";
+                    // echo "Server: Received pong from client {$from->resourceId}!\n";
                     if (isset($this->pingTimeouts[$from->resourceId])) {
                         $this->loop->cancelTimer($this->pingTimeouts[$from->resourceId]);
                         unset($this->pingTimeouts[$from->resourceId]);
-                        echo "Server: Cleared ping timeout for client {$from->resourceId}!\n";
+                        // echo "Server: Cleared ping timeout for client {$from->resourceId}!\n";
                     }
                     return;
             }
@@ -1078,50 +1078,27 @@ class ContentHandler implements MessageComponentInterface
                     // Create notifications based on user type
                     if ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') {
                         // Notify content owner
+                        // delete existing notification if the content is pending
                         $stmt = $this->pdo->prepare("
-                            INSERT INTO notifications_tb (
-                                content_id, user_id, content_type, notification_type, 
-                                status, action_user_name, action_user_department, 
-                                action_user_type
-                            ) VALUES (?, ?, ?, 'content_updated', 'pending', ?, ?, ?)
+                            DELETE FROM notifications_tb WHERE content_id = ? AND content_type = ? AND notification_type = 'content_rejected' AND status = 'rejected'
                         ");
                         $stmt->execute([
-                            $content_id, $user_id, $type, $full_name, 
-                            $department, $user_type
+                            $content_id,
+                            $type
                         ]);
-        
-                        // Notify department admins
-                        $stmtAdmins = $this->pdo->prepare("
-                            SELECT user_id FROM users_tb 
-                            WHERE user_type = 'Admin' 
-                            AND department = ? 
-                            AND user_id != ?
+
+                        $stmtUpdateNotification = $this->pdo->prepare("
+                            UPDATE notifications_tb SET 
+                            status = 'pending', 
+                            notification_type = 'content_post',
+                            evaluator_message = NULL,
+                            evaluator_name = NULL
+                            WHERE content_id = ? AND content_type = ? AND notification_type = 'content_rejected_by_admin' AND status = 'rejected'
                         ");
-                        $stmtAdmins->execute([$department, $user_id]);
-                        $admins = $stmtAdmins->fetchAll(PDO::FETCH_ASSOC);
-        
-                        foreach ($admins as $admin) {
-                            $stmt->execute([
-                                $content_id, $admin['user_id'], $type, 'content_updated',
-                                'pending', $full_name, $department, $user_type
-                            ]);
-                        }
-        
-                        // Notify super admins
-                        $stmtSuperAdmins = $this->pdo->prepare("
-                            SELECT user_id FROM users_tb 
-                            WHERE user_type = 'Super Admin' 
-                            AND user_id != ?
-                        ");
-                        $stmtSuperAdmins->execute([$user_id]);
-                        $superAdmins = $stmtSuperAdmins->fetchAll(PDO::FETCH_ASSOC);
-        
-                        foreach ($superAdmins as $superAdmin) {
-                            $stmt->execute([
-                                $content_id, $superAdmin['user_id'], $type, 'content_updated',
-                                'pending', $full_name, $department, $user_type
-                            ]);
-                        }
+                        $stmtUpdateNotification->execute([
+                            $content_id, 
+                            $type
+                        ]);
         
                         // Update notification counts
                         $this->pdo->prepare("

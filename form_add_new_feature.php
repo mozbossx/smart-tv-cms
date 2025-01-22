@@ -6,6 +6,7 @@ include 'config_connection.php';
 // fetch user data for the currently logged-in user
 include 'get_session.php';
 
+// check if the user is not Super Admin or Admin
 include 'admin_access_only.php';
 
 ?>

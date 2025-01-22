@@ -113,8 +113,14 @@ function sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, i
         const message = JSON.parse(event.data);
         if (message.success === true) {
             loadingModal.style.display = 'none';
-            document.getElementById('successMessageVersion2').textContent = message.message || 
+            if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
+                document.getElementById('successMessageVersion2').textContent = isEditMode 
+                    ? `Your post has been updated and will be reviewed by an admin.`
+                    : "Your post will still be in pending mode until an admin approves it.";
+            } else {
+                document.getElementById('successMessageVersion2').textContent = message.message || 
                 `${contentTypeWithNoUnderscores} was successfully ${isEditMode ? 'updated' : 'processed'}!`;
+            }
             document.getElementById('successMessageModalVersion2').style.display = 'flex';
             isFormDirty = false;
         } else if (message.success === false) {
