@@ -19,64 +19,79 @@ try {
     
     logMessage("Starting scheduled content check...");
 
-    // Define content types and their tables
-    $contentTypes = [
-        'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id', 'authorField' => 'announcement_author_id'],
-        'event' => ['table' => 'events_tb', 'idField' => 'event_id', 'authorField' => 'event_author_id'],
-        'news' => ['table' => 'news_tb', 'idField' => 'news_id', 'authorField' => 'news_author_id'],
-        'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id', 'authorField' => 'promaterial_author_id']
-    ];
+    // Get all content types (including dynamic features)
+    $stmt = $pdo->query("SELECT type FROM features_tb");
+    $contentTypes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+    // Add default content types
+    $defaultTypes = ['announcement', 'event', 'news', 'promaterial'];
+    $contentTypes = array_merge($defaultTypes, $contentTypes);
+    
+    foreach ($contentTypes as $type) {
+        if ($type == 'announcement' || $type == 'event' || $type == 'promaterial') {
+            $tableName = "{$type}s_tb";
+        } else {
+            $tableName = "{$type}_tb";
+        }
+        
+        logMessage("Processing table: $tableName");
 
-    foreach ($contentTypes as $type => $config) {
-        logMessage("Processing {$type}s...");
-
-        // Fetch scheduled content that's due to be posted
+        // Get scheduled content that's due to be posted
         $stmt = $pdo->prepare("
-            SELECT t.*, u.full_name, u.user_type, u.department 
-            FROM {$config['table']} t
-            JOIN users_tb u ON t.{$config['authorField']} = u.user_id
-            WHERE t.schedule_datetime <= NOW() 
-            AND t.schedule_datetime IS NOT NULL
-            AND t.isArchived = 0 
-            AND t.isTrashed = 0
+            SELECT *, 
+                   {$type}_author_id as author_id,
+                   schedule_datetime,
+                   tv_id
+            FROM $tableName 
+            WHERE isArchived = 0 
+            AND isTrashed = 0 
+            AND schedule_datetime <= NOW()
+            AND schedule_datetime IS NOT NULL
         ");
         $stmt->execute();
-        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $scheduledItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        logMessage("Found " . count($items) . " scheduled {$type}s to post");
-
-        foreach ($items as $item) {
-            logMessage("Processing {$type} ID: {$item[$config['idField']]}");
-
-            // Update the content to be posted
-            $updateStmt = $pdo->prepare("
-                UPDATE {$config['table']}
+        foreach ($scheduledItems as $item) {
+            // Update the content status
+            $stmt = $pdo->prepare("
+                UPDATE $tableName 
                 SET schedule_datetime = NULL,
                     status = 'Approved'
-                WHERE {$config['idField']} = ?
+                WHERE {$type}_id = ?
             ");
-            $updateStmt->execute([$item[$config['idField']]]);
-
-            // Create notification for the content author
-            $notifyStmt = $pdo->prepare("
+            $stmt->execute([$item["{$type}_id"]]);
+            
+            // Get author details
+            $stmt = $pdo->prepare("
+                SELECT full_name, user_type, department 
+                FROM users_tb 
+                WHERE user_id = ?
+            ");
+            $stmt->execute([$item['author_id']]);
+            $author = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Insert notification
+            $stmt = $pdo->prepare("
                 INSERT INTO notifications_tb (
-                    content_id,
-                    user_id,
-                    content_type,
-                    notification_type,
-                    status,
+                    content_id, 
+                    user_id, 
+                    content_type, 
+                    notification_type, 
+                    status, 
                     action_user_name,
                     action_user_type,
                     action_user_department,
                     evaluator_message,
                     evaluator_name,
                     content_tv_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
             ");
-
-            $notifyStmt->execute([
-                $item[$config['idField']],
-                $item[$config['authorField']],
+            
+            $stmt->execute([
+                $item["{$type}_id"],
+                $item['author_id'],
                 $type,
                 'content_scheduled_posted',
                 'approved',
@@ -89,14 +104,45 @@ try {
             ]);
 
             // Update notification count for the user
-            $updateCountStmt = $pdo->prepare("
+            $stmt = $pdo->prepare("
                 UPDATE users_tb 
                 SET notification_count = notification_count + 1 
                 WHERE user_id = ?
             ");
-            $updateCountStmt->execute([$item[$config['authorField']]]);
+            $stmt->execute([$item['author_id']]);
+            
+            // Send notification to WebSocket server using cURL
+            $postData = [
+                'action' => 'post_now_content',
+                'type' => $type,
+                "{$type}_id" => $item["{$type}_id"],
+                'user_id' => $item['author_id'],
+                'author_id' => $item['author_id'],
+                'author_name' => $author['full_name'] ?? 'System',
+                'author_user_type' => $author['user_type'] ?? 'System',
+                'author_department' => $author['department'] ?? 'System',
+                'evaluator_name' => 'System',
+                'evaluator_message' => "Content automatically posted as scheduled",
+                'tv_id' => $item['tv_id']
+            ];
 
-            logMessage("Successfully posted {$type} ID: {$item[$config['idField']]}");
+            // Use cURL to send the WebSocket message
+            $ch = curl_init('https://usccms.online/ws');
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen(json_encode($postData))
+            ]);
+            
+            $result = curl_exec($ch);
+            if (curl_errno($ch)) {
+                logMessage("WebSocket notification error: " . curl_error($ch));
+            }
+            curl_close($ch);
+            
+            logMessage("Posted scheduled item {$item["{$type}_id"]} in $tableName and sent WebSocket notification");
         }
     }
 
