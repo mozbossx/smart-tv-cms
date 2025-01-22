@@ -16,7 +16,7 @@ function connectWebSocket() {
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.10.43:8081'
+        ? 'ws://192.168.1.14:8081'
         : 'wss://usccms.online/ws';
     
     try {

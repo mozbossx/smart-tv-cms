@@ -1079,15 +1079,22 @@ class ContentHandler implements MessageComponentInterface
                     if ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') {
                         // Notify content owner
                         // delete existing notification if the content is pending
-                        $stmt = $this->pdo->prepare("
+                        $stmtDeleteContentRejectedNotification = $this->pdo->prepare("
                             DELETE FROM notifications_tb WHERE content_id = ? AND content_type = ? AND notification_type = 'content_rejected' AND status = 'rejected'
                         ");
-                        $stmt->execute([
+                        $stmtDeleteContentRejectedNotification->execute([
+                            $content_id,
+                            $type
+                        ]);
+                        $stmtDeleteContentApprovedNotification = $this->pdo->prepare("
+                            DELETE FROM notifications_tb WHERE content_id = ? AND content_type = ? AND notification_type = 'content_approved' AND status = 'approved'
+                        ");
+                        $stmtDeleteContentApprovedNotification->execute([
                             $content_id,
                             $type
                         ]);
 
-                        $stmtUpdateNotification = $this->pdo->prepare("
+                        $stmtUpdateContentRejectedByAdminNotification = $this->pdo->prepare("
                             UPDATE notifications_tb SET 
                             status = 'pending', 
                             notification_type = 'content_post',
@@ -1095,7 +1102,20 @@ class ContentHandler implements MessageComponentInterface
                             evaluator_name = NULL
                             WHERE content_id = ? AND content_type = ? AND notification_type = 'content_rejected_by_admin' AND status = 'rejected'
                         ");
-                        $stmtUpdateNotification->execute([
+                        $stmtUpdateContentRejectedByAdminNotification->execute([
+                            $content_id, 
+                            $type
+                        ]);
+
+                        $stmtUpdateContentApprovedByAdminNotification = $this->pdo->prepare("
+                            UPDATE notifications_tb SET 
+                            status = 'pending', 
+                            notification_type = 'content_post',
+                            evaluator_message = NULL,
+                            evaluator_name = NULL
+                            WHERE content_id = ? AND content_type = ? AND notification_type = 'content_approved_by_admin' AND status = 'approved'
+                        ");
+                        $stmtUpdateContentApprovedByAdminNotification->execute([
                             $content_id, 
                             $type
                         ]);
@@ -2795,11 +2815,11 @@ class ContentHandler implements MessageComponentInterface
                 // Notify each Admin of the approved user's department
                 if ($departmentAdmins) {
                     $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO notifications_tb (user_id, content_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     foreach ($departmentAdmins as $admin) {
-                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
+                        $stmtNotifyDepartmentAdmins->execute([$admin['user_id'], $content_id, 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
                     }
                 }
                 
@@ -2814,18 +2834,18 @@ class ContentHandler implements MessageComponentInterface
                 if ($allSuperAdmins) {
                     error_log("allSuperAdmins called");
                     $stmtNotifySuperAdmins = $this->pdo->prepare("
-                        INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO notifications_tb (user_id, content_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     foreach ($allSuperAdmins as $superAdmin) {
-                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
+                        $stmtNotifySuperAdmins->execute([$superAdmin['user_id'], $content_id, 'content_approved', $content_type, 'approved', $evaluator_name, $full_name, $department, $content_tv_id]);
                     }
                 }
 
                 // Notify the new user that an admin approved them
-                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id) 
-                                             VALUES (?, 'content_approved_by_admin', ?, 'approved', ?, ?, ?, ?)");
-                $stmt->execute([$user_id, $content_type, $evaluator_name, $full_name, $department, $content_tv_id]);
+                $stmt = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, notification_type, content_type, status, evaluator_name, action_user_name, action_user_department, content_tv_id) 
+                                             VALUES (?, ?, 'content_approved_by_admin', ?, 'approved', ?, ?, ?, ?)");
+                $stmt->execute([$user_id, $content_id, $content_type, $evaluator_name, $full_name, $department, $content_tv_id]);
 
                 // Update notification counts for Admins, Super Admins, and the evaluator
                 $stmtUpdateNotificationCounts = $this->pdo->prepare("

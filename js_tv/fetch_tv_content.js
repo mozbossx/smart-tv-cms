@@ -21,19 +21,19 @@ function connectWebSocket() {
         const heartbeat = () => {
             clearTimeout(clientPingTimeout);
             clientPingTimeout = setTimeout(() => {
-                console.log('Client: Connection lost - no pong received');
+                // console.log('Client: Connection lost - no pong received');
                 ws.close();
             }, 20000); // 20 second timeout
         };
         
         ws.onopen = function() {
-            console.log('Client: WebSocket Connected Successfully to:', wsUrl);
+            // console.log('Client: WebSocket Connected Successfully to:', wsUrl);
             isConnectedToWebSocket = true;
 
             // Client-initiated pings
             clientPingInterval = setInterval(() => {
                 if (ws.readyState === WebSocket.OPEN) {
-                    console.log('Client: Sending ping to server');
+                    // console.log('Client: Sending ping to server');
                     ws.send(JSON.stringify({ action: 'ping' }));
                     heartbeat();
                 }
@@ -56,23 +56,23 @@ function connectWebSocket() {
             switch(data.action) {
                 case 'ping':
                     // Respond to server's ping
-                    console.log('Client: Received ping from server, sending pong!');
+                    // console.log('Client: Received ping from server, sending pong!');
                     ws.send(JSON.stringify({ action: 'pong' }));
                     return;
                 case 'pong':
                     // Reset client's heartbeat timeout
-                    console.log('Client: Received pong from server, resetting heartbeat timeout!');
+                    // console.log('Client: Received pong from server, resetting heartbeat timeout!');
                     heartbeat();
                     return;
             }
         };
         
         ws.onclose = function(event) {
-            console.log('Client: WebSocket connection closed');
+            // console.log('Client: WebSocket connection closed');
             isConnectedToWebSocket = false;
             clearInterval(clientPingInterval);
             clearTimeout(clientPingTimeout);
-            console.log('Client: Cleared all timers');
+            // console.log('Client: Cleared all timers');
 
             if (loadingWebsocketConnectionModal) {
                 loadingWebsocketConnectionModal.style.display = 'flex';
@@ -223,9 +223,17 @@ const updateUI = (data, type) => {
             return;
         }
     } else {
-        if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || 
-            data.schedule_datetime !== null || !data[`${type}_id`]) {
+        if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) {
             return;
+        }
+
+        // Handle scheduled content
+        if (data.schedule_datetime) {
+            const scheduleDate = new Date(data.schedule_datetime);
+            const now = new Date();
+            if (now < scheduleDate) {
+                return;
+            }
         }
     }
     
@@ -568,10 +576,12 @@ const updateUI = (data, type) => {
 
         if (data.expiration_datetime) {
             containerDiv.dataset.expirationDatetime = data.expiration_datetime;
+            console.log("Type: ", type, "Expiration Datetime: ", data.expiration_datetime);
         }
 
-        if (data.schedule_datetime) {
+        if (data.schedule_datetime !== null && type !== 'facility' && type !== 'orgchart' && type !== 'peo' && type !== 'so') {
             containerDiv.dataset.scheduleDatetime = data.schedule_datetime;
+            console.log("Type: ", type, "Schedule Datetime: ", data.schedule_datetime);
         }
 
         if (type === 'facility') {
@@ -1346,8 +1356,7 @@ const fetchAndUpdateContents = (type) => {
                                 item.status === 'Approved' &&
                                 item.tv_id === parseInt(tvId, 10) &&
                                 item.isArchived === 0 &&
-                                item.isTrashed === 0 &&
-                                item.schedule_datetime === null
+                                item.isTrashed === 0
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
