@@ -1133,8 +1133,56 @@ const checkAllContentForExpiration = () => {
     });
 };
 
+// Function to check all scheduled content
+const checkScheduledContent = () => {
+    // Get all content types from the DOM
+    const contentTypes = Array.from(document.querySelectorAll('.content-container'))
+        .map(container => container.id.replace('List', ''));
+    
+    contentTypes.forEach(type => {
+        // Skip types that don't use scheduling
+        if (type === 'orgchart' || type === 'facility') return;
+
+        const containers = document.querySelectorAll(`[data-${type}-id]`);
+        containers.forEach(container => {
+            if (container.dataset.scheduleDateTime) {
+                const scheduleDate = new Date(container.dataset.scheduleDateTime);
+                const now = new Date();
+                
+                if (now >= scheduleDate) {
+                    // Get the necessary data from the container
+                    const contentId = container.dataset[`${type}Id`];
+                    const authorId = container.dataset.authorId;
+                    const authorName = container.dataset.authorName;
+                    const authorUserType = container.dataset.authorUserType;
+                    const authorDepartment = container.dataset.authorDepartment;
+                    const tvId = container.dataset.tvId;
+                    
+                    // Prepare and send the post request
+                    const postData = {
+                        action: 'post_now_content',
+                        type: type,
+                        [`${type}_id`]: contentId,
+                        user_id: authorId,
+                        author_id: authorId,
+                        author_name: authorName || 'System',
+                        author_user_type: authorUserType || 'System',
+                        author_department: authorDepartment || 'System',
+                        evaluator_name: 'System',
+                        evaluator_message: `Content automatically posted as scheduled`,
+                        tv_id: tvId
+                    };
+                    
+                    Ws.send(JSON.stringify(postData));
+                }
+            }
+        });
+    });
+};
+
 // Add periodic check for expired content (every minute)
 setInterval(checkAllContentForExpiration, 60000);
+setInterval(checkScheduledContent, 60000);
 
 /* Web-Socket Server Connection */
 Ws.addEventListener('message', function(event) {
@@ -1212,6 +1260,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchTrashDays();
 
     checkAllContentForExpiration();
+    checkScheduledContent();
+    
     // Get all content types from the DOM
     const contentTypes = Array.from(document.querySelectorAll('.content-container'))
         .map(container => container.id.replace('List', ''));
