@@ -570,6 +570,10 @@ const updateUI = (data, type) => {
             containerDiv.dataset.expirationDatetime = data.expiration_datetime;
         }
 
+        if (data.schedule_datetime) {
+            containerDiv.dataset.scheduleDatetime = data.schedule_datetime;
+        }
+
         if (type === 'facility') {
             const images = data.facility_images_array.split(',');
             containerDiv.dataset.images = images.join(',');
