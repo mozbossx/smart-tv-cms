@@ -50,8 +50,8 @@ if ($user_type === 'Admin' || $user_type === 'Faculty' || $user_type === 'Studen
         (n.notification_type = 'content_restored' AND n.status = 'restored' AND u.department = ?) OR
         (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored' AND u.department = ?)
     ";
-    $params = array_fill(0, 29, $department);
-    $types = str_repeat('s', 29);
+    $params = array_fill(0, 27, $department);
+    $types = str_repeat('s', 27);
 } else if ($user_type === 'Super Admin') {
     $query .= "
         n.status = 'pending' OR
