@@ -357,7 +357,7 @@ const updateUI = (data, type) => {
         if (data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) return;
     } else {
         if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 1 || 
-            data.isTrashed === 1 || !data[`${type}_id`] || data.schedule_datetime !== null) return;
+            data.isTrashed === 1 || !data[`${type}_id`]) return;
     }
 
     // Special handling for orgchart type
@@ -461,6 +461,17 @@ const updateUI = (data, type) => {
         containerDiv.setAttribute(`data-${type}-id`, data[`${type}_id`]);
         containerDiv.classList.add('content-container-main');
         containerDiv.innerHTML = contentDiv;
+
+        // Handle scheduled content
+        if (data.schedule_datetime) {
+            const scheduleDate = new Date(data.schedule_datetime);
+            const now = new Date();
+            if (now < scheduleDate) {
+                containerDiv.dataset.scheduleDatetime = data.schedule_datetime;
+                console.log("scheduleDatetime dataset!");
+                return;
+            }
+        }
 
         containerDiv.style = `
             height: auto;
@@ -1034,7 +1045,6 @@ function fetchAndUpdate(type) {
                     return item.tv_id === parseInt(tvId, 10) && 
                            item.isArchived === 0 && 
                            item.isTrashed === 0 && 
-                           item.schedule_datetime === null && 
                            item.status === 'Approved';
                 });
             } else if (typeof data === 'object' && data !== null) {
@@ -1050,7 +1060,6 @@ function fetchAndUpdate(type) {
                     return item.tv_id === parseInt(tvId, 10) && 
                            item.isArchived === 0 && 
                            item.isTrashed === 0 && 
-                           item.schedule_datetime === null && 
                            item.status === 'Approved';
                 });
             } else {

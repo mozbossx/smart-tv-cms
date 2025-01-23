@@ -226,15 +226,6 @@ const updateUI = (data, type) => {
         if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) {
             return;
         }
-
-        // Handle scheduled content
-        if (data.schedule_datetime) {
-            const scheduleDate = new Date(data.schedule_datetime);
-            const now = new Date();
-            if (now < scheduleDate) {
-                return;
-            }
-        }
     }
     
     const formattedCreatedDateTime = type !== 'orgchart' ? formatDateTime(data.created_datetime) : '';
@@ -576,12 +567,17 @@ const updateUI = (data, type) => {
 
         if (data.expiration_datetime) {
             containerDiv.dataset.expirationDatetime = data.expiration_datetime;
-            console.log("Type: ", type, "Expiration Datetime: ", data.expiration_datetime);
         }
 
-        if (data.schedule_datetime !== null && type !== 'facility' && type !== 'orgchart' && type !== 'peo' && type !== 'so') {
-            containerDiv.dataset.scheduleDatetime = data.schedule_datetime;
-            console.log("Type: ", type, "Schedule Datetime: ", data.schedule_datetime);
+        // Handle scheduled content
+        if (data.schedule_datetime) {
+            const scheduleDate = new Date(data.schedule_datetime);
+            const now = new Date();
+            if (now < scheduleDate) {
+                containerDiv.dataset.scheduleDatetime = data.schedule_datetime;
+                console.log("scheduleDatetime dataset!");
+                return;
+            }
         }
 
         if (type === 'facility') {

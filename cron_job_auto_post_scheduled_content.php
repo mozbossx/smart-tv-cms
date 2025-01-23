@@ -45,6 +45,8 @@ try {
             FROM $tableName 
             WHERE isArchived = 0 
             AND isTrashed = 0 
+            AND status != 'Pending'
+            AND status != 'Rejected'
             AND schedule_datetime <= NOW()
             AND schedule_datetime IS NOT NULL
         ");
