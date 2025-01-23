@@ -574,7 +574,7 @@ const updateUI = (data, type) => {
             const scheduleDate = new Date(data.schedule_datetime);
             const now = new Date();
             if (now < scheduleDate) {
-                containerDiv.dataset.scheduleDateTime = data.schedule_datetime;  // Keep this casing consistent
+                containerDiv.dataset.scheduleDateTime = data.schedule_datetime;
                 return;
             }
         }
@@ -1457,6 +1457,7 @@ const checkScheduledContent = () => {
     
     contentTypes.forEach(type => {
         // Skip types that don't use scheduling
+        // Fix the condition - it was using OR (||) instead of AND (&&)
         if (type !== 'announcement' && type !== 'event' && type !== 'news' && type !== 'promaterial') return;
 
         const containers = document.querySelectorAll(`[data-${type}-id]`);
@@ -1468,7 +1469,7 @@ const checkScheduledContent = () => {
                 if (now >= scheduleDate) {
                     // Prepare and send the post request
                     const postData = {
-                        action: 'post_now_content',
+                        action: 'post_scheduled_content_by_system',
                         type: type,
                         [`${type}_id`]: container.dataset[`${type}Id`]
                     };
@@ -1607,6 +1608,13 @@ Ws.addEventListener('message', function (event) {
             // For new features 
             const type = data.type;
             fetchAndUpdateContents(type);
+        }
+    } else if (data.action === 'post_scheduled_content_by_system') {
+        // Reload page if this TV matches the content's TV ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const tvId = urlParams.get('tvId');
+        if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+            location.reload();
         }
     } else if (data.action === 'approve_post') {
         const type = data.content_type || data.type;

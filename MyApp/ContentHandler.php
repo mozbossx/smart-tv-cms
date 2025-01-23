@@ -4317,6 +4317,124 @@ class ContentHandler implements MessageComponentInterface
                 }
             }
         }
+
+        else if (isset($data['action']) && $data['action'] === 'post_scheduled_content_by_system') {
+            // Access values from the connection object
+            $user_id = $from->user_id;
+            $full_name = $from->full_name;
+            $user_type = $from->user_type;
+            $department = $from->department;
+
+            $validTypes = [
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
+                'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id']
+            ];
+        
+            $type = $data['type'] ?? null;
+            
+            if (!isset($validTypes[$type])) {
+                // Check if it's a new feature
+                $stmt = $this->pdo->prepare("SELECT * FROM features_tb WHERE type = ?");
+                $stmt->execute([strtolower($type)]);
+                $feature = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+                if ($feature) {
+                    $validTypes[$type] = [
+                        'table' => strtolower($feature['type']) . '_tb',
+                        'idField' => strtolower($feature['type']) . '_id'
+                    ];
+                } else {
+                    $response = ['success' => false, 'message' => 'Invalid content type'];
+                    $from->send(json_encode($response));
+                    return;
+                }
+            }
+        
+            $table = $validTypes[$type]['table'];
+            $idField = $validTypes[$type]['idField'];
+            $content_id = $data[$idField];
+        
+            // Update the schedule_datetime to NULL
+            $stmt = $this->pdo->prepare("UPDATE $table SET schedule_datetime = NULL WHERE $idField = ?");
+            $success = $stmt->execute([$content_id]);
+        
+            if ($success) {
+                // Update the notification type from scheduled to post
+                $updateNotification = $this->pdo->prepare("
+                    UPDATE notifications_tb 
+                    SET notification_type = 'content_scheduled_posted',
+                        content_schedule_datetime = NULL,
+                        created_at = CURRENT_TIMESTAMP
+                    WHERE content_id = ? 
+                    AND content_type = ?
+                    AND notification_type = 'content_scheduled'
+                ");
+                $updateNotification->execute([$content_id, $type]);
+                
+                // Update notification counts for all relevant parties
+                // For content owner
+                $stmtUpdateUserWhoPosted = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1, 
+                        last_post_date = CURRENT_TIMESTAMP 
+                    WHERE user_id = ?
+                ");
+                $stmtUpdateUserWhoPosted->execute([$user_id]);
+
+                // For department admins
+                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE user_type = 'Admin' 
+                    AND department = ? 
+                    AND user_id != ?
+                ");
+                $stmtUpdateAdminNotificationCount->execute([$department, $user_id]);
+
+                // For super admins
+                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("
+                    UPDATE users_tb 
+                    SET notification_count = notification_count + 1 
+                    WHERE user_type = 'Super Admin' 
+                    AND user_id != ?
+                ");
+                $stmtUpdateSuperAdminNotificationCount->execute([$user_id]);
+        
+                // Broadcast notification update
+                $this->broadcastNotification('new_notification');
+        
+                $response = [
+                    'action' => 'post_scheduled_content_by_system', 
+                    'success' => true,
+                    'message' => ucfirst($type) . ' has been posted immediately',
+                    'type' => $type,
+                    $idField => $content_id,
+                    'tv_id' => $data['tv_id']
+                ];
+
+                // Broadcast to ALL clients
+                foreach ($this->clients as $client) {
+                    $client->send(json_encode($response));
+                }
+                
+                echo ucfirst($type) . " posted immediately!\n";
+            } else {
+                $response = [
+                    'success' => false,
+                    'message' => 'Failed to post ' . $type . ' immediately'
+                ];
+            }
+        
+            // Send response to all clients
+            $from->send(json_encode($response));
+            foreach ($this->clients as $client) {
+                if ($client !== $from) {
+                    $client->send(json_encode($response));
+                }
+            }
+        }
         
         // For Viewing Content
         else if (isset($data['action']) && $data['action'] === 'view_content') {

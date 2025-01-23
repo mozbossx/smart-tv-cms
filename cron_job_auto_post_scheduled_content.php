@@ -115,7 +115,7 @@ try {
             
             // Send notification to WebSocket server using cURL
             $postData = [
-                'action' => 'post_now_content',
+                'action' => 'post_scheduled_content_by_system',
                 'type' => $type,
                 "{$type}_id" => $item["{$type}_id"],
                 'user_id' => $item['author_id'],
