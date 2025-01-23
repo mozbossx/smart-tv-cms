@@ -1447,45 +1447,8 @@ const checkAllContentForExpiration = () => {
     });
 };
 
-// Function to check all scheduled content
-const checkScheduledContent = () => {
-    // Get all content types from the containers
-    const containers = document.querySelectorAll('[id$="CarouselContainer"]');
-    const contentTypes = Array.from(containers).map(container => 
-        container.id.replace('CarouselContainer', '')
-    );
-    
-    contentTypes.forEach(type => {
-        // Skip types that don't use scheduling
-        // Fix the condition - it was using OR (||) instead of AND (&&)
-        if (type !== 'announcement' && type !== 'event' && type !== 'news' && type !== 'promaterial') return;
-
-        const containers = document.querySelectorAll(`[data-${type}-id]`);
-        containers.forEach(container => {
-            if (container.dataset.scheduleDateTime) {
-                const scheduleDate = new Date(container.dataset.scheduleDateTime);
-                const now = new Date();
-                
-                if (now >= scheduleDate) {
-                    // Prepare and send the post request
-                    const postData = {
-                        action: 'post_scheduled_content_by_system',
-                        type: type,
-                        [`${type}_id`]: container.dataset[`${type}Id`]
-                    };
-                    
-                    if (isConnectedToWebSocket && Ws) {
-                        Ws.send(JSON.stringify(postData));
-                    }
-                }
-            }
-        });
-    });
-};
-
 // Add periodic check for expired content (every minute)
 setInterval(checkAllContentForExpiration, 60000);
-setInterval(checkScheduledContent, 60000);
 
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
@@ -1877,7 +1840,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     checkAllContentForExpiration();
-    checkScheduledContent();
     // initializeOrgCharts();
     // const types = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so', 'orgchart'];
     // types.forEach(type => {
