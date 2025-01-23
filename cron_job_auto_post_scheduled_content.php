@@ -125,8 +125,9 @@ try {
                 'author_department' => $author['department'] ?? 'System',
                 'evaluator_name' => 'System',
                 'evaluator_message' => "Content automatically posted as scheduled",
-                'tv_id' => $item['tv_id'],  // Make sure tv_id is included
-                'success' => true  // Add success flag
+                'tv_id' => $item['tv_id'],
+                'success' => true,
+                'message' => ucfirst($type) . ' has been posted immediately'
             ];
 
             // Use cURL to send the WebSocket message

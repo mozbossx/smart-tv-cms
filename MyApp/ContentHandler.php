@@ -4415,6 +4415,7 @@ class ContentHandler implements MessageComponentInterface
                 ];
 
                 // Broadcast to ALL clients
+                $from->send(json_encode($response));
                 foreach ($this->clients as $client) {
                     $client->send(json_encode($response));
                 }
@@ -4425,14 +4426,6 @@ class ContentHandler implements MessageComponentInterface
                     'success' => false,
                     'message' => 'Failed to post ' . $type . ' immediately'
                 ];
-            }
-        
-            // Send response to all clients
-            $from->send(json_encode($response));
-            foreach ($this->clients as $client) {
-                if ($client !== $from) {
-                    $client->send(json_encode($response));
-                }
             }
         }
         
