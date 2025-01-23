@@ -4292,8 +4292,14 @@ class ContentHandler implements MessageComponentInterface
                     'success' => true,
                     'message' => ucfirst($type) . ' has been posted immediately',
                     'type' => $type,
-                    $idField => $content_id
+                    $idField => $content_id,
+                    'tv_id' => $data['tv_id']
                 ];
+
+                // Broadcast to ALL clients
+                foreach ($this->clients as $client) {
+                    $client->send(json_encode($response));
+                }
                 
                 echo ucfirst($type) . " posted immediately!\n";
             } else {
