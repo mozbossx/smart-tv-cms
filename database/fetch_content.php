@@ -38,7 +38,7 @@ try {
               WHERE c.isArchived = :isArchived AND c.isTrashed = :isTrashed";
 
     if ($approved) {
-        if ($type == 'peo' || $type == 'so') {
+        if ($type == 'peo' || $type == 'so' || $type == 'facility') {
             // PEO and SO don't need status check
             $query .= "";
         } else {
@@ -48,7 +48,7 @@ try {
     }
 
     if ($rejected) {
-        if ($type == 'peo' || $type == 'so') {
+        if ($type == 'peo' || $type == 'so' || $type == 'facility') {
             // PEO and SO don't need status check
             $query .= "";
         } else {
@@ -58,7 +58,7 @@ try {
     }
 
     if ($pending) {
-        if ($type == 'peo' || $type == 'so') {
+        if ($type == 'peo' || $type == 'so' || $type == 'facility') {
             // PEO and SO don't need status check
             $query .= "";
         } else {

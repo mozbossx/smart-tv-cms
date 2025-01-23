@@ -117,6 +117,22 @@ const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, aut
     modal.style.display = 'flex';
 };
 
+// Helper function to get icon for content type
+const getTypeIcon = (type) => {
+    // Default icons for built-in types
+    const defaultIcons = {
+        announcement: 'fa-bullhorn',
+        event: 'fa-calendar-check-o',
+        news: 'fa-newspaper-o',
+        promaterial: 'fa-object-group',
+        peo: 'fa-map',
+        so: 'fa-graduation-cap'
+    };
+
+    // Return the dynamic icon if it exists, otherwise use default or fallback
+    return featureIcons[type] || defaultIcons[type] || 'fa-file';
+};
+
 // Function to update UI for announcement, event, news, etc.
 const updateUI = async (data, type) => {
     if (!hasPermissionToView(data)) {
@@ -153,9 +169,15 @@ const updateUI = async (data, type) => {
         // Create type label
         const typeLabel = document.createElement('div');
         typeLabel.className = 'content-type-label';
-        typeLabel.innerHTML = `${formatContentType(type)}`;
+        typeLabel.innerHTML = `<i class="fa ${getTypeIcon(type)}" aria-hidden="true"></i> ${formatContentType(type)}`;
         typeLabel.style = `
-            display: none;
+            display: inline-block;
+            padding: 5px 10px;
+            border: 1px solid black;
+            color: black;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-bottom: 10px;
         `;
         
         // Create content container
@@ -391,6 +413,159 @@ const getFeatureInfo = async (type) => {
     }
 };
 
+// Function to search rejected contents
+function searchRejectedContents() {
+    const searchInput = document.getElementById('searchInput');
+    const clearButton = document.getElementById('clearSearch');
+    const keyword = searchInput.value.toLowerCase();
+    const contentType = document.getElementById('contentType').value;
+    
+    // Show/hide clear button
+    clearButton.style.display = keyword ? 'block' : 'none';
+
+    const rejectedContents = document.querySelectorAll('#rejectedContentsContainer > div');
+    let hasVisibleItems = false;
+
+    // Remove any existing "no results" message first
+    const existingNoResultsMsg = document.getElementById('noResultsMessage');
+    if (existingNoResultsMsg) {
+        existingNoResultsMsg.remove();
+    }
+
+    rejectedContents.forEach(item => {
+        // Skip the noResultsMessage div if it exists
+        if (item.id === 'noResultsMessage') return;
+
+        const textContent = item.textContent.toLowerCase();
+        const itemTypeElement = item.querySelector('.content-type-label');
+        const itemType = itemTypeElement ? itemTypeElement.textContent.toLowerCase().trim() : '';
+
+        const matchesKeyword = keyword === '' || textContent.includes(keyword);
+        
+        // Special handling for Promotional Material
+        let matchesType = false;
+        if (contentType === 'all') {
+            matchesType = true;
+        } else if (contentType === 'promaterial') {
+            matchesType = itemType.includes('promotional material');
+        } else {
+            matchesType = itemType.includes(contentType.toLowerCase()) ||
+                         itemType.includes(contentType.replace(/_/g, ' ').toLowerCase());
+        }
+        
+        item.style.display = (matchesKeyword && matchesType) ? 'block' : 'none';
+        if (matchesKeyword && matchesType) hasVisibleItems = true;
+    });
+
+    // Show "no results" message if needed
+    if (!hasVisibleItems && rejectedContents.length > 0) {
+        const msg = document.createElement('div');
+        msg.id = 'noResultsMessage';
+        msg.style = `
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 20px;
+        `;
+        msg.textContent = 'No rejected contents match your search';
+        document.getElementById('rejectedContentsContainer').appendChild(msg);
+    }
+}
+
+// Function to clear search
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const clearButton = document.getElementById('clearSearch');
+    searchInput.value = '';
+    clearButton.style.display = 'none';
+    searchRejectedContents();
+}
+
+// Function to populate content type dropdown
+function populateContentTypeDropdown() {
+    // First fetch all features
+    fetch('database/fetch_feature_info.php?type=all')
+        .then(response => response.json())
+        .then(features => {
+            const select = document.getElementById('contentType');
+            const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+            
+            // Add dynamic features
+            if (Array.isArray(features)) {
+                features.forEach(feature => {
+                    const featureType = feature.type;
+                    if (!contentTypes.includes(featureType)) {
+                        contentTypes.push(featureType);
+                        // Store the icon for this feature type if needed
+                        featureIcons[featureType] = feature.icon;
+                    }
+                });
+            }
+
+            // Clear existing options except "All"
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+
+            // Fetch counts for all content types
+            Promise.all(contentTypes.map(type =>
+                fetch(`database/fetch_content.php?type=${type}&rejected=true`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(`Error fetching ${type}:`, data.error);
+                            return { type, count: 0 };
+                        }
+
+                        const count = data.filter(item => 
+                            item.isArchived === 0 && 
+                            item.isTrashed === 0 && 
+                            item.status === 'Rejected' &&
+                            hasPermissionToView({ ...item, contentType: type })
+                        ).length;
+
+                        return { type, count };
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${type}:`, error);
+                        return { type, count: 0 };
+                    })
+            ))
+            .then(results => {
+                let totalCount = 0;
+
+                // Calculate total count and store individual counts
+                results.forEach(({ type, count }) => {
+                    totalCount += count;
+                });
+
+                // Update "All" option with total count
+                select.options[0].textContent = `All (${totalCount})`;
+
+                // Add options for each content type with counts
+                results.forEach(({ type, count }) => {
+                    if (count > 0 || type === 'announcement' || type === 'event' || type === 'news' || type === 'promaterial') {
+                        const option = document.createElement('option');
+                        option.value = type;
+                        option.textContent = `${formatContentType(type)} (${count})`;
+                        select.appendChild(option);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching content type counts:', error);
+            });
+
+            // Add change event listener
+            select.addEventListener('change', searchRejectedContents);
+        })
+        .catch(error => {
+            console.error('Error fetching features:', error);
+        });
+}
+
+let featureIcons = {};
+
 // Function to fetch and update content for all types
 const fetchAndUpdateAll = async () => {
     try {
@@ -488,11 +663,13 @@ Ws.addEventListener('message', function(event) {
         case 'update_archive_days':
             // Refresh all content for any change
             console.log('Action received:', data.action);
+            populateContentTypeDropdown();
             fetchAndUpdateAll();
             break;
 
         case 'update':
             // Handle updates to existing items
+            populateContentTypeDropdown();
             fetchAndUpdateAll();
             break;
     }
@@ -502,6 +679,10 @@ Ws.addEventListener('message', function(event) {
 document.addEventListener('DOMContentLoaded', async () => {
     // Create modals with dynamic features
     await createModals();
+
+    populateContentTypeDropdown();
+
+    document.getElementById('clearSearch').addEventListener('click', clearSearch);
 
     // Fetch and update all content
     fetchAndUpdateAll();

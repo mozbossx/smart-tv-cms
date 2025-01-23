@@ -91,8 +91,8 @@ $displayInterval = $displayTimeRange['display_interval'];
                     </div>
                 </li>
                 <li>
-                    <a id="dropdown-arrow" href="my_contents.php?pageid=MyContents?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                        <?php echo ($current_page === 'my_contents.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
+                    <a id="dropdown-arrow" href="manage_contents.php?pageid=ManageContents?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                        <?php echo ($current_page === 'manage_contents.php' || $current_page === 'trash.php' || $current_page === 'archives.php' || $current_page === 'view_approved_contents.php' || $current_page === 'view_rejected_contents.php' || $current_page === 'view_pending_contents.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
                         Manage Contents
                     </a>
                     <ul class='sub-menus'>
@@ -102,6 +102,9 @@ $displayInterval = $displayTimeRange['display_interval'];
                         <li><a href="view_rejected_contents.php?pageid=ViewRejectedContents&userId=<?php echo $user_id; ?>&userType=<?php echo $user_type; ?>">Rejected <span id="rejectedContentCount" class="rejected-content-count" style="color: <?php echo $light_theme_color_20_percent; ?>;"></span></a></li>
                         <li><a href="view_pending_contents.php?pageid=ViewPendingContents&userId=<?php echo $user_id; ?>&userType=<?php echo $user_type; ?>">Pending <span id="pendingContentCount" class="pending-content-count" style="color: <?php echo $light_theme_color_20_percent; ?>;"></span></a></li>
                     </ul>
+                </li>
+                <li>
+                    <a onclick="openSurveyModal()" style="cursor: pointer;">Take Survey</a>
                 </li>
                 <?php if ($user_type === 'Admin') { ?>
                 <li>
@@ -212,6 +215,22 @@ $displayInterval = $displayTimeRange['display_interval'];
     </div>
 </div>
 
+<!-- Take Survey Modal -->
+<div id="takeSurveyModal" class="modal">
+    <div class="modal-content" style="padding: 15px; text-align: center;">
+        <div class="green-bar-vertical">
+            <h1 style="color: <?php echo $theme_color; ?>; font-size: 50px"><i class="fa fa-wpforms" aria-hidden="true"></i></h1>
+            <p id="successWebsocketConnectionMessage">Proceed to take survey?</p>
+            <p style="font-size: 13px; color: <?php echo $dark_theme_color_50_percent; ?>">As a part of the evaluation process, please take the survey. This will only take a few minutes.</p>
+            <br>
+            <div style="text-align: right;">
+                <button onclick="document.getElementById('takeSurveyModal').style.display='none'" class="grey-button" style="margin-right: 0">Cancel</button>
+                <button onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSezD3WTthXbXJYJDM2WHymNIXaQGZYHYWgY7mGieqJPcJG3eQ/viewform', '_blank')" class="green-button" style="margin-right: 0">Take Survey</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="misc/js/capitalize_first_letter.js"></script>
 <script>
     const userType = '<?php echo $user_type; ?>';
@@ -255,6 +274,11 @@ $displayInterval = $displayTimeRange['display_interval'];
 
     function goToNotifications() {
         window.location.href = 'notifications.php?pageid=Notifications?userId=' + user_id + '' + full_name;
+    }
+
+    function openSurveyModal() {
+        const takeSurveyModal = document.getElementById("takeSurveyModal");
+        takeSurveyModal.style.display = "flex";
     }
 
     function changeDisplayTimeModal() {
@@ -545,6 +569,10 @@ $displayInterval = $displayTimeRange['display_interval'];
     }
     .archives-content-count, .trash-content-count, .approved-content-count, .rejected-content-count, .pending-content-count {
         color: <?php echo $light_theme_color_50_percent; ?>;
+    }
+    .trash-content-button-count, .archived-content-button-count, .approved-content-button-count, .rejected-content-button-count, .pending-content-button-count {
+        color: <?php echo $light_theme_color_50_percent; ?>;
+        background: none;
     }
     .navbar a:hover{
         background-color: <?php echo $dark_theme_color_70_percent; ?>;

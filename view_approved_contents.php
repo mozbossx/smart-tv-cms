@@ -41,7 +41,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="style.css">
     <style>
         #scrollDiv {
-            height: calc(100vh - 250px); 
+            height: calc(100vh - 330px);
         }
         /* Media query for smaller screens */
         @media only screen and (max-width: 1000px) {
@@ -50,7 +50,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             }
 
             #scrollDiv {
-                height: calc(100vh - 260px);
+                height: calc(100vh - 400px);
             }
         }
     </style>
@@ -67,6 +67,29 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         <h1 class="content-title" style="text-align: center;">
                             <i class="fa fa-check" style="margin-right: 6px" aria-hidden="true"></i>Approved Contents <span id="approvedContentsCount" style="font-weight: bold; color: #6E6E6E;"></span>
                         </h1>
+                        <div class="approved-contents-buttons-flex">
+                            <!-- search form -->
+                            <form class="search-form" id="searchByKeywordsForm" style="width: 300px; max-width: 100%; margin-bottom: 10px;">
+                                <div class="floating-label-container">
+                                    <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchApprovedContents()">
+                                    <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search for keywords</label>
+                                    <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                                        <i class="fa fa-times" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Search by Content Type form -->
+                            <form class="search-form" id="searchByContentTypeForm" style="width: 300px; max-width: 100%; margin-left: auto; margin-bottom: 10px;">
+                                <div class="floating-label-container">
+                                    <select id="contentType" class="floating-label-input">
+                                        <option value="all">All</option>
+                                        <!-- foreach content type -->
+                                    </select>
+                                    <label for="contentType" class="floating-label">Show by Content Type</label>
+                                </div>
+                            </form>
+                        </div>
                         <div id="scrollDiv" class="scroll-div" style="padding: 10px">
                             <div id="approvedContentsContainer" style="margin-right: 10px;"></div>
                         </div>

@@ -1468,15 +1468,15 @@ function updateArchivesCount() {
                     
                     // Update UI elements
                     const archivesCountElement = document.getElementById('archivesContentCount');
-                    const archivesCountMobileElement = document.getElementById('archivesContentCountMobile');
+                    let archivesCountButtonElement;
                     
                     if (archivesCountElement) {
                         archivesCountElement.textContent = totalCount > 0 ? totalCount : '0';
                         archivesCountElement.style.display = 'inline';
                     }
-                    if (archivesCountMobileElement) {
-                        archivesCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
-                        archivesCountMobileElement.style.display = 'inline';
+                    if (archivesCountButtonElement = document.getElementById('archivedContentButtonCount')) {
+                        archivesCountButtonElement.textContent = totalCount > 0 ? totalCount : '0';
+                        archivesCountButtonElement.style.display = 'inline';
                     }
                 })
                 .catch(error => {
@@ -1560,15 +1560,15 @@ function updateTrashCount() {
                     
                     // Update UI elements
                     const trashCountElement = document.getElementById('trashContentCount');
-                    const trashCountMobileElement = document.getElementById('trashContentCountMobile');
+                    let trashCountButtonElement;
                     
                     if (trashCountElement) {
                         trashCountElement.textContent = totalCount > 0 ? totalCount : '0';
                         trashCountElement.style.display = 'inline';
                     }
-                    if (trashCountMobileElement) {
-                        trashCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
-                        trashCountMobileElement.style.display = 'inline';
+                    if (trashCountButtonElement = document.getElementById('trashContentButtonCount')) {
+                        trashCountButtonElement.textContent = totalCount > 0 ? totalCount : '0';
+                        trashCountButtonElement.style.display = 'inline';
                     }
                 })
                 .catch(error => {
@@ -1623,7 +1623,7 @@ function updateApprovedCount() {
                             // Basic archive conditions
                             const basicConditions = item.isArchived === 0 && 
                                 item.isTrashed === 0 && 
-                                (type === 'peo' || type === 'so' || item.status === 'Approved');
+                                item.status === 'Approved';
 
                             // Permission conditions
                             let hasPermission = false;
@@ -1651,15 +1651,15 @@ function updateApprovedCount() {
                     
                     // Update UI elements
                     const approvedCountElement = document.getElementById('approvedContentCount');
-                    const approvedCountMobileElement = document.getElementById('approvedContentCountMobile');
+                    let approvedCountButtonElement;
                     
                     if (approvedCountElement) {
                         approvedCountElement.textContent = totalCount > 0 ? totalCount : '0';
                         approvedCountElement.style.display = 'inline';
                     }
-                    if (approvedCountMobileElement) {
-                        approvedCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
-                        approvedCountMobileElement.style.display = 'inline';
+                    if (approvedCountButtonElement = document.getElementById('approvedContentButtonCount')) {
+                        approvedCountButtonElement.textContent = totalCount > 0 ? totalCount : '0';
+                        approvedCountButtonElement.style.display = 'inline';
                     }
                 })
                 .catch(error => {
@@ -1714,7 +1714,7 @@ function updateRejectedCount() {
                             // Basic archive conditions
                             const basicConditions = item.isArchived === 0 && 
                                 item.isTrashed === 0 && 
-                                (type === 'peo' || type === 'so' || item.status === 'Rejected');
+                                item.status === 'Rejected';
 
                             // Permission conditions
                             let hasPermission = false;
@@ -1742,15 +1742,15 @@ function updateRejectedCount() {
                     
                     // Update UI elements
                     const rejectedCountElement = document.getElementById('rejectedContentCount');
-                    const rejectedCountMobileElement = document.getElementById('rejectedContentCountMobile');
+                    let rejectedCountButtonElement;
                     
                     if (rejectedCountElement) {
                         rejectedCountElement.textContent = totalCount > 0 ? totalCount : '0';
                         rejectedCountElement.style.display = 'inline';
                     }
-                    if (rejectedCountMobileElement) {
-                        rejectedCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
-                        rejectedCountMobileElement.style.display = 'inline';
+                    if (rejectedCountButtonElement = document.getElementById('rejectedContentButtonCount')) {
+                        rejectedCountButtonElement.textContent = totalCount > 0 ? totalCount : '0';
+                        rejectedCountButtonElement.style.display = 'inline';
                     }
                 })
                 .catch(error => {
@@ -1765,7 +1765,6 @@ function updateRejectedCount() {
 function fetchRejectedCount() {
     updateRejectedCount();
 }
-
 
 function updatePendingCount() {
     // First fetch all features
@@ -1805,7 +1804,7 @@ function updatePendingCount() {
                             // Basic archive conditions
                             const basicConditions = item.isArchived === 0 && 
                                 item.isTrashed === 0 && 
-                                (type === 'peo' || type === 'so' || item.status === 'Pending');
+                                item.status === 'Pending';
 
                             // Permission conditions
                             let hasPermission = false;
@@ -1833,15 +1832,15 @@ function updatePendingCount() {
                     
                     // Update UI elements
                     const pendingCountElement = document.getElementById('pendingContentCount');
-                    const pendingCountMobileElement = document.getElementById('pendingContentCountMobile');
+                    let pendingCountButtonElement;
                     
                     if (pendingCountElement) {
                         pendingCountElement.textContent = totalCount > 0 ? totalCount : '0';
                         pendingCountElement.style.display = 'inline';
                     }
-                    if (pendingCountMobileElement) {
-                        pendingCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
-                        pendingCountMobileElement.style.display = 'inline';
+                    if (pendingCountButtonElement = document.getElementById('pendingContentButtonCount')) {
+                        pendingCountButtonElement.textContent = totalCount > 0 ? totalCount : '0';
+                        pendingCountButtonElement.style.display = 'inline';
                     }
                 })
                 .catch(error => {

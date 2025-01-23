@@ -36,7 +36,11 @@ if (isset($_POST["submit"])) {
         $_SESSION['reset_token'] = $token;
         $_SESSION['reset_email'] = $email;
 
-        $passwordResetLink = "http://192.168.1.14:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
+        if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.14') {
+            $passwordResetLink = "http://192.168.1.14:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
+        } else {
+            $passwordResetLink = "https://usccms.online/enter_new_forgot_password.php?token=$token";
+        }
 
         // Send an email to the user with the password reset link
         $mail = new PHPMailer();

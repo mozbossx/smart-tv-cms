@@ -225,15 +225,18 @@ function searchTrash() {
         const itemTypeElement = item.querySelector('.content-type-label');
         const itemType = itemTypeElement ? itemTypeElement.textContent.toLowerCase().trim() : '';
         
-        // Add debug logging
-        console.log('Item type:', itemType);
-        console.log('Content type to match:', contentType.toLowerCase());
-
         const matchesKeyword = keyword === '' || textContent.includes(keyword);
-        // Update the type matching logic to handle dynamic feature names
-        const matchesType = contentType === 'all' || 
-                          itemType.includes(contentType.toLowerCase()) ||
-                          itemType.includes(contentType.replace(/_/g, ' ').toLowerCase());
+        
+        // Special handling for Promotional Material
+        let matchesType = false;
+        if (contentType === 'all') {
+            matchesType = true;
+        } else if (contentType === 'promaterial') {
+            matchesType = itemType.includes('promotional material');
+        } else {
+            matchesType = itemType.includes(contentType.toLowerCase()) ||
+                         itemType.includes(contentType.replace(/_/g, ' ').toLowerCase());
+        }
         
         item.style.display = (matchesKeyword && matchesType) ? 'block' : 'none';
         if (matchesKeyword && matchesType) hasVisibleItems = true;

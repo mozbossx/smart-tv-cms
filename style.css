@@ -83,7 +83,7 @@ body {
     overflow: hidden;
 }
 
-.archives-buttons-flex, .trash-buttons-flex {
+.archives-buttons-flex, .trash-buttons-flex, .approved-contents-buttons-flex, .pending-contents-buttons-flex, .rejected-contents-buttons-flex {
     display: flex;
     flex-direction: row;
     padding-left: 10px;
@@ -2437,6 +2437,17 @@ tr:nth-child(even) {
     top: 1px;
 }
 
+.trash-content-button-count, .archived-content-button-count, .approved-content-button-count, .rejected-content-button-count, .pending-content-button-count {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 20px;
+    margin-left: 5px;
+}
+
 .evaluator-message-notification {
     font-size: 14px;
     color: #6E6E6E;
@@ -3273,7 +3284,7 @@ input[type=range]:focus::-ms-fill-upper {
         flex-direction: row;
     }
 
-    .archives-buttons-flex, .trash-buttons-flex {
+    .archives-buttons-flex, .trash-buttons-flex, .approved-contents-buttons-flex, .pending-contents-buttons-flex, .rejected-contents-buttons-flex {
         flex-direction: column;
         padding-left: 0;
         padding-right: 0;
