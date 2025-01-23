@@ -355,15 +355,15 @@ class ContentHandler implements MessageComponentInterface
             $table = $validTypes[$type]['table'];
             $idField = $validTypes[$type]['idField'];
 
-            $content_id = $data[$idField];
-            $user_id = $data['user_id']; // logged-in user's ID
-            $author_id = $data['author_id']; // author's ID
-            $author_name = $data['author_name'];
-            $author_user_type = $data['author_user_type'];
-            $author_department = $data['author_department'];
+            $content_id = $data[$idField] ?? null;
+            $user_id = $data['user_id'] ?? null; // logged-in user's ID
+            $author_id = $data['author_id'] ?? null; // author's ID
+            $author_name = $data['author_name'] ?? null;
+            $author_user_type = $data['author_user_type'] ?? null;
+            $author_department = $data['author_department'] ?? null;
             $evaluator_message = $data['evaluator_message'] ?? null;
-            $evaluator_name = $data['evaluator_name'];
-            $content_tv_id = $data['tv_id'];
+            $evaluator_name = $data['evaluator_name'] ?? null;
+            $content_tv_id = $data['tv_id'] ?? null;
                 
             // Update isTrashed to 1
             $stmt = $this->pdo->prepare("UPDATE {$table} SET isTrashed = 1, isArchived = 0, datetime_trashed = NOW(), datetime_archived = NULL WHERE {$idField} = ?");

@@ -467,8 +467,7 @@ const updateUI = (data, type) => {
             const scheduleDate = new Date(data.schedule_datetime);
             const now = new Date();
             if (now < scheduleDate) {
-                containerDiv.dataset.scheduleDatetime = data.schedule_datetime;
-                console.log("scheduleDatetime dataset!");
+                containerDiv.dataset.scheduleDateTime = data.schedule_datetime;
                 return;
             }
         }
@@ -1045,6 +1044,7 @@ function fetchAndUpdate(type) {
                     return item.tv_id === parseInt(tvId, 10) && 
                            item.isArchived === 0 && 
                            item.isTrashed === 0 && 
+                           item.schedule_datetime === null && 
                            item.status === 'Approved';
                 });
             } else if (typeof data === 'object' && data !== null) {
@@ -1060,6 +1060,7 @@ function fetchAndUpdate(type) {
                     return item.tv_id === parseInt(tvId, 10) && 
                            item.isArchived === 0 && 
                            item.isTrashed === 0 && 
+                           item.schedule_datetime === null && 
                            item.status === 'Approved';
                 });
             } else {

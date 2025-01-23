@@ -570,12 +570,11 @@ const updateUI = (data, type) => {
         }
 
         // Handle scheduled content
-        if (data.schedule_datetime) {
+        if (data.schedule_datetime && type !== 'facility' && type !== 'orgchart' && type !== 'peo' && type !== 'so') {
             const scheduleDate = new Date(data.schedule_datetime);
             const now = new Date();
             if (now < scheduleDate) {
-                containerDiv.dataset.scheduleDatetime = data.schedule_datetime;
-                console.log("scheduleDatetime dataset!");
+                containerDiv.dataset.scheduleDateTime = data.schedule_datetime;  // Keep this casing consistent
                 return;
             }
         }
@@ -1458,7 +1457,7 @@ const checkScheduledContent = () => {
     
     contentTypes.forEach(type => {
         // Skip types that don't use scheduling
-        if (type !== 'announcement' || type !== 'event' || type !== 'news' || type !== 'promaterial') return;
+        if (type !== 'announcement' && type !== 'event' && type !== 'news' && type !== 'promaterial') return;
 
         const containers = document.querySelectorAll(`[data-${type}-id]`);
         containers.forEach(container => {
