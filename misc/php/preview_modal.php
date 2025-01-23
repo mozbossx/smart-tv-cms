@@ -87,11 +87,10 @@
         const displayTime = document.querySelector('[name="display_time"]').value;
         const tvDisplays = document.querySelectorAll('[name="tv_id[]"]:checked'); // Get all checked TV displays
         
-        // If not PEO, validate expiration and schedule dates/times
+        // If not PEO, validate expiration
         let expirationDateTime = null;
-        let scheduleDateTime = null;
         
-        // If not PEO, SO, or Promotional Material, validate expiration and schedule dates/times
+        // If not PEO, SO, or Promotional Material, validate expiration dates/times
         if (selectedType !== 'peo' && selectedType !== 'so' && selectedType !== 'promaterial') {
             const expirationDateTime = document.querySelector('[name="expiration_datetime"]').value;
             
@@ -108,22 +107,6 @@
             if (expirationDate < currentDateTime) {
                 errorModalMessage("Expiration date and time should not be in the past.");
                 return;
-            }
-
-            // Only validate schedule_datetime if NOT in edit mode
-            if (!isEditMode) {
-                const scheduleDateTime = document.querySelector('[name="schedule_datetime"]').value;
-                if (scheduleDateTime) {
-                    const scheduleDate = new Date(scheduleDateTime);
-
-                    if (scheduleDate < currentDateTime) {
-                        errorModalMessage("Schedule date and time should not be in the past.");
-                        return;
-                    } else if (expirationDate < scheduleDate) {
-                        errorModalMessage("Expiration date and time should not be before the schedule date and time.");
-                        return;
-                    }
-                }
             }
         } else if (selectedType === 'promaterial') {
             const mediaInput = document.querySelector('[name="media"]');
@@ -150,22 +133,6 @@
             if (expirationDate < currentDateTime) {
                 errorModalMessage("Expiration date and time should not be in the past.");
                 return;
-            }
-
-            // Only validate schedule_datetime if NOT in edit mode
-            if (!isEditMode) {
-                const scheduleDateTime = document.querySelector('[name="schedule_datetime"]').value;
-                if (scheduleDateTime) {
-                    const scheduleDate = new Date(scheduleDateTime);
-
-                    if (scheduleDate < currentDateTime) {
-                        errorModalMessage("Schedule date and time should not be in the past.");
-                        return;
-                    } else if (expirationDate < scheduleDate) {
-                        errorModalMessage("Expiration date and time should not be before the schedule date and time.");
-                        return;
-                    }
-                }
             }
         } else if (contentType === 'peo') {
             // For PEO, only check the basic fields
@@ -211,14 +178,6 @@
         if (selectedType !== 'peo' && selectedType !== 'so') {
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + displayTime + ' seconds</p>';
             previewContent += '<p class="preview-input"><strong>Expiration Date & Time: </strong><br>' + formatDateTime(document.querySelector('[name="expiration_datetime"]').value) + '</p>';
-            
-            // Only show schedule date/time in create mode
-            if (!isEditMode) {
-                previewContent += '<p class="preview-input"><strong>Schedule Post Date & Time: </strong><br>' + 
-                    (document.querySelector('[name="schedule_datetime"]').value ? 
-                        formatDateTime(document.querySelector('[name="schedule_datetime"]').value) : 
-                        'Not scheduled') + '</p>';
-            }
         } else {
             previewContent += '<p class="preview-input"><strong>Display Time: </strong><br>' + document.querySelector('[name="display_time"]').value + ' seconds</p>';
         }

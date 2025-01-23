@@ -109,13 +109,7 @@ if ($isEditMode && isset($_GET['announcement_id'])) {
                                 <?php include('misc/php/displaytime_tvdisplay.php')?>
                             </div>
                             <?php if (!$isEditMode): ?>
-                            <?php include('misc/php/schedule_post.php')?>
                             <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
-                                <div>
-                                    <button type="button" id="schedulePostButton" class="green-button" style="background: none; color: <?php echo $theme_color; ?>;">
-                                        <i class="fa fa-calendar" style="padding-right: 5px"></i> Schedule Post 
-                                    </button>
-                                </div>
                                 <div>
                                     <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
                                         <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 

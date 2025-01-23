@@ -3182,29 +3182,21 @@ class ContentHandler implements MessageComponentInterface
                     if ($data['type'] === 'event') {
                         $fields[] = 'event_body';
                         $fields[] = 'expiration_datetime';
-                        $fields[] = 'schedule_datetime';
                         $values[] = $data['event_body'] ?? null;
                         $values[] = $data['expiration_datetime'] ?? null;
-                        $values[] = $data['schedule_datetime'] ?? null;
                     } elseif ($data['type'] === 'news') {
                         $fields[] = 'news_body';
                         $fields[] = 'expiration_datetime';
-                        $fields[] = 'schedule_datetime';
                         $values[] = $data['news_body'] ?? null;
                         $values[] = $data['expiration_datetime'] ?? null;
-                        $values[] = $data['schedule_datetime'] ?? null;
                     } elseif ($data['type'] === 'announcement') {
                         $fields[] = 'announcement_body';
                         $fields[] = 'expiration_datetime';
-                        $fields[] = 'schedule_datetime';
                         $values[] = $data['announcement_body'] ?? null;
                         $values[] = $data['expiration_datetime'] ?? null;
-                        $values[] = $data['schedule_datetime'] ?? null;
                     } elseif ($data['type'] === 'promaterial') {
                         $fields[] = 'expiration_datetime';
-                        $fields[] = 'schedule_datetime';
                         $values[] = $data['expiration_datetime'] ?? null;
-                        $values[] = $data['schedule_datetime'] ?? null;
                     } elseif ($data['type'] === 'peo') {
                         $fields[] = 'peo_title';
                         $fields[] = 'peo_description';
@@ -3333,29 +3325,21 @@ class ContentHandler implements MessageComponentInterface
                 if ($data['type'] === 'event') {
                     $fields[] = 'event_body';
                     $fields[] = 'expiration_datetime';
-                    $fields[] = 'schedule_datetime';
                     $values[] = $data['event_body'] ?? null;
                     $values[] = $data['expiration_datetime'] ?? null;
-                    $values[] = $data['schedule_datetime'] ?? null;
                 } elseif ($data['type'] === 'news') {
                     $fields[] = 'news_body';
                     $fields[] = 'expiration_datetime';
-                    $fields[] = 'schedule_datetime';
                     $values[] = $data['news_body'] ?? null;
                     $values[] = $data['expiration_datetime'] ?? null;
-                    $values[] = $data['schedule_datetime'] ?? null;
                 } elseif ($data['type'] === 'announcement') {
                     $fields[] = 'announcement_body';
                     $fields[] = 'expiration_datetime';
-                    $fields[] = 'schedule_datetime';
                     $values[] = $data['announcement_body'] ?? null;
                     $values[] = $data['expiration_datetime'] ?? null;
-                    $values[] = $data['schedule_datetime'] ?? null;
                 } elseif ($data['type'] === 'promaterial') {
                     $fields[] = 'expiration_datetime';
-                    $fields[] = 'schedule_datetime';
                     $values[] = $data['expiration_datetime'] ?? null;
-                    $values[] = $data['schedule_datetime'] ?? null;
                 } elseif ($data['type'] === 'peo') {
                     $fields[] = 'peo_title';
                     $fields[] = 'peo_description';
@@ -3530,30 +3514,22 @@ class ContentHandler implements MessageComponentInterface
                         if ($data['type'] === 'event') {
                             $fields[] = 'event_body';
                             $fields[] = 'expiration_datetime';
-                            $fields[] = 'schedule_datetime';
                             $values[] = $data['event_body'];
                             $values[] = $data['expiration_datetime'];
-                            $values[] = $data['schedule_datetime'] ?? null;
                         } elseif ($data['type'] === 'news') {
                             $fields[] = 'news_body';
                             $fields[] = 'expiration_datetime';
-                            $fields[] = 'schedule_datetime';
                             $values[] = $data['news_body'];
                             $values[] = $data['expiration_datetime'];
-                            $values[] = $data['schedule_datetime'] ?? null;
                         } elseif ($data['type'] === 'announcement') {
                             $fields[] = 'announcement_body';
                             $fields[] = 'expiration_datetime';
-                            $fields[] = 'schedule_datetime';
                             $values[] = $data['announcement_body'];
                             $values[] = $data['expiration_datetime'];
-                            $values[] = $data['schedule_datetime'] ?? null;
                         } elseif ($data['type'] === 'promaterial') {
                             $fields[] = 'expiration_datetime';
-                            $fields[] = 'schedule_datetime';
                             // No additional fields for promaterial
                             $values[] = $data['expiration_datetime'];
-                            $values[] = $data['schedule_datetime'] ?? null;
                         } elseif ($data['type'] === 'peo') {
                             $fields[] = 'peo_title';
                             $fields[] = 'peo_description';
@@ -3588,22 +3564,12 @@ class ContentHandler implements MessageComponentInterface
                             $data['status'] = $status;
 
                             if ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') {
-                                // Check if post is scheduled
-                                $notification_type = isset($data['schedule_datetime']) && !empty($data['schedule_datetime']) 
-                                    ? 'content_scheduled' 
-                                    : 'content_post';
+                                $notification_type = 'content_post';
 
                                 // Prepare base notification fields and values
                                 $notificationFields = "user_id, content_id, content_type, notification_type, status, action_user_name, action_user_department, action_user_type, content_tv_id";
                                 $notificationValues = "?, ?, ?, ?, 'pending', ?, ?, ?, ?";
                                 $params = [$user_id, $data[$idField], $data['type'], $notification_type, $full_name, $department, $user_type, $tv_ids];
-
-                                // Add schedule_datetime if it exists
-                                if (!empty($data['schedule_datetime'])) {
-                                    $notificationFields .= ", content_schedule_datetime";
-                                    $notificationValues .= ", ?";
-                                    $params[] = $data['schedule_datetime'];
-                                }
 
                                 // Insert notification for new content post
                                 $stmt = $this->pdo->prepare("INSERT INTO notifications_tb ($notificationFields) VALUES ($notificationValues)");
@@ -3625,24 +3591,13 @@ class ContentHandler implements MessageComponentInterface
                                 $this->broadcastNotification('new_notification');
                                 echo "Notification sent to all clients\n";
                             } else if ($user_type == 'Admin' || $user_type == 'Super Admin') {
-                                // Check if post is scheduled
-                                $notification_type = isset($data['schedule_datetime']) && !empty($data['schedule_datetime']) 
-                                    ? 'content_scheduled' 
-                                    : 'content_post';
+                                $notification_type = 'content_post';
 
                                 // Insert notification for the user who posted his own content
                                 if ($user_id) {
-                                    // Prepare base query without schedule_datetime
                                     $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
                                     $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
                                     $params = [$data[$idField], $user_id, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
-
-                                    // Add schedule_datetime if it exists
-                                    if (!empty($data['schedule_datetime'])) {
-                                        $notificationFields .= ", content_schedule_datetime";
-                                        $notificationValues .= ", ?";
-                                        $params[] = $data['schedule_datetime'];
-                                    }
 
                                     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb ($notificationFields) VALUES ($notificationValues)");
                                     $stmt->execute($params);
@@ -3659,12 +3614,6 @@ class ContentHandler implements MessageComponentInterface
                                     $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
                                     $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
                                     $baseParams = [$data[$idField], null, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
-
-                                    if (!empty($data['schedule_datetime'])) {
-                                        $notificationFields .= ", content_schedule_datetime";
-                                        $notificationValues .= ", ?";
-                                        $baseParams[] = $data['schedule_datetime'];
-                                    }
 
                                     $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
                                         INSERT INTO notifications_tb ($notificationFields)
@@ -3689,12 +3638,6 @@ class ContentHandler implements MessageComponentInterface
                                     $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
                                     $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
                                     $baseParams = [$data[$idField], null, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
-
-                                    if (!empty($data['schedule_datetime'])) {
-                                        $notificationFields .= ", content_schedule_datetime";
-                                        $notificationValues .= ", ?";
-                                        $baseParams[] = $data['schedule_datetime'];
-                                    }
 
                                     $stmtNotifySuperAdmins = $this->pdo->prepare("
                                         INSERT INTO notifications_tb ($notificationFields)
@@ -3813,12 +3756,10 @@ class ContentHandler implements MessageComponentInterface
                             $data['category'] = $category;
 
                             if ($user_type == 'Admin' || $user_type == 'Super Admin') {
-                                // Check if post is scheduled
                                 $notification_type = 'content_post';
 
                                 // Insert notification for the user who posted his own content
                                 if ($user_id) {
-                                    // Prepare base query without schedule_datetime
                                     $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
                                     $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
                                     $params = [$data[$idField], $user_id, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
@@ -4038,20 +3979,12 @@ class ContentHandler implements MessageComponentInterface
                             $data['status'] = $status;
                             
                             if ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') {
-                                // Check if post is scheduled
                                 $notification_type = 'content_post';
 
                                 // Prepare base notification fields and values
                                 $notificationFields = "user_id, content_id, content_type, notification_type, status, action_user_name, action_user_department, action_user_type, content_tv_id";
                                 $notificationValues = "?, ?, ?, ?, 'pending', ?, ?, ?, ?";
                                 $params = [$user_id, $data[$idField], $data['type'], $notification_type, $full_name, $department, $user_type, $tv_ids];
-
-                                // Add schedule_datetime if it exists
-                                if (!empty($data['schedule_datetime'])) {
-                                    $notificationFields .= ", content_schedule_datetime";
-                                    $notificationValues .= ", ?";
-                                    $params[] = $data['schedule_datetime'];
-                                }
 
                                 // Insert notification for new content post
                                 $stmt = $this->pdo->prepare("INSERT INTO notifications_tb ($notificationFields) VALUES ($notificationValues)");
@@ -4076,17 +4009,9 @@ class ContentHandler implements MessageComponentInterface
                                 $notification_type = 'content_post';
                                 // Insert notification for the user who posted his own content
                                 if ($user_id) {
-                                    // Prepare base query without schedule_datetime
                                     $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
                                     $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
                                     $params = [$data[$idField], $user_id, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
-
-                                    // Add schedule_datetime if it exists
-                                    if (!empty($data['schedule_datetime'])) {
-                                        $notificationFields .= ", content_schedule_datetime";
-                                        $notificationValues .= ", ?";
-                                        $params[] = $data['schedule_datetime'];
-                                    }
 
                                     $stmt = $this->pdo->prepare("INSERT INTO notifications_tb ($notificationFields) VALUES ($notificationValues)");
                                     $stmt->execute($params);
@@ -4103,12 +4028,6 @@ class ContentHandler implements MessageComponentInterface
                                     $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
                                     $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
                                     $baseParams = [$data[$idField], null, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
-
-                                    if (!empty($data['schedule_datetime'])) {
-                                        $notificationFields .= ", content_schedule_datetime";
-                                        $notificationValues .= ", ?";
-                                        $baseParams[] = $data['schedule_datetime'];
-                                    }
 
                                     $stmtNotifyDepartmentAdmins = $this->pdo->prepare("
                                         INSERT INTO notifications_tb ($notificationFields)
@@ -4133,12 +4052,6 @@ class ContentHandler implements MessageComponentInterface
                                     $notificationFields = "content_id, user_id, content_type, notification_type, status, action_user_name, action_user_type, action_user_department, evaluator_name, content_tv_id";
                                     $notificationValues = "?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?";
                                     $baseParams = [$data[$idField], null, $data['type'], $notification_type, $full_name, $user_type, $department, $full_name, $tv_ids];
-
-                                    if (!empty($data['schedule_datetime'])) {
-                                        $notificationFields .= ", content_schedule_datetime";
-                                        $notificationValues .= ", ?";
-                                        $baseParams[] = $data['schedule_datetime'];
-                                    }
 
                                     $stmtNotifySuperAdmins = $this->pdo->prepare("
                                         INSERT INTO notifications_tb ($notificationFields)
@@ -4198,295 +4111,6 @@ class ContentHandler implements MessageComponentInterface
                 error_log("No TV IDs selected."); // Log for debugging
                 $tv_ids = $data['tv_ids'];
             }
-        }
-
-        else if (isset($data['action']) && $data['action'] === 'post_now_content') {
-            // Access values from the connection object
-            $user_id = $from->user_id;
-            $full_name = $from->full_name;
-            $user_type = $from->user_type;
-            $department = $from->department;
-
-            $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
-                'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
-                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id']
-            ];
-        
-            $type = $data['type'] ?? null;
-            
-            if (!isset($validTypes[$type])) {
-                // Check if it's a new feature
-                $stmt = $this->pdo->prepare("SELECT * FROM features_tb WHERE type = ?");
-                $stmt->execute([strtolower($type)]);
-                $feature = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-                if ($feature) {
-                    $validTypes[$type] = [
-                        'table' => strtolower($feature['type']) . '_tb',
-                        'idField' => strtolower($feature['type']) . '_id'
-                    ];
-                } else {
-                    $response = ['success' => false, 'message' => 'Invalid content type'];
-                    $from->send(json_encode($response));
-                    return;
-                }
-            }
-        
-            $table = $validTypes[$type]['table'];
-            $idField = $validTypes[$type]['idField'];
-            $content_id = $data[$idField];
-        
-            // Update the schedule_datetime to NULL
-            $stmt = $this->pdo->prepare("UPDATE $table SET schedule_datetime = NULL WHERE $idField = ?");
-            $success = $stmt->execute([$content_id]);
-        
-            if ($success) {
-                // Update the notification type from scheduled to post
-                $updateNotification = $this->pdo->prepare("
-                    UPDATE notifications_tb 
-                    SET notification_type = 'content_scheduled_posted',
-                        content_schedule_datetime = NULL,
-                        created_at = CURRENT_TIMESTAMP
-                    WHERE content_id = ? 
-                    AND content_type = ?
-                    AND notification_type = 'content_scheduled'
-                ");
-                $updateNotification->execute([$content_id, $type]);
-                
-                // Update notification counts for all relevant parties
-                // For content owner
-                $stmtUpdateUserWhoPosted = $this->pdo->prepare("
-                    UPDATE users_tb 
-                    SET notification_count = notification_count + 1, 
-                        last_post_date = CURRENT_TIMESTAMP 
-                    WHERE user_id = ?
-                ");
-                $stmtUpdateUserWhoPosted->execute([$user_id]);
-
-                // For department admins
-                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("
-                    UPDATE users_tb 
-                    SET notification_count = notification_count + 1 
-                    WHERE user_type = 'Admin' 
-                    AND department = ? 
-                    AND user_id != ?
-                ");
-                $stmtUpdateAdminNotificationCount->execute([$department, $user_id]);
-
-                // For super admins
-                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("
-                    UPDATE users_tb 
-                    SET notification_count = notification_count + 1 
-                    WHERE user_type = 'Super Admin' 
-                    AND user_id != ?
-                ");
-                $stmtUpdateSuperAdminNotificationCount->execute([$user_id]);
-        
-                // Broadcast notification update
-                $this->broadcastNotification('new_notification');
-        
-                $response = [
-                    'action' => 'post_now_content', 
-                    'success' => true,
-                    'message' => ucfirst($type) . ' has been posted immediately',
-                    'type' => $type,
-                    $idField => $content_id,
-                    'tv_id' => $data['tv_id']
-                ];
-
-                // Broadcast to ALL clients
-                foreach ($this->clients as $client) {
-                    $client->send(json_encode($response));
-                }
-                
-                echo ucfirst($type) . " posted immediately!\n";
-            } else {
-                $response = [
-                    'success' => false,
-                    'message' => 'Failed to post ' . $type . ' immediately'
-                ];
-            }
-        
-            // Send response to all clients
-            $from->send(json_encode($response));
-            foreach ($this->clients as $client) {
-                if ($client !== $from) {
-                    $client->send(json_encode($response));
-                }
-            }
-        }
-
-        else if (isset($data['action']) && $data['action'] === 'post_scheduled_content_by_system') {
-            // Access values from the connection object
-            $user_id = $from->user_id;
-            $full_name = $from->full_name;
-            $user_type = $from->user_type;
-            $department = $from->department;
-
-            $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
-                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
-                'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
-                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id']
-            ];
-        
-            $type = $data['type'] ?? null;
-            
-            if (!isset($validTypes[$type])) {
-                // Check if it's a new feature
-                $stmt = $this->pdo->prepare("SELECT * FROM features_tb WHERE type = ?");
-                $stmt->execute([strtolower($type)]);
-                $feature = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-                if ($feature) {
-                    $validTypes[$type] = [
-                        'table' => strtolower($feature['type']) . '_tb',
-                        'idField' => strtolower($feature['type']) . '_id'
-                    ];
-                } else {
-                    $response = ['success' => false, 'message' => 'Invalid content type'];
-                    $from->send(json_encode($response));
-                    return;
-                }
-            }
-        
-            $table = $validTypes[$type]['table'];
-            $idField = $validTypes[$type]['idField'];
-            $content_id = $data[$idField];
-        
-            // Update the schedule_datetime to NULL
-            $stmt = $this->pdo->prepare("UPDATE $table SET schedule_datetime = NULL WHERE $idField = ?");
-            $success = $stmt->execute([$content_id]);
-        
-            if ($success) {
-                // Update the notification type from scheduled to post
-                $updateNotification = $this->pdo->prepare("
-                    UPDATE notifications_tb 
-                    SET notification_type = 'content_scheduled_posted',
-                        content_schedule_datetime = NULL,
-                        created_at = CURRENT_TIMESTAMP
-                    WHERE content_id = ? 
-                    AND content_type = ?
-                    AND notification_type = 'content_scheduled'
-                ");
-                $updateNotification->execute([$content_id, $type]);
-                
-                // Update notification counts for all relevant parties
-                // For content owner
-                $stmtUpdateUserWhoPosted = $this->pdo->prepare("
-                    UPDATE users_tb 
-                    SET notification_count = notification_count + 1, 
-                        last_post_date = CURRENT_TIMESTAMP 
-                    WHERE user_id = ?
-                ");
-                $stmtUpdateUserWhoPosted->execute([$user_id]);
-
-                // For department admins
-                $stmtUpdateAdminNotificationCount = $this->pdo->prepare("
-                    UPDATE users_tb 
-                    SET notification_count = notification_count + 1 
-                    WHERE user_type = 'Admin' 
-                    AND department = ? 
-                    AND user_id != ?
-                ");
-                $stmtUpdateAdminNotificationCount->execute([$department, $user_id]);
-
-                // For super admins
-                $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("
-                    UPDATE users_tb 
-                    SET notification_count = notification_count + 1 
-                    WHERE user_type = 'Super Admin' 
-                    AND user_id != ?
-                ");
-                $stmtUpdateSuperAdminNotificationCount->execute([$user_id]);
-        
-                // Broadcast notification update
-                $this->broadcastNotification('new_notification');
-        
-                $response = [
-                    'action' => 'post_scheduled_content_by_system', 
-                    'success' => true,
-                    'message' => ucfirst($type) . ' has been posted immediately',
-                    'type' => $type,
-                    $idField => $content_id,
-                    'tv_id' => $data['tv_id']
-                ];
-
-                // Broadcast to ALL clients
-                $from->send(json_encode($response));
-                foreach ($this->clients as $client) {
-                    $client->send(json_encode($response));
-                }
-                
-                echo ucfirst($type) . " posted immediately!\n";
-            } else {
-                $response = [
-                    'success' => false,
-                    'message' => 'Failed to post ' . $type . ' immediately'
-                ];
-            }
-        }
-        
-        // For Viewing Content
-        else if (isset($data['action']) && $data['action'] === 'view_content') {
-            $content_id = $data['content_id'];
-            $content_type = $data['content_type'];
-            $user_id = $data['user_id'];
-        
-            $validTypes = [
-                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id', 'fields' => ['announcement_id', 'announcement_author_id', 'announcement_body', 'created_datetime', 'expiration_datetime', 'schedule_datetime', 'media_path', 'display_time', 'tv_id']],
-                'event' => ['table' => 'events_tb', 'idField' => 'event_id', 'fields' => ['event_id', 'event_author_id', 'event_body', 'created_datetime', 'expiration_datetime', 'schedule_datetime', 'media_path', 'display_time', 'tv_id']],
-                'news' => ['table' => 'news_tb', 'idField' => 'news_id', 'fields' => ['news_id', 'news_author_id', 'news_body', 'created_datetime', 'expiration_datetime', 'schedule_datetime', 'media_path', 'display_time', 'tv_id']],
-                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id', 'fields' => ['promaterial_id', 'promaterial_author_id', 'created_datetime', 'expiration_datetime', 'schedule_datetime', 'media_path', 'display_time', 'tv_id']],
-                'peo' => ['table' => 'peo_tb', 'idField' => 'peo_id', 'fields' => ['peo_id', 'peo_author_id', 'peo_title', 'peo_description', 'peo_subdescription', 'created_datetime', 'display_time', 'tv_id']],
-                'so' => ['table' => 'so_tb', 'idField' => 'so_id', 'fields' => ['so_id', 'so_author_id', 'so_title', 'so_description', 'so_subdescription', 'created_datetime', 'display_time', 'tv_id']]
-            ];
-        
-            if (isset($validTypes[$content_type])) {
-                $table = $validTypes[$content_type]['table'];
-                $idField = $validTypes[$content_type]['idField'];
-                $fields = implode(', ', $validTypes[$content_type]['fields']);
-
-                $queryTvName = "SELECT ST.tv_name as tv_display
-                        FROM {$table} CT
-                        LEFT JOIN smart_tvs_tb ST ON CT.tv_id = ST.tv_id
-                        WHERE CT.tv_id = ST.tv_id";
-
-                $statement = $this->pdo->prepare($queryTvName);
-                $statement->execute();
-                $result = $statement->fetch(PDO::FETCH_ASSOC);
-        
-                $stmt = $this->pdo->prepare("SELECT $fields FROM $table WHERE $idField = ? AND {$content_type}_author_id = ?");
-                $stmt->execute([$content_id, $user_id]);
-                $content = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-                if ($content) {
-                    $response = [
-                        'action' => 'view_content',
-                        'success' => true,
-                        'content_type' => $content_type,
-                        'content' => $content,
-                        'idField' => $idField,
-                        'tv_display' => $result['tv_display']
-                    ];
-                } else {
-                    $response = [
-                        'action' => 'view_content',
-                        'success' => false,
-                        'message' => 'Content not found'
-                    ];
-                }
-            } else {
-                $response = [
-                    'action' => 'view_content',
-                    'success' => false,
-                    'message' => 'Invalid content type'
-                ];
-            }
-        
-            $from->send(json_encode($response));
         }
 
         // For Creating New Feature only
@@ -4563,10 +4187,8 @@ class ContentHandler implements MessageComponentInterface
                     category VARCHAR(255) NOT NULL,
                     isArchived TINYINT(1) DEFAULT 0,
                     isTrashed TINYINT(1) DEFAULT 0,
-                    isScheduled TINYINT(1) DEFAULT 0,
                     datetime_archived DATETIME DEFAULT NULL,
                     datetime_trashed DATETIME DEFAULT NULL,
-                    schedule_datetime DATETIME DEFAULT NULL,
                     created_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (tv_id) REFERENCES smart_tvs_tb(tv_id),
                     FOREIGN KEY ({$featureId}_author_id) REFERENCES users_tb(user_id)

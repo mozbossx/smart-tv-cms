@@ -203,15 +203,6 @@ const updateUI = (data, type) => {
     const currentIndexKey = type;
     const contentsArray = contents[`${type}s`];
 
-    // if (data.status === 'Pending' || data.status === 'Draft' || data.isArchived === 1 || !data[`${type}_id`]) {
-    //     return;
-    // }
-
-    // if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || data.schedule_datetime !== null || !data[`${type}_id`]) {
-    //     return;
-    // }
-
-    // Check status based on content type
     // Check status based on content type
     if (type === 'orgchart') {
         // No status check needed for orgchart
@@ -483,9 +474,9 @@ const updateUI = (data, type) => {
         // 25 filtered keys
         const contentKeys = Object.entries(data).filter(([key]) => 
             !['id', 'created_datetime', 'display_time', 'status', 'expiration_datetime', 
-            'isArchived', 'isTrashed', 'isScheduled', 'tv_id', 'author_id', 'type', 
+            'isArchived', 'isTrashed', 'tv_id', 'author_id', 'type', 
             'department', 'user_type', 'category', 'evaluated_by', `${type}_author_id`, `${type}_id`,
-            'evaluated_message', 'author_name', 'schedule_datetime', 
+            'evaluated_message', 'author_name', 
             'author_user_type', 'author_department', 'datetime_archived', 
             'datetime_trashed', 'media_path'].includes(key)
         );
@@ -520,9 +511,9 @@ const updateUI = (data, type) => {
                             <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
                                 ${Object.entries(data)
                                     .filter(([key]) => !['id', 'created_datetime', 'display_time', 'status', 'expiration_datetime', 
-                                        'isArchived', 'isTrashed', 'isScheduled', 'tv_id', 'author_id', 'type', 
+                                        'isArchived', 'isTrashed', 'tv_id', 'author_id', 'type', 
                                         'department', 'user_type', 'category', 'evaluated_by', `${type}_author_id`, `${type}_id`,
-                                        'evaluated_message', 'author_name', 'schedule_datetime', 
+                                        'evaluated_message', 'author_name',  
                                         'author_user_type', 'author_department', 'datetime_archived', 
                                         'datetime_trashed', 'media_path'].includes(key))
                                     .map(([key, value]) => `${value}`)
@@ -567,16 +558,6 @@ const updateUI = (data, type) => {
 
         if (data.expiration_datetime) {
             containerDiv.dataset.expirationDatetime = data.expiration_datetime;
-        }
-
-        // Handle scheduled content
-        if (data.schedule_datetime && type !== 'facility' && type !== 'orgchart' && type !== 'peo' && type !== 'so') {
-            const scheduleDate = new Date(data.schedule_datetime);
-            const now = new Date();
-            if (now < scheduleDate) {
-                containerDiv.dataset.scheduleDateTime = data.schedule_datetime;
-                return;
-            }
         }
 
         if (type === 'facility') {
@@ -902,8 +883,6 @@ const createOrgChart = (orgchartId, chartData) => {
             // First, make the Treant match the SVG dimensions
             const svgWidth = svg.width.baseVal.value;
             const svgHeight = svg.height.baseVal.value;
-            // console.log("svgWidth: ", svgWidth);
-            // console.log("svgHeight: ", svgHeight);
             
             // Set both width and height of Treant to match SVG
             treant.style.width = `${svgWidth}px`;
@@ -1215,24 +1194,6 @@ const fetchSmartTVDetails = () => {
     }
 };
 
-const fetchSmartTVContainers = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tvId = urlParams.get('tvId');
-    fetch(`database/fetch_containers.php?tvId=${tvId}`)
-        .then(response => response.json())
-        .then(data => {
-            // console.log("Fetched containers:", data);
-            const containersVisible = data.visible;
-            const containerHeightPx = data.height_px;
-            const containerWidthPx = data.width_px;
-            const containerXAxis = data.xaxis;
-            const containerYAxis = data.yaxis;
-
-
-            updateContainers(containersVisible);
-        })
-}
-
 const updateTvDetails = (tvName, tvBrand, tvDepartment, tvId) => {
     const tvNameElement = document.querySelector('.tv-name');
     if (tvNameElement) {
@@ -1310,9 +1271,7 @@ const fetchAndUpdateContents = (type) => {
                     fetch(`database/fetch_orgchart.php?tvId=${tvId}`)
                         .then(response => response.json())
                         .then(data => {
-                            // console.log("Fetched orgchart data:", data); // Debug log
                             Object.entries(data).forEach(([orgchartId, orgchartData]) => {
-                                // console.log(`Processing orgchart ${orgchartId}:`, orgchartData); // Debug log
                                 updateUI({
                                     orgchart_id: orgchartId,
                                     chartData: orgchartData,
@@ -1378,7 +1337,6 @@ const fetchAndUpdateContents = (type) => {
                 fetch(`database/fetch_content.php?type=${type}&tvId=${tvId}`)
                     .then(response => response.json())
                     .then(data => {
-                        // console.log(`Fetched ${type} data:`, data);
                         const { carouselContainer } = getContainerElements(type);
                         if (carouselContainer) {
                             carouselContainer.innerHTML = '';
@@ -1517,12 +1475,8 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
         } else if (data.type === 'orgchart') {
-            // console.log("Received new orgchart data:", data);
-            // Refresh TV since there's an issue for the orgchart when posting it
             const urlParams = new URLSearchParams(window.location.search);
             const tvId = urlParams.get('tvId');
-            // console.log("TV IDS of orgchart: ", data.tv_ids);
-            // console.log("TV ID of orgchart: ", data.tv_id);
 
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
                 location.reload();
@@ -1532,8 +1486,7 @@ Ws.addEventListener('message', function (event) {
             const type = data.type;
             fetchAndUpdateContents(type);
         }
-    } else if (data.action === 'post_content' || data.action === 'post_now_content') {
-        // console.log("Received new content data:", data);
+    } else if (data.action === 'post_content') {
         if (data.type === 'announcement') {
             fetchAndUpdateContents('announcement');
         } else if (data.type === 'event') {
@@ -1547,12 +1500,8 @@ Ws.addEventListener('message', function (event) {
         } else if (data.type === 'so') {
             fetchAndUpdateContents('so');
         } else if (data.type === 'orgchart') {
-            // console.log("Received new orgchart data:", data);
-            // Refresh TV since there's an issue for the orgchart when posting it
             const urlParams = new URLSearchParams(window.location.search);
             const tvId = urlParams.get('tvId');
-            // console.log("TV IDS of orgchart: ", data.tv_ids);
-            // console.log("TV ID of orgchart: ", data.tv_id);
 
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
                 location.reload();
@@ -1561,8 +1510,6 @@ Ws.addEventListener('message', function (event) {
             // Refresh TV since there's an issue for the facility when posting it
             const urlParams = new URLSearchParams(window.location.search);
             const tvId = urlParams.get('tvId');
-            // console.log("TV IDS of facility: ", data.tv_ids);
-            // console.log("TV ID of facility: ", data.tv_id);
 
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
                 location.reload();
@@ -1571,13 +1518,6 @@ Ws.addEventListener('message', function (event) {
             // For new features 
             const type = data.type;
             fetchAndUpdateContents(type);
-        }
-    } else if (data.action === 'post_scheduled_content_by_system') {
-        // Reload page if this TV matches the content's TV ID
-        const urlParams = new URLSearchParams(window.location.search);
-        const tvId = urlParams.get('tvId');
-        if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
-            location.reload();
         }
     } else if (data.action === 'approve_post') {
         const type = data.content_type || data.type;
@@ -1824,7 +1764,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const containers = document.querySelectorAll('[id$="CarouselContainer"]');
     containers.forEach(container => {
         const type = container.id.replace('CarouselContainer', '');
-        // console.log(type);
         // Initialize arrays for new types if they don't exist
         if (!currentIndex[type]) {
             currentIndex[type] = 0;

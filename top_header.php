@@ -91,16 +91,17 @@ $displayInterval = $displayTimeRange['display_interval'];
                     </div>
                 </li>
                 <li>
-                    <a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'archives.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Archives <span id="archivesContentCount" class="archives-content-count" style="color: <?php echo $light_theme_color_50_percent; ?>;"></span></a>
-                </li>
-                <li>
-                    <a href="trash.php?pageid=Trash?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'trash.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Trash <span id="trashContentCount" class="trash-content-count" style="color: <?php echo $light_theme_color_50_percent; ?>;"></span></a>
-                </li>
-                <li>
-                    <a href="scheduled_posts.php?pageid=ScheduledPosts?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'scheduled_posts.php' ? 'class="active-header-content" style="color:black"' : ''; ?>>Scheduled Posts <span id="scheduleContentCount" class="schedule-content-count" style="color: <?php echo $light_theme_color_50_percent; ?>;"></span></a>
+                    <a id="dropdown-arrow" href="my_contents.php?pageid=MyContents?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
+                        <?php echo ($current_page === 'my_contents.php') ? 'class="active-header-content" style="color:black"' : ''; ?>>
+                        Manage Contents
+                    </a>
+                    <ul class='sub-menus'>
+                        <li><a href="trash.php?pageid=Trash?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Trash <span id="trashContentCount" class="trash-content-count" style="color: <?php echo $light_theme_color_20_percent; ?>;"></span></a></li>
+                        <li><a href="archives.php?pageid=Archives?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Archives <span id="archivesContentCount" class="archives-content-count" style="color: <?php echo $light_theme_color_20_percent; ?>;"></span></a></li>
+                        <li><a href="view_approved_contents.php?pageid=ViewApprovedContents&userId=<?php echo $user_id; ?>&userType=<?php echo $user_type; ?>">Approved <span id="approvedContentCount" class="approved-content-count" style="color: <?php echo $light_theme_color_20_percent; ?>;"></span></a></li>
+                        <li><a href="view_rejected_contents.php?pageid=ViewRejectedContents&userId=<?php echo $user_id; ?>&userType=<?php echo $user_type; ?>">Rejected <span id="rejectedContentCount" class="rejected-content-count" style="color: <?php echo $light_theme_color_20_percent; ?>;"></span></a></li>
+                        <li><a href="view_pending_contents.php?pageid=ViewPendingContents&userId=<?php echo $user_id; ?>&userType=<?php echo $user_type; ?>">Pending <span id="pendingContentCount" class="pending-content-count" style="color: <?php echo $light_theme_color_20_percent; ?>;"></span></a></li>
+                    </ul>
                 </li>
                 <?php if ($user_type === 'Admin') { ?>
                 <li>
@@ -542,7 +543,7 @@ $displayInterval = $displayTimeRange['display_interval'];
     .active-sidebar-content:hover {
         background: <?php echo $dark_theme_color_70_percent; ?>;
     }
-    .archives-content-count, .trash-content-count, .schedule-content-count {
+    .archives-content-count, .trash-content-count, .approved-content-count, .rejected-content-count, .pending-content-count {
         color: <?php echo $light_theme_color_50_percent; ?>;
     }
     .navbar a:hover{

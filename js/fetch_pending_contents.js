@@ -214,7 +214,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         default:
             // For dynamic features, display all content fields except metadata
             for (let key in data) {
-                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isScheduled|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
+                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
                     && !key.endsWith('_id')) {
                     contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[key]}</pre>`;
                 }
@@ -286,7 +286,6 @@ const updateUI = async (data, type) => {
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
     const formattedExpirationDateTime = formatDateTime(data.expiration_datetime);
-    const formattedScheduleDateTime = formatDateTime(data.schedule_datetime);
 
     let mediaContent = '';
     if (data.media_path) {
@@ -318,13 +317,8 @@ const updateUI = async (data, type) => {
         const contentContainer = document.createElement('div');
         contentContainer.className = 'content-container-con';
         // if author_id is equal to user_id, display "You" instead of own name
-        if (data[`${type}_author_id`] === parseInt(user_id) && data.schedule_datetime === null) {
-            contentContainer.innerHTML = `<p class="ann-author" style="margin-bottom: 15px; font-size: 15px; color: #6E6E6E; font-weight: bold"><i class="fa fa-clock-o" aria-hidden="true"></i> Your <b> ${type} </b> is pending approval to be posted on TV: ${tvInfo.tv_display}</p>` + contentDiv;
-        } else if (data[`${type}_author_id`] === parseInt(user_id) && data.schedule_datetime !== null) {
-            contentContainer.innerHTML = `<p class="ann-author" style="margin-bottom: 15px; font-size: 15px; color: #6E6E6E; font-weight: bold"><i class="fa fa-clock-o" aria-hidden="true"></i> Your scheduled <b> ${type} </b> to be posted on ${formattedScheduleDateTime} on TV: ${tvInfo.tv_display} is pending approval.</p>` + contentDiv;
-        } else {
-            contentContainer.innerHTML = `<p class="ann-author" style="margin-bottom: 15px; font-size: 15px; color: #6E6E6E; font-weight: bold">${data.author_name} (${data.author_user_type}) wants to post <b> ${type} </b> on TV: ${tvInfo.tv_display}</p>` + contentDiv;
-        }
+        contentContainer.innerHTML = `<p class="ann-author" style="margin-bottom: 15px; font-size: 15px; color: #6E6E6E; font-weight: bold">${data.author_name} (${data.author_user_type}) wants to post <b> ${type} </b> on TV: ${tvInfo.tv_display}</p>` + contentDiv;
+
         contentContainer.style = `
             border-radius: 15px;
             color: black;

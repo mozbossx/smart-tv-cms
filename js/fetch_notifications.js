@@ -449,41 +449,12 @@ function createNotificationDiv(notification) {
                 </div>
             `;
         }
-
-        if (notification.notification_type === 'content_scheduled' && notification.status == 'pending') {
-            notificationDiv.classList.add('pending-notification');
-            content = `
-                <div class="notification-details">
-                    <p class="content-post-notification">${notification.action_user_name} wants to schedule ${notification.content_type} on ${formatDateTime2(notification.content_schedule_datetime)} on TV: ${notification.content_tv_name}.</p>
-                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                </div>
-                <div class="notification-buttons-non-deletable">
-                    <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Approve</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Reject</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
-                </div>
-            `;
-        }
-
     } else if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
         if (notification.notification_type === 'content_post' && notification.status == 'pending' && notification.user_id == user_id) {
             notificationDiv.classList.add('pending-notification');
             content = `
                 <div class="notification-details">
                     <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your ${notification.content_type} is pending for approval to be posted on TV: ${notification.content_tv_name}.</p>
-                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                    <div class="notification-buttons-non-deletable">
-                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
-                    </div>
-                </div>
-            `;
-        } 
-
-        if (notification.notification_type === 'content_scheduled' && notification.status == 'pending' && notification.user_id == user_id) {
-            notificationDiv.classList.add('pending-notification');
-            content = `
-                <div class="notification-details">
-                    <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your scheduled ${notification.content_type} on ${formatDateTime2(notification.content_schedule_datetime)} on TV: ${notification.content_tv_name} is pending for approval.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                     <div class="notification-buttons-non-deletable">
                         <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
@@ -1111,50 +1082,6 @@ function createNotificationDiv(notification) {
             </div>
         `;
     }
-
-    if (notification.notification_type === 'content_scheduled' && notification.status == 'approved' && notification.user_id == user_id) {
-        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
-            notificationDiv.classList.add('approved-notification');
-            content = `
-            <div class="notification-details">
-                <p class="content-post-notification">Your scheduled ${notification.content_type} to be posted in ${formatDateTime2(notification.content_schedule_datetime)} is stored in the Scheduled Posts section.</p>
-                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-            </div>
-            `;
-        } 
-
-        if (notification.action_user_name != full_name && notification.evaluator_name != full_name) {
-            notificationDiv.classList.add('approved-notification');
-            content = `
-                <div class="notification-details">
-                    <p class="content-post-notification">${notification.action_user_name} scheduled his/her ${notification.content_type} in the Scheduled Posts section.</p>
-                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                </div>
-            `;
-        }
-    } 
-
-    if (notification.notification_type === 'content_scheduled_posted' && notification.status == 'approved' && notification.user_id == user_id) {
-        if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
-            notificationDiv.classList.add('approved-notification');
-            content = `
-            <div class="notification-details">
-                <p class="content-post-notification">Your scheduled ${notification.content_type} has been posted in ${notification.content_tv_name}.</p>
-                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-            </div>
-            `;
-        } 
-
-        if (notification.action_user_name != full_name && notification.evaluator_name != full_name) {
-            notificationDiv.classList.add('approved-notification');
-            content = `
-                <div class="notification-details">
-                    <p class="content-post-notification">${notification.action_user_name}'s scheduled ${notification.content_type} is posted in ${notification.content_tv_name}.</p>
-                    <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
-                </div>
-            `;
-        }
-    } 
     
     // If content is still empty, it means no condition was met
     if (content == '') {
@@ -1653,57 +1580,282 @@ function updateTrashCount() {
         });
 }
 
-// Function to update scheduled posts count
-function updateScheduledPostsCount(count) {
-    const scheduleCountElement = document.getElementById('scheduleContentCount');
-    const scheduleCountMobileElement = document.getElementById('scheduleContentCountMobile');
-    if (scheduleCountElement) {
-        scheduleCountElement.textContent = count > 0 ? count : '0';
-        scheduleCountElement.style.display = count > 0 ? 'inline' : 'inline';
-    }
-    if (scheduleCountMobileElement) {
-        scheduleCountMobileElement.textContent = count > 0 ? count : '0';
-        scheduleCountMobileElement.style.display = count > 0 ? 'inline' : 'inline';
-    }
-}
-
 // Function to fetch trash count
 function fetchTrashCount() {
     updateTrashCount();
 }
 
-// Function to fetch trash count
-function fetchScheduledPostsCount() {
-    const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+function updateApprovedCount() {
+    // First fetch all features
+    fetch('database/fetch_feature_info.php?type=all')
+        .then(response => response.json())
+        .then(features => {
+            // Start with default content types
+            const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+            
+            // Add dynamic features
+            if (Array.isArray(features)) {
+                features.forEach(feature => {
+                    const featureType = feature.type;
+                    if (!contentTypes.includes(featureType)) {
+                        contentTypes.push(featureType);
+                    }
+                });
+            }
 
-    Promise.all(contentTypes.map(type =>
-        fetch(`database/fetch_content.php?type=${type}&scheduled=true`)
-            .then(response => response.json())
-    ))
-    .then(results => {
-        const totalCount = results.reduce((count, data, index) => {
-            return count + data.filter(item => {
-                // Basic trash conditions
-                const basicConditions = item.isArchived === 0 && item.isTrashed === 0 && item.schedule_datetime && item.status === 'Approved';
+            // Add admin-only content types
+            if (userType === 'Admin' || userType === 'Super Admin') {
+                if (!contentTypes.includes('peo')) contentTypes.push('peo');
+                if (!contentTypes.includes('so')) contentTypes.push('so');
+            }
 
-                // Permission conditions
-                let hasPermission = false;
-                if (userType === 'Super Admin') {
-                    hasPermission = true;
-                } else if (userType === 'Admin') {
-                    hasPermission = item.author_department === department;
-                } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
-                    hasPermission = parseInt(item[`${contentTypes[index]}_author_id`]) === parseInt(user_id);
-                }
+            // Create array of promises for all content type fetches
+            const fetchPromises = contentTypes.map(type =>
+                fetch(`database/fetch_content.php?type=${type}&approved=true`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(`Error fetching ${type}:`, data.error);
+                            return 0;
+                        }
 
-                return basicConditions && hasPermission;
-            }).length;
-        }, 0);
-        updateScheduledPostsCount(totalCount);
-    })
-    .catch(error => {
-        console.error('Error fetching trash count:', error);
-    });
+                        return data.filter(item => {
+                            // Basic archive conditions
+                            const basicConditions = item.isArchived === 0 && 
+                                item.isTrashed === 0 && 
+                                (type === 'peo' || type === 'so' || item.status === 'Approved');
+
+                            // Permission conditions
+                            let hasPermission = false;
+                            if (userType === 'Super Admin') {
+                                hasPermission = true;
+                            } else if (userType === 'Admin') {
+                                hasPermission = item.author_department === department;
+                            } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+                                hasPermission = parseInt(item[`${type}_author_id`]) === parseInt(user_id);
+                            }
+
+                            return basicConditions && hasPermission;
+                        }).length;
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${type} approved count:`, error);
+                        return 0;
+                    })
+            );
+
+            // Wait for all fetches to complete and sum the counts
+            Promise.all(fetchPromises)
+                .then(counts => {
+                    const totalCount = counts.reduce((sum, count) => sum + count, 0);
+                    
+                    // Update UI elements
+                    const approvedCountElement = document.getElementById('approvedContentCount');
+                    const approvedCountMobileElement = document.getElementById('approvedContentCountMobile');
+                    
+                    if (approvedCountElement) {
+                        approvedCountElement.textContent = totalCount > 0 ? totalCount : '0';
+                        approvedCountElement.style.display = 'inline';
+                    }
+                    if (approvedCountMobileElement) {
+                        approvedCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
+                        approvedCountMobileElement.style.display = 'inline';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error calculating total approved count:', error);
+                });
+        })
+        .catch(error => {
+            console.error('Error fetching features:', error);
+        });
+
+}
+
+function fetchApprovedCount() {
+    updateApprovedCount();
+}
+
+function updateRejectedCount() {
+    // First fetch all features
+    fetch('database/fetch_feature_info.php?type=all')
+        .then(response => response.json())
+        .then(features => {
+            // Start with default content types
+            const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+            
+            // Add dynamic features
+            if (Array.isArray(features)) {
+                features.forEach(feature => {
+                    const featureType = feature.type;
+                    if (!contentTypes.includes(featureType)) {
+                        contentTypes.push(featureType);
+                    }
+                });
+            }
+
+            // Add admin-only content types
+            if (userType === 'Admin' || userType === 'Super Admin') {
+                if (!contentTypes.includes('peo')) contentTypes.push('peo');
+                if (!contentTypes.includes('so')) contentTypes.push('so');
+            }
+
+            // Create array of promises for all content type fetches
+            const fetchPromises = contentTypes.map(type =>
+                fetch(`database/fetch_content.php?type=${type}&rejected=true`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(`Error fetching ${type}:`, data.error);
+                            return 0;
+                        }
+
+                        return data.filter(item => {
+                            // Basic archive conditions
+                            const basicConditions = item.isArchived === 0 && 
+                                item.isTrashed === 0 && 
+                                (type === 'peo' || type === 'so' || item.status === 'Rejected');
+
+                            // Permission conditions
+                            let hasPermission = false;
+                            if (userType === 'Super Admin') {
+                                hasPermission = true;
+                            } else if (userType === 'Admin') {
+                                hasPermission = item.author_department === department;
+                            } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+                                hasPermission = parseInt(item[`${type}_author_id`]) === parseInt(user_id);
+                            }
+
+                            return basicConditions && hasPermission;
+                        }).length;
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${type} rejected count:`, error);
+                        return 0;
+                    })
+            );
+
+            // Wait for all fetches to complete and sum the counts
+            Promise.all(fetchPromises)
+                .then(counts => {
+                    const totalCount = counts.reduce((sum, count) => sum + count, 0);
+                    
+                    // Update UI elements
+                    const rejectedCountElement = document.getElementById('rejectedContentCount');
+                    const rejectedCountMobileElement = document.getElementById('rejectedContentCountMobile');
+                    
+                    if (rejectedCountElement) {
+                        rejectedCountElement.textContent = totalCount > 0 ? totalCount : '0';
+                        rejectedCountElement.style.display = 'inline';
+                    }
+                    if (rejectedCountMobileElement) {
+                        rejectedCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
+                        rejectedCountMobileElement.style.display = 'inline';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error calculating total rejected count:', error);
+                });
+        })
+        .catch(error => {
+            console.error('Error fetching features:', error);
+        });
+}
+
+function fetchRejectedCount() {
+    updateRejectedCount();
+}
+
+
+function updatePendingCount() {
+    // First fetch all features
+    fetch('database/fetch_feature_info.php?type=all')
+        .then(response => response.json())
+        .then(features => {
+            // Start with default content types
+            const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+            
+            // Add dynamic features
+            if (Array.isArray(features)) {
+                features.forEach(feature => {
+                    const featureType = feature.type;
+                    if (!contentTypes.includes(featureType)) {
+                        contentTypes.push(featureType);
+                    }
+                });
+            }
+
+            // Add admin-only content types
+            if (userType === 'Admin' || userType === 'Super Admin') {
+                if (!contentTypes.includes('peo')) contentTypes.push('peo');
+                if (!contentTypes.includes('so')) contentTypes.push('so');
+            }
+
+            // Create array of promises for all content type fetches
+            const fetchPromises = contentTypes.map(type =>
+                fetch(`database/fetch_content.php?type=${type}&pending=true`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(`Error fetching ${type}:`, data.error);
+                            return 0;
+                        }
+
+                        return data.filter(item => {
+                            // Basic archive conditions
+                            const basicConditions = item.isArchived === 0 && 
+                                item.isTrashed === 0 && 
+                                (type === 'peo' || type === 'so' || item.status === 'Pending');
+
+                            // Permission conditions
+                            let hasPermission = false;
+                            if (userType === 'Super Admin') {
+                                hasPermission = true;
+                            } else if (userType === 'Admin') {
+                                hasPermission = item.author_department === department;
+                            } else if (['Student', 'Faculty', 'Staff'].includes(userType)) {
+                                hasPermission = parseInt(item[`${type}_author_id`]) === parseInt(user_id);
+                            }
+
+                            return basicConditions && hasPermission;
+                        }).length;
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${type} pending count:`, error);
+                        return 0;
+                    })
+            );
+
+            // Wait for all fetches to complete and sum the counts
+            Promise.all(fetchPromises)
+                .then(counts => {
+                    const totalCount = counts.reduce((sum, count) => sum + count, 0);
+                    
+                    // Update UI elements
+                    const pendingCountElement = document.getElementById('pendingContentCount');
+                    const pendingCountMobileElement = document.getElementById('pendingContentCountMobile');
+                    
+                    if (pendingCountElement) {
+                        pendingCountElement.textContent = totalCount > 0 ? totalCount : '0';
+                        pendingCountElement.style.display = 'inline';
+                    }
+                    if (pendingCountMobileElement) {
+                        pendingCountMobileElement.textContent = totalCount > 0 ? totalCount : '0';
+                        pendingCountMobileElement.style.display = 'inline';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error calculating total pending count:', error);
+                });
+        })
+        .catch(error => {
+            console.error('Error fetching features:', error);
+        });
+}
+
+
+function fetchPendingCount() {
+    updatePendingCount();
 }
 
 Ws.addEventListener('message', function(event) {
@@ -1715,7 +1867,9 @@ Ws.addEventListener('message', function(event) {
             fetchNotificationCount();
             fetchArchivesCount();
             fetchTrashCount();
-            fetchScheduledPostsCount();
+            fetchApprovedCount();
+            fetchRejectedCount();
+            fetchPendingCount();
             break;
         case 'delete_notification':
             fetchNotifications();
@@ -1870,7 +2024,9 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchNotificationCount();
     fetchArchivesCount();
     fetchTrashCount();
-    fetchScheduledPostsCount();
+    fetchApprovedCount();
+    fetchRejectedCount();
+    fetchPendingCount();
     const tabLinksActive = document.querySelector('.notifications-tablinks.active');
     if (tabLinksActive) {
         tabLinksActive.click();

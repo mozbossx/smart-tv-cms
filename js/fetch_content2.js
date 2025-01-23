@@ -232,7 +232,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         default:
             // For new features, only display content fields (skip metadata fields)
             for (let key in data) {
-                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isScheduled|isTrashed|tv_id|author_id|type|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
+                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
                     && !key.endsWith('_id')) {
                     contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[key]}</pre>`;
                 }
@@ -461,16 +461,6 @@ const updateUI = (data, type) => {
         containerDiv.setAttribute(`data-${type}-id`, data[`${type}_id`]);
         containerDiv.classList.add('content-container-main');
         containerDiv.innerHTML = contentDiv;
-
-        // Handle scheduled content
-        if (data.schedule_datetime) {
-            const scheduleDate = new Date(data.schedule_datetime);
-            const now = new Date();
-            if (now < scheduleDate) {
-                containerDiv.dataset.scheduleDateTime = data.schedule_datetime;
-                return;
-            }
-        }
 
         containerDiv.style = `
             height: auto;
@@ -1044,7 +1034,6 @@ function fetchAndUpdate(type) {
                     return item.tv_id === parseInt(tvId, 10) && 
                            item.isArchived === 0 && 
                            item.isTrashed === 0 && 
-                           item.schedule_datetime === null && 
                            item.status === 'Approved';
                 });
             } else if (typeof data === 'object' && data !== null) {
@@ -1060,7 +1049,6 @@ function fetchAndUpdate(type) {
                     return item.tv_id === parseInt(tvId, 10) && 
                            item.isArchived === 0 && 
                            item.isTrashed === 0 && 
-                           item.schedule_datetime === null && 
                            item.status === 'Approved';
                 });
             } else {
@@ -1143,56 +1131,8 @@ const checkAllContentForExpiration = () => {
     });
 };
 
-// Function to check all scheduled content
-const checkScheduledContent = () => {
-    // Get all content types from the DOM
-    const contentTypes = Array.from(document.querySelectorAll('.content-container'))
-        .map(container => container.id.replace('List', ''));
-    
-    contentTypes.forEach(type => {
-        // Skip types that don't use scheduling
-        if (type === 'orgchart' || type === 'facility') return;
-
-        const containers = document.querySelectorAll(`[data-${type}-id]`);
-        containers.forEach(container => {
-            if (container.dataset.scheduleDateTime) {
-                const scheduleDate = new Date(container.dataset.scheduleDateTime);
-                const now = new Date();
-                
-                if (now >= scheduleDate) {
-                    // Get the necessary data from the container
-                    const contentId = container.dataset[`${type}Id`];
-                    const authorId = container.dataset.authorId;
-                    const authorName = container.dataset.authorName;
-                    const authorUserType = container.dataset.authorUserType;
-                    const authorDepartment = container.dataset.authorDepartment;
-                    const tvId = container.dataset.tvId;
-                    
-                    // Prepare and send the post request
-                    const postData = {
-                        action: 'post_now_content',
-                        type: type,
-                        [`${type}_id`]: contentId,
-                        user_id: authorId,
-                        author_id: authorId,
-                        author_name: authorName || 'System',
-                        author_user_type: authorUserType || 'System',
-                        author_department: authorDepartment || 'System',
-                        evaluator_name: 'System',
-                        evaluator_message: `Content automatically posted as scheduled`,
-                        tv_id: tvId
-                    };
-                    
-                    Ws.send(JSON.stringify(postData));
-                }
-            }
-        });
-    });
-};
-
 // Add periodic check for expired content (every minute)
 setInterval(checkAllContentForExpiration, 60000);
-setInterval(checkScheduledContent, 60000);
 
 /* Web-Socket Server Connection */
 Ws.addEventListener('message', function(event) {
@@ -1270,7 +1210,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchTrashDays();
 
     checkAllContentForExpiration();
-    checkScheduledContent();
     
     // Get all content types from the DOM
     const contentTypes = Array.from(document.querySelectorAll('.content-container'))

@@ -65,11 +65,7 @@ function submitFormViaWebSocket() {
             const base64Data = e.target.result;
             formData.set('media', base64Data);
 
-            // Convert FormData to object, excluding empty schedule_datetime
             formData.forEach((value, key) => {
-                if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
-                    return; // Skip empty schedule_datetime
-                }
                 data[key] = value;
             });
 
@@ -78,11 +74,7 @@ function submitFormViaWebSocket() {
 
         reader.readAsDataURL(mediaFile);
     } else {
-        // Convert FormData to object, excluding empty schedule_datetime
         formData.forEach((value, key) => {
-            if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
-                return; // Skip empty schedule_datetime
-            }
             data[key] = value;
         });
 

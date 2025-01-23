@@ -14,7 +14,9 @@ try {
 $type = $_GET['type'] ?? '';
 $archived = isset($_GET['archived']) && $_GET['archived'] === 'true';
 $trashed = isset($_GET['trashed']) && $_GET['trashed'] === 'true';
-$scheduled = isset($_GET['scheduled']) && $_GET['scheduled'] === 'true';
+$approved = isset($_GET['approved']) && $_GET['approved'] === 'true';
+$rejected = isset($_GET['rejected']) && $_GET['rejected'] === 'true';
+$pending = isset($_GET['pending']) && $_GET['pending'] === 'true';
 
 // Sanitize the type to prevent SQL injection
 $type = preg_replace('/[^a-z_]/', '', strtolower($type));
@@ -35,13 +37,34 @@ try {
               LEFT JOIN users_tb u ON c.{$authorIdField} = u.user_id
               WHERE c.isArchived = :isArchived AND c.isTrashed = :isTrashed";
 
-    // Add schedule_datetime condition only for tables that have this column
-    if ($scheduled && $type !== 'peo' && $type !== 'so' && $type !== 'facility' && $type !== 'orgchart') {
-        $query .= " AND c.schedule_datetime IS NOT NULL";
+    if ($approved) {
+        if ($type == 'peo' || $type == 'so') {
+            // PEO and SO don't need status check
+            $query .= "";
+        } else {
+            // Other content types need status = 'Approved'
+            $query .= " AND c.status = 'Approved'";
+        }
     }
 
-    if ($scheduled && $type !== 'peo' && $type !== 'so' && $type !== 'facility' && $type !== 'orgchart') {
-        $query .= " ORDER BY c.schedule_datetime ASC";
+    if ($rejected) {
+        if ($type == 'peo' || $type == 'so') {
+            // PEO and SO don't need status check
+            $query .= "";
+        } else {
+            // Other content types need status = 'Rejected'
+            $query .= " AND c.status = 'Rejected'";
+        }
+    }
+
+    if ($pending) {
+        if ($type == 'peo' || $type == 'so') {
+            // PEO and SO don't need status check
+            $query .= "";
+        } else {
+            // Other content types need status = 'Pending'
+            $query .= " AND c.status = 'Pending'";
+        }
     }
     
     $params = [

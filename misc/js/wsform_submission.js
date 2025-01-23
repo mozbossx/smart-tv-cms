@@ -122,12 +122,6 @@ function submitFormViaWebSocket() {
         data[`${contentType}_id`] = contentIdInput.value;
     }
 
-    // Only include schedule_datetime if it has a value
-    const scheduleDateTime = formData.get('schedule_datetime');
-    if (scheduleDateTime && scheduleDateTime.trim() !== '') {
-        data.schedule_datetime = scheduleDateTime;
-    }
-
     // Check for file input
     const mediaInput = document.getElementById('media');
     if (mediaInput && mediaInput.files.length > 0) {
@@ -141,11 +135,7 @@ function submitFormViaWebSocket() {
             const base64Data = e.target.result;
             formData.set('media', base64Data);
 
-            // Convert FormData to object, excluding empty schedule_datetime
             formData.forEach((value, key) => {
-                if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
-                    return;
-                }
                 data[key] = value;
             });
 
@@ -154,11 +144,7 @@ function submitFormViaWebSocket() {
 
         reader.readAsDataURL(mediaFile);
     } else {
-        // Convert FormData to object, excluding empty schedule_datetime
         formData.forEach((value, key) => {
-            if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
-                return;
-            }
             data[key] = value;
         });
 

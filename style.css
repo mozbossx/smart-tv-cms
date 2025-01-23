@@ -83,7 +83,7 @@ body {
     overflow: hidden;
 }
 
-.archives-buttons-flex, .trash-buttons-flex, .scheduled-posts-buttons-flex {
+.archives-buttons-flex, .trash-buttons-flex {
     display: flex;
     flex-direction: row;
     padding-left: 10px;
@@ -403,28 +403,6 @@ nav a{
     display: block; /* Ensure the anchor behaves as a block element */
     user-select: none;
     cursor: pointer;
-    -moz-user-select: none;
-    -webkit-user-drag: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-}
-
-.schedule-button {
-    width: auto;
-    height: 100%;
-    box-sizing: border-box;
-    background: #264b2b;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
-    text-align: center;
-    align-items: left;
-    text-decoration: none;
-    display: block; /* Ensure the anchor behaves as a block element */
-    user-select: none;
     -moz-user-select: none;
     -webkit-user-drag: none;
     -webkit-user-select: none;
@@ -869,21 +847,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     border-radius: 5px;
     padding-top: 5px;
     border: white;
-}
-
-.schedule-post-inputs {
-    transform: translateY(-20px);
-    opacity: 0;
-    display: none; /* Initially hidden */
-}
-
-.schedule-post-inputs.show {
-    display: block; /* Make sure it's visible */
-    animation: slideIn 0.5s ease forwards; /* Use 'forwards' to retain the end state */
-}
-
-.schedule-post-inputs.hide {
-    animation: slideOut 0.5s ease forwards; /* Use 'forwards' to retain the end state */
 }
 
 @keyframes slideIn {
@@ -2461,7 +2424,7 @@ tr:nth-child(even) {
     margin-left: 5px;
 }
 
-.archives-content-count, .trash-content-count, .schedule-content-count{
+.archives-content-count, .trash-content-count, .approved-content-count, .rejected-content-count, .pending-content-count{
     background: none;
     color: rgb(133, 178, 117);
     padding: 2px;
@@ -3310,7 +3273,7 @@ input[type=range]:focus::-ms-fill-upper {
         flex-direction: row;
     }
 
-    .archives-buttons-flex, .trash-buttons-flex, .scheduled-posts-buttons-flex {
+    .archives-buttons-flex, .trash-buttons-flex {
         flex-direction: column;
         padding-left: 0;
         padding-right: 0;

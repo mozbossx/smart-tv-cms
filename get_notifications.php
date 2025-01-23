@@ -35,8 +35,6 @@ if ($user_type === 'Admin' || $user_type === 'Faculty' || $user_type === 'Studen
         (n.notification_type = 'user_added' AND n.status = 'approved' AND u.department = ?) OR
         (n.notification_type = 'user_added_by_admin' AND n.status = 'approved' AND u.department = ?) OR
         (n.notification_type = 'content_post' AND n.status = 'approved' AND u.department = ?) OR
-        (n.notification_type = 'content_scheduled' AND n.status = 'approved' AND u.department = ?) OR
-        (n.notification_type = 'content_scheduled_posted' AND n.status = 'approved' AND u.department = ?) OR
         (n.notification_type = 'content_approved' AND u.department = ?) OR
         (n.notification_type = 'content_approved_by_admin' AND u.department = ?) OR
         (n.notification_type = 'content_rejected' AND n.status = 'rejected' AND u.department = ?) OR
@@ -69,8 +67,6 @@ if ($user_type === 'Admin' || $user_type === 'Faculty' || $user_type === 'Studen
         (n.notification_type = 'user_added' AND n.status = 'approved') OR
         (n.notification_type = 'user_added_by_admin' AND n.status = 'approved') OR
         (n.notification_type = 'content_post' AND n.status = 'approved') OR
-        (n.notification_type = 'content_scheduled' AND n.status = 'approved') OR
-        (n.notification_type = 'content_scheduled_posted' AND n.status = 'approved') OR
         (n.notification_type = 'content_approved' AND n.status = 'approved') OR
         (n.notification_type = 'content_approved_by_admin' AND n.status = 'approved') OR
         (n.notification_type = 'content_rejected' AND n.status = 'rejected') OR

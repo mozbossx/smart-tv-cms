@@ -467,9 +467,6 @@ include 'misc/php/options_tv.php';
 
             // Convert FormData to object, excluding empty schedule_datetime
             formData.forEach((value, key) => {
-                if (key === 'schedule_datetime' && (!value || value.trim() === '')) {
-                    return; // Skip empty schedule_datetime
-                }
                 if (key !== 'media[]') { // Skip the file input
                     data[key] = value;
                 }

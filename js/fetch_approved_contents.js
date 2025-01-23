@@ -59,7 +59,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         default:
             // For dynamic features, display all content fields except metadata
             for (let key in data) {
-                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isScheduled|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|schedule_datetime|author_user_type|author_department|datetime_archived|datetime_trashed|evaluator_message|notification_content_type|evaluator_name|author_name2)$/) 
+                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|author_user_type|author_department|datetime_archived|datetime_trashed|evaluator_message|notification_content_type|evaluator_name|author_name2)$/) 
                     && !key.endsWith('_id')) {
                     contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[key]}</pre>`;
                 }
@@ -133,7 +133,6 @@ const updateUI = async (data, type) => {
     const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
     const formattedCreatedDateTime = formatDateTime(data.created_datetime);
     const formattedExpirationDateTime = formatDateTime(data.expiration_datetime);
-    const formattedScheduleDateTime = formatDateTime(data.schedule_datetime);
 
     let mediaContent = '';
     if (data.media_path) {
