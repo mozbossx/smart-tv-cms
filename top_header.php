@@ -209,7 +209,7 @@ $displayInterval = $displayTimeRange['display_interval'];
             <p id="successWebsocketConnectionMessage"></p>
             <br>
             <div style="align-items: right; text-align: right; right: 0">
-                <button type="button" class="green-button" style="margin-right: 0" onclick="window.location.reload()">Okay</button>
+                <button type="button" class="green-button" style="margin-right: 0" onclick="document.getElementById('successWebsocketConnectionModal').style.display='none'">Okay</button>
             </div>
         </div>
     </div>

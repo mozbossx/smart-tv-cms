@@ -230,7 +230,7 @@ const updateUI = (data, type) => {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
         mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}">` :
-            isVideo ? `<video><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
+            isVideo ? `<video preload="metadata" muted><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
     // Special handling for orgchart type
@@ -1047,6 +1047,11 @@ const showNextContent = (type) => {
     if (contentsArray.length > 0) {
         // Remove active class from the current item
         if (contentsArray[currentIndex[currentIndexKey]]) {
+            const currentVideo = contentsArray[currentIndex[currentIndexKey]].querySelector('video');
+            if (currentVideo) {
+                currentVideo.pause();
+                currentVideo.currentTime = 0;
+            }
             contentsArray[currentIndex[currentIndexKey]].classList.remove('active');
         }
 
@@ -1057,7 +1062,32 @@ const showNextContent = (type) => {
         if (contentsArray[currentIndex[currentIndexKey]]) {
             contentsArray[currentIndex[currentIndexKey]].classList.add('active');
             updatePageNumber(currentIndexKey);
-            resetDisplayTime(type);
+            // Handle video if present
+            const newVideo = contentsArray[currentIndex[currentIndexKey]].querySelector('video');
+            if (newVideo) {
+                // Reset video to start
+                newVideo.currentTime = 0;
+                
+                // Play video and set up event listener for when it ends
+                const playPromise = newVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // Video started playing
+                        // Use video duration for display time
+                        const videoDuration = Math.ceil(newVideo.duration);
+                        const contentDiv = contentsArray[currentIndex[currentIndexKey]];
+                        contentDiv.dataset.displayTime = videoDuration;
+                        resetDisplayTime(type);
+                    }).catch(error => {
+                        console.error("Error playing video:", error);
+                        // If video fails to play, use default display time
+                        resetDisplayTime(type);
+                    });
+                }
+            } else {
+                // No video, use normal display time
+                resetDisplayTime(type);
+            }
 
             // For orgchart, ensure proper rendering after transition
             if (type === 'orgchart') {

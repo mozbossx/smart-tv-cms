@@ -3222,6 +3222,14 @@ input[type=range]:focus::-ms-fill-upper {
     height: 100%;
 }
 
+.online-status {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
 /* Media query for smaller screens */
 @media only screen and (max-width: 1000px) {
     .container-body {

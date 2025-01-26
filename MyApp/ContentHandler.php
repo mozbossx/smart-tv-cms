@@ -19,6 +19,32 @@ class ContentHandler implements MessageComponentInterface
         echo "Content Server Started!\n";
     }
 
+    protected function checkConnection() {
+        try {
+            $this->pdo->query('SELECT 1');
+            echo "Connection is good!\n";
+        } catch (PDOException $e) {
+            if ($e->getCode() == 'HY000' || strpos($e->getMessage(), 'server has gone away') !== false) {
+                // Reconnect using the same options as server.php
+                $pdoOptions = [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_PERSISTENT => true,
+                    PDO::ATTR_TIMEOUT => 28800,
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                ];
+                $this->pdo = new PDO(
+                    "mysql:host=localhost;dbname=smart_tv_cms_db",
+                    "root",
+                    "Mozar@123456",
+                    $pdoOptions
+                );
+            } else {
+                throw $e;
+            }
+        }
+    }
+
     public function onOpen(ConnectionInterface $conn) {
         // $this->clients->attach($conn);
         // echo "New connection! ({$conn->resourceId})\n";
@@ -48,14 +74,14 @@ class ContentHandler implements MessageComponentInterface
 
     private function startConnectionMonitoring(ConnectionInterface $conn) {
         // Send ping every 15 seconds
-        $conn->pingInterval = $this->loop->addPeriodicTimer(15, function() use ($conn) {
+        $conn->pingInterval = $this->loop->addPeriodicTimer(10, function() use ($conn) {
             if ($conn->isConnected()) {
                 try {
                     // echo "Server: Sending ping to client {$conn->resourceId}\n";
                     $conn->send(json_encode(['action' => 'ping']));
                     
                     // Set timeout for pong response
-                    $this->pingTimeouts[$conn->resourceId] = $this->loop->addTimer(20, function() use ($conn) {
+                    $this->pingTimeouts[$conn->resourceId] = $this->loop->addTimer(10, function() use ($conn) {
                         // echo "Server: No pong received from client {$conn->resourceId}, closing connection\n";
                         $conn->close();
                     });
@@ -69,7 +95,20 @@ class ContentHandler implements MessageComponentInterface
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
-        $data = json_decode($msg, true);
+        try {
+            $this->checkConnection(); 
+            
+            $data = json_decode($msg, true);
+            
+        } catch (Exception $e) {
+            error_log("Database error: " . $e->getMessage());
+            echo "Database error: " . $e->getMessage() . "\n";
+            $response = [
+                'action' => 'error',
+                'message' => 'A database error occurred. Please try again.'
+            ];
+            $from->send(json_encode($response));
+        }
 
         // Handle ping/pong messages
         if (isset($data['action'])) {
@@ -1766,8 +1805,8 @@ class ContentHandler implements MessageComponentInterface
                     // If no file uploaded, store input to announcements_tb without media_path
                     $statement = $this->pdo->prepare(
                         "INSERT INTO users_tb 
-                        (full_name, email, password, department, user_type, status, datetime_registered) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)"
+                        (full_name, email, password, department, user_type, status, datetime_registered, last_post_date) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())"
                     );
                     $success = $statement->execute([
                         $full_name, $email, $hashedPassword, $department, $user_type, $status, $datetime_registered

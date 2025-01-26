@@ -150,34 +150,41 @@ function submitFormViaWebSocket() {
 
         sendDataToWebSocket(data, loadingModal);
     }
-
-    // Listen for messages from the WebSocket server
-    // ws.onmessage = function(event) {
-    //     const message = JSON.parse(event.data);
-    //     if (message.success) {
-    //         const action = isEditMode ? 'updated' : 'processed';
-    //         if (contentType === 'peo') {
-    //             document.getElementById('successMessage').textContent = `Program Educational Objective was successfully ${action}!`;                        
-    //         } else if (contentType === 'so') {
-    //             document.getElementById('successMessage').textContent = `Student Outcome was successfully ${action}!`;                        
-    //         } else if (userType === 'Student' || userType === 'Faculty') {
-    //             document.getElementById('successMessage').textContent = isEditMode 
-    //                 ? `Your post has been updated and will be reviewed by an admin.`
-    //                 : "Your post will still be in pending mode until an admin approves it.";
-    //         } else {
-    //             document.getElementById('successMessage').textContent = `${capitalizeFirstLetter(contentType)} was successfully ${action}!`;                        
-    //         }
-    //         document.getElementById('successMessageModal').style.display = 'flex';
-    //         isFormDirty = false;
-    //     } 
-    // };
 }
 
 function sendDataToWebSocket(data, loadingModal) {
     // Update loading message for data processing
     document.getElementById('loadingMessage').textContent = 'Processing your content...';
     
-    ws.send(JSON.stringify(data));
+    const tryReconnect = () => {
+        // Hide loading modal during reconnection
+        loadingModal.style.display = 'none';
+        document.getElementById('loadingMessage').textContent = 'Reconnecting to server...';
+        
+        // Fetch the WebSocket URL and attempt to reconnect
+        fetch('websocket_conn.php')
+            .then(response => response.text())
+            .then(url => {
+                window.ws = new WebSocket(url);
+                // Once reconnected, retry sending the data
+                window.ws.onopen = function() {
+                    loadingModal.style.display = 'flex';
+                    document.getElementById('loadingMessage').textContent = 'Processing your content...';
+                    sendDataToWebSocket(data, loadingModal);
+                };
+            })
+            .catch(error => {
+                console.error('Error reconnecting:', error);
+                // Retry reconnection after delay
+                setTimeout(tryReconnect, 1500);
+            });
+    };
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(data));
+    } else {
+        tryReconnect();
+    }
 
     // Listen for messages from the WebSocket server
     ws.onmessage = function(event) {
@@ -218,6 +225,7 @@ function sendDataToWebSocket(data, loadingModal) {
         loadingModal.style.display = 'none';
         document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
         document.getElementById('errorModal').style.display = 'flex';
+        tryReconnect();
     };
 
     // Add error handling for WebSocket connection
@@ -225,6 +233,7 @@ function sendDataToWebSocket(data, loadingModal) {
         loadingModal.style.display = 'none';
         document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
         document.getElementById('errorModal').style.display = 'flex';
+        tryReconnect();
     };
 }
 

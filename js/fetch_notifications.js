@@ -28,7 +28,7 @@ function connectWebSocket() {
             clientPingTimeout = setTimeout(() => {
                 // console.log('Client: Connection lost - no pong received');
                 ws.close();
-            }, 20000); // 20 second timeout
+            }, 10000); // 10 second timeout
         };
         
         ws.onopen = function() {
@@ -42,13 +42,22 @@ function connectWebSocket() {
                     ws.send(JSON.stringify({ action: 'ping' }));
                     heartbeat();
                 }
-            }, 15000); // 15 second interval
+            }, 10000); // 10 second interval
 
             if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
                 loadingWebsocketConnectionModal.style.display = 'none';
                 successWebsocketConnectionModal.style.display = 'flex';
-                successWebsocketConnectionMessage.textContent = 'WebSocket Connected Successfully!';
+                successWebsocketConnectionMessage.textContent = 'Server Connected Successfully!';
             }
+
+            // Fetch initial data after connection
+            fetchNotifications();
+            fetchNotificationCount();
+            fetchArchivesCount();
+            fetchTrashCount();
+            fetchApprovedCount();
+            fetchRejectedCount();
+            fetchPendingCount();
         };
 
         ws.onmessage = function(event) {
@@ -66,6 +75,34 @@ function connectWebSocket() {
                     // console.log('Client: Received pong from server, resetting heartbeat timeout!');
                     heartbeat();
                     return;
+                case 'new_notification':
+                case 'update_notification':
+                    fetchNotifications();
+                    fetchNotificationCount();
+                    fetchArchivesCount();
+                    fetchTrashCount();
+                    fetchApprovedCount();
+                    fetchRejectedCount();
+                    fetchPendingCount();
+                    break;
+                case 'delete_notification':
+                    fetchNotifications();
+                    break;
+                case 'reset_notification_count':
+                    if (data.success) {
+                        document.getElementById('notificationCount').style.display = 'none';
+                        document.getElementById('notificationCountMobile').style.display = 'none';
+                    }
+                    break;
+                case 'delete_content':
+                    if (data.success) {
+                        const notificationElement = document.querySelector(`[data-content-id="${data[`${data.type}_id`]}"][data-content-type="${data.type}"]`);
+                        if (notificationElement) {
+                            notificationElement.remove();
+                        }
+                        fetchNotifications();
+                    }
+                    break;
             }
         };
         
@@ -84,9 +121,9 @@ function connectWebSocket() {
 
             // Attempt to reconnect
             setTimeout(() => {
-                // console.log('Client: Attempting to reconnect.......');
+                console.log('Client: Attempting to reconnect.......');
                 Ws = connectWebSocket();
-            }, 5000);
+            }, 2500);
         };
         
         return ws;
@@ -96,10 +133,10 @@ function connectWebSocket() {
         
         loadingWebsocketConnectionModal.style.display = 'none';
         successWebsocketConnectionModal.style.display = 'flex';
-        successWebsocketConnectionMessage.textContent = 'There was an error connecting to the WebSocket. Please try again later.';
+        successWebsocketConnectionMessage.textContent = 'There was an error connecting to the server. Please try again later.';
         setTimeout(() => {
             Ws = connectWebSocket();
-        }, 5000);
+        }, 2500);
         return null;
     }
 }
@@ -113,7 +150,7 @@ try {
     // console.log('Attempting reconnection in 5 seconds...');
     setTimeout(() => {
         Ws = connectWebSocket();
-    }, 5000);
+    }, 2500);
 }
 
 function formatDateTime2(dateTimeString) {
