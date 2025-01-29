@@ -1160,15 +1160,26 @@ class ContentHandler implements MessageComponentInterface
                         ]);
         
                         // Update notification counts
-                        $this->pdo->prepare("
-                            UPDATE users_tb 
-                            SET notification_count = notification_count + 1 
-                            WHERE user_id IN (
-                                SELECT user_id FROM users_tb 
-                                WHERE (user_type = 'Admin' AND department = ?) 
-                                OR user_type = 'Super Admin'
-                            )
-                        ")->execute([$department]);
+                        // $this->pdo->prepare("
+                        //     UPDATE users_tb 
+                        //     SET notification_count = notification_count + 1 
+                        //     WHERE user_id IN (
+                        //         SELECT user_id FROM users_tb 
+                        //         WHERE (user_type = 'Admin' AND department = ?) 
+                        //         OR user_type = 'Super Admin'
+                        //     )
+                        // ")->execute([$department]);
+
+                        // Increase the notification count of the Super Admin and notify them that a student or faculty updated their content
+                        $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Super Admin'");
+                        $stmtUpdateSuperAdminNotificationCount->execute();
+
+                        // Increase the notification count of the Admin and notify them that a student or faculty updated their content
+                        $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_type = 'Admin' AND department = ?");
+                        $stmtUpdateAdminNotificationCount->execute([$department]);
+
+                        $stmtNotifySelfNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                        $stmtNotifySelfNotificationCount->execute([$user_id]);
                     }
         
                     // Broadcast notification update
