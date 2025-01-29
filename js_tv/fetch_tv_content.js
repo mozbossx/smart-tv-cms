@@ -621,68 +621,62 @@ function initializeTextFitting(type, id) {
 
     // Apply text fitting to each message element
     messageElements.forEach((messageElement, index) => {
-        const messageId = messageElement.id || `${type}Message${index}-${id}`;
-        if (!messageElement.id) {
-            messageElement.id = messageId;
+        const messageId = `${type}Message${index}-${id}`;
+        
+        // Get the original content
+        const originalContent = messageElement.innerHTML;
+        
+        // Clear the message element
+        messageElement.innerHTML = '';
+        
+        // Create a new wrapper div
+        const wrapperDiv = document.createElement('div');
+        wrapperDiv.className = 'message-content-wrapper';
+        wrapperDiv.style.width = '100%';
+        wrapperDiv.style.height = '100%';
+        
+        // Create a new paragraph element
+        const paragraph = document.createElement('p');
+        paragraph.id = messageId;
+        
+        // If the content contains paragraphs, preserve line breaks
+        if (originalContent.includes('</p>')) {
+            const textContent = originalContent
+                .replace(/<p>/g, '')
+                .replace(/<\/p>/g, '\n')
+                .trim();
+            paragraph.style.whiteSpace = 'pre-line';
+            paragraph.textContent = textContent;
+        } else {
+            // For single-line content, just set the text
+            paragraph.textContent = messageElement.textContent;
         }
         
+        // Append elements
+        wrapperDiv.appendChild(paragraph);
+        messageElement.appendChild(wrapperDiv);
+        
+        // Apply text fitting
         fitText(messageId);
+    });
 
-        // Set up resize observer for continuous monitoring
-        const resizeObserver = new ResizeObserver(() => {
-            requestAnimationFrame(() => {
+    // Set up resize observer for continuous monitoring
+    const resizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(() => {
+            messageElements.forEach((messageElement, index) => {
+                const messageId = `${type}Message${index}-${id}`;
                 fitText(messageId);
             });
         });
-
-        resizeObserver.observe(containerDiv);
-        
-        // Observe parent container as well
-        const parentContainer = containerDiv.closest('.content-container');
-        if (parentContainer) {
-            resizeObserver.observe(parentContainer);
-        }
     });
 
-    // // Handle PEO's multiple messages
-    // if (type === 'peo' || type === 'so') {
-    //     // Array of message IDs for PEO
-    //     const messageIds = [
-    //         `${type}Message-${id}`,
-    //         `${type}Message2-${id}`,
-    //         `${type}Message3-${id}`
-    //     ];
+    resizeObserver.observe(containerDiv);
 
-    //     // Initial text fitting for all messages
-    //     messageIds.forEach(messageId => fitText(messageId));
-
-    //     // Set up resize observer for continuous monitoring
-    //     const resizeObserver = new ResizeObserver(() => {
-    //         requestAnimationFrame(() => {
-    //             messageIds.forEach(messageId => fitText(messageId));
-    //         });
-    //     });
-
-    //     resizeObserver.observe(containerDiv);
-        
-    //     // Observe parent container as well
-    //     const parentContainer = containerDiv.closest('.content-container');
-    //     if (parentContainer) {
-    //         resizeObserver.observe(parentContainer);
-    //     }
-    // } else {
-    //     // Original code for other content types
-    //     const messageId = `${type}Message-${id}`;
-    //     fitText(messageId);
-
-    //     const resizeObserver = new ResizeObserver(() => {
-    //         requestAnimationFrame(() => {
-    //             fitText(messageId);
-    //         });
-    //     });
-
-    //     resizeObserver.observe(containerDiv);
-    // }
+    // Observe parent container as well
+    const parentContainer = containerDiv.closest('.content-container');
+    if (parentContainer) {
+        resizeObserver.observe(parentContainer);
+    }
 }
 
 function fitText(messageId) {
