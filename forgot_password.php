@@ -127,19 +127,5 @@ if (isset($_POST["submit"])) {
             </form>
         </div>
     </div>
-    <script>
-        // JavaScript to toggle password visibility
-        const togglePassword = document.querySelector("#togglePassword");
-        const password = document.querySelector("[name='password']");
-
-        togglePassword.addEventListener("click", function () {
-            // Toggle the type attribute
-            const type = password.getAttribute("type") === "password" ? "text" : "password";
-            password.setAttribute("type", type);
-            // Toggle the icon
-            this.classList.toggle("bi-eye-slash");
-            this.classList.toggle("bi-eye");
-        });
-    </script>
 </body>
 </html>

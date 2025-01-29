@@ -23,6 +23,7 @@ if (isset($_SESSION['mail'])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Email Verification</title>
     <style>
@@ -30,6 +31,21 @@ if (isset($_SESSION['mail'])) {
             background-color: #334b35;
             color: white;
             border: none;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #334b35;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -63,13 +79,26 @@ if (isset($_SESSION['mail'])) {
             </form>
         </div>
     </div>
-    <div id="myModal" class="modal">
+    <div id="successMessageVerificationModal" class="modal">
         <div class="modal-content" style="padding: 15px">
             <div class="green-bar-vertical">
-                <p style="text-align: center"><?php echo $successMessage; ?></p>
+                <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
+                <p style="text-align: center" id="successMessageVerification"></p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
-                    <button id="proceedBtn" class="green-button" style="margin: 0; background-color: #334b35;">Okay</button>
+                    <button id="okayButtonSuccess" class="green-button" style="margin: 0; background-color: #334b35;">Okay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="errorMessageVerificationModal" class="modal">
+        <div class="modal-content" style="padding: 15px">
+            <div class="red-bar-vertical">
+                <h1 style="color: rgb(134, 43, 43); font-size: 50px"><i class="fa fa-times-circle" aria-hidden="true"></i></h1>
+                <p style="text-align: center" id="errorMessageVerification"></p>
+                <br>
+                <div style="align-items: right; text-align: right; right: 0">
+                    <button id="okayButtonError" class="red-button" style="margin: 0; background-color: rgb(134, 43, 43); border: none;">Okay</button>
                 </div>
             </div>
         </div>
@@ -77,8 +106,7 @@ if (isset($_SESSION['mail'])) {
     <div id="facultyOrStaffModal" class="modal">
         <div class="modal-content" style="padding: 15px">
             <div class="green-bar-vertical">
-                <span class="close" onclick="closeModal('facultyOrStaffModal')" style="color: #334b35"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-                <br>
+                <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-question-circle" aria-hidden="true"></i></h1>
                 <p style="text-align: center">Are you a faculty or staff member?</p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
@@ -88,12 +116,16 @@ if (isset($_SESSION['mail'])) {
             </div>
         </div>
     </div>
-    <?php include('misc/php/success_modal.php'); ?>
-    <?php include('misc/php/error_modal.php'); ?>
+    <div id="loadingModal" class="modal">
+        <div class="modal-content" style="padding: 15px">
+            <p id="loadingMessage" style="text-align: center">Processing your request...</p>
+            <div class="loader"></div>
+        </div>
+    </div>
     <script>
         // Handle form submission via WebSocket
         const form = document.getElementById('pendingUserForm');
-        // const ws = new WebSocket('wss://usccms.online/ws?email=<?php echo urlencode($email); ?>');
+        let ws = null;
 
         function connectWebSocket() {
             console.log('Attempting WebSocket connection...');
@@ -107,49 +139,38 @@ if (isset($_SESSION['mail'])) {
             const wsUrl = isLocalhost 
                 ? 'ws://192.168.1.14:8081?email=<?php echo urlencode($email); ?>'
                 : 'wss://usccms.online/ws?email=<?php echo urlencode($email); ?>';
+
+            const newWs = new WebSocket(wsUrl);
             
-            try {
-                const Ws = new WebSocket(wsUrl);
-                
-                Ws.onopen = function() {
-                    console.log('WebSocket Connected Successfully to:', wsUrl);
-                };
-                
-                Ws.onclose = function(event) {
-                    console.log('WebSocket Disconnected from:', wsUrl);
-                    console.log('Code:', event.code, 'Reason:', event.reason);
-                    console.log('Attempting reconnection in 2 seconds...');
-                    setTimeout(connectWebSocket, 2000);
-                };
-                
-                Ws.onerror = function(error) {
-                    console.error('WebSocket Error:', error);
-                    console.log('WebSocket State:', ws.readyState);
-                    console.log('WebSocket URL:', ws.url);
-                    console.log('Protocol:', ws.protocol);
-                    console.log('Extensions:', ws.extensions);
-                };
-                
-                return Ws;
-            } catch (error) {
-                console.error('Error creating WebSocket:', error);
-                console.log('Attempting reconnection in 2 seconds...');
-                setTimeout(connectWebSocket, 2000);
-                return null;
-            }
+            newWs.onopen = function() {
+                console.log('WebSocket Connected Successfully to:', wsUrl);
+                ws = newWs;
+            };
+            
+            newWs.onclose = function(event) {
+                console.log('WebSocket Disconnected. Code:', event.code, 'Reason:', event.reason);
+                console.log('Attempting reconnection in 1 second...');
+                setTimeout(connectWebSocket, 1000);
+            };
+            
+            newWs.onerror = function(error) {
+                console.error('WebSocket Error:', error);
+                setTimeout(connectWebSocket, 1000);
+            };
+            
+            return newWs;
         }
 
-        let ws = null;
-        try {
-            ws = connectWebSocket();
-        } catch (error) {
-            console.error('Error initializing WebSocket:', error);
-            console.log('Attempting reconnection in 2 seconds...');
-            setTimeout(connectWebSocket, 2000);
-        }
+        // Initial connection
+        connectWebSocket();
         
         form.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            // Show loading modal
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'flex';
+            document.getElementById('loadingMessage').textContent = 'Verifying your code...';
 
             const formData = new FormData(form);
             const data = { 
@@ -163,24 +184,40 @@ if (isset($_SESSION['mail'])) {
                 data[key] = value;
             });
 
-            console.log('Form Data:', data);
-            ws.send(JSON.stringify(data));
+            const sendData = () => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    console.log('Form Data:', data);
+                    ws.send(JSON.stringify(data));
+                } else {
+                    console.log('WebSocket not ready, attempting reconnection...');
+                    document.getElementById('loadingMessage').textContent = 'Reconnecting to server...';
+                    ws = connectWebSocket();
+                    // Retry sending data after connection is established
+                    ws.onopen = function() {
+                        document.getElementById('loadingMessage').textContent = 'Verifying your code...';
+                        ws.send(JSON.stringify(data));
+                    };
+                }
+            };
+
+            sendData();
             
             // Listen for messages from the WebSocket server
             ws.onmessage = function(event) {
+                loadingModal.style.display = 'none';
                 const message = JSON.parse(event.data);
-                if (message.success) {                    
+                if (message.success == true) {                    
                     // Unset the session mail variable
                     fetch('unset_session_mail.php')
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
                                 // Display success modal
-                                document.getElementById('successMessageVersion2').textContent = "Registration successful!";
-                                document.getElementById('successMessageModalVersion2').style.display = 'flex';
-                                document.getElementById('errorModal').style.display = 'none';
+                                document.getElementById('successMessageVerification').textContent = "Registration successful!";
+                                document.getElementById('successMessageVerificationModal').style.display = 'flex';
+                                document.getElementById('errorMessageVerificationModal').style.display = 'none';
 
-                                document.getElementById('okayButton').addEventListener('click', function() {
+                                document.getElementById('okayButtonSuccess').addEventListener('click', function() {
                                     if (message.user_type === 'TBD') {
                                         // Show the faculty or staff modal
                                         document.getElementById('facultyOrStaffModal').style.display = 'flex';
@@ -198,11 +235,11 @@ if (isset($_SESSION['mail'])) {
                         });
                 } else if (message.success == false) {
                     // Display error modal
-                    document.getElementById('errorText').textContent = message.message || "Invalid OTP Code. Try Again.";
-                    document.getElementById('errorModal').style.display = 'flex';
-                    document.querySelector('.red-button').style.backgroundColor = '#862b2b';
-                    document.querySelector('.red-button').style.color = 'white';
-                    document.querySelector('.red-button').style.border = 'none';
+                    document.getElementById('errorMessageVerification').textContent = message.message || "Invalid OTP Code. Try Again.";
+                    document.getElementById('errorMessageVerificationModal').style.display = 'flex';
+                    document.getElementById('okayButtonError').addEventListener('click', function() {
+                        document.getElementById('errorMessageVerificationModal').style.display = 'none';
+                    });
                 }
             };
 
@@ -214,10 +251,12 @@ if (isset($_SESSION['mail'])) {
         // Add event listeners for faculty and staff buttons
         document.getElementById('facultyBtn').addEventListener('click', function() {
             updateUserType('Faculty');
+            window.location.href = "login.php?pageid=Login";
         });
 
         document.getElementById('staffBtn').addEventListener('click', function() {
             updateUserType('Staff');
+            window.location.href = "login.php?pageid=Login";
         });
 
         function updateUserType(userType) {

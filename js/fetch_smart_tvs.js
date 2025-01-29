@@ -208,13 +208,13 @@ const populateEditSmartTVModal = (tvId) => {
                 <div class="floating-label-container">
                     <select name="tv_department" id="edit_tv_department" class="floating-label-input">
                         <option value="">~</option>
-                        <option value="COMPUTER ENGINEERING">Department of Computer Engineering</option>
-                        <option value="CHEMICAL ENGINEERING">Department of Chemical Engineering</option>
-                        <option value="CIVIL ENGINEERING">Department of Civil Engineering</option>
-                        <option value="INDUSTRIAL ENGINEERING">Department of Industrial Engineering</option>
-                        <option value="ELECTRICAL ENGINEERING">Department of Electrical Engineering</option>
-                        <option value="MECHANICAL ENGINEERING">Department of Mechanical Engineering</option>
-                        <option value="ELECTRONICS ENGINEERING">Department of Electronics Engineering</option>
+                        <option value="COMPUTER ENGINEERING">Computer Engineering</option>
+                        <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
+                        <option value="CIVIL ENGINEERING">Civil Engineering</option>
+                        <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
+                        <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
+                        <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
+                        <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
                     </select>
                     <label for="edit_tv_department" class="floating-label">Department</label>
                 </div>

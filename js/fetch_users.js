@@ -277,6 +277,11 @@ const showDeleteConfirmModal = (userCount, evaluatorName, selectedUsers) => {
             alert('Please enter a message for the users.');
             return;
         }
+
+        // Track total users to be deleted
+        const totalUsers = selectedUsers.length;
+        let deletedCount = 0;
+
         // Log each user being processed
         selectedUsers.forEach(user => {
             console.log("Processing user:", user);
@@ -289,7 +294,10 @@ const showDeleteConfirmModal = (userCount, evaluatorName, selectedUsers) => {
                 department: user.department,
                 evaluator_name: evaluatorName,
                 evaluator_id: loggedInUserId,
-                evaluator_message: evaluatorMessage
+                evaluator_message: evaluatorMessage,
+                is_multi_delete: true,
+                total_users: totalUsers,
+                current_count: ++deletedCount
             });
         });
         // showMultiDeleteSuccessModal(deletedCount);
@@ -802,13 +810,13 @@ const showAddUserModal = (userId) => {
                     departmentContainerAddUser.innerHTML = `
                         <select name="department" id="add_department" class="floating-label-input">
                             <option value="">~</option>
-                            <option value="COMPUTER ENGINEERING">Department of Computer Engineering</option>
-                            <option value="CHEMICAL ENGINEERING">Department of Chemical Engineering</option>
-                            <option value="CIVIL ENGINEERING">Department of Civil Engineering</option>
-                            <option value="INDUSTRIAL ENGINEERING">Department of Industrial Engineering</option>
-                            <option value="ELECTRICAL ENGINEERING">Department of Electrical Engineering</option>
-                            <option value="MECHANICAL ENGINEERING">Department of Mechanical Engineering</option>
-                            <option value="ELECTRONICS ENGINEERING">Department of Electronics Engineering</option>
+                            <option value="COMPUTER ENGINEERING">Computer Engineering</option>
+                            <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
+                            <option value="CIVIL ENGINEERING">Civil Engineering</option>
+                            <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
+                            <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
+                            <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
+                            <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
                         </select>
                         <label for="add_department" class="floating-label">Department</label>
                     `;
@@ -1174,13 +1182,13 @@ const populateEditUserModal = (userId) => {
                     departmentContainer.innerHTML = `
                         <select name="department" id="edit_department" class="floating-label-input">
                             <option value="">~</option>
-                            <option value="COMPUTER ENGINEERING">Department of Computer Engineering</option>
-                            <option value="CHEMICAL ENGINEERING">Department of Chemical Engineering</option>
-                            <option value="CIVIL ENGINEERING">Department of Civil Engineering</option>
-                            <option value="INDUSTRIAL ENGINEERING">Department of Industrial Engineering</option>
-                            <option value="ELECTRICAL ENGINEERING">Department of Electrical Engineering</option>
-                            <option value="MECHANICAL ENGINEERING">Department of Mechanical Engineering</option>
-                            <option value="ELECTRONICS ENGINEERING">Department of Electronics Engineering</option>
+                            <option value="COMPUTER ENGINEERING">Computer Engineering</option>
+                            <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
+                            <option value="CIVIL ENGINEERING">Civil Engineering</option>
+                            <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
+                            <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
+                            <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
+                            <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
                         </select>
                         <label for="edit_department" class="floating-label">Department</label>
                     `;
@@ -1237,11 +1245,18 @@ const sendWebSocketMessage = (data) => {
                             break;
                         case 'delete_user':
                         case 'user_deleted':
-                            successMessage = 'User deleted successfully!';
-                            document.getElementById('DeleteUserModal').style.display = 'none';
-                            document.getElementById('successMessageVersion2').textContent = successMessage;
-                            document.getElementById('successMessageModalVersion2').style.display = 'flex';
-                            sendDeletedUserEmail(message.email, message.full_name, message.department, message.evaluator_name, message.evaluator_message);
+                            // Only show success message if it's a single delete or the last user in multi-delete
+                            if (!message.is_multi_delete || (message.current_count === message.total_users)) {
+                                successMessage = message.is_multi_delete ? 
+                                    `${message.total_users} users deleted successfully!` : 
+                                    'User deleted successfully!';
+                                document.getElementById('DeleteUserModal').style.display = 'none';
+                                document.getElementById('successMessageVersion2').textContent = successMessage;
+                                document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                            }
+                            if (message.email) {
+                                sendDeletedUserEmail(message.email, message.full_name, message.department, message.evaluator_name, message.evaluator_message);
+                            }
                             break;
                     }
                     refreshUserTable();

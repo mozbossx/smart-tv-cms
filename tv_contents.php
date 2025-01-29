@@ -129,6 +129,12 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
 
                 // Loop through each content type
                 foreach ($contentTypes as $type) {
+                    // Skip certain content types for non-admin users
+                    if (($type == 'peo' || $type == 'so' || $type == 'orgchart' || $type == 'facility') && 
+                        $user_type != 'Admin' && $user_type != 'Super Admin') {
+                        continue;
+                    }
+                    
                     echo "<div id='{$type}List' class='content-container'>";
                     if ($type == 'announcement') {
                         echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements <span id='announcementCount' style='color: #6E6E6E;'></span></h1>";

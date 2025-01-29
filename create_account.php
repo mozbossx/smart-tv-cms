@@ -105,10 +105,10 @@ if (isset($_POST["submit"])) {
                     if (!$mail->send()) {
                         $error[] = "Registration Failed! Error sending email. Try again";
                     } else {
-                        $successMessage = "OTP sent to: <br><strong>" . $email;
+                        $successMessage = "OTP sent to: <br><br><strong style='background: #c0ffc6; padding: 5px; border-radius: 5px;'>" . $email . "</strong>";
                         echo "<script>
                                 document.addEventListener('DOMContentLoaded', function () {
-                                    var modal = document.getElementById('myModal');
+                                    var modal = document.getElementById('createAccountModal');
                                     var proceedBtn = document.getElementById('proceedBtn');
                                     var cancelBtn = document.getElementById('cancelBtn');
                                     
@@ -155,6 +155,7 @@ if (isset($_POST["submit"])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Create Account</title>
 </head>
@@ -197,13 +198,13 @@ if (isset($_POST["submit"])) {
                 <div class="floating-label-container">
                     <select name="department" class="floating-label-input" required>
                         <option value="">~</option>
-                        <option value="COMPUTER ENGINEERING">Department of Computer Engineering</option>
-                        <option value="CHEMICAL ENGINEERING">Department of Chemical Engineering</option>
-                        <option value="CIVIL ENGINEERING">Department of Civil Engineering</option>
-                        <option value="INDUSTRIAL ENGINEERING">Department of Industrial Engineering</option>
-                        <option value="ELECTRICAL ENGINEERING">Department of Electrical Engineering</option>
-                        <option value="MECHANICAL ENGINEERING">Department of Mechanical Engineering</option>
-                        <option value="ELECTRONICS ENGINEERING">Department of Electronics Engineering</option>
+                        <option value="COMPUTER ENGINEERING">Computer Engineering</option>
+                        <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
+                        <option value="CIVIL ENGINEERING">Civil Engineering</option>
+                        <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
+                        <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
+                        <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
+                        <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
                     </select>
                     <label for="department" class="floating-label">Department</label>
                 </div>
@@ -220,7 +221,7 @@ if (isset($_POST["submit"])) {
         </div>
         
     </div>
-    <div id="myModal" class="modal">
+    <div id="createAccountModal" class="modal">
         <div class="modal-content" style="padding: 15px">
             <div class="green-bar-vertical">
                 <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>

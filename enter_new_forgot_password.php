@@ -76,7 +76,7 @@ if (isset($_POST["submit"])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password</title>
-    <link rel="icon" href="images/CES Logo.png">
+    <link rel="icon" href="images/usc_icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
@@ -138,14 +138,14 @@ if (isset($_POST["submit"])) {
     </div>
     <!-- Confirm Cancel Modal -->
     <div id="confirmCancelModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="padding: 15px">
             <div class="red-bar-vertical">
                 <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1>
                 <p>Proceed to cancel reset password?</p>
                 <br>
                 <div style="align-items: right; text-align: right; right: 0">
                     <button id="closeConfirmCancelModal" class="grey-button" style="margin: 0">Close</button>
-                    <button id="confirmCancelButton" class="red-button" style="margin: 0">Yes, Cancel</button>
+                    <button id="confirmCancelButton" class="red-button" style="margin: 0; background-color: rgb(134, 43, 43); border: none;">Yes, Cancel</button>
                 </div>
             </div>
         </div>

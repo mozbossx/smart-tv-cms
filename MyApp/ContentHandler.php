@@ -1138,7 +1138,8 @@ class ContentHandler implements MessageComponentInterface
                             status = 'pending', 
                             notification_type = 'content_post',
                             evaluator_message = NULL,
-                            evaluator_name = NULL
+                            evaluator_name = NULL,
+                            created_at = NOW()
                             WHERE content_id = ? AND content_type = ? AND notification_type = 'content_rejected_by_admin' AND status = 'rejected'
                         ");
                         $stmtUpdateContentRejectedByAdminNotification->execute([
@@ -1151,7 +1152,8 @@ class ContentHandler implements MessageComponentInterface
                             status = 'pending', 
                             notification_type = 'content_post',
                             evaluator_message = NULL,
-                            evaluator_name = NULL
+                            evaluator_name = NULL,
+                            created_at = NOW()
                             WHERE content_id = ? AND content_type = ? AND notification_type = 'content_approved_by_admin' AND status = 'approved'
                         ");
                         $stmtUpdateContentApprovedByAdminNotification->execute([
@@ -1884,6 +1886,9 @@ class ContentHandler implements MessageComponentInterface
                 $stmt = $this->pdo->prepare("UPDATE users_tb SET user_type = ? WHERE email = ?");
                 $success = $stmt->execute([$user_type, $email]);
 
+                $stmtUpdateNotificationTBD = $this->pdo->prepare("UPDATE notifications_tb SET action_user_type = ? WHERE action_user_type = 'TBD' AND notification_type = 'user_registration' AND status = 'pending' AND action_user_email = ?");
+                $stmtUpdateNotificationTBD->execute([$user_type, $email]);
+
                 $this->broadcastNotification('new_notification');
     
                 if ($success) {
@@ -2399,11 +2404,11 @@ class ContentHandler implements MessageComponentInterface
         
                 $statement = $this->pdo->prepare(
                     "INSERT INTO users_tb 
-                    (full_name, email, password, department, user_type, status) 
-                    VALUES (?, ?, ?, ?, ?, ?)"
+                    (full_name, email, password, department, user_type, status, evaluated_by, last_post_date) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, NOW())"
                 );
                 $success = $statement->execute([
-                    $full_name, $email, $hashedPassword, $department, $user_type, $status
+                    $full_name, $email, $hashedPassword, $department, $user_type, $status, $evaluator_name
                 ]);
         
                 if ($success) {
@@ -2634,11 +2639,11 @@ class ContentHandler implements MessageComponentInterface
         
                     $statement = $this->pdo->prepare(
                         "INSERT INTO users_tb 
-                        (full_name, email, password, department, user_type, status) 
-                        VALUES (?, ?, ?, ?, ?, ?)"
+                        (full_name, email, password, department, user_type, status, evaluated_by, last_post_date) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())"
                     );
                     $success = $statement->execute([
-                        $full_name, $email, $hashedPassword, $department, $user_type, $status
+                        $full_name, $email, $hashedPassword, $department, $user_type, $status, $evaluator_name
                     ]);
         
                     if ($success) {
