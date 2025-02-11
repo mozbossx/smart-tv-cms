@@ -22,7 +22,6 @@ class ContentHandler implements MessageComponentInterface
     protected function checkConnection() {
         try {
             $this->pdo->query('SELECT 1');
-            echo "Connection is good!\n";
         } catch (PDOException $e) {
             if ($e->getCode() == 'HY000' || strpos($e->getMessage(), 'server has gone away') !== false) {
                 // Reconnect using the same options as server.php
@@ -129,6 +128,29 @@ class ContentHandler implements MessageComponentInterface
                     }
                     return;
             }
+        }
+
+        if (isset($data['action']) && $data['action'] === 'update_tv_status') {
+            $tvId = $data['tvId'];
+            $status = $data['status'];
+
+            $stmt = $this->pdo->prepare("
+                UPDATE smart_tvs_tb 
+                SET active_status = ?, 
+                    last_ping = CURRENT_TIMESTAMP 
+                WHERE tv_id = ?
+            ");
+            $stmt->execute([$status, $tvId]);
+
+            echo "TV status updated to {$status} for TV ID {$tvId}\n";
+
+            $response = [
+                'action' => 'update_tv_status',
+                'status' => $status,
+                'tvId' => $tvId
+            ];
+            $from->send(json_encode($response));
+            
         }
         
         // Handle delete actions
@@ -1814,15 +1836,16 @@ class ContentHandler implements MessageComponentInterface
                 try {
                     // Hash the password using md5
                     $hashedPassword = md5($password);
+                    $evaluated_by = ''; // Blank character
 
                     // If no file uploaded, store input to announcements_tb without media_path
                     $statement = $this->pdo->prepare(
                         "INSERT INTO users_tb 
-                        (full_name, email, password, department, user_type, status, datetime_registered, last_post_date) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())"
+                        (full_name, email, password, department, user_type, status, datetime_registered, last_post_date, evaluated_by) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)"
                     );
                     $success = $statement->execute([
-                        $full_name, $email, $hashedPassword, $department, $user_type, $status, $datetime_registered
+                        $full_name, $email, $hashedPassword, $department, $user_type, $status, $datetime_registered, $evaluated_by
                     ]);
 
                     if ($success) {

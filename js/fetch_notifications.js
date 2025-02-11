@@ -11,11 +11,12 @@ function connectWebSocket() {
     // Determine if we're in localhost or production
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
-                       window.location.hostname === '192.168.1.14';
+                       window.location.hostname === '192.168.1.14' ||
+                       window.location.hostname === '192.168.1.19';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.1.14:8081'
+        ? 'ws://192.168.1.19:8081'
         : 'wss://usccms.online/ws';
     
     try {

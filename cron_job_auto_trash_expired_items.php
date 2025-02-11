@@ -45,6 +45,7 @@ try {
             FROM $tableName 
             WHERE isArchived = 0 
             AND isTrashed = 0 
+            AND status = 'Approved'
             AND expiration_datetime <= NOW()
             AND expiration_datetime IS NOT NULL
         ");

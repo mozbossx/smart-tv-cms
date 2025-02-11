@@ -196,7 +196,7 @@ if (isset($_POST["submit"])) {
                     <i id="toggleConfirmPassword">Show</i>
                 </div>
                 <div class="floating-label-container">
-                    <select name="department" class="floating-label-input" required>
+                    <select name="department" class="floating-label-input" style="height: 48.73px" required>
                         <option value="">~</option>
                         <option value="COMPUTER ENGINEERING">Computer Engineering</option>
                         <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>

@@ -80,9 +80,14 @@ $resultSelectExtistingTvs = mysqli_query($conn, $querySelectExtistingTvs);
                         $tvDepartment = $row['tv_department'];
                         $tvHeight = $row['height_px'];
                         $tvWidth = $row['width_px'];
+                        $tvStatus = $row['active_status'];
                         // Display each TV item
                         echo '<div class="content-container" data-tv-name="' . strtolower(htmlspecialchars($tvName)) . '" data-tv-brand="' . strtolower(htmlspecialchars($tvBrand)) . '" data-tv-id="' . strtolower(htmlspecialchars($tvId)) . '" data-tv-department="' . strtolower(htmlspecialchars($tvDepartment)) . '">';
-                        echo '<h1 class="tv-title" id="tvNameUserHome_' . $tvId . '" style="text-align: center; padding-bottom: 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($row['tv_name']) . '</h1>';
+                        // Initial status icon color based on database value
+                        $statusIcon = $tvStatus === 'active' ? 
+                        '<i class="fa fa-circle" style="color: #2ECC71;"></i>' : 
+                        '<i class="fa fa-circle" style="color: #E74C3C;"></i>';
+                        echo '<h1 class="tv-title" id="tvNameUserHome_' . $tvId . '" style="text-align: center; padding-bottom: 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($row['tv_name']) . '<span id="activeTvStatus_' . $tvId . '" style="font-size: 18px; float: right; margin-right: 10px;">' . $statusIcon . '</span></h1>';
                         echo '<div style="display: flex; justify-content: center; align-items: center;">';
                             echo '<p style="margin: 0; margin-right: 5px; color: #6E6E6E"><small>ID: ' . htmlspecialchars($row['tv_id']) . '</small></p>'; 
                             echo '<p id="tvBrandUserHome_' . $tvId . '" style="margin: 0; color: #6E6E6E; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 150px;"><small>| ' . htmlspecialchars($row['tv_brand']) . '</small></p>'; 
@@ -149,6 +154,26 @@ $resultSelectExtistingTvs = mysqli_query($conn, $querySelectExtistingTvs);
                 searchTvs(); // Reset the search results
             });
         }
+
+        const WsNew = new WebSocket('ws://192.168.1.19:8081');
+
+        WsNew.addEventListener('open', function() {
+            console.log('Client: WebSocket Connected Successfully');
+        });
+        
+        WsNew.addEventListener('message', function(event) {
+            const data = JSON.parse(event.data);
+            console.log(data);
+
+            if (data.action === 'update_tv_status') {
+                // Get the status element for this specific TV
+                const activeTvStatus = document.getElementById(`activeTvStatus_${data.tvId}`);
+                if (activeTvStatus) {
+                    activeTvStatus.innerHTML = data.status === 'active' ? '<i class="fa fa-circle" style="color: green;"></i>' : '<i class="fa fa-circle" style="color: red;"></i>';
+                }
+            }
+        });
+        
     </script>
 </body>
 </html>

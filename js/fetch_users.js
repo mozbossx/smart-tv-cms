@@ -707,10 +707,10 @@ const showAddUserModal = (userId) => {
                         <input type="email" name="email" id="add_email" required placeholder=" " class="floating-label-input-text-area">
                         <label for="add_email" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">USC Email</label>
                     </div>
-                    <div id="userTypeContainerAddUser" class="floating-label-container">
+                    <div id="userTypeContainerAddUser" class="floating-label-container" style="height: 55.18px">
                         <!-- User Type will be dynamically inserted here -->
                     </div>
-                    <div id="departmentContainerAddUser" class="floating-label-container">
+                    <div id="departmentContainerAddUser" class="floating-label-container" style="height: 55.18px">
                         <!-- Department field will be dynamically inserted here -->
                     </div>
                 </div>
@@ -796,7 +796,7 @@ const showAddUserModal = (userId) => {
                         <label for="add_department" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Department</label>
                     `;
                     userTypeContainerAddUser.innerHTML = `
-                        <select name="user_type" id="add_user_type" required class="floating-label-input-text-area">
+                        <select name="user_type" id="add_user_type" style="height: 100%" required class="floating-label-input-text-area">
                             <option value="">Select Role</option>
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
@@ -808,7 +808,7 @@ const showAddUserModal = (userId) => {
                     document.getElementById('add_department').value = user.department || '';
                 } else if (loggedInUserType === 'Super Admin') {
                     departmentContainerAddUser.innerHTML = `
-                        <select name="department" id="add_department" class="floating-label-input">
+                        <select name="department" id="add_department" style="height: 100%" class="floating-label-input">
                             <option value="">~</option>
                             <option value="COMPUTER ENGINEERING">Computer Engineering</option>
                             <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
@@ -821,7 +821,7 @@ const showAddUserModal = (userId) => {
                         <label for="add_department" class="floating-label">Department</label>
                     `;
                     userTypeContainerAddUser.innerHTML = `
-                        <select name="user_type" id="add_user_type" required class="floating-label-input-text-area">
+                        <select name="user_type" id="add_user_type" style="height: 100%" required class="floating-label-input-text-area">
                             <option value="">Select Role</option>
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
@@ -1123,11 +1123,11 @@ const populateEditUserModal = (userId) => {
                     <label for="edit_email" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">USC Email</label>
                 </div>
                 <div class="floating-label-container">
-                    <div id="userTypeContainerEditUser" class="floating-label-container">
+                    <div id="userTypeContainerEditUser" class="floating-label-container" style="height: 55.18px">
                         <!-- User Type will be dynamically inserted here -->
                     </div>
                 </div>
-                <div id="departmentContainer" class="floating-label-container">
+                <div id="departmentContainer" class="floating-label-container" style="height: 55.18px">
                     <!-- Department field will be dynamically inserted here -->
                 </div>
                 <br>
@@ -1154,7 +1154,7 @@ const populateEditUserModal = (userId) => {
                 const userTypeContainerEditUser = document.getElementById('userTypeContainerEditUser');
                 if (loggedInUserType === 'Admin') {
                     userTypeContainerEditUser.innerHTML = `
-                        <select name="user_type" id="edit_user_type" class="floating-label-input-text-area">
+                        <select name="user_type" id="edit_user_type" style="height: 100%" class="floating-label-input-text-area">
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
                             <option value="Staff">Staff</option>
@@ -1170,7 +1170,7 @@ const populateEditUserModal = (userId) => {
                     document.getElementById('edit_user_type').value = user.user_type || '';
                 } else if (loggedInUserType === 'Super Admin') {
                     userTypeContainerEditUser.innerHTML = `
-                        <select name="user_type" id="edit_user_type" class="floating-label-input-text-area">
+                        <select name="user_type" id="edit_user_type" style="height: 100%" class="floating-label-input-text-area">
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
                             <option value="Staff">Staff</option>
@@ -1180,7 +1180,7 @@ const populateEditUserModal = (userId) => {
                         <label for="edit_user_type" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Role</label>
                     `;
                     departmentContainer.innerHTML = `
-                        <select name="department" id="edit_department" class="floating-label-input">
+                        <select name="department" id="edit_department" style="height: 100%" class="floating-label-input">
                             <option value="">~</option>
                             <option value="COMPUTER ENGINEERING">Computer Engineering</option>
                             <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>

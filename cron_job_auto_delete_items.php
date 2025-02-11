@@ -21,7 +21,7 @@ try {
 
     // Fetch trash days setting
     $stmt = $pdo->query("SELECT trash_days FROM trash_days_tb WHERE trash_id = 1");
-    $trashDays = $stmt->fetchColumn() ?: 30;
+    $trashDays = $stmt->fetchColumn();
     logMessage("Trash days setting: $trashDays");
 
     // Get all content types (including dynamic features)

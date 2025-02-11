@@ -60,7 +60,7 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
         $containerVisibleAnnouncements = 1;
         $containerVisibleEvents = 1;
         $containerVisibleNews = 1;
-        $containerVisiblePromaterials = 1;
+        $containerVisiblePromaterials = 0;
         $containerVisiblePEO = 0;
         $containerVisibleSO = 0;
         $containerVisibleOrgChart = 0;
@@ -74,7 +74,6 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
         $containerXaxisPromaterials = 1200.0;
         $containerYaxisPromaterials = 5.0;
         
-
         $sql_announcement_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible, xaxis, yaxis) VALUES ($tvId, '$containerNameAnnouncements', '$containerTypeAnnouncements', $containerVisibleAnnouncements, $containerXaxisAnnouncements, $containerYaxisAnnouncements)";
         mysqli_query($conn, $sql_announcement_container);
         

@@ -1,16 +1,27 @@
 let isConnectedToWebSocket = false;
 
+function isIframe() {
+    return window.self !== window.top;
+}
+
+function updateTvStatus(status) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentTvId = urlParams.get('tvId');
+    Ws.send(JSON.stringify({ action: 'update_tv_status', status: status, tvId: currentTvId }));
+}
+
 function connectWebSocket() {
     console.log('Attempting WebSocket connection...');
     
     // Determine if we're in localhost or production
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
-                       window.location.hostname === '192.168.1.14';
+                       window.location.hostname === '192.168.1.14' ||
+                       window.location.hostname === '192.168.1.19';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.1.14:8081'
+        ? 'ws://192.168.1.19:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -30,6 +41,16 @@ function connectWebSocket() {
             // console.log('Client: WebSocket Connected Successfully to:', wsUrl);
             isConnectedToWebSocket = true;
 
+            if (!isIframe()) {
+                console.log('Client: Updating TV status to active');
+                // Periodic ping to update last_ping
+                setInterval(() => {
+                    if (isConnectedToWebSocket && Ws && Ws.readyState === WebSocket.OPEN) {
+                        updateTvStatus('active');
+                    }
+                }, 15000); // Send ping every 15 seconds
+            }
+
             // Client-initiated pings
             clientPingInterval = setInterval(() => {
                 if (ws.readyState === WebSocket.OPEN) {
@@ -42,7 +63,7 @@ function connectWebSocket() {
             if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
                 loadingWebsocketConnectionModal.style.display = 'none';
                 successWebsocketConnectionModal.style.display = 'flex';
-                successWebsocketConnectionMessage.textContent = 'WebSocket Connected Successfully! Reloading in 3 seconds...';
+                successWebsocketConnectionMessage.textContent = 'Server Connected Successfully! Reloading in 3 seconds...';
                 setTimeout(() => {
                     window.location.reload();
                 }, 3000);
@@ -72,6 +93,8 @@ function connectWebSocket() {
             isConnectedToWebSocket = false;
             clearInterval(clientPingInterval);
             clearTimeout(clientPingTimeout);
+
+            updateTvStatus('inactive');
             // console.log('Client: Cleared all timers');
 
             if (loadingWebsocketConnectionModal) {
@@ -296,9 +319,9 @@ const updateUI = (data, type) => {
                 <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <div class="message-wrapper" id="${type}MessageWrapper-${id}">
-                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                        <div class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
                             ${data.announcement_body}
-                        </span>
+                        </div>
                     </div>
                 </div>
                 <div class="content-details">
@@ -319,9 +342,9 @@ const updateUI = (data, type) => {
                 <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <div class="message-wrapper" id="${type}MessageWrapper-${id}">
-                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                        <div class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
                             ${data.event_body}
-                        </span>
+                        </div>
                     </div>
                 </div>
                 <div class="content-details">
@@ -342,9 +365,9 @@ const updateUI = (data, type) => {
                 <div class="content-main" id="${type}ContentMain-${id}">
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                     <div class="message-wrapper" id="${type}MessageWrapper-${id}">
-                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                        <div class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
                             ${data.news_body}
-                        </span>
+                        </div>
                     </div>
                 </div>
                 <div class="content-details">
@@ -382,19 +405,11 @@ const updateUI = (data, type) => {
             <div class="content-container-con" id="${type}ContentConContainer-${id}">
                 <div class="content-main" id="${type}ContentMain-${id}">
                     <div class="message-wrapper" id="${type}MessageWrapper-${id}">
-                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                        <div class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
                             ${data.peo_title}
-                        </span>
-                    </div>
-                    <div class="message-wrapper" id="${type}MessageWrapper2-${id}">
-                        <span class="main-message" id="${type}Message2-${id}" style="word-break: break-word;">
                             ${data.peo_description}
-                        </span>
-                    </div>
-                    <div class="message-wrapper" id="${type}MessageWrapper3-${id}">
-                        <span class="main-message" id="${type}Message3-${id}" style="word-break: break-word;">
                             ${data.peo_subdescription}
-                        </span>
+                        </div>
                     </div>
                 </div>
                 <div class="content-details">
@@ -414,19 +429,11 @@ const updateUI = (data, type) => {
             <div class="content-container-con" id="${type}ContentConContainer-${id}">
                 <div class="content-main" id="${type}ContentMain-${id}">
                     <div class="message-wrapper" id="${type}MessageWrapper-${id}">
-                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                        <div class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
                             ${data.so_title}
-                        </span>
-                    </div>
-                    <div class="message-wrapper" id="${type}MessageWrapper2-${id}">
-                        <span class="main-message" id="${type}Message2-${id}" style="word-break: break-word;">
                             ${data.so_description}
-                        </span>
-                    </div>
-                    <div class="message-wrapper" id="${type}MessageWrapper3-${id}">
-                        <span class="main-message" id="${type}Message3-${id}" style="word-break: break-word;">
                             ${data.so_subdescription}
-                        </span>
+                        </div>
                     </div>
                 </div>
                 <div class="content-details">
@@ -452,9 +459,9 @@ const updateUI = (data, type) => {
                         <img src="servers/facility_media/${images[0]}" class="facility-image" style="width: 100%; height: 100%; object-fit: contain;">
                     </div>
                     <div class="message-wrapper" id="${type}MessageWrapper-${id}">
-                        <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                        <div class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
                             ${facilityBody}
-                        </span>
+                        </div>
                     </div>
                 </div>
                 <div class="content-details">
@@ -508,7 +515,7 @@ const updateUI = (data, type) => {
                     <div class="content-main" id="${type}ContentMain-${id}">
                         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                         <div class="message-wrapper" id="${type}MessageWrapper-${id}">
-                            <span class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                            <div class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
                                 ${Object.entries(data)
                                     .filter(([key]) => !['id', 'created_datetime', 'display_time', 'status', 'expiration_datetime', 
                                         'isArchived', 'isTrashed', 'tv_id', 'author_id', 'type', 
@@ -518,7 +525,7 @@ const updateUI = (data, type) => {
                                         'datetime_trashed', 'media_path'].includes(key))
                                     .map(([key, value]) => `${value}`)
                                     .join('')}
-                            </span>
+                            </div>
                         </div>
                     </div>
                     <div class="content-details">
@@ -623,8 +630,20 @@ function initializeTextFitting(type, id) {
     messageElements.forEach((messageElement, index) => {
         const messageId = `${type}Message${index}-${id}`;
         
-        // Get the original content
-        const originalContent = messageElement.innerHTML;
+        // Get the original content and format lists
+        let formattedContent = messageElement.innerHTML
+            .replace(
+                /<li data-list="ordered">/g, 
+                '<li style="list-style-type: decimal; margin-left: 35px;">'
+            )
+            .replace(
+                /<li data-list="bullet">/g, 
+                '<li style="list-style-type: disc; margin-left: 35px;">'
+            )
+            .replace(
+                /<span class="ql-ui" contenteditable="false"><\/span>/g, 
+                ''
+            );
         
         // Clear the message element
         messageElement.innerHTML = '';
@@ -639,18 +658,8 @@ function initializeTextFitting(type, id) {
         const paragraph = document.createElement('p');
         paragraph.id = messageId;
         
-        // If the content contains paragraphs, preserve line breaks
-        if (originalContent.includes('</p>')) {
-            const textContent = originalContent
-                .replace(/<p>/g, '')
-                .replace(/<\/p>/g, '\n')
-                .trim();
-            paragraph.style.whiteSpace = 'pre-line';
-            paragraph.textContent = textContent;
-        } else {
-            // For single-line content, just set the text
-            paragraph.textContent = messageElement.textContent;
-        }
+        // Set the formatted HTML content
+        paragraph.innerHTML = formattedContent;
         
         // Append elements
         wrapperDiv.appendChild(paragraph);
@@ -1434,6 +1443,7 @@ setInterval(checkAllContentForExpiration, 60000);
 
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
+
     if (data.action === 'delete_content' || data.action === 'archive_content' || data.action === 'trash_content') {
         const type = data.type;
         const id = data[`${type}_id`]; 

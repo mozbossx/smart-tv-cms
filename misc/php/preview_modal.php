@@ -369,7 +369,8 @@
                                                     border-radius: 5px;">
                                             <h1 style="color: ${matchingContainer.parent_font_color}; 
                                                     font-family: ${matchingContainer.parent_font_family}; 
-                                                    font-style: ${matchingContainer.parent_font_style}; 
+                                                    font-style: ${matchingContainer.parent_font_style};
+                                                    text-align: ${matchingContainer.container_name_text_align};
                                                     margin-bottom: 5px;
                                                     text-overflow: ellipsis;
                                                     overflow: hidden;
@@ -636,7 +637,6 @@
         if (!messageElements.length) {
             return;
         }
-        console.log(messageElements);
 
         // Apply text fitting to each message element
         messageElements.forEach((messageElement, index) => {
@@ -644,7 +644,40 @@
             if (!messageElement.id) {
                 messageElement.id = messageId;
             }
-            console.log("messageId: ", messageId);
+            // Get the original content and format lists
+            let formattedContent = messageElement.innerHTML
+                .replace(
+                    /<li data-list="ordered">/g, 
+                    '<li style="list-style-type: decimal; margin-left: 35px;">'
+                )
+                .replace(
+                    /<li data-list="bullet">/g, 
+                    '<li style="list-style-type: disc; margin-left: 35px;">'
+                )
+                .replace(
+                    /<span class="ql-ui" contenteditable="false"><\/span>/g, 
+                    ''
+                );
+            
+            // Clear the message element
+            messageElement.innerHTML = '';
+            
+            // Create a new wrapper div
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'message-content-wrapper';
+            wrapperDiv.style.width = '100%';
+            wrapperDiv.style.height = '100%';
+            
+            // Create a new paragraph element
+            const paragraph = document.createElement('p');
+            paragraph.id = messageId;
+            
+            // Set the formatted HTML content
+            paragraph.innerHTML = formattedContent;
+            
+            // Append elements
+            wrapperDiv.appendChild(paragraph);
+            messageElement.appendChild(wrapperDiv);
             
             fitPreviewText(messageId);
         });
@@ -667,7 +700,7 @@
         try {
             messageWrapper.textfill({
                 maxFontPixels: -5,
-                minFontPixels: 2,
+                minFontPixels: 1,
                 widthOnly: false,
                 explicitWidth: messageWrapper.width(),
                 explicitHeight: messageWrapper.height(),
