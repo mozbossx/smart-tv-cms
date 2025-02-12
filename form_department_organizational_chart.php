@@ -186,12 +186,19 @@ include 'misc/php/options_tv.php';
 
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
-                if (message.success == true) {
-                    const successMessageModal = document.getElementById('successMessageModal');
-                    successMessageModal.style.display = 'flex';
-                    document.getElementById('successMessage').textContent = "Organizational Chart was successfully processed!";                        
-                } else if (message.success == false) {
-                    alert('Error saving organizational chart. Please try again.');
+                if (message.action === 'post_content') {
+                    if (message.success == true) {
+                        const successMessageModal = document.getElementById('successMessageModal');
+                        successMessageModal.style.display = 'flex';
+                        document.getElementById('successMessage').textContent = "Organizational Chart was successfully processed!";
+                        // Close the preview modal if it's open
+                        const previewModal = document.getElementById('previewModal');
+                        if (previewModal) {
+                            previewModal.style.display = 'none';
+                        }
+                    } else if (message.success == false) {
+                        alert('Error saving organizational chart. Please try again.');
+                    }
                 }
             };
         }

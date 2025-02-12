@@ -494,20 +494,22 @@ include 'misc/php/options_tv.php';
 
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
-                if (message.success == true) {
-                    // Hide loading modal
-                    loadingModal.style.display = 'none';
-                    const action = 'processed';
-                    
-                    document.getElementById('successMessage').textContent = `${capitalizeFirstLetter(contentType)} was successfully ${action}!`;                        
-                    document.getElementById('successMessageModal').style.display = 'flex';
-                    isFormDirty = false;
-                } else if (message.success == false) {
-                    // Hide loading modal
-                    loadingModal.style.display = 'none';
-                    // Handle error case if needed
-                    document.getElementById('errorText').textContent = message.error || 'An error occurred while processing your request.';
-                    document.getElementById('errorModal').style.display = 'flex';
+                if (message.action === 'post_content') {
+                    if (message.success == true) {
+                        // Hide loading modal
+                        loadingModal.style.display = 'none';
+                        const action = 'processed';
+                        
+                        document.getElementById('successMessage').textContent = `${capitalizeFirstLetter(contentType)} was successfully ${action}!`;                        
+                        document.getElementById('successMessageModal').style.display = 'flex';
+                        isFormDirty = false;
+                    } else if (message.success == false) {
+                        // Hide loading modal
+                        loadingModal.style.display = 'none';
+                        // Handle error case if needed
+                        document.getElementById('errorText').textContent = message.error || 'An error occurred while processing your request.';
+                        document.getElementById('errorModal').style.display = 'flex';
+                    }
                 }
             };
 

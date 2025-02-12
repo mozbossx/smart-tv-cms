@@ -1129,7 +1129,7 @@ function createNotificationDiv(notification) {
     // Check if the content includes notification-buttons
     if (!content.includes('notification-buttons-non-deletable')) {
         // Add delete button only if there are no notification-buttons
-        content += `<button class="delete-notification" onclick="deleteNotification(${notification.notification_id})"><i class="fa fa-times-circle" aria-hidden="true"></i></button>`;
+        content += `<button type="button" class="delete-notification" onclick="deleteNotification(${notification.notification_id})"><i class="fa fa-times-circle" aria-hidden="true"></i></button>`;
     }
 
     notificationDiv.innerHTML = content;
@@ -1926,6 +1926,14 @@ Ws.addEventListener('message', function(event) {
                 }
                 // Refresh the notifications
                 fetchNotifications();
+            }
+            break;
+        case 'update_tv_status':
+            console.log("update_tv_status called: ", data.tvId);
+            // Get the status element for this specific TV
+            const activeTvStatus = document.getElementById(`activeTvStatus_${data.tvId}`);
+            if (activeTvStatus) {
+                activeTvStatus.innerHTML = data.status === 'active' ? '<i class="fa fa-circle" style="color: green;"></i>' : '<i class="fa fa-circle" style="color: red;"></i>';
             }
             break;
         case 'view_content':

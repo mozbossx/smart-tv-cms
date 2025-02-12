@@ -103,24 +103,26 @@ function sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, i
     // Listen for messages from the WebSocket server
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
-        if (message.success === true) {
-            loadingModal.style.display = 'none';
-            if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
-                document.getElementById('successMessageVersion2').textContent = isEditMode 
-                    ? `Your post has been updated and will be reviewed by an admin.`
-                    : "Your post will still be in pending mode until an admin approves it.";
-            } else {
-                document.getElementById('successMessageVersion2').textContent = message.message || 
-                `${contentTypeWithNoUnderscores} was successfully ${isEditMode ? 'updated' : 'processed'}!`;
+        if (message.action === 'post_content') {
+            if (message.success === true) {
+                loadingModal.style.display = 'none';
+                if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
+                    document.getElementById('successMessageVersion2').textContent = isEditMode 
+                        ? `Your post has been updated and will be reviewed by an admin.`
+                        : "Your post will still be in pending mode until an admin approves it.";
+                } else {
+                    document.getElementById('successMessageVersion2').textContent = message.message || 
+                    `${contentTypeWithNoUnderscores} was successfully ${isEditMode ? 'updated' : 'processed'}!`;
+                }
+                document.getElementById('successMessageModalVersion2').style.display = 'flex';
+                isFormDirty = false;
+            } else if (message.success === false) {
+                // Hide loading modal
+                loadingModal.style.display = 'none';
+                // Handle error case if needed
+                document.getElementById('errorText').textContent = message.error || 'An error occurred while processing your request.';
+                document.getElementById('errorModal').style.display = 'flex';
             }
-            document.getElementById('successMessageModalVersion2').style.display = 'flex';
-            isFormDirty = false;
-        } else if (message.success === false) {
-            // Hide loading modal
-            loadingModal.style.display = 'none';
-            // Handle error case if needed
-            document.getElementById('errorText').textContent = message.error || 'An error occurred while processing your request.';
-            document.getElementById('errorModal').style.display = 'flex';
         }
     };
 

@@ -150,7 +150,7 @@ class ContentHandler implements MessageComponentInterface
                 'tvId' => $tvId
             ];
             $from->send(json_encode($response));
-            
+            return;
         }
         
         // Handle delete actions
@@ -3510,8 +3510,14 @@ class ContentHandler implements MessageComponentInterface
                             ]);
                             
                         }
-                        $from->send(json_encode(['success' => true, 'data' => $data, 'orgchart_id' => $orgchart_id]));
+                        // $from->send(json_encode(['success' => true, 'data' => $data, 'orgchart_id' => $orgchart_id]));
                         // $from->send(json_encode(['action' => 'post_content', 'success' => true, 'type' => 'orgchart', 'orgchart_id' => $orgchart_id, 'orgChartData' => $orgChartData]));
+                        $from->send(json_encode([
+                            'action' => 'post_content',
+                            'success' => true, 
+                            'data' => $data, 
+                            'orgchart_id' => $orgchart_id
+                        ]));
                         echo "A member is being added! \n";
                     }
                 } else if ($data['type'] === 'event' || $data['type'] === 'announcement' || $data['type'] === 'news' || $data['type'] === 'promaterial' || $data['type'] === 'peo' || $data['type'] === 'so') {

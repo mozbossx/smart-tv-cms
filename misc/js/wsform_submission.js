@@ -189,35 +189,36 @@ function sendDataToWebSocket(data, loadingModal) {
     // Listen for messages from the WebSocket server
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
-        
-        if (message.success == true) {
-            // Hide loading modal
-            loadingModal.style.display = 'none';
+        if (message.action === 'post_content') {
+            if (message.success == true) {
+                // Hide loading modal
+                loadingModal.style.display = 'none';
 
-            const contentType = document.querySelector('[name="type"]').value;
-            const form = document.getElementById(`${contentType}Form`);
-            const isEditMode = form.querySelector('input[name="action_value"]')?.value === 'edit';
-            const action = isEditMode ? 'updated' : 'processed';
-            
-            if (contentType === 'peo') {
-                document.getElementById('successMessage').textContent = `Program Educational Objective was successfully ${action}!`;                        
-            } else if (contentType === 'so') {
-                document.getElementById('successMessage').textContent = `Student Outcome was successfully ${action}!`;                        
-            } else if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
-                document.getElementById('successMessage').textContent = isEditMode 
-                    ? `Your post has been updated and will be reviewed by an admin.`
-                    : "Your post will still be in pending mode until an admin approves it.";
-            } else {
-                document.getElementById('successMessage').textContent = `${capitalizeFirstLetter(contentType)} was successfully ${action}!`;                        
+                const contentType = document.querySelector('[name="type"]').value;
+                const form = document.getElementById(`${contentType}Form`);
+                const isEditMode = form.querySelector('input[name="action_value"]')?.value === 'edit';
+                const action = isEditMode ? 'updated' : 'processed';
+                
+                if (contentType === 'peo') {
+                    document.getElementById('successMessage').textContent = `Program Educational Objective was successfully ${action}!`;                        
+                } else if (contentType === 'so') {
+                    document.getElementById('successMessage').textContent = `Student Outcome was successfully ${action}!`;                        
+                } else if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
+                    document.getElementById('successMessage').textContent = isEditMode 
+                        ? `Your post has been updated and will be reviewed by an admin.`
+                        : "Your post will still be in pending mode until an admin approves it.";
+                } else {
+                    document.getElementById('successMessage').textContent = `${capitalizeFirstLetter(contentType)} was successfully ${action}!`;                        
+                }
+                document.getElementById('successMessageModal').style.display = 'flex';
+                isFormDirty = false;
+            } else if (message.success == false) {
+                // Hide loading modal
+                loadingModal.style.display = 'none';
+                // Handle error case if needed
+                document.getElementById('errorText').textContent = message.error || 'An error occurred while processing your request.';
+                document.getElementById('errorModal').style.display = 'flex';
             }
-            document.getElementById('successMessageModal').style.display = 'flex';
-            isFormDirty = false;
-        } else if (message.success == false) {
-            // Hide loading modal
-            loadingModal.style.display = 'none';
-            // Handle error case if needed
-            document.getElementById('errorText').textContent = message.error || 'An error occurred while processing your request.';
-            document.getElementById('errorModal').style.display = 'flex';
         }
     };
 
