@@ -67,7 +67,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         <h1 class="content-title" style="text-align: center;">
                             <i class="fa fa-clock-o" style="margin-right: 6px" aria-hidden="true"></i>Pending Contents <span id="pendingContentsCount" style="font-weight: bold; color: #6E6E6E;"></span>
                             <?php
-                                echo '<p style="font-size: 13px; color: '.$theme_color.';">Pending contents are stored for 1 day prior to their expiration date before being permanently removed.</p>';
+                                echo '<p style="font-size: 13px; color: '.$theme_color.';">Pending contents will be permanently deleted after reaching their expiration date.</p>';
                             ?>
                         </h1>
                         <!-- <div class="archives-buttons-flex">

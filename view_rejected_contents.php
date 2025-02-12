@@ -67,7 +67,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         <h1 class="content-title" style="text-align: center;">
                             <i class="fa fa-times" style="margin-right: 6px" aria-hidden="true"></i>Rejected Contents <span id="rejectedContentsCount" style="font-weight: bold; color: #6E6E6E;"></span>
                             <?php
-                                echo '<p style="font-size: 13px; color: '.$theme_color.';">Rejected contents are stored for 1 day prior to their expiration date before being permanently removed.</p>';
+                                echo '<p style="font-size: 13px; color: '.$theme_color.';">Rejected contents will be permanently deleted after reaching their expiration date.</p>';
                             ?>
                         </h1>
                         <div class="rejected-contents-buttons-flex">
