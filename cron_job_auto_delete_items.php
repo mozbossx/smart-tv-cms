@@ -4,6 +4,46 @@ ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', '/var/www/smart-tv-cms/cron_auto_delete_items_error.log');
 
+require 'phpmailer/vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Add email sending function
+function sendDeletionEmail($email, $fullName, $contentType, $contentId, $department) {
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'usc.smarttvcms@gmail.com';
+        $mail->Password = 'nrul yhwc mmrk hwdp';
+        $mail->SMTPSecure = 'tls';
+        $mail->Port = 587;
+
+        $mail->setFrom('usc.smarttvcms@gmail.com', 'USC CMS');
+        $mail->addAddress($email);
+
+        $mail->isHTML(true);
+        $mail->Subject = 'Content Permanently Deleted from Trash';
+        $mail->Body = "
+            <p>Dear $fullName,</p>
+            <p>This is to inform you that your content (ID: $contentId) in the $contentType section has been permanently deleted from the USC Smart TV CMS after being in the Trash for the specified duration.</p>
+            <p>If you believe this is an error or have any questions, please contact your department administrator.</p>
+            <br>
+            <p>Regards,<br>University of San Carlos</p>
+        ";
+
+        $mail->send();
+        logMessage("Deletion notification email sent successfully to $email");
+        return true;
+    } catch (Exception $e) {
+        logMessage("Failed to send deletion email to $email: {$mail->ErrorInfo}");
+        return false;
+    }
+}
+
 // Log file setup
 $logFile = '/var/www/smart-tv-cms/trash_deletion_log.txt';
 function logMessage($message) {
@@ -139,6 +179,25 @@ try {
                     WHERE user_id = ?
                 ");
                 $stmt->execute([$item["{$type}_author_id"]]);
+
+                // After creating the notification, fetch user email and send notification
+                $stmt = $pdo->prepare("
+                    SELECT email, full_name, department 
+                    FROM users_tb 
+                    WHERE user_id = ?
+                ");
+                $stmt->execute([$item["{$type}_author_id"]]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($user) {
+                    sendDeletionEmail(
+                        $user['email'],
+                        $user['full_name'],
+                        $type,
+                        $item["{$type}_id"],
+                        $user['department']
+                    );
+                }
                 
                 logMessage("Created notification for user {$item["{$type}_author_id"]} about deleted content {$item["{$type}_id"]}");
             }

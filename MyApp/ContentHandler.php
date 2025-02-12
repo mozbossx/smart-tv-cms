@@ -4183,7 +4183,7 @@ class ContentHandler implements MessageComponentInterface
                                 $data['media_path'] = $filename;
                             }
             
-                            $from->send(json_encode(['success' => true, 'data' => $data]));
+                            $from->send(json_encode(['action' => 'post_content', 'success' => true, 'data' => $data]));
                             echo ucfirst($type) . " " . (!empty($data['media']) ? 'with' : 'without') . " media uploaded!\n";
                         } else {
                             echo "Error: " . $success . "\n";

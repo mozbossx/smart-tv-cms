@@ -1,33 +1,30 @@
 <?php
-include 'config_connection.php';
-
 try {
     // Get current timestamp
     $currentTime = time();
     
+    // Set the threshold time (current time - 10 seconds)
+    $thresholdTime = $currentTime - 10;
+    
+    // Create PDO connection
+    $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
     // Find TVs that haven't been updated in the last 10 seconds and are still marked as active
-    $stmt = $conn->prepare("
+    $stmt = $pdo->prepare("
         UPDATE smart_tvs_tb 
         SET active_status = 'inactive' 
         WHERE active_status = 'active' 
-        AND UNIX_TIMESTAMP(last_ping) < ?
+        AND UNIX_TIMESTAMP(last_ping) < :threshold
     ");
     
-    // Set the threshold time (current time - 10 seconds)
-    $thresholdTime = $currentTime - 10;
-    $stmt->bind_param("i", $thresholdTime);
+    $stmt->bindParam(':threshold', $thresholdTime, PDO::PARAM_INT);
+    $stmt->execute();
     
-    if (!$stmt->execute()) {
-        throw new Exception("Failed to update inactive TVs: " . $stmt->error);
-    }
-    
-    $updatedCount = $stmt->affected_rows;
+    $updatedCount = $stmt->rowCount();
     error_log("Cron job executed: Updated $updatedCount TVs to inactive status");
     
-    $stmt->close();
-    $conn->close();
-    
-} catch (Exception $e) {
+} catch (PDOException $e) {
     error_log("Cron job error: " . $e->getMessage());
 }
 ?>

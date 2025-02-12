@@ -4,12 +4,53 @@ ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', '/var/www/smart-tv-cms/cron_auto_trash_expired_items_error.log');
 
+require 'phpmailer/vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 // Log file setup
 $logFile = '/var/www/smart-tv-cms/expired_content_log.txt';
 function logMessage($message) {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
     file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
+}
+
+// Add email sending function
+function sendExpirationEmail($email, $fullName, $contentType, $contentId, $expirationDate) {
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'usc.smarttvcms@gmail.com';
+        $mail->Password = 'nrul yhwc mmrk hwdp';
+        $mail->SMTPSecure = 'tls';
+        $mail->Port = 587;
+
+        $mail->setFrom('usc.smarttvcms@gmail.com', 'USC CMS');
+        $mail->addAddress($email);
+
+        $mail->isHTML(true);
+        $mail->Subject = 'Content Moved to Trash - Expiration Date Reached';
+        $mail->Body = "
+            <p>Dear $fullName,</p>
+            <p>This is to inform you that your content (ID: $contentId) in the $contentType section has been automatically moved to Trash as it reached its expiration date ($expirationDate).</p>
+            <p>Your content will remain in the Trash for a specified period before being permanently deleted. If you wish to restore this content, please do so from the Trash section and set a new expiration date.</p>
+            <p>If you have any questions, please contact your department administrator.</p>
+            <br>
+            <p>Regards,<br>University of San Carlos</p>
+        ";
+
+        $mail->send();
+        logMessage("Expiration notification email sent successfully to $email");
+        return true;
+    } catch (Exception $e) {
+        logMessage("Failed to send expiration email to $email: {$mail->ErrorInfo}");
+        return false;
+    }
 }
 
 try {
@@ -53,6 +94,15 @@ try {
         $expiredItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($expiredItems as $item) {
+            // Get author details before updating status
+            $stmt = $pdo->prepare("
+                SELECT u.email, u.full_name, u.user_type, u.department 
+                FROM users_tb u 
+                WHERE user_id = ?
+            ");
+            $stmt->execute([$item['author_id']]);
+            $author = $stmt->fetch(PDO::FETCH_ASSOC);
+
             // Update the item status
             $stmt = $pdo->prepare("
                 UPDATE $tableName 
@@ -70,6 +120,17 @@ try {
             ");
             $stmt->execute([$item['author_id']]);
             $author = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Send email notification if author exists
+            if ($author && isset($author['email'])) {
+                sendExpirationEmail(
+                    $author['email'],
+                    $author['full_name'],
+                    $type,
+                    $item["{$type}_id"],
+                    $item['expiration_datetime']
+                );
+            }
             
             // Insert notification
             $stmt = $pdo->prepare("

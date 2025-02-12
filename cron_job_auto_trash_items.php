@@ -5,12 +5,53 @@ ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', '/var/www/smart-tv-cms/cron_auto_trash_items_error.log');
 
+require 'phpmailer/vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 // Log file setup
 $logFile = '/var/www/smart-tv-cms/archive_trash_log.txt';
 function logMessage($message) {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
     file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
+}
+
+// Add email sending function
+function sendArchiveToTrashEmail($email, $fullName, $contentType, $contentId, $archiveDays) {
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'usc.smarttvcms@gmail.com';
+        $mail->Password = 'nrul yhwc mmrk hwdp';
+        $mail->SMTPSecure = 'tls';
+        $mail->Port = 587;
+
+        $mail->setFrom('usc.smarttvcms@gmail.com', 'USC CMS');
+        $mail->addAddress($email);
+
+        $mail->isHTML(true);
+        $mail->Subject = 'Content Moved to Trash from Archive';
+        $mail->Body = "
+            <p>Dear $fullName,</p>
+            <p>This is to inform you that your content (ID: $contentId) in the $contentType section has been automatically moved to Trash after being in the Archives for $archiveDays days.</p>
+            <p>Your content will remain in the Trash for a specified period before being permanently deleted. If you wish to restore this content, please do so from the Trash section.</p>
+            <p>If you have any questions, please contact your department administrator.</p>
+            <br>
+            <p>Regards,<br>University of San Carlos</p>
+        ";
+
+        $mail->send();
+        logMessage("Archive to Trash notification email sent successfully to $email");
+        return true;
+    } catch (Exception $e) {
+        logMessage("Failed to send Archive to Trash email to $email: {$mail->ErrorInfo}");
+        return false;
+    }
 }
 
 try {
@@ -61,6 +102,15 @@ try {
             if ($today > $expiryDate) {
                 logMessage("Processing expired archive item {$item["{$type}_id"]} (archived on {$item['datetime_archived']})");
 
+                // Before updating the item status, fetch user details for email
+                $stmt = $pdo->prepare("
+                    SELECT email, full_name, department 
+                    FROM users_tb 
+                    WHERE user_id = ?
+                ");
+                $stmt->execute([$item["{$type}_author_id"]]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
                 // Update the item to trashed status
                 $stmt = $pdo->prepare("
                     UPDATE $tableName 
@@ -69,6 +119,17 @@ try {
                     WHERE {$type}_id = ?
                 ");
                 $stmt->execute([$item["{$type}_id"]]);
+
+                // Send email notification if user exists
+                if ($user) {
+                    sendArchiveToTrashEmail(
+                        $user['email'],
+                        $user['full_name'],
+                        $type,
+                        $item["{$type}_id"],
+                        $archiveDays
+                    );
+                }
                 
                 // Create notification for the content author
                 $stmt = $pdo->prepare("

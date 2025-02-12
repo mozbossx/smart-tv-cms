@@ -4,12 +4,53 @@ ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', '/var/www/smart-tv-cms/cron_auto_delete_rejected_content_error.log');
 
+require 'phpmailer/vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 // Log file setup
 $logFile = '/var/www/smart-tv-cms/rejected_content_deletion_log.txt';
 function logMessage($message) {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
     file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
+}
+
+// Add email sending function
+function sendRejectedContentDeletionEmail($email, $fullName, $contentType, $contentId, $expirationDate) {
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'usc.smarttvcms@gmail.com';
+        $mail->Password = 'nrul yhwc mmrk hwdp';
+        $mail->SMTPSecure = 'tls';
+        $mail->Port = 587;
+
+        $mail->setFrom('usc.smarttvcms@gmail.com', 'USC CMS');
+        $mail->addAddress($email);
+
+        $mail->isHTML(true);
+        $mail->Subject = 'Rejected Content Permanently Deleted';
+        $mail->Body = "
+            <p>Dear $fullName,</p>
+            <p>This is to inform you that your rejected content (ID: $contentId) in the $contentType section has been permanently deleted by the system as it reached its expiration date ($expirationDate).</p>
+            <p>If you wish to resubmit this content, please create a new submission addressing the previous rejection reasons.</p>
+            <p>If you have any questions, please contact your department administrator.</p>
+            <br>
+            <p>Regards,<br>University of San Carlos</p>
+        ";
+
+        $mail->send();
+        logMessage("Rejected content deletion email sent successfully to $email");
+        return true;
+    } catch (Exception $e) {
+        logMessage("Failed to send rejected content deletion email to $email: {$mail->ErrorInfo}");
+        return false;
+    }
 }
 
 try {
@@ -44,6 +85,15 @@ try {
 
         foreach ($items as $item) {
             logMessage("Processing expired rejected item {$item["{$type}_id"]} (expired on {$item['expiration_datetime']})");
+
+            // Get author details before deleting content
+            $stmt = $pdo->prepare("
+                SELECT email, full_name, department 
+                FROM users_tb 
+                WHERE user_id = ?
+            ");
+            $stmt->execute([$item["{$type}_author_id"]]);
+            $author = $stmt->fetch(PDO::FETCH_ASSOC);
 
             // Check for media files to delete
             if ($type === 'facility') {
@@ -89,6 +139,17 @@ try {
             $stmt = $pdo->prepare("DELETE FROM $tableName WHERE {$type}_id = ?");
             $stmt->execute([$item["{$type}_id"]]);
             logMessage("Deleted record {$item["{$type}_id"]} from $tableName");
+
+            // Send email notification if author exists
+            if ($author && isset($author['email'])) {
+                sendRejectedContentDeletionEmail(
+                    $author['email'],
+                    $author['full_name'],
+                    $type,
+                    $item["{$type}_id"],
+                    $item['expiration_datetime']
+                );
+            }
 
             // Create notification for the content author
             $stmt = $pdo->prepare("
