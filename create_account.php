@@ -103,9 +103,6 @@ if (isset($_POST["submit"])) {
                     <p>Regards,<br>University of San Carlos</p>";
 
                     try {
-                        // if (!$mail->send()) {
-                        //     $error[] = "Registration Failed! Error sending email. Try again";
-                        // } else {
                         if ($mail->send()) {
                             $successMessage = "OTP sent to: <br><br><strong style='background: #c0ffc6; padding: 5px; border-radius: 5px;'>" . $email . "</strong>";
                             echo "<script>
@@ -133,7 +130,7 @@ if (isset($_POST["submit"])) {
                             </script>";
                         }
                     } catch (Exception $e) {
-                        $error[] = "Registration Failed! Error sending email. Try again" . $e->getMessage();
+                        $error[] = "Registration Failed! Error sending email. Try again. Error details: " . $e->getMessage();
                     }
                 }
             }
