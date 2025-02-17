@@ -128,6 +128,8 @@ if (isset($_POST["submit"])) {
                                     }
                                 });
                             </script>";
+                        } else {
+                            $error[] = "Registration Failed! Error sending email. Try again" . $mail->ErrorInfo;
                         }
                     } catch (Exception $e) {
                         $error[] = "Registration Failed! Error sending email. Try again. Error details: " . $e->getMessage();
