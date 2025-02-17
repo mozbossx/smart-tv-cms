@@ -4358,24 +4358,24 @@ class ContentHandler implements MessageComponentInterface
                     }
                 }
 
-                $response = ['success' => true, 'message' => 'New feature added successfully', 'fileName' => $fileName, 'containerName' => $containerName];
+                $response = ['action' => 'post_new_feature', 'success' => true, 'message' => 'New feature added successfully', 'fileName' => $fileName, 'containerName' => $containerName];
                 echo "New feature '{$featureName}' added successfully with file name: {$fileName} and container name: {$containerName}!\n";
             } catch (PDOException $e) {
                 $errorCode = $e->getCode();
                 $errorMessage = $e->getMessage();
 
                 if ($errorCode == '42S01') {
-                    $response = ['success' => false, 'message' => 'A feature with this name already exists. Please choose a different name.'];
+                    $response = ['action' => 'post_new_feature', 'success' => false, 'message' => 'A feature with this name already exists. Please choose a different name.'];
                 } elseif ($errorCode == '42000') {
-                    $response = ['success' => false, 'message' => 'Invalid feature name. Please avoid using special characters.'];
+                    $response = ['action' => 'post_new_feature', 'success' => false, 'message' => 'Invalid feature name. Please avoid using special characters.'];
                 } else {
-                    $response = ['success' => false, 'message' => 'An error occurred while creating the feature. Please try again.'];
+                    $response = ['action' => 'post_new_feature', 'success' => false, 'message' => 'An error occurred while creating the feature. Please try again.'];
                 }
                 
                 error_log("SQL Error: " . $errorMessage);
                 echo "Error creating new feature: {$errorMessage}\n";
             } catch (Exception $e) {
-                $response = ['success' => false, 'message' => 'An unexpected error occurred. Please try again.'];
+                $response = ['action' => 'post_new_feature', 'success' => false, 'message' => 'An unexpected error occurred. Please try again.'];
                 error_log("Unexpected Error: " . $e->getMessage());
                 echo "Unexpected error creating new feature: {$e->getMessage()}\n";
             }

@@ -234,15 +234,17 @@
         // Listen for messages from the WebSocket server
         ws.onmessage = function(event) {
             const message = JSON.parse(event.data);
-            if (message.success === true) {
-                document.getElementById('successMessage').textContent = "New feature was successfully added!";
-                document.getElementById('successMessageModal').style.display = 'flex';
-                isFormDirty = false;
-            } else if (message.success === false) {
-                // Display error message in error modal
-                errorModalMessage(message.message);
-                // Close preview modal if open
-                document.getElementById('previewModal').style.display = 'none';
+            if (message.action === 'post_new_feature') {
+                if (message.success === true) {
+                    document.getElementById('successMessage').textContent = "New feature was successfully added!";
+                    document.getElementById('successMessageModal').style.display = 'flex';
+                    isFormDirty = false;
+                } else if (message.success === false) {
+                    // Display error message in error modal
+                    errorModalMessage(message.message);
+                    // Close preview modal if open
+                    document.getElementById('previewModal').style.display = 'none';
+                }
             }
         };
     }
