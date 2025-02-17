@@ -106,8 +106,9 @@ if (isset($_POST["submit"])) {
                         // if (!$mail->send()) {
                         //     $error[] = "Registration Failed! Error sending email. Try again";
                         // } else {
-                        $successMessage = "OTP sent to: <br><br><strong style='background: #c0ffc6; padding: 5px; border-radius: 5px;'>" . $email . "</strong>";
-                        echo "<script>
+                        if ($mail->send()) {
+                            $successMessage = "OTP sent to: <br><br><strong style='background: #c0ffc6; padding: 5px; border-radius: 5px;'>" . $email . "</strong>";
+                            echo "<script>
                                 document.addEventListener('DOMContentLoaded', function () {
                                     var modal = document.getElementById('createAccountModal');
                                     var proceedBtn = document.getElementById('proceedBtn');
@@ -130,7 +131,7 @@ if (isset($_POST["submit"])) {
                                     }
                                 });
                             </script>";
-                        // }
+                        }
                     } catch (Exception $e) {
                         $error[] = "Registration Failed! Error sending email. Try again" . $e->getMessage();
                     }
