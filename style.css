@@ -3616,3 +3616,10 @@ input[type=range]:focus::-ms-fill-upper {
     display: block;
     color: #55F48B;
 }
+
+.validator-message {
+    color: #ff4444;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}

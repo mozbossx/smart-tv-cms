@@ -51,7 +51,7 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
         <div class="features-grid">
             <div class="feature-card">
                 <h3 class="feature-title">Mobile Control</h3>
-                <p class="feature-description">Control your Smart TV CMS directly from your smartphone. Post content, manage displays, and make updates on the go.</p>
+                <p class="feature-description">Control the Smart TV CMS directly from your smartphone. Post content, manage displays, and make updates on the go.</p>
             </div>
             <div class="feature-card">
                 <h3 class="feature-title">Interactive Content Management</h3>
@@ -59,7 +59,7 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
             </div>
             <div class="feature-card">
                 <h3 class="feature-title">Customizable Display</h3>
-                <p class="feature-description">Adjust content container sizes, fonts, colors, and backgrounds to match your department's needs.</p>
+                <p class="feature-description">Adjust content container sizes, fonts, colors, and backgrounds to match the department's theme.</p>
             </div>
         </div>
     </section>
@@ -72,7 +72,7 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
                 <ul class="role-features">
                     <li>Post content for approval</li>
                     <li>Manage personal profile</li>
-                    <li>Access personal content archives</li>
+                    <li>Access personal content</li>
                     <li>Track submission status</li>
                 </ul>
             </div>

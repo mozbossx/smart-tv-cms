@@ -182,18 +182,21 @@ if (isset($_POST["submit"])) {
                     <label for="full_name" class="floating-label">Full Name</label>
                 </div>
                 <div class="floating-label-container">
-                    <input type="email" name="email" value="<?php echo $email; ?>" required placeholder=" " class="floating-label-input">
+                    <input type="email" name="email" value="<?php echo $email; ?>" required placeholder=" " class="floating-label-input" id="emailInput">
                     <label for="email" class="floating-label">USC Email</label>
+                    <div class="validator-message" id="emailValidator">Email must be @usc.edu.ph</div>
                 </div>
                 <div class="floating-label-container">
-                    <input type="password" name="password" required placeholder=" " class="floating-label-input">
+                    <input type="password" name="password" required placeholder=" " class="floating-label-input" id="passwordInput">
                     <label for="password" class="floating-label">Password</label>
                     <i id="togglePassword">Show</i>
+                    <div class="validator-message" id="passwordValidator">Password must be at least 6 characters</div>
                 </div>
                 <div class="floating-label-container">
-                    <input type="password" name="confirmpassword" required placeholder=" " class="floating-label-input">
+                    <input type="password" name="confirmpassword" required placeholder=" " class="floating-label-input" id="confirmPasswordInput">
                     <label for="confirmpassword" class="floating-label">Confirm Password</label>
                     <i id="toggleConfirmPassword">Show</i>
+                    <div class="validator-message" id="confirmPasswordValidator">Passwords must match</div>
                 </div>
                 <div class="floating-label-container">
                     <select name="department" class="floating-label-input" style="height: 48.73px" required>
@@ -262,6 +265,84 @@ if (isset($_POST["submit"])) {
                 return letter.toUpperCase();
             });
         }
+
+        // Email validation
+        const emailInput = document.getElementById('emailInput');
+        const emailValidator = document.getElementById('emailValidator');
+        
+        emailInput.addEventListener('focus', function() {
+            if (this.value.includes('@usc.edu.ph')) {
+                emailValidator.style.display = 'none';
+            } else {
+                emailValidator.style.display = 'block';
+            }
+        });
+        
+        emailInput.addEventListener('input', function() {
+            if (this.value.includes('@usc.edu.ph')) {
+                emailValidator.style.display = 'none';
+            } else {
+                emailValidator.style.display = 'block';
+            }
+        });
+        
+        emailInput.addEventListener('blur', function() {
+            if (this.value.includes('@usc.edu.ph')) {
+                emailValidator.style.display = 'none';
+            }
+        });
+
+        // Password validation
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordValidator = document.getElementById('passwordValidator');
+        
+        passwordInput.addEventListener('focus', function() {
+            if (this.value.length >= 6) {
+                passwordValidator.style.display = 'none';
+            } else {
+                passwordValidator.style.display = 'block';
+            }
+        });
+        
+        passwordInput.addEventListener('input', function() {
+            if (this.value.length >= 6) {
+                passwordValidator.style.display = 'none';
+            } else {
+                passwordValidator.style.display = 'block';
+            }
+        });
+        
+        passwordInput.addEventListener('blur', function() {
+            if (this.value.length >= 6) {
+                passwordValidator.style.display = 'none';
+            }
+        });
+
+        // Confirm Password validation
+        const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+        const confirmPasswordValidator = document.getElementById('confirmPasswordValidator');
+
+        confirmPasswordInput.addEventListener('focus', function() {
+            if (this.value === passwordInput.value) {
+                confirmPasswordValidator.style.display = 'none';
+            } else {
+                confirmPasswordValidator.style.display = 'block';
+            }
+        });
+
+        confirmPasswordInput.addEventListener('input', function() {
+            if (this.value === passwordInput.value) {
+                confirmPasswordValidator.style.display = 'none';
+            } else {
+                confirmPasswordValidator.style.display = 'block';
+            }
+        });
+
+        confirmPasswordInput.addEventListener('blur', function() {
+            if (this.value === passwordInput.value) {
+                confirmPasswordValidator.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
