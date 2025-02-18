@@ -1,6 +1,5 @@
 <div class="topbar" id="topbar" style="background: <?php echo $topbarColor; ?>">
-    <div class="tv-id" style="color: <?php echo $topbarTvIdColor; ?>; font-style: <?php echo $topbarTvIdFontStyle; ?>; font-family: <?php echo $topbarTvIdFontFamily; ?>;">
-        
+    <div class="tv-id" style="padding-left: 5px; color: <?php echo $topbarTvIdColor; ?>; font-style: <?php echo $topbarTvIdFontStyle; ?>; font-family: <?php echo $topbarTvIdFontFamily; ?>;">
         <?php 
             if ($departmentLogoPath == NULL) {
                 echo '<img src="images/soe_icon.png" alt="" style="width: 6vh; height: 6vh;" id="department_logo_topbar">';

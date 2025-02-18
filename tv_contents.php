@@ -106,7 +106,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 echo '<p id="tvDepartmentUserHome_' . $tvId . '" style="margin: 0; margin-bottom: 10px; color: #6E6E6E; text-align: center;"><small>' . $tvDepartment . '</small></p>'; 
                 echo '<div class="tv-frame-parent" style="width: auto; height: 450px; background: none; cursor: default;">';
                 echo '<div class="tv-frame" id="tv-frame" style="scale: 0.5; user-select: none">';
-                    echo "<iframe id='tv-iframe' frameborder='0' src='tv2.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
+                    echo "<iframe id='tv-iframe' frameborder='0' src='tv.php?tvId=$tvId&isIframe=true' class='tv-screen' style='height: {$tvHeight}px; width: {$tvWidth}px; pointer-events: none; border: none;'></iframe>";
                     echo '<p id="tvBrand2UserHome_' . $tvId . '" style="text-align: center; font-size: 25px; margin-top: auto; color: white;">'. htmlspecialchars($tvBrand) .'</p>';
                 echo "</div>";
                 echo "<div class='scale-buttons' style='background: none;'>";

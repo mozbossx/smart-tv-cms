@@ -30,6 +30,8 @@ include 'misc/php/options_tv.php';
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="jquery-textfill-master/dist/jquery.textfill.min.js"></script>
+    <script src="jquery-textfill-master/dist/jquery.textfill.js"></script>
     <title>Create a Facility</title>
     <style>
         .image-slideshow-container {
@@ -655,7 +657,7 @@ include 'misc/php/options_tv.php';
             let content = '';
             // Get only the first uploaded image for preview
             let mediaContent = uploadedImages.length > 0 ? 
-                `<img src="${uploadedImages[0].src}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain;">` : 
+                `<img src="${uploadedImages[0].querySelector('img').src}" alt="Preview" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">` : 
                 '';
 
             // Clear previous content
@@ -678,7 +680,7 @@ include 'misc/php/options_tv.php';
                     carouselHTML += `
                         <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;" data-tv-id="${matchingContainer.tv_id}">
                             <div class="tv-frame-parent" style="width: auto; height: 100%; background: none; cursor: default;">
-                                <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center; overflow: clip;">
+                                <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center;">
                                     ${topbarPositions[matchingContainer.tv_id] === 'top' ? `
                                         <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
                                             <img src="${matchingContainer.department_logo_path ? 
@@ -749,29 +751,31 @@ include 'misc/php/options_tv.php';
                                                     <div class="carousel-item-2 active" style="width: auto; margin-bottom: 5px; height: 100%; border-radius: 5px;">
                                                         <div style="border: none; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: justify; height: 100%; bottom: 0;">
                                                             <div class="content-container-con" style="height: 100%;">
-                                                                <div class="content-main">
+                                                                <div class="content-main" id="${selectedType}ContentMain-${matchingContainer.tv_id}">
                                                                     ${selectedType === 'promaterial' ? 
                                                                         mediaContent : 
                                                                         `${mediaContent ? 
-                                                                            `<div class="media-container" style="margin-bottom: 5px; max-height: 80%">
+                                                                            `<div class="media-container" style="margin-bottom: 5px;">
                                                                                 ${mediaContent}
                                                                             </div>` : 
                                                                             ''
                                                                         }
-                                                                        <div class="main-message" style="margin: 0; word-break: break-word;">
-                                                                            ${selectedType === 'peo' ? 
-                                                                                `<h2>${quillEditors.peoTitleQuill.root.innerHTML}</h2>
-                                                                                <div>${quillEditors.peoDescriptionQuill.root.innerHTML}</div>
-                                                                                <div>${quillEditors.peoSubdescriptionQuill.root.innerHTML}</div>` :
-                                                                            selectedType === 'so' ? 
-                                                                                `<h2>${quillEditors.soTitleQuill.root.innerHTML}</h2>
-                                                                                <div>${quillEditors.soDescriptionQuill.root.innerHTML}</div>
-                                                                                <div>${quillEditors.soSubdescriptionQuill.root.innerHTML}</div>` :
-                                                                            selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
-                                                                            selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
-                                                                            selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
-                                                                            selectedType === 'facility' ? quillEditors.facilityBodyQuill.root.innerHTML :
-                                                                            ''}
+                                                                        <div class="message-wrapper">
+                                                                            <div class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                                ${selectedType === 'peo' ? 
+                                                                                    `<h2>${quillEditors.peoTitleQuill.root.innerHTML}</h2>
+                                                                                    <div>${quillEditors.peoDescriptionQuill.root.innerHTML}</div>
+                                                                                    <div>${quillEditors.peoSubdescriptionQuill.root.innerHTML}</div>` :
+                                                                                selectedType === 'so' ? 
+                                                                                    `<h2>${quillEditors.soTitleQuill.root.innerHTML}</h2>
+                                                                                    <div>${quillEditors.soDescriptionQuill.root.innerHTML}</div>
+                                                                                    <div>${quillEditors.soSubdescriptionQuill.root.innerHTML}</div>` :
+                                                                                selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
+                                                                                selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
+                                                                                selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
+                                                                                selectedType === 'facility' ? quillEditors.facilityBodyQuill.root.innerHTML :
+                                                                                ''}
+                                                                            </div>
                                                                         </div>`
                                                                     }
                                                                 </div>
@@ -836,8 +840,6 @@ include 'misc/php/options_tv.php';
                                             </div>
                                         </div>
                                     ` : ''}
-                                    <p id="tvBrand2UserHome_${matchingContainer.tv_id}" style="text-align: center; font-size: 25px; margin-top: auto; color: white; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 250px;">${matchingContainer.tv_brand}</p>
-                                    <div class="tv-stand"></div>
                                 </div>
                             </div>
                         </div>
@@ -862,6 +864,9 @@ include 'misc/php/options_tv.php';
                 // Show the first item
                 const items = document.querySelectorAll('.carousel-item');
                 items[0].style.display = 'block';
+
+                // Initialize text fitting for the first visible item
+                initializePreviewTextFitting(selectedType, matchingContainers[0].tv_id);
 
                 // Initialize the current index
                 let currentIndex = 0;
@@ -907,7 +912,8 @@ include 'misc/php/options_tv.php';
                     setTimeout(() => {
                         updateTvName();
                         fitFrameToParent();
-                    }, 0);
+                        initializePreviewTextFitting(selectedType, matchingContainers[currentIndex].tv_id);
+                    }, 100);
                 };
 
 
@@ -928,20 +934,43 @@ include 'misc/php/options_tv.php';
                     // Reset any existing transformations
                     tvFrame.style.transform = 'none';
                     
-                    // Force a reflow
-                    void tvFrame.offsetWidth;
-                    
                     const frameRect = tvFrame.getBoundingClientRect();
                     
-                    // Calculate scale while leaving room for the TV stand
-                    const scaleX = (parentRect.width) / frameRect.width;
-                    const scaleY = (parentRect.height - 50) / frameRect.height; // Subtract some pixels for TV stand
-                    const scale = Math.min(scaleX, scaleY, 0.5);
+                    const scaleX = parentRect.width / frameRect.width;
+                    const scaleY = parentRect.height / frameRect.height;
+                    const scale = Math.min(scaleX, scaleY, 1); // Don't scale up if already smaller
 
-                    // Apply transformations with adjusted position
+                    // Apply transformations
                     tvFrame.style.transform = `scale(${scale})`;
                     tvFrame.style.transformOrigin = 'center top';
-                    tvFrame.style.marginBottom = '50px'; // Add margin to ensure stand visibility
+
+                    // const activeItem = document.querySelector('.carousel-item.active');
+                    // if (!activeItem) return;
+                    
+                    // const tvId = activeItem.getAttribute('data-tv-id');
+                    // const tvFrame = document.getElementById(`tvFrame-${tvId}`);
+                    // if (!tvFrame) return;
+
+                    // const parent = tvFrame.parentElement;
+                    // const parentRect = parent.getBoundingClientRect();
+                    
+                    // // Reset any existing transformations
+                    // tvFrame.style.transform = 'none';
+                    
+                    // // Force a reflow
+                    // void tvFrame.offsetWidth;
+                    
+                    // const frameRect = tvFrame.getBoundingClientRect();
+                    
+                    // // Calculate scale while leaving room for the TV stand
+                    // const scaleX = (parentRect.width) / frameRect.width;
+                    // const scaleY = (parentRect.height - 50) / frameRect.height; // Subtract some pixels for TV stand
+                    // const scale = Math.min(scaleX, scaleY, 0.5);
+
+                    // // Apply transformations with adjusted position
+                    // tvFrame.style.transform = `scale(${scale})`;
+                    // tvFrame.style.transformOrigin = 'center top';
+                    // tvFrame.style.marginBottom = '50px'; // Add margin to ensure stand visibility
                 }
 
                 // Fit frame on load
@@ -951,6 +980,114 @@ include 'misc/php/options_tv.php';
                 // window.addEventListener('resize', fitFrameToParent);
             } else {
                 previewContainer.innerHTML = '<p>No container found for the selected TVs.</p>'; // Fallback message
+            }
+        }
+
+        function initializePreviewTextFitting(selectedType, matchingContainer) {
+            const containerDiv = document.getElementById(`${selectedType}ContentMain-${matchingContainer}`);
+            if (!containerDiv) {
+                console.warn(`Container element not found for ${selectedType}ContentMain-${matchingContainer}`);
+                return;
+            }
+
+            // Find all message elements within the container
+            const messageElements = containerDiv.querySelectorAll('.main-message');
+            if (!messageElements.length) {
+                console.warn(`No message elements found for ${selectedType} with id ${matchingContainer}`);
+                return;
+            }
+
+            // Apply text fitting to each message element
+            messageElements.forEach((messageElement, index) => {
+                // const messageId = messageElement.id || `previewMessage${index}-${matchingContainer}`;
+                // if (!messageElement.id) {
+                //     messageElement.id = messageId;
+                // }
+
+                const messageId = `${selectedType}Message${index}-${matchingContainer}`;
+                // Get the original content and format lists
+                let formattedContent = messageElement.innerHTML
+                    .replace(
+                        /<li data-list="ordered">/g, 
+                        '<li style="list-style-type: decimal; margin-left: 20%;">'
+                    )
+                    .replace(
+                        /<li data-list="bullet">/g, 
+                        '<li style="list-style-type: disc; margin-left: 20%;">'
+                    )
+                    .replace(
+                        /<span class="ql-ui" contenteditable="false"><\/span>/g, 
+                        ''
+                    );
+                
+                // Clear the message element
+                messageElement.innerHTML = '';
+                
+                // Create a new wrapper div
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = 'message-content-wrapper';
+                wrapperDiv.style.width = '100%';
+                wrapperDiv.style.height = '100%';
+                
+                // Create a new paragraph element
+                const paragraph = document.createElement('p');
+                paragraph.id = messageId;
+                
+                // Set the formatted HTML content
+                paragraph.innerHTML = formattedContent;
+                
+                // Append elements
+                wrapperDiv.appendChild(paragraph);
+                messageElement.appendChild(wrapperDiv);
+                
+                fitPreviewText(messageId);
+            });
+
+            // // Set up resize observer for continuous monitoring
+            // const resizeObserver = new ResizeObserver(() => {
+            //     requestAnimationFrame(() => {
+            //         messageElements.forEach((messageElement, index) => {
+            //             const messageId = `${selectedType}Message${index}-${matchingContainer}`;
+            //             fitPreviewText(messageId);
+            //         });
+            //     });
+            // });
+
+            // resizeObserver.observe(containerDiv);
+
+            // // Observe parent container as well
+            // const parentContainer = containerDiv.closest('.content-container');
+            // if (parentContainer) {
+            //     resizeObserver.observe(parentContainer);
+            // }
+        }
+
+        function fitPreviewText(messageId) {
+            const messageElement = $(`#${messageId}`);
+            if (!messageElement.length) {
+                console.warn(`Message element not found for ID: ${messageId}`);
+                return;
+            }
+
+            const messageWrapper = messageElement.parent();
+            if (!messageWrapper.length) {
+                console.warn(`Message wrapper not found for ID: ${messageId}`);
+                return;
+            }
+            console.log("messageWrapper: ", messageWrapper);
+
+            try {
+                messageWrapper.textfill({
+                    maxFontPixels: -1,
+                    minFontPixels: 8,
+                    widthOnly: false,
+                    explicitWidth: messageWrapper.width(),
+                    explicitHeight: messageWrapper.height(),
+                    changeLineHeight: true,
+                    innerTag: 'p'
+                });
+            } catch (error) {
+                console.error(`Error fitting text for ${messageId}:`, error);
             }
         }
 

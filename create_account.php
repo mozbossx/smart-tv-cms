@@ -102,37 +102,33 @@ if (isset($_POST["submit"])) {
                     <br><br>
                     <p>Regards,<br>University of San Carlos</p>";
 
-                    try {
-                        if ($mail->send()) {
-                            $successMessage = "OTP sent to: <br><br><strong style='background: #c0ffc6; padding: 5px; border-radius: 5px;'>" . $email . "</strong>";
-                            echo "<script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    var modal = document.getElementById('createAccountModal');
-                                    var proceedBtn = document.getElementById('proceedBtn');
-                                    var cancelBtn = document.getElementById('cancelBtn');
-                                    
-                                    modal.style.display = 'flex';
-                                    
-                                    proceedBtn.onclick = function() {
-                                        window.location.replace('verify_account.php');
-                                    }
-                                    
-                                    cancelBtn.onclick = function() {
+                    if ($mail->send()) {
+                        $successMessage = "OTP sent to: <br><br><strong style='background: #c0ffc6; padding: 5px; border-radius: 5px;'>" . $email . "</strong>";
+                        echo "<script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                var modal = document.getElementById('createAccountModal');
+                                var proceedBtn = document.getElementById('proceedBtn');
+                                var cancelBtn = document.getElementById('cancelBtn');
+                                
+                                modal.style.display = 'flex';
+                                
+                                proceedBtn.onclick = function() {
+                                    window.location.replace('verify_account.php');
+                                }
+                                
+                                cancelBtn.onclick = function() {
+                                    modal.style.display = 'none';
+                                }
+                                
+                                window.onclick = function(event) {
+                                    if (event.target == modal) {
                                         modal.style.display = 'none';
                                     }
-                                    
-                                    window.onclick = function(event) {
-                                        if (event.target == modal) {
-                                            modal.style.display = 'none';
-                                        }
-                                    }
-                                });
-                            </script>";
-                        } else {
-                            $error[] = "Registration Failed! Error sending email. Try again" . $mail->ErrorInfo;
-                        }
-                    } catch (Exception $e) {
-                        $error[] = "Registration Failed! Error sending email. Try again. Error details: " . $e->getMessage();
+                                }
+                            });
+                        </script>";
+                    } else {
+                        $error[] = "Registration Failed! Error sending email. Try again" . $mail->ErrorInfo;
                     }
                 }
             }

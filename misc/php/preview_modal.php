@@ -321,16 +321,18 @@
                 carouselHTML += `
                     <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;" data-tv-id="${matchingContainer.tv_id}">
                         <div class="tv-frame-parent" style="width: auto; height: 100%; background: none; cursor: default;">
-                            <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center; overflow: clip; user-select: all">
+                            <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center;">
                                 ${topbarPositions[matchingContainer.tv_id] === 'top' ? `
                                     <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
-                                        <img src="${matchingContainer.department_logo_path ? 
-                                        `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
-                                        'images/soe_icon.png'}" 
-                                        alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
                                         <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
-                                            <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
-                                            <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                            <img src="${matchingContainer.department_logo_path ? 
+                                            `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
+                                            'images/soe_icon.png'}" 
+                                            alt="" style="width: 5vh; height: 5vh;">
+                                            <div class="tv-id-text">
+                                                <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
+                                                <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                            </div>
                                         </div>
                                         <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
                                             ${matchingContainer.tv_name}
@@ -344,7 +346,7 @@
                                 <div class='tv-screen' style='
                                     height: ${matchingContainer.tv_height_px}px; 
                                     width: ${matchingContainer.tv_width_px}px; 
-                                    pointer-events: none; border: none;
+                                    border: none;
                                     border-radius: 0;
                                     ${matchingContainer.isImageBackground === '1' ? 
                                         (matchingContainer.background_image_path ? 
@@ -389,9 +391,10 @@
                                                     display: flex;
                                                     flex-direction: column;
                                                     padding: 5px; 
-                                                    border-radius: 5px">
+                                                    border-radius: 5px;
+                                                    border: black 1px solid">
                                                 <div class="carousel-item-2 active" style="width: auto; margin-bottom: 5px; height: 100%; border-radius: 5px;">
-                                                    <div style="border: none; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: justify; height: 100%; bottom: 0;">
+                                                    <div style="border: none; text-align: justify; height: 100%; bottom: 0;">
                                                         <div class="content-container-con" style="height: 100%">
                                                             <div class="content-main" id="${selectedType}ContentMain-${matchingContainer.tv_id}">
                                                                 ${selectedType === 'promaterial' ? 
@@ -404,43 +407,43 @@
                                                                     }
                                                                     ${selectedType === 'peo' ? 
                                                                         `<div class="message-wrapper">
-                                                                            <span class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                            <div class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
                                                                                 ${quillEditors.peoTitleQuill.root.innerHTML}
-                                                                            </span>
+                                                                            </div>
                                                                         </div>
                                                                         <div class="message-wrapper">
-                                                                            <span class="main-message" id="previewMessage2-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                            <div class="main-message" id="previewMessage2-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
                                                                                 ${quillEditors.peoDescriptionQuill.root.innerHTML}
-                                                                            </span>
+                                                                            </div>
                                                                         </div>
                                                                         <div class="message-wrapper">
-                                                                            <span class="main-message" id="previewMessage3-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                            <div class="main-message" id="previewMessage3-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
                                                                                 ${quillEditors.peoSubdescriptionQuill.root.innerHTML}
-                                                                            </span>
+                                                                            </div>
                                                                         </div>` : 
                                                                     selectedType === 'so' ? 
                                                                         `<div class="message-wrapper">
-                                                                            <span class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                            <div class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
                                                                                 ${quillEditors.soTitleQuill.root.innerHTML}
-                                                                            </span>
+                                                                            </div>
                                                                         </div>
                                                                         <div class="message-wrapper">
-                                                                            <span class="main-message" id="previewMessage2-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                            <div class="main-message" id="previewMessage2-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
                                                                                 ${quillEditors.soDescriptionQuill.root.innerHTML}
-                                                                            </span>
+                                                                            </div>
                                                                         </div>
                                                                         <div class="message-wrapper">
-                                                                            <span class="main-message" id="previewMessage3-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                            <div class="main-message" id="previewMessage3-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
                                                                                 ${quillEditors.soSubdescriptionQuill.root.innerHTML}
-                                                                            </span>
+                                                                            </div>
                                                                         </div>` :
                                                                         `<div class="message-wrapper">
-                                                                            <span class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
+                                                                            <div class="main-message" id="previewMessage-${matchingContainer.tv_id}" style="margin: 0; word-break: break-word;">
                                                                                 ${selectedType === 'announcement' ? quillEditors.announcementBodyQuill.root.innerHTML :
                                                                                 selectedType === 'event' ? quillEditors.eventBodyQuill.root.innerHTML :
                                                                                 selectedType === 'news' ? quillEditors.newsBodyQuill.root.innerHTML :
                                                                                 ''}
-                                                                            </span>
+                                                                            </div>
                                                                         </div>`
                                                                     }`
                                                                 }
@@ -489,13 +492,15 @@
                                 </div>
                                 ${topbarPositions[matchingContainer.tv_id] === 'bottom' ? `
                                     <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
-                                        <img src="${matchingContainer.department_logo_path ? 
-                                        `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
-                                        'images/soe_icon.png'}" 
-                                        alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
                                         <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
-                                            <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
-                                            <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                            <img src="${matchingContainer.department_logo_path ? 
+                                            `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
+                                            'images/soe_icon.png'}" 
+                                            alt="" style="width: 5vh; height: 5vh;">
+                                            <div class="tv-id-text">
+                                                <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
+                                                <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                            </div>
                                         </div>
                                         <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
                                             ${matchingContainer.tv_name}
@@ -506,8 +511,6 @@
                                         </div>
                                     </div>
                                 ` : ''}
-                                <p id="tvBrand2UserHome_${matchingContainer.tv_id}" style="text-align: center; font-size: 25px; margin-top: auto; color: white; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 250px;">${matchingContainer.tv_brand}</p>
-                                <div class="tv-stand"></div>
                             </div>
                         </div>
                     </div>
@@ -581,7 +584,7 @@
                     updateTvName();
                     fitFrameToParent();
                     initializePreviewTextFitting(selectedType, matchingContainers[currentIndex].tv_id);
-                }, 0);
+                }, 100);
             };
 
 
@@ -602,20 +605,15 @@
                 // Reset any existing transformations
                 tvFrame.style.transform = 'none';
                 
-                // Force a reflow
-                void tvFrame.offsetWidth;
-                
                 const frameRect = tvFrame.getBoundingClientRect();
                 
-                // Calculate scale while leaving room for the TV stand
-                const scaleX = (parentRect.width) / frameRect.width;
-                const scaleY = (parentRect.height - 50) / frameRect.height; // Subtract some pixels for TV stand
-                const scale = Math.min(scaleX, scaleY, 0.5);
+                const scaleX = parentRect.width / frameRect.width;
+                const scaleY = parentRect.height / frameRect.height;
+                const scale = Math.min(scaleX, scaleY, 1); // Don't scale up if already smaller
 
-                // Apply transformations with adjusted position
+                // Apply transformations
                 tvFrame.style.transform = `scale(${scale})`;
                 tvFrame.style.transformOrigin = 'center top';
-                tvFrame.style.marginBottom = '50px'; // Add margin to ensure stand visibility
             }
 
             // Fit frame on load
@@ -630,29 +628,35 @@
 
     function initializePreviewTextFitting(selectedType, matchingContainer) {
         const containerDiv = document.getElementById(`${selectedType}ContentMain-${matchingContainer}`);
-        if (!containerDiv) return;
+        if (!containerDiv) {
+            console.warn(`Container element not found for ${selectedType}ContentMain-${matchingContainer}`);
+            return;
+        }
 
         // Find all message elements within the container
         const messageElements = containerDiv.querySelectorAll('.main-message');
         if (!messageElements.length) {
+            console.warn(`No message elements found for ${selectedType} with id ${matchingContainer}`);
             return;
         }
 
         // Apply text fitting to each message element
         messageElements.forEach((messageElement, index) => {
-            const messageId = messageElement.id || `previewMessage${index}-${matchingContainer}`;
-            if (!messageElement.id) {
-                messageElement.id = messageId;
-            }
+            // const messageId = messageElement.id || `previewMessage${index}-${matchingContainer}`;
+            // if (!messageElement.id) {
+            //     messageElement.id = messageId;
+            // }
+
+            const messageId = `${selectedType}Message${index}-${matchingContainer}`;
             // Get the original content and format lists
             let formattedContent = messageElement.innerHTML
                 .replace(
                     /<li data-list="ordered">/g, 
-                    '<li style="list-style-type: decimal; margin-left: 35px;">'
+                    '<li style="list-style-type: decimal; margin-left: 20%;">'
                 )
                 .replace(
                     /<li data-list="bullet">/g, 
-                    '<li style="list-style-type: disc; margin-left: 35px;">'
+                    '<li style="list-style-type: disc; margin-left: 20%;">'
                 )
                 .replace(
                     /<span class="ql-ui" contenteditable="false"><\/span>/g, 
@@ -681,6 +685,24 @@
             
             fitPreviewText(messageId);
         });
+
+        // // Set up resize observer for continuous monitoring
+        // const resizeObserver = new ResizeObserver(() => {
+        //     requestAnimationFrame(() => {
+        //         messageElements.forEach((messageElement, index) => {
+        //             const messageId = `${selectedType}Message${index}-${matchingContainer}`;
+        //             fitPreviewText(messageId);
+        //         });
+        //     });
+        // });
+
+        // resizeObserver.observe(containerDiv);
+
+        // // Observe parent container as well
+        // const parentContainer = containerDiv.closest('.content-container');
+        // if (parentContainer) {
+        //     resizeObserver.observe(parentContainer);
+        // }
     }
 
     function fitPreviewText(messageId) {
@@ -699,8 +721,8 @@
 
         try {
             messageWrapper.textfill({
-                maxFontPixels: -5,
-                minFontPixels: 1,
+                maxFontPixels: -1,
+                minFontPixels: 8,
                 widthOnly: false,
                 explicitWidth: messageWrapper.width(),
                 explicitHeight: messageWrapper.height(),

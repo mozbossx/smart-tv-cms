@@ -217,7 +217,7 @@ $conn->close();
                         <div class="tv-frame-parent" style="margin: 0; margin-top: 10px; height: 60vh; user-select: none; -moz-user-select: none; -webkit-user-drag: none; -webkit-user-select: none; -ms-user-select: none;">
                             <!-- Display iframe based on tvId -->
                             <div class="tv-frame" id="tv-frame">
-                                <iframe id="tv-iframe" frameborder="0" src="tv2.php?tvId=<?php echo $tvId?>&isIframe=true" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
+                                <iframe id="tv-iframe" frameborder="0" src="tv.php?tvId=<?php echo $tvId?>&isIframe=true" class="tv-screen" style="height: <?php echo $tvHeight?>px; width: <?php echo $tvWidth?>px"></iframe>
                                 <p id="tvBrand2UserHome_<?php echo $tvId?>" style="text-align: center; font-size: 25px; margin-top: auto; color: white;"><?php echo $tvBrand?></p>
                                 <div class="tv-stand" style="left: 30%"></div>
                             </div>
@@ -538,7 +538,7 @@ $conn->close();
             templateChanged = true;
         }
 
-        // Add event listener for messages from tv2.php iframe
+        // Add event listener for messages from tv.php iframe
         window.addEventListener('message', function(event) {
             if (event.data.action === 'containerMoved') {
                 showUpdateButton();

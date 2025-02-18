@@ -99,7 +99,7 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
         mysqli_query($conn, $sql_facility_container);
 
         // Redirect to the same page with tvId as query parameter
-        header("Location: tv2.php?tvId=$tvId");
+        header("Location: tv.php?tvId=$tvId");
         exit();
     } else {
         // Handle SQL error here
@@ -116,7 +116,7 @@ if ((!isset($_COOKIE['tv_id']) || $_COOKIE['tv_id'] != $tvId) && !$isIframe) {
 
 // If tvId is set but not in the URL, redirect to include it
 if (!isset($_GET['tvId']) && isset($_COOKIE['tv_id'])) {
-    header("Location: tv2.php?tvId=" . $_COOKIE['tv_id']);
+    header("Location: tv.php?tvId=" . $_COOKIE['tv_id']);
     exit();
 }
 
@@ -198,7 +198,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             // Redirect to the same page with tvId as query parameter
             if (!isset($tvId)) {
                 // $tvId = $row['tv_id'];
-                header("Location: tv2.php?tvId=$tvId");
+                header("Location: tv.php?tvId=$tvId");
                 exit();
             }
 
