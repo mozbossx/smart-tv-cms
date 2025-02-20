@@ -492,7 +492,37 @@ include 'misc/php/options_tv.php';
             // Update loading message for data processing
             document.getElementById('loadingMessage').textContent = 'Processing your content...';
             
-            ws.send(JSON.stringify(data));
+            // ws.send(JSON.stringify(data));
+
+            const tryReconnect = () => {
+                // Hide loading modal during reconnection
+                loadingModal.style.display = 'none';
+                document.getElementById('loadingMessage').textContent = 'Reconnecting to server...';
+                
+                // Fetch the WebSocket URL and attempt to reconnect
+                fetch('websocket_conn.php')
+                    .then(response => response.text())
+                    .then(url => {
+                        window.ws = new WebSocket(url);
+                        // Once reconnected, retry sending the data
+                        window.ws.onopen = function() {
+                            loadingModal.style.display = 'flex';
+                            document.getElementById('loadingMessage').textContent = 'Processing your content...';
+                            sendDataToWebSocket(data, loadingModal);
+                        };
+                    })
+                    .catch(error => {
+                        console.error('Error reconnecting:', error);
+                        // Retry reconnection after delay
+                        setTimeout(tryReconnect, 1500);
+                    });
+            };
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(data));
+            } else {
+                tryReconnect();
+            }
 
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
@@ -517,14 +547,16 @@ include 'misc/php/options_tv.php';
 
             ws.onclose = function(event) {
                 loadingModal.style.display = 'none';
-                document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
+                document.getElementById('errorText').textContent = 'Connection error occurred.';
                 document.getElementById('errorModal').style.display = 'flex';
+                tryReconnect();
             };
 
             ws.onerror = function(error) {
                 loadingModal.style.display = 'none';
-                document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
+                document.getElementById('errorText').textContent = 'Connection error occurred.';
                 document.getElementById('errorModal').style.display = 'flex';
+                tryReconnect();
             };
 
         }
