@@ -189,7 +189,7 @@ function sendDataToWebSocket(data, loadingModal) {
     // Listen for messages from the WebSocket server
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
-        if (message.action === 'post_content') {
+        if (message.action === 'post_content' || message.action === 'update_content') {
             if (message.success == true) {
                 // Hide loading modal
                 loadingModal.style.display = 'none';

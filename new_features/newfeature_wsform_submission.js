@@ -103,7 +103,7 @@ function sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, i
     // Listen for messages from the WebSocket server
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
-        if (message.action === 'post_content') {
+        if (message.action === 'post_content' || message.action === 'update_content') {
             if (message.success === true) {
                 loadingModal.style.display = 'none';
                 if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {

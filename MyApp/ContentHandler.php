@@ -4651,7 +4651,6 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                                     $quillInitialization .= "
                                         var {$inputName}Quill = new Quill('#{$inputName}', {
                                             theme: 'snow',
-                                            placeholder: 'Enter {$input['name']}',
                                             modules: {
                                                 toolbar: [
                                                     ['bold', 'italic', 'underline'],

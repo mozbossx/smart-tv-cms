@@ -56,23 +56,8 @@ try {
             if ($today > $expiryDate) {
                 logMessage("Processing expired item {$item["{$type}_id"]} (trashed on {$item['datetime_trashed']})");
 
-                // Check for media files to delete
-                if ($type === 'facility') {
-                    // Handle facility images
-                    if (!empty($item['facility_images_array'])) {
-                        $mediaFolder = "facility_media";
-                        $imageNames = array_map('trim', explode(',', $item['facility_images_array']));
-                        
-                        foreach ($imageNames as $imageName) {
-                            $fullPath = "/var/www/smart-tv-cms/{$mediaFolder}/{$imageName}";
-                            if (file_exists($fullPath)) {
-                                unlink($fullPath);
-                                logMessage("Deleted facility image: {$fullPath}");
-                            }
-                        }
-                    }
-                } else {
-                    // Check if media_path column exists
+                // Check if media_path column exists
+                try {
                     $stmt = $pdo->prepare("
                         SELECT COUNT(*) as column_exists 
                         FROM information_schema.COLUMNS 
@@ -93,7 +78,12 @@ try {
                                 logMessage("Deleted media file: {$fullPath}");
                             }
                         }
+                    } else {
+                        logMessage("Note: Table $tableName does not have media_path column - skipping media deletion");
                     }
+                } catch (PDOException $e) {
+                    logMessage("Warning: Error checking media_path column for $tableName: " . $e->getMessage());
+                    // Continue with the rest of the deletion process even if media check fails
                 }
 
                 // Delete the record from database
@@ -122,12 +112,12 @@ try {
                     $item["{$type}_id"],
                     $item["{$type}_author_id"],
                     $type,
-                    'content_deleted_by_system',
+                    'trash_content_deleted_by_system',
                     'deleted',
                     'System',
                     'System',
                     'System',
-                    "Content automatically deleted after {$trashDays} days in Trash",
+                    "Content automatically deleted permanently after {$trashDays} days in Trash",
                     'System',
                     $item['tv_id']
                 ]);

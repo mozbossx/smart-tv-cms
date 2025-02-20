@@ -167,8 +167,46 @@ function updateNewFeaturePreviewContent(contentBody) {
     const previewContainer = document.getElementById('newFeaturePreviewContainer');
     const mediaInput = document.getElementById('media');
 
+    // Check for Quill editors
+    const quillEditors = document.querySelectorAll('.quill-editor-container-newfeature .ql-container');
+    const hasQuillEditor = quillEditors.length > 0;
+
     // Clear previous content
     previewContainer.innerHTML = '';
+    let mediaContent = '';
+
+    // Generate media preview HTML if media is selected
+    if (mediaInput && mediaInput.files && mediaInput.files[0]) {
+        const file = mediaInput.files[0];
+        const fileType = file.type;
+        const fileURL = URL.createObjectURL(file);
+        
+        if (fileType.startsWith('video/')) {
+            mediaContent = `<video controls style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">
+                    <source src="${fileURL}" type="${fileType}">
+                    Your browser does not support the video tag.
+                </video>`;
+        } else if (fileType.startsWith('image/')) {
+            mediaContent = `<img src="${fileURL}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">`;
+        }
+    }
+    // Only show existing media if no new media is selected
+    <?php if ($isEditMode && isset($contentData['media_path'])): ?>
+    else {
+        const mediaPath = '<?php echo $contentData['media_path']; ?>';
+        if (mediaPath) {
+            if (mediaPath.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                mediaContent = `<img src="servers/<?php echo $type; ?>_media/${mediaPath}" 
+                        style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">`;
+            } else if (mediaPath.match(/\.(mp4|webm|ogg)$/i)) {
+                mediaContent = `<video controls style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">
+                        <source src="servers/<?php echo $type; ?>_media/${mediaPath}">
+                        Your browser does not support the video tag.
+                    </video>`;
+            }
+        }
+    }
+    <?php endif; ?>
 
     // Find the matching container for each selected TV
     const matchingContainers = containers.filter(container => 
@@ -185,16 +223,18 @@ function updateNewFeaturePreviewContent(contentBody) {
             carouselHTML += `
                 <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;" data-tv-id="${matchingContainer.tv_id}">
                     <div class="tv-frame-parent" style="width: auto; height: 100%; background: none; cursor: default;">
-                        <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center; overflow: clip; user-select: all">
+                        <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center;">
                             ${topbarPositions[matchingContainer.tv_id] === 'top' ? `
                                 <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
-                                    <img src="${matchingContainer.department_logo_path ? 
-                                    `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
-                                    'images/soe_icon.png'}" 
-                                    alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
                                     <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
-                                        <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
-                                        <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                        <img src="${matchingContainer.department_logo_path ? 
+                                        `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
+                                        'images/soe_icon.png'}" 
+                                        alt="" style="width: 5vh; height: 5vh;">
+                                        <div class="tv-id-text">
+                                            <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
+                                            <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                        </div>
                                     </div>
                                     <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
                                         ${matchingContainer.tv_name}
@@ -208,7 +248,7 @@ function updateNewFeaturePreviewContent(contentBody) {
                             <div class='tv-screen' style='
                                 height: ${matchingContainer.tv_height_px}px; 
                                 width: ${matchingContainer.tv_width_px}px; 
-                                pointer-events: none; border: none;
+                                border: none;
                                 border-radius: 0;
                                 ${matchingContainer.isImageBackground === '1' ? 
                                     (matchingContainer.background_image_path ? 
@@ -254,7 +294,13 @@ function updateNewFeaturePreviewContent(contentBody) {
                                             <div class="carousel-item-2 active" style="width: auto; margin-bottom: 5px; height: 100%; border-radius: 5px;">
                                                 <div style="border: none; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: justify; height: 100%; bottom: 0;">
                                                     <div class="content-container-con" style="height: 100%">
-                                                        <div class="content-main">
+                                                        <div class="content-main" id="${selectedType}ContentMain-${matchingContainer.tv_id}">
+                                                            ${mediaContent ? 
+                                                                `<div class="media-container" style="margin-bottom: 5px; max-height: ${hasQuillEditor ? '50%' : '100%'};">
+                                                                    ${mediaContent}
+                                                                </div>` : 
+                                                                ''
+                                                            }
                                                             ${generateNewFeaturePreviewContent(contentBody)}
                                                         </div>
                                                         <div class="content-details">
@@ -302,13 +348,15 @@ function updateNewFeaturePreviewContent(contentBody) {
                             </div>
                             ${topbarPositions[matchingContainer.tv_id] === 'bottom' ? `
                                 <div class="topbar" id="topbar" style="background: ${matchingContainer.topbar_hex_color}">
-                                    <img src="${matchingContainer.department_logo_path ? 
-                                    `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
-                                    'images/soe_icon.png'}" 
-                                    alt="" style="width: 5vh; height: 5vh; margin-left: 5px">
                                     <div class="tv-id" style="color: ${matchingContainer.topbar_tvid_font_color}; font-style: ${matchingContainer.topbar_tvid_font_style}; font-family: ${matchingContainer.topbar_tvid_font_family}; font-size: 2.5vh; padding-left: 10px;">
-                                        <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
-                                        <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                        <img src="${matchingContainer.department_logo_path ? 
+                                        `servers/tv_department_logos/${matchingContainer.tv_id}/${matchingContainer.department_logo_path}` : 
+                                        'images/soe_icon.png'}" 
+                                        alt="" style="width: 5vh; height: 5vh;">
+                                        <div class="tv-id-text">
+                                            <p id="tvDepartment_${matchingContainer.tv_id}">${matchingContainer.tv_department}</p>
+                                            <p id="tv-id"><i class="fa fa-television" aria-hidden="true"></i>: ${matchingContainer.tv_id}</p>
+                                        </div>
                                     </div>
                                     <h1 class="tv-name" style="color: ${matchingContainer.topbar_tvname_font_color}; font-style: ${matchingContainer.topbar_tvname_font_style}; font-family: ${matchingContainer.topbar_tvname_font_family};">
                                         ${matchingContainer.tv_name}
@@ -319,8 +367,6 @@ function updateNewFeaturePreviewContent(contentBody) {
                                     </div>
                                 </div>
                             ` : ''}
-                            <p style="text-align: center; font-size: 25px; margin-top: auto; color: white; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: auto; max-width: 250px;">${matchingContainer.tv_brand}</p>
-                            <div class="tv-stand"></div>
                         </div>
                     </div>
                 </div>
@@ -348,6 +394,9 @@ function updateNewFeaturePreviewContent(contentBody) {
 
         // Initialize the current index
         let currentIndex = 0;
+
+        // Initialize text fitting for the first visible item
+        initializePreviewTextFitting(selectedType, matchingContainers[0].tv_id);
 
         // Function to update the TV name when navigating
         function updateTvName() {
@@ -390,7 +439,8 @@ function updateNewFeaturePreviewContent(contentBody) {
             setTimeout(() => {
                 updateTvName();
                 fitFrameToParent();
-            }, 0);
+                initializePreviewTextFitting(selectedType, matchingContainers[currentIndex].tv_id);
+            }, 100);
         };
 
 
@@ -411,20 +461,15 @@ function updateNewFeaturePreviewContent(contentBody) {
             // Reset any existing transformations
             tvFrame.style.transform = 'none';
             
-            // Force a reflow
-            void tvFrame.offsetWidth;
-            
             const frameRect = tvFrame.getBoundingClientRect();
             
-            // Calculate scale while leaving room for the TV stand
-            const scaleX = (parentRect.width) / frameRect.width;
-            const scaleY = (parentRect.height - 50) / frameRect.height; // Subtract some pixels for TV stand
-            const scale = Math.min(scaleX, scaleY, 0.5);
+            const scaleX = parentRect.width / frameRect.width;
+            const scaleY = parentRect.height / frameRect.height;
+            const scale = Math.min(scaleX, scaleY, 1); // Don't scale up if already smaller
 
-            // Apply transformations with adjusted position
+            // Apply transformations
             tvFrame.style.transform = `scale(${scale})`;
             tvFrame.style.transformOrigin = 'center top';
-            tvFrame.style.marginBottom = '50px'; // Add margin to ensure stand visibility
         }
 
         // Fit frame on load
@@ -434,38 +479,136 @@ function updateNewFeaturePreviewContent(contentBody) {
     }
 }
 
+function initializePreviewTextFitting(selectedType, matchingContainer) {
+    const containerDiv = document.getElementById(`${selectedType}ContentMain-${matchingContainer}`);
+    if (!containerDiv) {
+        console.warn(`Container element not found for ${selectedType}ContentMain-${matchingContainer}`);
+        return;
+    }
+
+    // Find all message elements within the container
+    const messageElements = containerDiv.querySelectorAll('.main-message');
+    if (!messageElements.length) {
+        console.warn(`No message elements found for ${selectedType} with id ${matchingContainer}`);
+        return;
+    }
+
+    // Apply text fitting to each message element
+    messageElements.forEach((messageElement, index) => {
+        // const messageId = messageElement.id || `previewMessage${index}-${matchingContainer}`;
+        // if (!messageElement.id) {
+        //     messageElement.id = messageId;
+        // }
+
+        const messageId = `${selectedType}Message${index}-${matchingContainer}`;
+        // Get the original content and format lists
+        let formattedContent = messageElement.innerHTML
+            .replace(
+                /<li data-list="ordered">/g, 
+                '<li style="list-style-type: decimal; margin-left: 20%;">'
+            )
+            .replace(
+                /<li data-list="bullet">/g, 
+                '<li style="list-style-type: disc; margin-left: 20%;">'
+            )
+            .replace(
+                /<span class="ql-ui" contenteditable="false"><\/span>/g, 
+                ''
+            );
+        
+        // Clear the message element
+        messageElement.innerHTML = '';
+        
+        // Create a new wrapper div
+        const wrapperDiv = document.createElement('div');
+        wrapperDiv.className = 'message-content-wrapper';
+        wrapperDiv.style.width = '100%';
+        wrapperDiv.style.height = '100%';
+        
+        // Create a new paragraph element
+        const paragraph = document.createElement('p');
+        paragraph.id = messageId;
+        
+        // Set the formatted HTML content
+        paragraph.innerHTML = formattedContent;
+        
+        // Append elements
+        wrapperDiv.appendChild(paragraph);
+        messageElement.appendChild(wrapperDiv);
+        
+        fitPreviewText(messageId);
+    });
+
+    // // Set up resize observer for continuous monitoring
+    // const resizeObserver = new ResizeObserver(() => {
+    //     requestAnimationFrame(() => {
+    //         messageElements.forEach((messageElement, index) => {
+    //             const messageId = `${selectedType}Message${index}-${matchingContainer}`;
+    //             fitPreviewText(messageId);
+    //         });
+    //     });
+    // });
+
+    // resizeObserver.observe(containerDiv);
+
+    // // Observe parent container as well
+    // const parentContainer = containerDiv.closest('.content-container');
+    // if (parentContainer) {
+    //     resizeObserver.observe(parentContainer);
+    // }
+}
+
+function fitPreviewText(messageId) {
+    const messageElement = $(`#${messageId}`);
+    if (!messageElement.length) {
+        console.warn(`Message element not found for ID: ${messageId}`);
+        return;
+    }
+
+    const messageWrapper = messageElement.parent();
+    if (!messageWrapper.length) {
+        console.warn(`Message wrapper not found for ID: ${messageId}`);
+        return;
+    }
+    console.log("messageWrapper: ", messageWrapper);
+
+    try {
+        messageWrapper.textfill({
+            maxFontPixels: -1,
+            minFontPixels: 8,
+            widthOnly: false,
+            explicitWidth: messageWrapper.width(),
+            explicitHeight: messageWrapper.height(),
+            changeLineHeight: true,
+            innerTag: 'p'
+        });
+    } catch (error) {
+        console.error(`Error fitting text for ${messageId}:`, error);
+    }
+}
+
 function generateNewFeaturePreviewContent(contentBody) {
     let previewHTML = '';
     
-    // Get all Quill editor containers
-    const quillEditors = document.querySelectorAll('.quill-editor-container-newfeature');
-    
-    // Iterate through each Quill editor
-    quillEditors.forEach(editorContainer => {
-        const editorId = editorContainer.id.replace('quillEditorContainer_', '');
-        const content = contentBody[editorId];
-        
-        // Only add content if it exists and isn't empty
-        if (content && content !== '<p><br></p>') {
-            previewHTML += content;
-        }
-    });
+    // Check for all Quill editors
+    const quillEditors = document.querySelectorAll('.quill-editor-container-newfeature .ql-container');
+    const hasQuillEditor = quillEditors.length > 0;
 
-    // Add media content if it exists
-    const mediaInput = document.querySelector('input[type="file"]');
-    if (mediaInput && mediaInput.files.length > 0) {
-        const file = mediaInput.files[0];
-        const fileURL = URL.createObjectURL(file);
-        const fileType = file.type.split('/')[0]; // 'image' or 'video'
-        if (fileType === 'image') {
-            previewHTML += `<img src="${fileURL}" style="max-width: 100%; height: auto; display: block; margin: 10px auto;">`;
-        } else if (fileType === 'video') {
-            previewHTML += `
-                <video controls style="max-width: 100%; height: auto; display: block; margin: 10px auto;">
-                    <source src="${fileURL}" type="${file.type}">
-                    Your browser does not support the video tag.
-                </video>`;
-        }
+    // Generate content for all Quill editors if they exist
+    if (hasQuillEditor) {
+        quillEditors.forEach((quillEditor, index) => {
+            const editor = Quill.find(quillEditor);
+            const content = editor.root.innerHTML;
+            
+            if (content && content !== '<p><br></p>') {
+                previewHTML += `
+                    <div class="message-wrapper">
+                        <div class="main-message" style="margin: 0; word-break: break-word;">
+                            ${content}
+                        </div>
+                    </div>`;
+            }
+        });
     }
 
     return previewHTML;

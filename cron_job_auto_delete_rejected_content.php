@@ -54,23 +54,8 @@ try {
             $stmt->execute([$item["{$type}_author_id"]]);
             $author = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Check for media files to delete
-            if ($type === 'facility') {
-                // Handle facility images
-                if (!empty($item['facility_images_array'])) {
-                    $mediaFolder = "facility_media";
-                    $imageNames = array_map('trim', explode(',', $item['facility_images_array']));
-                    
-                    foreach ($imageNames as $imageName) {
-                        $fullPath = "/var/www/smart-tv-cms/{$mediaFolder}/{$imageName}";
-                        if (file_exists($fullPath)) {
-                            unlink($fullPath);
-                            logMessage("Deleted facility image: {$fullPath}");
-                        }
-                    }
-                }
-            } else {
-                // Check if media_path column exists
+            // Check if media_path column exists
+            try {
                 $stmt = $pdo->prepare("
                     SELECT COUNT(*) as column_exists 
                     FROM information_schema.COLUMNS 
@@ -92,8 +77,10 @@ try {
                         }
                     }
                 }
+            } catch (PDOException $e) {
+                logMessage("Warning: Error checking media_path column for $tableName: " . $e->getMessage());
             }
-
+            
             // Delete the record from database
             $stmt = $pdo->prepare("DELETE FROM $tableName WHERE {$type}_id = ?");
             $stmt->execute([$item["{$type}_id"]]);

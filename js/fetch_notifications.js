@@ -933,6 +933,43 @@ function createNotificationDiv(notification) {
         `;
     }
 
+    if (notification.notification_type === 'rejected_content_deleted_by_system' && notification.status == 'deleted' && notification.user_id == user_id && notification.evaluator_name == "System") {
+        notificationDiv.classList.add('deleted-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">Your rejected ${notification.content_type} has been permanently deleted by the System.</p>
+                <p class="evaluator-message-notification">System-generated Message: "${notification.evaluator_message}"</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
+
+    if (notification.notification_type === 'pending_content_deleted_by_system' && notification.status == 'deleted' && notification.user_id == user_id && notification.evaluator_name == "System") {
+        notificationDiv.classList.add('deleted-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">Your pending ${notification.content_type} has been permanently deleted by the System.</p>
+                <p class="evaluator-message-notification">System-generated Message: "${notification.evaluator_message}"</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
+
+    if (notification.notification_type === 'trash_content_deleted_by_system' && notification.status == 'deleted' && notification.user_id == user_id && notification.evaluator_name == "System") {
+        notificationDiv.classList.add('deleted-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">Your ${notification.content_type} in Trash has been permanently deleted by the System.</p>
+                <p class="evaluator-message-notification">System-generated Message: "${notification.evaluator_message}"</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
+    
+    
+    
+    
+    
     if (notification.notification_type === 'content_archived' && notification.status == 'archived' && notification.user_id == user_id) {
         if (notification.action_user_name == full_name && notification.evaluator_name == full_name) {
             notificationDiv.classList.add('archived-notification');
