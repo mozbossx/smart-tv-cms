@@ -288,7 +288,7 @@ if (isset($_POST['submit'])) {
                         
                         <div class="form-field">
                             <i class="bi bi-lock"></i>
-                            <input type="password" name="password" required placeholder="Password" value="<?php echo $password; ?>">
+                            <input type="password" name="password" required placeholder="Password" value="<?php echo $password; ?>" minlength="6">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="togglePasswordVisible"></i>
                             </span>

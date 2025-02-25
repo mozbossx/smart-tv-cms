@@ -302,14 +302,14 @@ if (isset($_POST["submit"])) {
                     <div class="form-fields">
                         <div class="form-field">
                             <i class="bi bi-lock"></i>
-                            <input type="password" name="new_password" required placeholder="Password" value="<?php echo $new_password; ?>">
+                            <input type="password" name="new_password" required placeholder="Password" value="<?php echo $new_password; ?>" minlength="6">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="togglePasswordVisible"></i>
                             </span>
                         </div>
                         <div class="form-field">
                             <i class="bi bi-lock"></i>
-                            <input type="password" name="confirm_new_password" required placeholder="Confirm Password" value="<?php echo $confirm_new_password; ?>">
+                            <input type="password" name="confirm_new_password" required placeholder="Confirm Password" value="<?php echo $confirm_new_password; ?>" minlength="6">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="toggleConfirmPassword"></i>
                             </span>

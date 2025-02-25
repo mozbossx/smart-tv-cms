@@ -390,7 +390,7 @@ if (isset($_POST["submit"])) {
 
                         <div class="form-field">
                             <i class="bi bi-lock"></i>
-                            <input type="password" name="password" required placeholder="Password" id="passwordInput">
+                            <input type="password" name="password" required placeholder="Password" id="passwordInput" minlength="6">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="togglePasswordVisible"></i>
                             </span>
@@ -398,7 +398,7 @@ if (isset($_POST["submit"])) {
 
                         <div class="form-field">
                             <i class="bi bi-lock"></i>
-                            <input type="password" name="confirmpassword" required placeholder="Confirm Password" id="confirmPasswordInput">
+                            <input type="password" name="confirmpassword" required placeholder="Confirm Password" id="confirmPasswordInput" minlength="6">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="toggleConfirmPassword"></i>
                             </span>
