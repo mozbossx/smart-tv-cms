@@ -1580,6 +1580,10 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     align-items: center;
     text-align: center;
     user-select: none;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    box-sizing: border-box;
+    background: #f4f4f4;
 }
 
 .main-container{

@@ -81,46 +81,251 @@ if (isset($_POST["submit"])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="style.css">
     <link href='https://fonts.googleapis.com/css?family=Libre Baskerville' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+    <style>
+        .forgot-password-page {
+            min-height: 100vh;
+            background-image: url("images/usc.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Roboto Flex', sans-serif;
+        }
+
+        .forgot-password-wrapper {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .school-logos {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .school-logo {
+            height: 80px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .school-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .forgot-password-heading {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .forgot-password-subheading {
+            color: #666;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .form-field {
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 50px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 1;
+            /* Add these to ensure it doesn't expand */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password i {
+            font-style: normal;
+        }
+
+        .form-field input[type="password"] {
+            padding-right: 40px;
+        }
+
+        .form-field i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .form-field input, .form-field select {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-field input:focus, .form-field select:focus {
+            border-color: #264b2b;
+            outline: none;
+        }
+
+        .form-field select {
+            background-color: white;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        #togglePasswordVisible {
+            cursor: pointer;
+            font-style: normal;
+        }
+
+        .password-reset {
+            text-align: right;
+            margin-bottom: 1.5rem;
+        }
+
+        .password-reset a {
+            color: #264b2b;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password-button-2 {
+            width: 100%;
+            padding: 1rem;
+            background: #264b2b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .forgot-password-button-2:hover {
+            background: #264b2b;
+        }
+
+        .forgot-password-link {
+            text-align: center;
+            margin-top: 1.4rem;
+            color: #666;
+        }
+
+        .forgot-password-link a {
+            color: #264b2b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-password-link a:hover {
+            text-decoration: underline;
+        }
+
+        .forgot-password-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        .login-link {
+            margin-top: 1.4rem;
+            text-align: center;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #264b2b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {            
+            .school-logo {
+                height: 60px;
+            }
+
+            .school-logos {
+                margin-bottom: 0.5rem;
+            }
+            
+            .forgot-password-heading {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
-<body class="main-body">
-<div class="container-body">
-        <div class="container-flex top">
-            <div class="logo-flex">
-                <div class="left">
-                    <img src="images/usc_icon.png" class="usc-logo">
-                </div>
-                <div class="right">
-                    <img src="images/soe_icon.png" class="soe-logo">
-                </div>
-            </div>
-        </div>
-        <div class="container-flex bottom">
-            <form action="enter_new_forgot_password.php" method="post">
-                <p class="page-title">Reset Password</p>
+<body class="forgot-password-page">
+    <div class="forgot-password-container">
+        <div class="forgot-password-wrapper">            
+            <div class="forgot-password-form-container">
+                <h1 class="forgot-password-heading">Reset Password</h1>
+                <p class="forgot-password-subheading">Please enter your new password.</p>
                 <?php include('error_message.php'); ?>
-                <div class="floating-label-container">
-                    <input type="password" name="new_password" placeholder=" " class="floating-label-input" required value="<?php echo $new_password; ?>">
-                    <label for="new_password" class="floating-label">New Password</label>
-                    <i id="togglePassword">Show</i>
-                </div>
-                <div class="floating-label-container">
-                    <input type="password" name="confirm_new_password" placeholder=" " class="floating-label-input" required value="<?php echo $confirm_new_password; ?>">
-                    <label for="confirm_new_password" class="floating-label">Confirm New Password</label>
-                    <i id="toggleConfirmPassword">Show</i>
-                </div>
-                <div class="line-separator"></div>
-                <div class="button-flex">
-                    <div class="left-side-button">
-                        <button type="button" id="cancelButton" class="cancel-button-2" style="height: 100%;">Cancel</button>
+                <form action="" method="post">
+                    <div class="form-fields">
+                        <div class="form-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" name="new_password" required placeholder="Password" value="<?php echo $new_password; ?>">
+                            <span class="toggle-password">
+                                <i class="bi bi-eye-slash" id="togglePasswordVisible"></i>
+                            </span>
+                        </div>
+                        <div class="form-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" name="confirm_new_password" required placeholder="Confirm Password" value="<?php echo $confirm_new_password; ?>">
+                            <span class="toggle-password">
+                                <i class="bi bi-eye-slash" id="toggleConfirmPassword"></i>
+                            </span>
+                        </div>
                     </div>
-                    <div class="right-side-button">
-                        <button type="submit" name="submit" value="Reset Password" class="create-account-button">Reset Password</button>
+                    
+                    <div class="button-flex">
+                        <div class="left-side-button">
+                            <button type="button" id="cancelButton" class="cancel-button-2" style="height: 100%;">Cancel</button>
+                        </div>
+                        <div class="right-side-button">
+                            <button type="submit" name="submit" value="Reset Password" class="create-account-button">Reset Password</button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
     <!-- Reset Password Successful Modal -->
@@ -152,7 +357,7 @@ if (isset($_POST["submit"])) {
     </div>
     <script>
         // JavaScript to toggle password visibility and show/hide labels
-        const togglePassword = document.querySelector("#togglePassword");
+        const togglePasswordVisible = document.querySelector("#togglePasswordVisible");
         const toggleConfirmPassword = document.querySelector("#toggleConfirmPassword");
         const newPassword = document.querySelector("[name='new_password']");
         const newConfirmPassword = document.querySelector("[name='confirm_new_password']");
@@ -160,20 +365,18 @@ if (isset($_POST["submit"])) {
         const closeConfirmCancelModal = document.getElementById("closeConfirmCancelModal");
         const confirmCancelModal = document.getElementById("confirmCancelModal");
 
-        togglePassword.addEventListener("click", function () {
-            // Toggle the type attribute
+        togglePasswordVisible.addEventListener("click", function () {
             const type = newPassword.getAttribute("type") === "password" ? "text" : "password";
             newPassword.setAttribute("type", type);
-            // Toggle the text of the toggle button
-            this.textContent = type === "password" ? "Show" : "Hide";
+            this.classList.toggle("bi-eye");
+            this.classList.toggle("bi-eye-slash");
         });
 
         toggleConfirmPassword.addEventListener("click", function () {
-            // Toggle the type attribute
             const type = newConfirmPassword.getAttribute("type") === "password" ? "text" : "password";
             newConfirmPassword.setAttribute("type", type);
-            // Toggle the text of the toggle button
-            this.textContent = type === "password" ? "Show" : "Hide";
+            this.classList.toggle("bi-eye");
+            this.classList.toggle("bi-eye-slash");
         });
 
         cancelButton.addEventListener("click", function () {

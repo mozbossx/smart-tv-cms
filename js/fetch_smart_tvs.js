@@ -206,17 +206,19 @@ const populateEditSmartTVModal = (tvId) => {
                     <label for="edit_tv_brand" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">TV Brand</label>
                 </div>
                 <div class="floating-label-container">
-                    <select name="tv_department" id="edit_tv_department" class="floating-label-input">
-                        <option value="">~</option>
-                        <option value="COMPUTER ENGINEERING">Computer Engineering</option>
-                        <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
-                        <option value="CIVIL ENGINEERING">Civil Engineering</option>
-                        <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
-                        <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
-                        <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
-                        <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
-                    </select>
-                    <label for="edit_tv_department" class="floating-label">Department</label>
+                    <div class="floating-label-container" style="height: 55.18px; margin-top: 3px">
+                        <select name="tv_department" id="edit_tv_department" class="floating-label-input-text-area" style="height: 100%; background: #FFFF;">
+                            <option value="">~</option>
+                            <option value="COMPUTER ENGINEERING">Computer Engineering</option>
+                            <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
+                            <option value="CIVIL ENGINEERING">Civil Engineering</option>
+                            <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
+                            <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
+                            <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
+                            <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
+                        </select>
+                        <label for="edit_tv_department" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Department</label>
+                    </div>
                 </div>
                 <br>
                 <div style="text-align: right;">

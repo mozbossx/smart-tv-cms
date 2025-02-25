@@ -18,12 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'usc.smarttvcms@gmail.com'; // Your Gmail address
-        $mail->Password = 'nrul yhwc mmrk hwdp'; // Your Gmail app password
+        $mail->Username = 'usccms.tv@gmail.com'; // Your Gmail address
+        $mail->Password = 'dcxp gucw kflt dxkj'; // Your Gmail app password
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
-        $mail->setFrom('usc.smarttvcms@gmail.com', 'USC CMS');
+        $mail->setFrom('usccms.tv@gmail.com', 'USC CMS');
         $mail->addAddress($email);
 
         $mail->isHTML(true);

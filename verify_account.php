@@ -47,36 +47,232 @@ if (isset($_SESSION['mail'])) {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-    </style>
+
+        .verify-account-page {
+            min-height: 100vh;
+            background-image: url("images/usc.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Roboto Flex', sans-serif;
+        }
+
+        .verify-account-wrapper {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .school-logos {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .school-logo {
+            height: 80px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .school-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .verify-account-heading {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .verify-account-subheading {
+            color: #666;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .form-field {
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 50px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 1;
+            /* Add these to ensure it doesn't expand */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password i {
+            font-style: normal;
+        }
+
+        .form-field input[type="password"] {
+            padding-right: 40px;
+        }
+
+        .form-field i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .form-field input, .form-field select {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-field input:focus, .form-field select:focus {
+            border-color: #264b2b;
+            outline: none;
+        }
+
+        .form-field select {
+            background-color: white;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        #togglePasswordVisibleVisible {
+            cursor: pointer;
+            font-style: normal;
+        }
+
+        .password-reset {
+            text-align: right;
+            margin-bottom: 1.5rem;
+        }
+
+        .password-reset a {
+            color: #264b2b;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .verify-account-button-2 {
+            width: 100%;
+            padding: 1rem;
+            background: #264b2b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .verify-account-button-2:hover {
+            background: #264b2b;
+        }
+
+        .verify-account-link {
+            text-align: center;
+            margin-top: 1.4rem;
+            color: #666;
+        }
+
+        .verify-account-link a {
+            color: #264b2b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .verify-account-link a:hover {
+            text-decoration: underline;
+        }
+
+        .verify-account-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        .login-link {
+            margin-top: 1.4rem;
+            text-align: center;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #264b2b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {            
+            .school-logo {
+                height: 60px;
+            }
+
+            .school-logos {
+                margin-bottom: 0.5rem;
+            }
+            
+            .verify-account-heading {
+                font-size: 1.5rem;
+            }
+        }
+    </style>        
 </head>
-<body class="main-body">
-    <div class="container-body">
-        <div class="container-flex top">
-            <div class="logo-flex">
-                <div class="left">
-                    <img src="images/usc_icon.png" class="usc-logo">
-                </div>
-                <div class="right">
-                    <img src="images/soe_icon.png" class="soe-logo">
-                </div>
-            </div>
-        </div>
-        <div class="container-flex bottom">
-            <form method="post" id="pendingUserForm">
-                <p class="page-title">Email Verification</p>
-                <?php include('error_message.php'); ?>
-                <p style="text-align: center; user-select: none">Please enter the 6-digit code we sent via your USC email:</p>
-                <br>
+<body class="verify-account-page">
+    <div class="verify-account-container">
+        <div class="verify-account-wrapper">
+            <div class="verify-account-form-container">
+                <h1 class="verify-account-heading">Email Verification</h1>
+                <p class="verify-account-subheading">Please enter the 6-digit code we sent via your USC email:</p>
                 <p class="display-email"><?php echo $email; ?></p>
-                <br>
-                <p style="text-align: center; user-select: none">We want to make sure it is a valid USC email</p>
-                <div class="floating-label-container">
-                    <input type="text" maxlength="6" name="otp_code" required placeholder=" " class="floating-label-input" pattern="\d{6}">
-                    <label for="otp_code" class="floating-label">6-digit OTP Code</label>
-                </div>
-                <div class="line-separator"></div>
-                <input type="submit" name="submit" value="Submit Code" class="login-button">
-            </form>
+                <p style="text-align: center; user-select: none; margin-bottom: 10px">We want to make sure it is a valid USC email</p>
+                <?php include('error_message.php'); ?>
+                <form action="" method="post" id="verifyEmailForm">
+                    <div class="form-fields" style="margin-bottom: 0">
+                        <div class="form-field">
+                            <i class="bi bi-hash"></i>
+                            <input type="text" maxlength="6" name="otp_code" 
+                                   required placeholder="6-digit OTP Code" pattern="\d{6}">
+                        </div>
+                        <input type="submit" name="submit" value="Submit Code" class="login-button">
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     <div id="successMessageVerificationModal" class="modal">
@@ -122,9 +318,10 @@ if (isset($_SESSION['mail'])) {
             <div class="loader"></div>
         </div>
     </div>
+    
     <script>
         // Handle form submission via WebSocket
-        const form = document.getElementById('pendingUserForm');
+        const form = document.getElementById('verifyEmailForm');
         let ws = null;
 
         function connectWebSocket() {
@@ -133,11 +330,11 @@ if (isset($_SESSION['mail'])) {
             // Determine if we're in localhost or production
             const isLocalhost = window.location.hostname === 'localhost' || 
                             window.location.hostname === '127.0.0.1' ||
-                            window.location.hostname === '192.168.1.19';
+                            window.location.hostname === '192.168.1.21';
             
             // Choose WebSocket URL based on environment
             const wsUrl = isLocalhost 
-                ? 'ws://192.168.1.19:8081?email=<?php echo urlencode($email); ?>'
+                ? 'ws://192.168.1.21:8081?email=<?php echo urlencode($email); ?>'
                 : 'wss://usccms.online/ws?email=<?php echo urlencode($email); ?>';
 
             const newWs = new WebSocket(wsUrl);

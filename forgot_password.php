@@ -36,8 +36,8 @@ if (isset($_POST["submit"])) {
         $_SESSION['reset_token'] = $token;
         $_SESSION['reset_email'] = $email;
 
-        if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.14') {
-            $passwordResetLink = "http://192.168.1.14:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
+        if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.21') {
+            $passwordResetLink = "http://192.168.1.21:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
         } else {
             $passwordResetLink = "https://usccms.online/enter_new_forgot_password.php?token=$token";
         }
@@ -52,14 +52,13 @@ if (isset($_POST["submit"])) {
         $mail->SMTPAuth = true;
         $mail->SMTPSecure = 'tls';
 
-        $mail->Username = 'usc.smarttvcms@gmail.com';   // Email to be used for sending OTP Code
-        $mail->Password = 'nrul yhwc mmrk hwdp';        // Password of the email (app password) yqph bmcj lztu djuf
+        $mail->Username = 'usccms.tv@gmail.com';   // Email to be used for sending OTP Code
+        $mail->Password = 'dcxp gucw kflt dxkj';   // Password of the email (app password) dcxp gucw kflt dxkj
 
         // send by h-hotel email
-        $mail->setFrom('usc.smarttvcms@gmail.com', 'Password Reset');
+        $mail->setFrom('usccms.tv@gmail.com', 'Password Reset');
         // get email from input
         $mail->addAddress($_POST["email"]);
-        //$mail->addReplyTo('mozarcompany@gmail.com');
 
         // HTML body
         $mail->isHTML(true);
@@ -94,37 +93,238 @@ if (isset($_POST["submit"])) {
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <title>Forgot Password</title>
+    <style>
+        .forgot-password-page {
+            min-height: 100vh;
+            background-image: url("images/usc.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Roboto Flex', sans-serif;
+        }
+
+        .forgot-password-wrapper {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .school-logos {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .school-logo {
+            height: 80px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .school-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .forgot-password-heading {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .forgot-password-subheading {
+            color: #666;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .form-field {
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 50px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 1;
+            /* Add these to ensure it doesn't expand */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password i {
+            font-style: normal;
+        }
+
+        .form-field input[type="password"] {
+            padding-right: 40px;
+        }
+
+        .form-field i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .form-field input, .form-field select {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-field input:focus, .form-field select:focus {
+            border-color: #264b2b;
+            outline: none;
+        }
+
+        .form-field select {
+            background-color: white;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        #togglePasswordVisibleVisible {
+            cursor: pointer;
+            font-style: normal;
+        }
+
+        .password-reset {
+            text-align: right;
+            margin-bottom: 1.5rem;
+        }
+
+        .password-reset a {
+            color: #264b2b;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password-button-2 {
+            width: 100%;
+            padding: 1rem;
+            background: #264b2b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .forgot-password-button-2:hover {
+            background: #264b2b;
+        }
+
+        .forgot-password-link {
+            text-align: center;
+            margin-top: 1.4rem;
+            color: #666;
+        }
+
+        .forgot-password-link a {
+            color: #264b2b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-password-link a:hover {
+            text-decoration: underline;
+        }
+
+        .forgot-password-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        .login-link {
+            margin-top: 1.4rem;
+            text-align: center;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #264b2b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {            
+            .school-logo {
+                height: 60px;
+            }
+
+            .school-logos {
+                margin-bottom: 0.5rem;
+            }
+            
+            .forgot-password-heading {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
-<body class="main-body">
-    <div class="container-body">
-        <div class="container-flex top">
-            <div class="logo-flex">
-                <div class="left">
-                    <img src="images/usc_icon.png" class="usc-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
-                </div>
-                <div class="right">
-                    <img src="images/soe_icon.png" class="soe-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
-                </div>
-            </div>
-        </div>
-        <div class="container-flex bottom">
-            <form action="" method="post">
-                <p class="page-title">Forgot Password</p>
+<body class="forgot-password-page">
+    <div class="forgot-password-container">
+        <div class="forgot-password-wrapper">            
+            <div class="forgot-password-form-container">
+                <h1 class="forgot-password-heading">Forgot Password</h1>
+                <p class="forgot-password-subheading">Please fill your USC email and we'll send you a link to recover your password.</p>
                 <?php include('error_message.php'); ?>
-                <div class="floating-label-container">
-                    <input type="email" name="email" required placeholder=" " class="floating-label-input" value="<?php echo $email; ?>">
-                    <label for="email" class="floating-label">USC Email</label>
-                </div>
-                <div class="line-separator"></div>
-                <div class="button-flex">
-                    <div class="left-side-button">
-                        <a href="login.php?pageid=Login" class="cancel-button-2">Cancel</a>
+                <form action="" method="post">
+                    <div class="form-fields">
+                        <div class="form-field">
+                            <i class="bi bi-envelope"></i>
+                            <input type="email" name="email" value="<?php echo $email; ?>" 
+                                   required placeholder="USC Email" id="emailInput">
+                        </div>
                     </div>
-                    <div class="right-side-button">
-                        <input type="submit" name="submit" value="Search USC Email Address" class="create-account-button">
+                    
+                    <div class="button-flex">
+                        <div class="left-side-button">
+                            <a href="login.php?pageid=Login" class="cancel-button-2">Cancel</a>
+                        </div>
+                        <div class="right-side-button">
+                            <input type="submit" name="submit" value="Confirm" class="create-account-button">
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 </body>

@@ -28,16 +28,18 @@ $displayInterval = $displayTimeRange['display_interval'];
 ?>
 
 <div class="form-column" style="flex: 1">
-    <div class="floating-label-container" style="flex: 1">
-        <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
-            <option value="">Select Display Time</option>
-            <?php for($i = $minTime; $i <= $maxTime; $i+=$displayInterval): ?>
-                <option value="<?php echo $i; ?>" <?php echo ($displayTime == $i) ? 'selected' : ''; ?>>
-                    <?php echo $i; ?> seconds
-                </option>
-            <?php endfor; ?>
-        </select>
-        <label for="display_time" class="floating-label">Display Time (seconds)</label>
+    <div class="floating-label-container" style="flex: 1; margin-top: 3px">
+        <div class="floating-label-container" style="height: 55.18px; margin-top: 3px">
+            <select name="display_time" id="display_time" style="height: 100%; background: #FFFF; padding-left: 8px" class="floating-label-input-text-area" required>
+                <option value="">Select Display Time</option>
+                <?php for($i = $minTime; $i <= $maxTime; $i+=$displayInterval): ?>
+                    <option value="<?php echo $i; ?>" <?php echo ($displayTime == $i) ? 'selected' : ''; ?>>
+                        <?php echo $i; ?> seconds
+                    </option>
+                <?php endfor; ?>
+            </select>
+            <label for="display_time" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Display Time (seconds)</label>
+        </div>
     </div>
     <div class="form-column" style="flex: 1">
         <div class="floating-label-container" style="flex: 1">

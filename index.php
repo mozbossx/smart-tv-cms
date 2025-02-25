@@ -35,18 +35,17 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
             <a href="login.php?pageid=Login" class="nav-button login-btn">Login</a>
             <a href="create_account.php?pageid=CreateAccount" class="nav-button create-account-btn">Create Account</a>
         </div>
-        <div class="hero-content">
-            <div style="display: flex; flex-direction: row">
-                <img src="images/usc_icon.png" class="usc-logo">
-                <img src="images/soe_icon.png" class="soe-logo">
-            </div>
-            
+        <div class="hero-content">           
             <h1 class="hero-title"><?php echo htmlspecialchars($welcomeMessage); ?></h1>
             <p class="hero-subtitle"><?php echo htmlspecialchars($subheading); ?></p>
         </div>
     </section>
 
     <section class="features-section">
+        <div style="display: flex; flex-direction: row; justify-content: center; margin-bottom: 15px">
+            <img src="images/usc_icon.png" class="usc-logo">
+            <img src="images/soe_icon.png" class="soe-logo">
+        </div>
         <h2 class="section-title">Key Features</h2>
         <div class="features-grid">
             <div class="feature-card">

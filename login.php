@@ -82,61 +82,242 @@ if (isset($_POST['submit'])) {
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <title>Login</title>
+    <style>
+        .login-page {
+            min-height: 100vh;
+            background-image: url("images/usc.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Roboto Flex', sans-serif;
+        }
+
+        .login-wrapper {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .school-logos {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .school-logo {
+            height: 50px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .school-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .login-heading {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .login-subheading {
+            color: #666;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            margin-bottom: 5px;
+        }
+
+        .form-field {
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 50px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 1;
+            /* Add these to ensure it doesn't expand */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password i {
+            font-style: normal;
+        }
+
+        .form-field input[type="password"] {
+            padding-right: 40px;
+        }
+
+        .form-field i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .form-field input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-field input:focus {
+            border-color: #264b2b;
+            outline: none;
+        }
+
+        #togglePasswordVisible {
+            cursor: pointer;
+            font-style: normal;
+        }
+
+        .password-reset {
+            text-align: right;
+            margin-bottom: 1.5rem;
+        }
+
+        .password-reset a {
+            color: #264b2b;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .login-button-2 {
+            width: 100%;
+            padding: 1rem;
+            background: #264b2b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-button-2:hover {
+            background: #264b2b;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 1.4rem;
+            color: #666;
+        }
+
+        .signup-link a {
+            color: #264b2b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 480px) {            
+            .school-logo {
+                height: 60px;
+            }
+
+            .school-logos {
+                margin-bottom: 0.5rem;
+            }
+            
+            .login-heading {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
-<body class="main-body">
-    <div class="container-body">
-        <div class="container-flex top">
-            <div class="logo-flex">
-                <div class="left">
-                    <img src="images/usc_icon.png" class="usc-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
-                </div>
-                <div class="right">
-                    <img src="images/soe_icon.png" class="soe-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
-                </div>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-wrapper">
+            <div class="school-logos">
+                <img src="images/usc_icon.png" class="school-logo" onclick="window.location.href='index.php'" alt="USC Logo">
+                <img src="images/soe_icon.png" class="school-logo" onclick="window.location.href='index.php'" alt="SOE Logo">
             </div>
-        </div>
-        <div class="container-flex bottom">
-            <form action="" method="post">
-                <p class="page-title">Sign In</p>
+            
+            <div class="login-form-container">
+                <h1 class="login-heading">Smart TV Content Management System</h1>
+                <p class="login-subheading">Please sign in to continue</p>
+                
                 <?php include('error_message.php'); ?>
-                <div class="floating-label-container">
-                    <input type="email" name="email" required placeholder=" " class="floating-label-input" value="<?php echo $email; ?>">
-                    <label for="email" class="floating-label">USC Email</label>
-                </div>
-                <div class="floating-label-container">
-                    <input type="password" name="password" required placeholder=" " class="floating-label-input" value="<?php echo $password; ?>">
-                    <label for="password" class="floating-label">Password</label>
-                    <i id="togglePassword">Show</i>
-                </div>
-                <p style="text-align: right; margin-top: 5px;">
-                    <a href="forgot_password.php?pageid=ForgotPassword" class="forgot-password">Forgot password?</a>
-                </p>
-                <br>
-                <input type="submit" name="submit" value="Login" class=login-button>
-                <div class="line-separator"></div>
-                <p style="text-align: center; user-select: none">Not a member? <a href="create_account.php?pageid=CreateAccount" class="create-account-link">Create Account</a></p>
-            </form>
+                
+                <form action="" method="post">
+                    <div class="form-fields">
+                        <div class="form-field">
+                            <i class="bi bi-envelope"></i>
+                            <input type="email" name="email" required placeholder="USC Email" value="<?php echo $email; ?>">
+                        </div>
+                        
+                        <div class="form-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" name="password" required placeholder="Password" value="<?php echo $password; ?>">
+                            <span class="toggle-password">
+                                <i class="bi bi-eye-slash" id="togglePasswordVisible"></i>
+                            </span>
+                        </div>
+                        
+                        
+                    </div>
+                    <div class="password-reset">
+                        <a href="forgot_password.php?pageid=ForgotPassword">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" name="submit" class="login-button-2">Sign In</button>
+                    
+                    <div class="signup-link">
+                        <p>Not a member? <a href="create_account.php?pageid=CreateAccount">Create Account</a></p>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     <script>
-        // JavaScript to toggle password visibility and show/hide labels
-        const togglePassword = document.querySelector("#togglePassword");
+        const togglePasswordVisible = document.querySelector("#togglePasswordVisible");
         const password = document.querySelector("[name='password']");
-        const floatingInput = document.querySelector(".floating-label-input");
 
-        togglePassword.addEventListener("click", function () {
-            // Toggle the type attribute
+        togglePasswordVisible.addEventListener("click", function () {
             const type = password.getAttribute("type") === "password" ? "text" : "password";
             password.setAttribute("type", type);
-            // Toggle the text of the toggle button
-            this.textContent = type === "password" ? "Show" : "Hide";
-        });
-
-        floatingInput.addEventListener("input", function () {
-            // Trigger the focus event when the input value is not empty
-            if (this.value.trim() !== "") {
-                this.focus();
-            }
+            this.classList.toggle("bi-eye");
+            this.classList.toggle("bi-eye-slash");
         });
     </script>
 

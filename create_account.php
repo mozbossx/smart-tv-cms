@@ -89,10 +89,10 @@ if (isset($_POST["submit"])) {
                     $mail->SMTPAuth = true;
                     $mail->SMTPSecure = 'tls';
 
-                    $mail->Username = 'usc.smarttvcms@gmail.com'; // Email to be used for sending OTP Code
-                    $mail->Password = 'nrul yhwc mmrk hwdp'; // Password of the email (app password)
+                    $mail->Username = 'usccms.tv@gmail.com'; // Email to be used for sending OTP Code
+                    $mail->Password = 'dcxp gucw kflt dxkj'; // Password of the email (app password)
 
-                    $mail->setFrom('usc.smarttvcms@gmail.com', 'USC CMS');
+                    $mail->setFrom('usccms.tv@gmail.com', 'USC CMS');
                     $mail->addAddress($_POST["email"]);
 
                     $mail->isHTML(true);
@@ -157,73 +157,278 @@ if (isset($_POST["submit"])) {
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        .signup-page {
+            min-height: 100vh;
+            background-image: url("images/usc.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Roboto Flex', sans-serif;
+        }
+
+        .signup-wrapper {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .school-logos {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .school-logo {
+            height: 80px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .school-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .signup-heading {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .signup-subheading {
+            color: #666;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .form-field {
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 50px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 1;
+            /* Add these to ensure it doesn't expand */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password i {
+            font-style: normal;
+        }
+
+        .form-field input[type="password"] {
+            padding-right: 40px;
+        }
+
+        .form-field i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .form-field input, .form-field select {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-field input:focus, .form-field select:focus {
+            border-color: #264b2b;
+            outline: none;
+        }
+
+        .form-field select {
+            background-color: white;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        #togglePasswordVisible {
+            cursor: pointer;
+            font-style: normal;
+        }
+
+        .password-reset {
+            text-align: right;
+            margin-bottom: 1.5rem;
+        }
+
+        .password-reset a {
+            color: #264b2b;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .signup-button-2 {
+            width: 100%;
+            padding: 1rem;
+            background: #264b2b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .signup-button-2:hover {
+            background: #264b2b;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 1.4rem;
+            color: #666;
+        }
+
+        .signup-link a {
+            color: #264b2b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        .signup-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        .login-link {
+            margin-top: 1.4rem;
+            text-align: center;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #264b2b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {            
+            .school-logo {
+                height: 60px;
+            }
+
+            .school-logos {
+                margin-bottom: 0.5rem;
+            }
+            
+            .signup-heading {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
     <title>Create Account</title>
 </head>
-<body class="main-body">
-    
-    <div class="container-body">
-        <div class="container-flex top">
-            <div class="logo-flex">
-                <div class="left">
-                    <img src="images/usc_icon.png" class="usc-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
-                </div>
-                <div class="right">
-                    <img src="images/soe_icon.png" class="soe-logo" onclick="window.location.href='index.php'" style="cursor: pointer;">
-                </div>
+<body class="signup-page">
+    <div class="signup-container">
+        <div class="signup-wrapper">            
+            <div class="signup-form-container">
+                <h1 class="signup-heading">Create Account</h1>
+                <p class="signup-subheading">Please fill in the details below</p>
+                
+                <?php include('error_message.php'); ?>
+                
+                <form action="" method="post">
+                    <div class="form-fields">
+                        <div class="form-field">
+                            <i class="bi bi-person"></i>
+                            <input type="text" name="full_name" value="<?php echo $full_name; ?>" 
+                                   required placeholder="Full Name" oninput="capitalizeWords(this)">
+                        </div>
+
+                        <div class="form-field">
+                            <i class="bi bi-envelope"></i>
+                            <input type="email" name="email" value="<?php echo $email; ?>" 
+                                   required placeholder="USC Email" id="emailInput">
+                        </div>
+
+                        <div class="form-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" name="password" required placeholder="Password" id="passwordInput">
+                            <span class="toggle-password">
+                                <i class="bi bi-eye-slash" id="togglePasswordVisible"></i>
+                            </span>
+                        </div>
+
+                        <div class="form-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" name="confirmpassword" required placeholder="Confirm Password" id="confirmPasswordInput">
+                            <span class="toggle-password">
+                                <i class="bi bi-eye-slash" id="toggleConfirmPassword"></i>
+                            </span>
+                        </div>
+
+                        <div class="form-field">
+                            <i class="bi bi-building"></i>
+                            <select name="department" required style="color: black">
+                                <option value="">Select Department</option>
+                                <option value="COMPUTER ENGINEERING">Computer Engineering</option>
+                                <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
+                                <option value="CIVIL ENGINEERING">Civil Engineering</option>
+                                <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
+                                <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
+                                <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
+                                <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" name="submit" class="signup-button-2">Create Account</button>
+                    
+                    <div class="login-link">
+                        <p>Already have an account? <a href="login.php?pageid=Login">Sign In</a></p>
+                    </div>
+                </form>
             </div>
         </div>
-        <div class="container-flex bottom">
-            <form action="" method="post">
-                <p class="page-title">Create Account</p>
-                <?php include('error_message.php'); ?>
-                <input type="hidden" name="type" value="user">
-                <div class="floating-label-container">
-                    <input type="text" name="full_name" value="<?php echo $full_name; ?>" required placeholder=" " class="floating-label-input" oninput="capitalizeWords(this)">
-                    <label for="full_name" class="floating-label">Full Name</label>
-                </div>
-                <div class="floating-label-container">
-                    <input type="email" name="email" value="<?php echo $email; ?>" required placeholder=" " class="floating-label-input" id="emailInput">
-                    <label for="email" class="floating-label">USC Email</label>
-                    <div class="validator-message" id="emailValidator">Email must be @usc.edu.ph</div>
-                </div>
-                <div class="floating-label-container">
-                    <input type="password" name="password" required placeholder=" " class="floating-label-input" id="passwordInput">
-                    <label for="password" class="floating-label">Password</label>
-                    <i id="togglePassword">Show</i>
-                    <div class="validator-message" id="passwordValidator">Password must be at least 6 characters</div>
-                </div>
-                <div class="floating-label-container">
-                    <input type="password" name="confirmpassword" required placeholder=" " class="floating-label-input" id="confirmPasswordInput">
-                    <label for="confirmpassword" class="floating-label">Confirm Password</label>
-                    <i id="toggleConfirmPassword">Show</i>
-                    <div class="validator-message" id="confirmPasswordValidator">Passwords must match</div>
-                </div>
-                <div class="floating-label-container">
-                    <select name="department" class="floating-label-input" style="height: 48.73px" required>
-                        <option value="">~</option>
-                        <option value="COMPUTER ENGINEERING">Computer Engineering</option>
-                        <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
-                        <option value="CIVIL ENGINEERING">Civil Engineering</option>
-                        <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
-                        <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
-                        <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
-                        <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
-                    </select>
-                    <label for="department" class="floating-label">Department</label>
-                </div>
-                <div class="line-separator"></div>
-                <div class="button-flex">
-                    <div class="left-side-button">
-                        <a href="login.php?pageid=Login" class="cancel-button-2">Cancel</a>
-                    </div>
-                    <div class="right-side-button">
-                        <input type="submit" name="submit" value="Create Account" class="create-account-button">
-                    </div>
-                </div>
-            </form>
-        </div>
-        
     </div>
+
     <div id="createAccountModal" class="modal">
         <div class="modal-content" style="padding: 15px">
             <div class="green-bar-vertical">
@@ -236,27 +441,26 @@ if (isset($_POST["submit"])) {
             </div>
         </div>
     </div>
+
     <script>
         // JavaScript to toggle password visibility and show/hide labels
-        const togglePassword = document.querySelector("#togglePassword");
+        const togglePasswordVisible = document.querySelector("#togglePasswordVisible");
         const toggleConfirmPassword = document.querySelector("#toggleConfirmPassword");
         const password1 = document.querySelector("[name='password']");
         const password2 = document.querySelector("[name='confirmpassword']");
         
-        togglePassword.addEventListener("click", function () {
-            // Toggle the type attribute
+        togglePasswordVisible.addEventListener("click", function () {
             const type = password1.getAttribute("type") === "password" ? "text" : "password";
             password1.setAttribute("type", type);
-            // Toggle the text of the toggle button
-            this.textContent = type === "password" ? "Show" : "Hide";
+            this.classList.toggle("bi-eye");
+            this.classList.toggle("bi-eye-slash");
         });
 
         toggleConfirmPassword.addEventListener("click", function () {
-            // Toggle the type attribute
             const type = password2.getAttribute("type") === "password" ? "text" : "password";
             password2.setAttribute("type", type);
-            // Toggle the text of the toggle button
-            this.textContent = type === "password" ? "Show" : "Hide";
+            this.classList.toggle("bi-eye");
+            this.classList.toggle("bi-eye-slash");
         });
 
         function capitalizeWords(input) {
@@ -265,84 +469,6 @@ if (isset($_POST["submit"])) {
                 return letter.toUpperCase();
             });
         }
-
-        // Email validation
-        const emailInput = document.getElementById('emailInput');
-        const emailValidator = document.getElementById('emailValidator');
-        
-        emailInput.addEventListener('focus', function() {
-            if (this.value.includes('@usc.edu.ph')) {
-                emailValidator.style.display = 'none';
-            } else {
-                emailValidator.style.display = 'block';
-            }
-        });
-        
-        emailInput.addEventListener('input', function() {
-            if (this.value.includes('@usc.edu.ph')) {
-                emailValidator.style.display = 'none';
-            } else {
-                emailValidator.style.display = 'block';
-            }
-        });
-        
-        emailInput.addEventListener('blur', function() {
-            if (this.value.includes('@usc.edu.ph')) {
-                emailValidator.style.display = 'none';
-            }
-        });
-
-        // Password validation
-        const passwordInput = document.getElementById('passwordInput');
-        const passwordValidator = document.getElementById('passwordValidator');
-        
-        passwordInput.addEventListener('focus', function() {
-            if (this.value.length >= 6) {
-                passwordValidator.style.display = 'none';
-            } else {
-                passwordValidator.style.display = 'block';
-            }
-        });
-        
-        passwordInput.addEventListener('input', function() {
-            if (this.value.length >= 6) {
-                passwordValidator.style.display = 'none';
-            } else {
-                passwordValidator.style.display = 'block';
-            }
-        });
-        
-        passwordInput.addEventListener('blur', function() {
-            if (this.value.length >= 6) {
-                passwordValidator.style.display = 'none';
-            }
-        });
-
-        // Confirm Password validation
-        const confirmPasswordInput = document.getElementById('confirmPasswordInput');
-        const confirmPasswordValidator = document.getElementById('confirmPasswordValidator');
-
-        confirmPasswordInput.addEventListener('focus', function() {
-            if (this.value === passwordInput.value) {
-                confirmPasswordValidator.style.display = 'none';
-            } else {
-                confirmPasswordValidator.style.display = 'block';
-            }
-        });
-
-        confirmPasswordInput.addEventListener('input', function() {
-            if (this.value === passwordInput.value) {
-                confirmPasswordValidator.style.display = 'none';
-            } else {
-                confirmPasswordValidator.style.display = 'block';
-            }
-        });
-
-        confirmPasswordInput.addEventListener('blur', function() {
-            if (this.value === passwordInput.value) {
-                confirmPasswordValidator.style.display = 'none';
-            }
-        });
     </script>
 </body>
 </html>
