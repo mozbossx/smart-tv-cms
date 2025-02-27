@@ -313,7 +313,7 @@ form {
     width: 100%;
     box-sizing: border-box;
     margin-top: 5px;
-    background-color: #264b2b; /* Button background color */
+    background-color: #007638; /* Button background color */
     color: white; /* Button text color */
     border-radius: 5px;
     padding: 12px; /* Add padding to the buttons */
@@ -330,7 +330,7 @@ form {
     width: 100%;
     font-size: 16px;
     box-sizing: border-box;
-    background: #264b2b;
+    background: #007638;
     border: none;
     color: white;
     border-radius: 5px;
@@ -343,7 +343,7 @@ form {
 
 .create-account-link, .go-to-home-link {
     text-decoration: none; 
-    color: #264b2b; 
+    color: #007638; 
     user-select: none;
     -moz-user-select: none;
     -webkit-user-drag: none;
@@ -378,7 +378,7 @@ nav a{
     margin-left: 8px;
     margin-bottom: 8px;
     margin-right: 8px;
-    background: #264b2b;
+    background: #007638;
     color: #fff;
     float: right;
     border-radius: 5px;
@@ -401,7 +401,7 @@ nav a{
 .back-button {
     width: 60px;
     box-sizing: border-box;
-    background: #264b2b;
+    background: #007638;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -422,7 +422,7 @@ nav a{
     width: 90px;
     height: 100%;
     box-sizing: border-box;
-    background: #264b2b;
+    background: #007638;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -526,7 +526,7 @@ nav a{
 }
 
 .change-password-button {
-    background: #264B2B;
+    background: #007638;
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 5px;
@@ -601,7 +601,7 @@ nav a{
     color: #fff;
     padding: 8px 16px;
     border-radius: 5px;
-    border: 1px solid #264B2B;
+    border: 1px solid #007638;
     cursor: pointer;
     transition: background-color 0.3s;
     margin-top: 10px;
@@ -672,7 +672,7 @@ nav a{
 .input-container-label{
     top: 0px;
     font-size: 12px;
-    color: #264b2bf0; /* Change color when focused or not empty */
+    color: #007638f0; /* Change color when focused or not empty */
     font-weight: bold;
     border: white;
     margin-bottom: 7px;
@@ -704,13 +704,13 @@ nav a{
     background-color: rgb(238, 238, 238);
     border-radius: 5px;
     padding-right: 30px;
-    outline:#264b2bf0;
+    outline:#007638f0;
     box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
 }
 
 textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, select:focus {
     background: #F2F2F2;
-    border: 1px solid #264b2bf0;
+    border: 1px solid #007638f0;
     border-radius: 15px;
     transition: 0.6s ease;
 }
@@ -797,7 +797,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     background-color: rgb(238, 238, 238);
     border-radius: 5px;
     padding-right: 12px;
-    outline:#264b2bf0;
+    outline:#007638f0;
     resize: none;
     overflow-y: auto;
     transition: border-color 0.3s ease;
@@ -828,7 +828,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .floating-label-input-text-area::-webkit-scrollbar-thumb {
-    background-color: #264B2B; /* Color of the scrollbar thumb */
+    background-color: #007638; /* Color of the scrollbar thumb */
     border-radius: 10px; /* Rounded corners for the scrollbar thumb */
 }
 
@@ -840,7 +840,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 .floating-label-input:not(:placeholder-shown) + .floating-label {
     top: 0px;
     font-size: 12px;
-    color: #264b2bf0; /* Change color when focused or not empty */
+    color: #007638f0; /* Change color when focused or not empty */
     font-weight: bold;
     border-radius: 5px;
     padding-top: 5px;
@@ -851,7 +851,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 .floating-label-input-text-area:not(:placeholder-shown) + .floating-label-text-area {
     top: 0px;
     font-size: 12px;
-    color: #264b2bf0; /* Change color when focused or not empty */
+    color: #007638f0; /* Change color when focused or not empty */
     font-weight: bold;
     border-radius: 5px;
     padding-top: 5px;
@@ -941,7 +941,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 .forgot-password {
     text-decoration: none;
     font-size: 12px;
-    color: #264b2b; 
+    color: #007638; 
     align-items: right;
     justify-content: right;
     text-align: right;
@@ -965,7 +965,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     left: -1000px;
     width: 200px;
     height: 100%;
-    background-color: #264B2B;
+    background-color: #007638;
     backdrop-filter: blur(10px);
 }
 
@@ -1041,7 +1041,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 #menu {
-	background: #264B2B;
+	background: #007638;
 	height: 65px;
 	padding-left: 5px;
 	border-radius: 10px;
@@ -1289,7 +1289,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 .node-image {
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid #264B2B;
+    border: 1px solid #007638;
     flex-shrink: 0;
 }
 
@@ -1480,7 +1480,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     margin-left: auto; /* Push other links to the left */
     /* margin-right: 37px; */
     padding-left: 20px;
-    background: #264B2B;
+    background: #007638;
     border-top: 5px solid #F8C021;
     user-select: none;
     -moz-user-select: none;
@@ -1632,7 +1632,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     flex-grow: 1;
     overflow-y: auto; /* Add vertical scroll if content overflows */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    /* background-color: #264B2B; */
+    /* background-color: #007638; */
     border-radius: 5px;
     color: #000000;
     text-align: left;
@@ -1798,7 +1798,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     padding-left: 10px;
     padding-top: 5px;
     padding-bottom: 5px;
-    background-color: #264b2b;
+    background-color: #007638;
     color: #fff;
     border: none;
     border-top-left-radius: 5px;
@@ -1995,7 +1995,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     color: #ffffff;
     padding: 8px 16px;
     border-radius: 5px;
-    border: 1px solid #264B2B;
+    border: 1px solid #007638;
     cursor: pointer;
     transition: background-color 0.3s;
     margin-top: 10px;
@@ -2096,7 +2096,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     width: 100%;
     box-sizing: border-box;
     background: #334b353b;
-    color: #264B2B;
+    color: #007638;
     border: none;
     border-radius: 5px;
     padding: 10px;
@@ -2134,7 +2134,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     content: '';
     width: 10px;
     height: 100%;
-    background: linear-gradient(#264B2B, #478b50);
+    background: linear-gradient(#007638, #478b50);
     position: absolute;
     left: -18px;
     top: 2px;
@@ -2573,7 +2573,7 @@ tr:nth-child(even) {
 /* Dropdown Button */
 .dropbtn {
     color: white;
-    background: #264b2b;
+    background: #007638;
     font-size: 16px;
     border: none;
     margin-right: 10px;
@@ -2840,7 +2840,7 @@ tr:nth-child(even) {
 }
 
 .scale-buttons-2 button {
-    background-color: #264B2B;
+    background-color: #007638;
     color: white;
     padding: 5px 10px;
     margin-left: 5px;
@@ -3117,7 +3117,7 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 .floating-menu button {
-    background: #264B2B;
+    background: #007638;
     color: white;
     border: 1px solid #ccc;
     padding: 5px 10px;
@@ -3139,7 +3139,7 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 .user-type-pill {
-    background-color: #264B2B;
+    background-color: #007638;
     color: white;
     padding: 5px 8px;
     border-radius: 12px;
@@ -3574,7 +3574,7 @@ input[type=range]:focus::-ms-fill-upper {
 .topbar {
     height: 7.0vh;
     width: 100%;
-    /* background: #264B2B; */
+    /* background: #007638; */
     display: flex;
     justify-content: space-between;
     align-items: center;

@@ -108,13 +108,17 @@ include 'admin_access_only.php';
                             <div id="departmentSelection" class="floating-label-container" style="display: none">
                                 <select name="department" id="department" class="floating-label-input" style="background: #FFFF; padding-left: 8px">
                                     <option value="">~</option>
-                                    <option value="COMPUTER ENGINEERING">Computer Engineering</option>
-                                    <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
-                                    <option value="CIVIL ENGINEERING">Civil Engineering</option>
-                                    <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
-                                    <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
-                                    <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
-                                    <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
+                                    <?php if ($user_type === 'Super Admin'): ?>
+                                        <option value="COMPUTER ENGINEERING">Computer Engineering</option>
+                                        <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
+                                        <option value="CIVIL ENGINEERING">Civil Engineering</option>
+                                        <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
+                                        <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
+                                        <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
+                                        <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
+                                    <?php else: ?>
+                                        <option value="<?php echo $department; ?>" selected><?php echo $department; ?></option>
+                                    <?php endif; ?>
                                 </select>
                                 <label for="department" class="floating-label">Department</label>
                             </div>

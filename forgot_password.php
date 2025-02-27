@@ -201,7 +201,7 @@ if (isset($_POST["submit"])) {
         }
 
         .form-field input:focus, .form-field select:focus {
-            border-color: #264b2b;
+            border-color: #007638;
             outline: none;
         }
 
@@ -223,7 +223,7 @@ if (isset($_POST["submit"])) {
         }
 
         .password-reset a {
-            color: #264b2b;
+            color: #007638;
             text-decoration: none;
             font-size: 0.9rem;
         }
@@ -231,7 +231,7 @@ if (isset($_POST["submit"])) {
         .forgot-password-button-2 {
             width: 100%;
             padding: 1rem;
-            background: #264b2b;
+            background: #007638;
             color: white;
             border: none;
             border-radius: 10px;
@@ -242,7 +242,7 @@ if (isset($_POST["submit"])) {
         }
 
         .forgot-password-button-2:hover {
-            background: #264b2b;
+            background: #007638;
         }
 
         .forgot-password-link {
@@ -252,7 +252,7 @@ if (isset($_POST["submit"])) {
         }
 
         .forgot-password-link a {
-            color: #264b2b;
+            color: #007638;
             text-decoration: none;
             font-weight: 500;
         }
@@ -275,7 +275,7 @@ if (isset($_POST["submit"])) {
         }
 
         .login-link a {
-            color: #264b2b;
+            color: #007638;
             text-decoration: none;
             font-weight: 500;
         }

@@ -17,7 +17,7 @@ body {
     padding: 16rem 4rem;
     position: relative;
     overflow: hidden;
-    /* border-bottom: 10px solid #00ff87; */
+    border-bottom: 10px solid #fbbf16;
 }
 
 .hero-section::before {
@@ -63,12 +63,12 @@ body {
 }
 
 .create-account-btn {
-    background: #00ff87;
-    color: #1a1a1a;
+    background: #007638;
+    color: #ffff;
 }
 
 .create-account-btn:hover {
-    background: #00cc6a;
+    background: #005d30;
     transform: translateY(-2px);
 }
 
@@ -194,7 +194,7 @@ body {
     font-size: 1.8rem;
     color: #2c3e50;
     margin-bottom: 1rem;
-    border-bottom: 2px solid #00ff87;
+    border-bottom: 2px solid #007638;
     padding-bottom: 0.5rem;
 }
 
@@ -211,7 +211,7 @@ body {
 
 .role-features li::before {
     content: "•";
-    color: #00ff87;
+    color: #007638;
     position: absolute;
     left: 0;
 }
