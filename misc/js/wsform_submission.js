@@ -122,31 +122,35 @@ function submitFormViaWebSocket() {
         data[`${contentType}_id`] = contentIdInput.value;
     }
 
-    // Check for file input
+    // Check for media input with pre-uploaded file
     const mediaInput = document.getElementById('media');
-    if (mediaInput && mediaInput.files.length > 0) {
-        const mediaFile = mediaInput.files[0];
-        const reader = new FileReader();
-        
-        // Update loading message for media upload
-        document.getElementById('loadingMessage').textContent = 'Uploading media file, please wait...';
+    const preUploadedFile = window.getPreUploadedFile ? window.getPreUploadedFile() : window.preUploadedFile;
+    console.log('Debug - Checking media upload:', {
+        hasMediaInput: !!mediaInput,
+        hasFiles: mediaInput?.files?.length > 0,
+        preUploadedFile: preUploadedFile
+    });
 
-        reader.onload = function (e) {
-            const base64Data = e.target.result;
-            formData.set('media', base64Data);
+    if (mediaInput && mediaInput.files.length > 0 && preUploadedFile) {
+        data.preUploadedFile = preUploadedFile;
+        data.originalFileName = mediaInput.files[0].name;
+        data.mediaType = mediaInput.files[0].type;
 
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
+        console.log('Debug - Adding pre-uploaded file to data:', preUploadedFile);
 
-            sendDataToWebSocket(data, loadingModal);
-        };
+        // Add all other form data
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
 
-        reader.readAsDataURL(mediaFile);
+        console.log(data);
+
+        sendDataToWebSocket(data, loadingModal);
     } else {
         formData.forEach((value, key) => {
             data[key] = value;
         });
+        console.log(data);
 
         sendDataToWebSocket(data, loadingModal);
     }

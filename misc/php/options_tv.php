@@ -2,6 +2,8 @@
 // fetch tv data
 $options_tv = '';
 $user_department = $department; // $department is already set from the session
+// Get tvId from URL if it exists
+$urlTvId = isset($_GET['tvId']) ? $_GET['tvId'] : null;
 
 // Check if we're in edit mode
 $isEditMode = isset($_GET['action']) && $_GET['action'] === 'edit';
@@ -34,6 +36,9 @@ while ($row = mysqli_fetch_assoc($result)) {
     // Add pointer-events-none class in edit mode
     $labelStyle = $isEditMode ? 'display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px; pointer-events: none;' : 'display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;';
     $options_tv .= '<label style="' . $labelStyle . '">';
+
+    // Check if this TV should be pre-selected
+    $isPreselected = ($urlTvId && $row['tv_id'] == $urlTvId);
     
     // In edit mode, make the checkbox checked and disabled
     if ($isEditMode) {
@@ -41,7 +46,8 @@ while ($row = mysqli_fetch_assoc($result)) {
         // Add a hidden input to ensure the value is still submitted when the checkbox is disabled
         $options_tv .= '<input type="hidden" name="tv_id[]" value="' . $row['tv_id'] . '">';
     } else {
-        $options_tv .= '<input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '" data-tv-name="' . $row['tv_name'] . '">';
+        // $options_tv .= '<input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '" data-tv-name="' . $row['tv_name'] . '">';
+        $options_tv .= '<input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '" data-tv-name="' . $row['tv_name'] . '"' . ($isPreselected ? ' checked' : '') . '>';
     }
     
     $options_tv .= ' ' . $row['tv_name'];

@@ -166,13 +166,13 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     }
                     echo '<div style="display: flex; justify-content: space-between; align-items: center;">';
                     if ($type == 'promaterial') {
-                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_promotional_material.php?pageid=PromotionalMaterialsForm&userId=' . $user_id . ' ' . urlencode($full_name) . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_promotional_material.php?pageid=PromotionalMaterialsForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
                     } else if ($type == 'so') {
-                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_student_outcomes.php?pageid=StudentOutcomesForm&userId=' . $user_id . ' ' . urlencode($full_name) . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_student_outcomes.php?pageid=StudentOutcomesForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
                     } else if ($type == 'orgchart') {
-                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_department_organizational_chart.php?pageid=DepartmentOrganizationalChart&userId=' . $user_id . ' ' . urlencode($full_name) . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_department_organizational_chart.php?pageid=DepartmentOrganizationalChart&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
                     } else {
-                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_' . $type . '.php?pageid=' . $type . 'Form&userId=' . $user_id . ' ' . urlencode($full_name) . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_' . $type . '.php?pageid=' . $type . 'Form&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
                     }
                     echo '<div style="display: flex; align-items: center; justify-content: flex-end; flex: 3;">';
                     echo '<label for="sortBy_' . $type . '" style="margin-top: 5px; margin-right: 10px;">Sort By:</label>';

@@ -83,18 +83,8 @@ $displayInterval = $displayTimeRange['display_interval'];
         const closeTvModal = document.getElementById("closeTvModal");
         const saveTvSelection = document.getElementById("saveTvSelection");
 
-        // Open the TV Modal
-        tvModalButton.addEventListener("click", function () {
-            tvModal.style.display = "flex";
-        });
-
-        // Close the TV Modal
-        closeTvModal.addEventListener("click", function () {
-            tvModal.style.display = "none";
-        });
-
-        // Save the selected TV displays
-        saveTvSelection.addEventListener("click", function () {
+        // Update initial button text for pre-selected TVs
+        const updateButtonText = () => {
             const selectedTvs = [];
             document.querySelectorAll('#tvCheckboxList input[type="checkbox"]:checked').forEach(function (checkedBox) {
                 selectedTvs.push(checkedBox.getAttribute('data-tv-name'));
@@ -109,6 +99,42 @@ $displayInterval = $displayTimeRange['display_interval'];
             } else {
                 tvModalButton.textContent = "Select TV Displays";
             }
+        };
+
+        // Call immediately to set initial state
+        updateButtonText();
+
+        // Open the TV Modal
+        tvModalButton.addEventListener("click", function () {
+            tvModal.style.display = "flex";
+        });
+
+        // Close the TV Modal
+        closeTvModal.addEventListener("click", function () {
+            tvModal.style.display = "none";
+        });
+
+        // Save the selected TV displays
+        // saveTvSelection.addEventListener("click", function () {
+        //     const selectedTvs = [];
+        //     document.querySelectorAll('#tvCheckboxList input[type="checkbox"]:checked').forEach(function (checkedBox) {
+        //         selectedTvs.push(checkedBox.getAttribute('data-tv-name'));
+        //     });
+            
+        //     if (selectedTvs.length > 0) {
+        //         if (selectedTvs.length === 1) {
+        //             tvModalButton.textContent = `${selectedTvs.length} TV Selected`;
+        //         } else {
+        //             tvModalButton.textContent = `${selectedTvs.length} TVs Selected`;
+        //         }
+        //     } else {
+        //         tvModalButton.textContent = "Select TV Displays";
+        //     }
+        //     tvModal.style.display = "none";
+        // });
+
+        saveTvSelection.addEventListener("click", function () {
+            updateButtonText();
             tvModal.style.display = "none";
         });
 

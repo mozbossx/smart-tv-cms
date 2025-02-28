@@ -451,31 +451,53 @@ const updateUI = (data, type) => {
     } else if (type === 'facility') {
         const facilityBody = data.facility_body;
         const images = data.facility_images_array.split(',');
-
-        contentHTML = `
-            <div class="content-container-con" id="facilityContentConContainer-${id}">
-                <div class="content-main" id="facilityContentMain-${id}">
-                    <div class="media-container" style="margin-bottom: 5px; height: 70%; max-height: 70%;">
-                        <img src="servers/facility_media/${images[0]}" class="facility-image" style="width: 100%; height: 100%; object-fit: contain;">
+        if (facilityBody !== '<p><br></p>') {
+            contentHTML = `
+                <div class="content-container-con" id="facilityContentConContainer-${id}">
+                    <div class="content-main" id="facilityContentMain-${id}">
+                        <div class="media-container" style="margin-bottom: 5px; height: 70%; max-height: 70%;">
+                            <img src="servers/facility_media/${images[0]}" class="facility-image" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <div class="message-wrapper" id="${type}MessageWrapper-${id}">
+                            <div class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
+                                ${facilityBody}
+                            </div>
+                        </div>
                     </div>
-                    <div class="message-wrapper" id="${type}MessageWrapper-${id}">
-                        <div class="main-message" id="${type}Message-${id}" style="word-break: break-word;">
-                            ${facilityBody}
+                    <div class="content-details">
+                        <div style="display: flex; flex-direction: row; margin: 0">
+                            <div>
+                                <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                            </div>
+                            <div style="margin-left: auto; margin-top: auto">
+                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+            `;
+        } else {
+            contentHTML = `
+                <div class="content-container-con" id="facilityContentConContainer-${id}">
+                    <div class="content-main" id="facilityContentMain-${id}">
+                        <div class="media-container" style="margin-bottom: 5px; height: 100%; max-height: 100%;">
+                            <img src="servers/facility_media/${images[0]}" class="facility-image" style="width: 100%; height: 100%; object-fit: contain;">
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                    </div>
+                    <div class="content-details">
+                        <div style="display: flex; flex-direction: row; margin: 0">
+                            <div>
+                                <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                            </div>
+                            <div style="margin-left: auto; margin-top: auto">
+                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
+        
     } else {
         // Generic handler for new features
         // 25 filtered keys

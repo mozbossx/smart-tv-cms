@@ -258,51 +258,200 @@ include 'misc/php/options_tv.php';
             const dotContainer = document.querySelector('.dot-indicators');
             
             // Process all files at once
+            // const promises = Array.from(files).map(file => {
+            //     return new Promise((resolve) => {
+            //         if (file.type.startsWith('image/')) {
+            //             const reader = new FileReader();
+            //             reader.onload = function(e) {
+            //                 const imgContainer = document.createElement('div');
+            //                 imgContainer.className = 'image-preview-container';
+            //                 imgContainer.style.position = 'relative';
+            //                 imgContainer.style.width = '100%';
+            //                 imgContainer.style.height = '100%';
+            //                 imgContainer.style.display = 'none';
+
+            //                 const img = document.createElement('img');
+            //                 img.src = e.target.result;
+            //                 img.className = 'image-preview';
+            //                 img.style.maxWidth = '100%';
+            //                 img.style.maxHeight = '100%';
+            //                 img.style.display = 'block'; // Make sure the image is visible
+            //                 img.style.margin = 'auto'; // Center the image
+
+            //                 // Add delete button
+            //                 const deleteBtn = document.createElement('button');
+            //                 deleteBtn.className = 'delete-image-btn';
+            //                 deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
+            //                 deleteBtn.style.position = 'absolute';
+            //                 deleteBtn.style.top = '10px';
+            //                 deleteBtn.style.right = '10px';
+            //                 deleteBtn.style.background = '#ff4444';
+            //                 deleteBtn.style.color = 'white';
+            //                 deleteBtn.style.border = 'none';
+            //                 deleteBtn.style.borderRadius = '4px';
+            //                 deleteBtn.style.padding = '8px';
+            //                 deleteBtn.style.cursor = 'pointer';
+            //                 deleteBtn.onclick = (e) => {
+            //                     e.stopPropagation(); // Prevent slide change when clicking delete
+            //                     deleteImage(imgContainer);
+            //                 };
+
+            //                 imgContainer.appendChild(img);
+            //                 imgContainer.appendChild(deleteBtn);
+            //                 uploadedImages.push(imgContainer);
+            //                 slideshowContainer.appendChild(imgContainer);
+            //                 resolve();
+            //             };
+            //             reader.readAsDataURL(file);
+            //         } else {
+            //             resolve();
+            //         }
+            //     });
+            // });
+
+            // Process all files at once
             const promises = Array.from(files).map(file => {
                 return new Promise((resolve) => {
                     if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            const imgContainer = document.createElement('div');
-                            imgContainer.className = 'image-preview-container';
-                            imgContainer.style.position = 'relative';
-                            imgContainer.style.width = '100%';
-                            imgContainer.style.height = '100%';
-                            imgContainer.style.display = 'none';
+                        // Create progress bar container
+                        const progressContainer = document.createElement('div');
+                        progressContainer.className = 'upload-progress-container';
+                        progressContainer.style.position = 'absolute';
+                        progressContainer.style.top = '50%';
+                        progressContainer.style.left = '50%';
+                        progressContainer.style.transform = 'translate(-50%, -50%)';
+                        progressContainer.style.width = '80%';
+                        progressContainer.style.textAlign = 'center';
 
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.className = 'image-preview';
-                            img.style.maxWidth = '100%';
-                            img.style.maxHeight = '100%';
-                            img.style.display = 'block'; // Make sure the image is visible
-                            img.style.margin = 'auto'; // Center the image
+                        const progressBar = document.createElement('div');
+                        progressBar.className = 'progress-bar';
+                        progressBar.style.width = '100%';
+                        progressBar.style.height = '20px';
+                        progressBar.style.backgroundColor = '#f0f0f0';
+                        progressBar.style.borderRadius = '10px';
+                        progressBar.style.overflow = 'hidden';
+                        progressBar.style.marginBottom = '10px';
 
-                            // Add delete button
-                            const deleteBtn = document.createElement('button');
-                            deleteBtn.className = 'delete-image-btn';
-                            deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
-                            deleteBtn.style.position = 'absolute';
-                            deleteBtn.style.top = '10px';
-                            deleteBtn.style.right = '10px';
-                            deleteBtn.style.background = '#ff4444';
-                            deleteBtn.style.color = 'white';
-                            deleteBtn.style.border = 'none';
-                            deleteBtn.style.borderRadius = '4px';
-                            deleteBtn.style.padding = '8px';
-                            deleteBtn.style.cursor = 'pointer';
-                            deleteBtn.onclick = (e) => {
-                                e.stopPropagation(); // Prevent slide change when clicking delete
-                                deleteImage(imgContainer);
-                            };
+                        const progressFill = document.createElement('div');
+                        progressFill.style.width = '0%';
+                        progressFill.style.height = '100%';
+                        progressFill.style.backgroundColor = '<?php echo $theme_color; ?>';
+                        progressFill.style.transition = 'width 0.3s';
 
-                            imgContainer.appendChild(img);
-                            imgContainer.appendChild(deleteBtn);
-                            uploadedImages.push(imgContainer);
-                            slideshowContainer.appendChild(imgContainer);
+                        const progressText = document.createElement('div');
+                        progressText.style.color = 'white';
+                        progressText.style.marginTop = '5px';
+                        progressText.textContent = 'Uploading: 0%';
+
+                        progressBar.appendChild(progressFill);
+                        progressContainer.appendChild(progressBar);
+                        progressContainer.appendChild(progressText);
+
+                        // Create temporary container for progress
+                        const tempContainer = document.createElement('div');
+                        tempContainer.className = 'image-preview-container';
+                        tempContainer.style.position = 'relative';
+                        tempContainer.style.width = '100%';
+                        tempContainer.style.height = '100%';
+                        tempContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                        tempContainer.appendChild(progressContainer);
+                        slideshowContainer.appendChild(tempContainer);
+
+                        // Create FormData for pre-upload
+                        const formData = new FormData();
+                        formData.append('media', file);
+
+                        // Send to pre-upload handler with progress tracking
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', 'misc/php/handle_pre_upload.php', true);
+
+                        xhr.upload.onprogress = function(e) {
+                            if (e.lengthComputable) {
+                                const percentComplete = (e.loaded / e.total) * 100;
+                                progressFill.style.width = percentComplete + '%';
+                                progressText.textContent = `Uploading: ${Math.round(percentComplete)}%`;
+                            }
+                        };
+
+                        xhr.onload = function() {
+                            if (xhr.status === 200) {
+                                try {
+                                    const data = JSON.parse(xhr.responseText);
+                                    if (data.success) {
+                                        const reader = new FileReader();
+                                        reader.onload = function(e) {
+                                            // Remove temporary container
+                                            tempContainer.remove();
+
+                                            const imgContainer = document.createElement('div');
+                                            imgContainer.className = 'image-preview-container';
+                                            imgContainer.style.position = 'relative';
+                                            imgContainer.style.width = '100%';
+                                            imgContainer.style.height = '100%';
+                                            imgContainer.style.display = 'none';
+
+                                            const img = document.createElement('img');
+                                            img.src = e.target.result;
+                                            img.className = 'image-preview';
+                                            img.style.maxWidth = '100%';
+                                            img.style.maxHeight = '100%';
+                                            img.style.display = 'block';
+                                            img.style.margin = 'auto';
+
+                                            // Store the pre-uploaded file info
+                                            img.dataset.preUploadedFile = data.tempFile;
+                                            img.dataset.originalFileName = file.name;
+                                            img.dataset.mediaType = file.type;
+
+                                            // Add delete button
+                                            const deleteBtn = document.createElement('button');
+                                            deleteBtn.className = 'delete-image-btn';
+                                            deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
+                                            deleteBtn.style.position = 'absolute';
+                                            deleteBtn.style.top = '10px';
+                                            deleteBtn.style.right = '10px';
+                                            deleteBtn.style.background = '#ff4444';
+                                            deleteBtn.style.color = 'white';
+                                            deleteBtn.style.border = 'none';
+                                            deleteBtn.style.borderRadius = '4px';
+                                            deleteBtn.style.padding = '8px';
+                                            deleteBtn.style.cursor = 'pointer';
+                                            deleteBtn.onclick = (e) => {
+                                                e.stopPropagation();
+                                                deleteImage(imgContainer);
+                                            };
+
+                                            imgContainer.appendChild(img);
+                                            imgContainer.appendChild(deleteBtn);
+                                            uploadedImages.push(imgContainer);
+                                            slideshowContainer.appendChild(imgContainer);
+                                            resolve();
+                                        };
+                                        reader.readAsDataURL(file);
+                                    } else {
+                                        tempContainer.remove();
+                                        console.error('Pre-upload failed:', data.error);
+                                        resolve();
+                                    }
+                                } catch (error) {
+                                    tempContainer.remove();
+                                    console.error('Error parsing response:', error);
+                                    resolve();
+                                }
+                            } else {
+                                tempContainer.remove();
+                                console.error('Upload failed with status:', xhr.status);
+                                resolve();
+                            }
+                        };
+
+                        xhr.onerror = function() {
+                            tempContainer.remove();
+                            console.error('Upload error:', xhr.statusText);
                             resolve();
                         };
-                        reader.readAsDataURL(file);
+
+                        xhr.send(formData);
                     } else {
                         resolve();
                     }
@@ -459,20 +608,34 @@ include 'misc/php/options_tv.php';
             };
 
             // Handle multiple images
+            // if (uploadedImages.length > 0) {
+            //     // Get base64 data from all uploaded images
+            //     data.media = uploadedImages.map(container => {
+            //         const img = container.querySelector('img');
+            //         return img.src;  // This will contain the base64 data
+            //     });
+            // }
+
+            // Add pre-uploaded files info
             if (uploadedImages.length > 0) {
-                // Get base64 data from all uploaded images
-                data.media = uploadedImages.map(container => {
+                data.preUploadedFiles = uploadedImages.map(container => {
                     const img = container.querySelector('img');
-                    return img.src;  // This will contain the base64 data
+                    return {
+                        preUploadedFile: img.dataset.preUploadedFile,
+                        originalFileName: img.dataset.originalFileName,
+                        mediaType: img.dataset.mediaType
+                    };
                 });
             }
 
-            // Convert FormData to object, excluding empty schedule_datetime
+            // Convert FormData to object
             formData.forEach((value, key) => {
                 if (key !== 'media[]') { // Skip the file input
                     data[key] = value;
                 }
             });
+
+            console.log(data);
 
             sendDataToWebSocket(data, loadingModal);
 

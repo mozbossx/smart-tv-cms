@@ -4,12 +4,24 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
 
 ?>
 
+<!-- progress bar container -->
+<div id="uploadProgressContainer" style="display: none; margin-top: 10px; width: 100%;">
+    <div style="width: 100%; background-color: #f0f0f0; border-radius: 4px;">
+        <div id="uploadProgressBar" style="width: 0%; height: 20px; background-color: #4CAF50; border-radius: 4px; transition: width 0.3s;">
+            <div id="uploadProgressText" style="color: white; text-align: center; line-height: 20px; font-size: 12px;">0%</div>
+        </div>
+    </div>
+</div>
+
+<!-- upload status message -->
+<div id="uploadStatus" style="margin-top: 5px; font-size: 12px;"></div>
 <div class="right-flex">
     <div class="rounded-container-media">
         <p class="input-container-label">Upload Media (.mp4, .jpg, .png)</p>
         <br>
-        <input type="file" name="media" id="media" accept="video/*, image/*" onchange="previewMedia()" hidden>
+        <input type="file" name="media" id="media" accept="video/*, image/*" onchange="handleMediaSelect()" hidden>
         <label for="media" class="green-button">Choose File</label>
+
         <?php 
         // Only show cancel button if NOT in promaterial edit mode
         if (!($isEditMode && isset($_GET['type']) && $_GET['type'] === 'promaterial')): 
@@ -51,6 +63,8 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
 <script>
     // Store original display time options when page loads
     let originalDisplayTimeOptions = '';
+    let preUploadedFile = null;
+
     document.addEventListener('DOMContentLoaded', function() {
         const displayTimeSelect = document.getElementById('display_time');
         if (displayTimeSelect) {
@@ -71,6 +85,95 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
             <?php endif; ?>
         }
     });
+
+    window.preUploadedFile = null;
+    function handleMediaSelect() {
+        const mediaInput = document.getElementById('media');
+        const progressContainer = document.getElementById('uploadProgressContainer');
+        const progressBar = document.getElementById('uploadProgressBar');
+        const progressText = document.getElementById('uploadProgressText');
+        const uploadStatus = document.getElementById('uploadStatus');
+
+        if (mediaInput.files && mediaInput.files[0]) {
+            const file = mediaInput.files[0];
+            console.log('Debug - File selected:', file.name);
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            uploadStatus.textContent = 'Preparing upload...';
+
+            // Create FormData for upload
+            const formData = new FormData();
+            formData.append('media', file);
+
+            // Perform pre-upload
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'misc/php/handle_pre_upload.php', true);
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                    progressText.textContent = Math.round(percentComplete) + '%';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        console.log('Debug - Pre-upload response:', response);
+                        if (response.success) {
+                            // Explicitly set as a global variable
+                            window.preUploadedFile = response.tempFile;
+                            console.log('Debug - Stored preUploadedFile:', window.preUploadedFile);
+                            uploadStatus.textContent = 'File pre-uploaded successfully!';
+                            // Store in sessionStorage as backup
+                            sessionStorage.setItem('preUploadedFile', response.tempFile);
+                            previewMedia();
+                        } else {
+                            uploadStatus.textContent = 'Error: ' + response.error;
+                            resetUpload();
+                        }
+                    } catch (e) {
+                        console.error('Debug - JSON parse error:', e);
+                        uploadStatus.textContent = 'Error processing server response';
+                        resetUpload();
+                    }
+                } else {
+                    uploadStatus.textContent = 'Upload failed. Please try again.';
+                    resetUpload();
+                }
+            };
+
+            xhr.onerror = function() {
+                console.error('Debug - Upload error:', xhr.statusText);
+                uploadStatus.textContent = 'Upload failed. Please try again.';
+                resetUpload();
+            };
+
+            xhr.send(formData);
+        }
+    }
+
+    function resetUpload() {
+        const progressContainer = document.getElementById('uploadProgressContainer');
+        const progressBar = document.getElementById('uploadProgressBar');
+        const progressText = document.getElementById('uploadProgressText');
+        const uploadStatus = document.getElementById('uploadStatus');
+        
+        progressContainer.style.display = 'none';
+        uploadStatus.style.display = 'none';
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+        preUploadedFile = null;
+    }
+
+    // Add this function to check preUploadedFile status
+    function getPreUploadedFile() {
+        return window.preUploadedFile || sessionStorage.getItem('preUploadedFile');
+    }
+
     // Function to preview selected video or image
     function previewMedia() {
         var mediaInput = document.getElementById('media');
@@ -200,5 +303,6 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         if (cancelMediaButton) {
             cancelMediaButton.style.display = 'none';
         }
+        resetUpload();
     }
 </script>

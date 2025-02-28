@@ -1070,7 +1070,7 @@ class ContentHandler implements MessageComponentInterface
                      // For new features - dynamically add all fields from the form
                     foreach ($data as $key => $value) {
                         // Skip arrays (like tv_ids) and special fields
-                        if (!is_array($value) && !in_array($key, ['action', 'type', $idField, 'tv_id[]', 'expiration_datetime', 'tv_ids', 'action_value', 'media'])) {
+                        if (!is_array($value) && !in_array($key, ['action', 'type', $idField, 'tv_id[]', 'expiration_datetime', 'tv_ids', 'action_value', 'media', 'preUploadedFile', 'originalFileName', 'mediaType'])) {
                             $updateFields[] = "$key = ?";
                             $params[] = $value;
                         }
@@ -1099,43 +1099,101 @@ class ContentHandler implements MessageComponentInterface
                 $success = $stmt->execute($params);
         
                 if ($success) {
-                    // Handle media update if present
-                    if (!empty($data['media'])) {
-                        // Determine media folder
-                        $mediaFolder = $type . '_media';
-                        if (!file_exists($mediaFolder)) {
-                            mkdir($mediaFolder, 0777, true);
-                        }
+                    // Handle pre-uploaded file
+                    $mediaUploaded = false;  // Flag to track if media was uploaded
 
-                        $base64Data = $data['media'];
-                        $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
-                        $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
-                        $timeNow = date('YmdHis');
-                        $filename = "{$content_id}_{$timeNow}.{$fileExtension}";
-                        $media_save = "{$mediaFolder}/{$filename}";
-
-                        // Save the new media file
-                        file_put_contents($media_save, $mediaData);
-
-                        // First, check for and delete existing image
-                        $stmtMediaPath = $this->pdo->prepare("SELECT media_path FROM $table WHERE $idField = ?");
-                        $stmtMediaPath->execute([$content_id]);
-                        $existingImage = $stmtMediaPath->fetch(PDO::FETCH_ASSOC);
+                    // Handle pre-uploaded file
+                    if (isset($data['preUploadedFile'])) {
+                        error_log("Debug - Found preUploadedFile: " . $data['preUploadedFile']);
                         
-                        if ($existingImage && $existingImage['media_path']) {
-                            $existingFilePath = "{$mediaFolder}/" . $existingImage['media_path'];
-                            if (file_exists($existingFilePath)) {
-                                unlink($existingFilePath);
-                                error_log("Deleted existing image: $existingFilePath");
+                        $tempFile = 'temp/' . $data['preUploadedFile'];
+                        error_log("Debug - Full temp file path: $tempFile");
+                        error_log("Debug - Temp file exists: " . (file_exists($tempFile) ? 'yes' : 'no'));
+                
+                        if (file_exists($tempFile)) {
+                            // Determine media folder
+                            $mediaFolder = $data['type'] . '_media';
+                            error_log("Debug - Media folder determined: $mediaFolder");
+                
+                            if ($mediaFolder) {
+                                // Generate new filename
+                                $timeNow = date('YmdHis');
+                                $fileExtension = pathinfo($data['originalFileName'], PATHINFO_EXTENSION);
+                                $filename = "{$content_id}_{$timeNow}.{$fileExtension}";
+                                $targetFile = "{$mediaFolder}/{$filename}";
+                                
+                                error_log("Debug - Target file path: $targetFile");
+                    
+                                // Move the file from temp to final location
+                                if (rename($tempFile, $targetFile)) {
+                                    error_log("Debug - File successfully moved");
+                                    
+                                    // First, check for and delete existing image
+                                    $stmtMediaPath = $this->pdo->prepare("SELECT media_path FROM $table WHERE $idField = ?");
+                                    $stmtMediaPath->execute([$content_id]);
+                                    $existingImage = $stmtMediaPath->fetch(PDO::FETCH_ASSOC);
+                                    
+                                    if ($existingImage && $existingImage['media_path']) {
+                                        $existingFilePath = "{$mediaFolder}/" . $existingImage['media_path'];
+                                        if (file_exists($existingFilePath)) {
+                                            unlink($existingFilePath);
+                                            error_log("Deleted existing image: $existingFilePath");
+                                        }
+                                    }
+
+                                    // Update the record with media_path
+                                    $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                                    $updateStatement->execute([$filename, $content_id]);
+                                    
+                                    $data['media_path'] = $filename;
+                                    $mediaUploaded = true;
+                                } else {
+                                    error_log("Error - Failed to move file: " . error_get_last()['message']);
+                                }
                             }
+                        } else {
+                            error_log("Error - Temp file not found at: $tempFile");
                         }
-
-                        // Update the record with new media_path
-                        $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
-                        $updateStatement->execute([$filename, $content_id]);
-
-                        $data['media_path'] = $filename;
+                    } else {
+                        error_log("Debug - No preUploadedFile in data");
                     }
+                    // Handle media update if present
+                    // if (!empty($data['media'])) {
+                    //     // Determine media folder
+                    //     $mediaFolder = $type . '_media';
+                    //     if (!file_exists($mediaFolder)) {
+                    //         mkdir($mediaFolder, 0777, true);
+                    //     }
+
+                    //     $base64Data = $data['media'];
+                    //     $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
+                    //     $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
+                    //     $timeNow = date('YmdHis');
+                    //     $filename = "{$content_id}_{$timeNow}.{$fileExtension}";
+                    //     $media_save = "{$mediaFolder}/{$filename}";
+
+                    //     // Save the new media file
+                    //     file_put_contents($media_save, $mediaData);
+
+                    //     // First, check for and delete existing image
+                    //     $stmtMediaPath = $this->pdo->prepare("SELECT media_path FROM $table WHERE $idField = ?");
+                    //     $stmtMediaPath->execute([$content_id]);
+                    //     $existingImage = $stmtMediaPath->fetch(PDO::FETCH_ASSOC);
+                        
+                    //     if ($existingImage && $existingImage['media_path']) {
+                    //         $existingFilePath = "{$mediaFolder}/" . $existingImage['media_path'];
+                    //         if (file_exists($existingFilePath)) {
+                    //             unlink($existingFilePath);
+                    //             error_log("Deleted existing image: $existingFilePath");
+                    //         }
+                    //     }
+
+                    //     // Update the record with new media_path
+                    //     $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                    //     $updateStatement->execute([$filename, $content_id]);
+
+                    //     $data['media_path'] = $filename;
+                    // }
                     // Create notifications based on user type
                     if ($user_type == 'Student' || $user_type == 'Faculty' || $user_type == 'Staff') {
                         // Notify content owner
@@ -3510,8 +3568,6 @@ class ContentHandler implements MessageComponentInterface
                             ]);
                             
                         }
-                        // $from->send(json_encode(['success' => true, 'data' => $data, 'orgchart_id' => $orgchart_id]));
-                        // $from->send(json_encode(['action' => 'post_content', 'success' => true, 'type' => 'orgchart', 'orgchart_id' => $orgchart_id, 'orgChartData' => $orgChartData]));
                         $from->send(json_encode([
                             'action' => 'post_content',
                             'success' => true, 
@@ -3751,33 +3807,83 @@ class ContentHandler implements MessageComponentInterface
                                 $this->broadcastNotification('new_notification');
                                 echo "Notification sent to all clients\n";
                             }
-                    
-                            if (!empty($data['media'])) {
-                                $base64Data = $data['media'];
-                                $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
-                                $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
-                                $timeNow = date('YmdHis');
-                                $filename = "{$id}_{$timeNow}.{$fileExtension}";
-                                $media_save = "{$mediaFolder}/{$filename}";
-                    
-                                file_put_contents($media_save, $mediaData);
-                    
-                                // Update the record with media_path
-                                $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
-                                $updateStatement->execute([$filename, $id]);
-                    
-                                $data['media_path'] = $filename;
+                            // Handle pre-uploaded file
+                            $mediaUploaded = false;  // Flag to track if media was uploaded
+
+                            // Handle pre-uploaded file
+                            if (isset($data['preUploadedFile'])) {
+                                error_log("Debug - Found preUploadedFile: " . $data['preUploadedFile']);
+                                
+                                $tempFile = 'temp/' . $data['preUploadedFile'];
+                                error_log("Debug - Full temp file path: $tempFile");
+                                error_log("Debug - Temp file exists: " . (file_exists($tempFile) ? 'yes' : 'no'));
+                        
+                                if (file_exists($tempFile)) {
+                                    // Determine media folder
+                                    $mediaFolder = match ($data['type']) {
+                                        'event' => 'event_media',
+                                        'announcement' => 'announcement_media',
+                                        'news' => 'news_media',
+                                        'promaterial' => 'promaterial_media',
+                                        default => null
+                                    };
+                                    error_log("Debug - Media folder determined: $mediaFolder");
+                        
+                                    if ($mediaFolder) {
+                                        // Generate new filename
+                                        $timeNow = date('YmdHis');
+                                        $fileExtension = pathinfo($data['originalFileName'], PATHINFO_EXTENSION);
+                                        $filename = "{$id}_{$timeNow}.{$fileExtension}";
+                                        $targetFile = "{$mediaFolder}/{$filename}";
+                                        
+                                        error_log("Debug - Target file path: $targetFile");
+                            
+                                        // Move the file from temp to final location
+                                        if (rename($tempFile, $targetFile)) {
+                                            error_log("Debug - File successfully moved");
+                                            // Update the record with media_path
+                                            $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                                            $updateStatement->execute([$filename, $id]);
+                                            
+                                            $data['media_path'] = $filename;
+                                            $mediaUploaded = true;
+                                        } else {
+                                            error_log("Error - Failed to move file: " . error_get_last()['message']);
+                                        }
+                                    }
+                                } else {
+                                    error_log("Error - Temp file not found at: $tempFile");
+                                }
+                            } else {
+                                error_log("Debug - No preUploadedFile in data");
                             }
+                    
+                            // if (!empty($data['media'])) {
+                            //     $base64Data = $data['media'];
+                            //     $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
+                            //     $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
+                            //     $timeNow = date('YmdHis');
+                            //     $filename = "{$id}_{$timeNow}.{$fileExtension}";
+                            //     $media_save = "{$mediaFolder}/{$filename}";
+                    
+                            //     file_put_contents($media_save, $mediaData);
+                    
+                            //     // Update the record with media_path
+                            //     $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                            //     $updateStatement->execute([$filename, $id]);
+                    
+                            //     $data['media_path'] = $filename;
+                            // }
 
                             $response = ['action' => 'post_content', 'success' => true, 'user_id' => $user_id, 'data' => $data];
-                            echo ucfirst($data['type']) . " " . (!empty($data['media']) ? 'with' : 'without') . " media uploaded!\n";
+                            echo ucfirst($data['type']) . " " . ($mediaUploaded ? 'with' : 'without') . " media uploaded!\n";
                         } else {
                             $response = ['action' => 'post_content', 'success' => false, 'error' => 'Error processing ' . $data['type'] . '. Try again later'];
                         }
                         $from->send(json_encode($response));
                     }
                 } else if ($data['type'] === 'facility') {
-                    // For Announcement, Event, News, Promotional Materials, PEO, and SO only
+                    // For Facility only
                     foreach ($data['tv_ids'] as $tv_ids) {
                         $category = match ($data['type']) {
                             'facility' => 'Facility',
@@ -3918,35 +4024,81 @@ class ContentHandler implements MessageComponentInterface
                             }
                     
                             // Handle multiple images
-                            if (isset($data['media']) && is_array($data['media'])) {
+                            // if (isset($data['media']) && is_array($data['media'])) {
+                            //     $imageNames = []; // Array to store image filenames
+                                
+                            //     // Create the media folder if it doesn't exist
+                            //     if (!file_exists($mediaFolder)) {
+                            //         mkdir($mediaFolder, 0777, true);
+                            //     }
+
+                            //     // Process each image in the array
+                            //     foreach ($data['media'] as $index => $base64Data) {
+                            //         // Skip empty entries
+                            //         if (empty($base64Data)) continue;
+
+                            //         // Clean the base64 string
+                            //         $cleanedBase64 = preg_replace('#^data:image/\w+;base64,#i', '', $base64Data);
+                                    
+                            //         // Decode the base64 data
+                            //         $mediaData = base64_decode($cleanedBase64);
+                                    
+                            //         // Generate unique filename using facility_id and index
+                            //         $filename = "{$id}_{$index}.png";
+                            //         $media_save = "{$mediaFolder}/{$filename}";
+                                    
+                            //         // Save the file
+                            //         if (file_put_contents($media_save, $mediaData)) {
+                            //             $imageNames[] = $filename;
+                            //             error_log("Saved image: " . $filename); // Debug log
+                            //         } else {
+                            //             error_log("Failed to save image: " . $filename); // Debug log
+                            //         }
+                            //     }
+                                
+                            //     // Only update if we have images
+                            //     if (!empty($imageNames)) {
+                            //         // Join image names with commas and update the record
+                            //         $imageNamesString = implode(',', $imageNames);
+                            //         $updateStatement = $this->pdo->prepare("UPDATE $table SET facility_images_array = ? WHERE $idField = ?");
+                            //         $updateStatement->execute([$imageNamesString, $id]);
+                                    
+                            //         $data['facility_images_array'] = $imageNamesString;
+                            //         error_log("Stored image array: " . $imageNamesString); // Debug log
+                            //     }
+                            // }
+                            
+                            // Handle multiple images
+                            if (isset($data['preUploadedFiles']) && is_array($data['preUploadedFiles'])) {
                                 $imageNames = []; // Array to store image filenames
                                 
                                 // Create the media folder if it doesn't exist
-                                if (!file_exists($mediaFolder)) {
-                                    mkdir($mediaFolder, 0777, true);
+                                if (!file_exists('facility_media')) {
+                                    mkdir('facility_media', 0777, true);
                                 }
-
-                                // Process each image in the array
-                                foreach ($data['media'] as $index => $base64Data) {
-                                    // Skip empty entries
-                                    if (empty($base64Data)) continue;
-
-                                    // Clean the base64 string
-                                    $cleanedBase64 = preg_replace('#^data:image/\w+;base64,#i', '', $base64Data);
+                
+                                // Process each pre-uploaded image
+                                foreach ($data['preUploadedFiles'] as $index => $fileInfo) {
+                                    $tempFile = 'temp/' . $fileInfo['preUploadedFile'];
+                                    error_log("Processing temp file: " . $tempFile);
                                     
-                                    // Decode the base64 data
-                                    $mediaData = base64_decode($cleanedBase64);
+                                    // Skip if temp file doesn't exist
+                                    if (!file_exists($tempFile)) {
+                                        error_log("Temp file not found: " . $tempFile);
+                                        continue;
+                                    }
+                
+                                    // Generate unique filename
+                                    $fileExtension = pathinfo($fileInfo['originalFileName'], PATHINFO_EXTENSION);
+                                    $filename = "{$id}_{$index}.{$fileExtension}";
+                                    $targetFile = "facility_media/{$filename}";
                                     
-                                    // Generate unique filename using facility_id and index
-                                    $filename = "{$id}_{$index}.png";
-                                    $media_save = "{$mediaFolder}/{$filename}";
-                                    
-                                    // Save the file
-                                    if (file_put_contents($media_save, $mediaData)) {
+                                    // Move the file from temp to final location
+                                    if (rename($tempFile, $targetFile)) {
                                         $imageNames[] = $filename;
-                                        error_log("Saved image: " . $filename); // Debug log
+                                        error_log("Saved image: " . $filename);
                                     } else {
-                                        error_log("Failed to save image: " . $filename); // Debug log
+                                        error_log("Failed to move file from {$tempFile} to {$targetFile}");
                                     }
                                 }
                                 
@@ -3954,13 +4106,16 @@ class ContentHandler implements MessageComponentInterface
                                 if (!empty($imageNames)) {
                                     // Join image names with commas and update the record
                                     $imageNamesString = implode(',', $imageNames);
-                                    $updateStatement = $this->pdo->prepare("UPDATE $table SET facility_images_array = ? WHERE $idField = ?");
+                                    $updateStatement = $this->pdo->prepare("UPDATE facility_tb SET facility_images_array = ? WHERE facility_id = ?");
                                     $updateStatement->execute([$imageNamesString, $id]);
                                     
                                     $data['facility_images_array'] = $imageNamesString;
-                                    error_log("Stored image array: " . $imageNamesString); // Debug log
+                                    error_log("Stored image array: " . $imageNamesString);
                                 }
                             }
+
+                            // Remove temporary upload-related fields from response
+                            // unset($data['media']);
 
                             $response = ['action' => 'post_content', 'success' => true, 'user_id' => $user_id, 'data' => $data];
                             echo ucfirst($data['type']) . " " . (!empty($imageNames) ? 'with ' . count($imageNames) . ' images' : 'without media') . " uploaded!\n";
@@ -4037,7 +4192,7 @@ class ContentHandler implements MessageComponentInterface
                                 'action', 'type', 'tv_id[]', 'tv_ids', 
                                 'expiration_datetime', 'display_time', 'media',
                                 'department', 'user_type', $authorField, 'category',
-                                'status', $idField
+                                'status', $idField, 'preUploadedFile', 'originalFileName', 'mediaType'
                             ])) {
                                 $fields[] = $key;
                                 $values[] = is_array($value) ? json_encode($value) : $value;
@@ -4165,26 +4320,78 @@ class ContentHandler implements MessageComponentInterface
                                 $this->broadcastNotification('new_notification');
                                 echo "Notification sent to all clients\n";
                             }
-            
-                            if (!empty($data['media'])) {
-                                $base64Data = $data['media'];
-                                $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
-                                $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
-                                $timeNow = date('YmdHis');
-                                $filename = "{$id}_{$timeNow}.{$fileExtension}";
-                                $media_save = "{$mediaFolder}/{$filename}";
-            
-                                file_put_contents($media_save, $mediaData);
-            
-                                // Update the record with media_path
-                                $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
-                                $updateStatement->execute([$filename, $id]);
-            
-                                $data['media_path'] = $filename;
+
+                            // Handle pre-uploaded file
+                            $mediaUploaded = false;  // Flag to track if media was uploaded
+
+                            // Handle pre-uploaded file
+                            if (isset($data['preUploadedFile'])) {
+                                error_log("Debug - Found preUploadedFile: " . $data['preUploadedFile']);
+                                
+                                $tempFile = 'temp/' . $data['preUploadedFile'];
+                                error_log("Debug - Full temp file path: $tempFile");
+                                error_log("Debug - Temp file exists: " . (file_exists($tempFile) ? 'yes' : 'no'));
+                        
+                                if (file_exists($tempFile)) {
+                                    // Determine media folder
+                                    // $mediaFolder = match ($data['type']) {
+                                    //     'event' => 'event_media',
+                                    //     'announcement' => 'announcement_media',
+                                    //     'news' => 'news_media',
+                                    //     'promaterial' => 'promaterial_media',
+                                    //     default => null
+                                    // };
+                                    $mediaFolder = $data['type'] . '_media';
+                                    error_log("Debug - Media folder determined: $mediaFolder");
+                        
+                                    if ($mediaFolder) {
+                                        // Generate new filename
+                                        $timeNow = date('YmdHis');
+                                        $fileExtension = pathinfo($data['originalFileName'], PATHINFO_EXTENSION);
+                                        $filename = "{$id}_{$timeNow}.{$fileExtension}";
+                                        $targetFile = "{$mediaFolder}/{$filename}";
+                                        
+                                        error_log("Debug - Target file path: $targetFile");
+                            
+                                        // Move the file from temp to final location
+                                        if (rename($tempFile, $targetFile)) {
+                                            error_log("Debug - File successfully moved");
+                                            // Update the record with media_path
+                                            $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                                            $updateStatement->execute([$filename, $id]);
+                                            
+                                            $data['media_path'] = $filename;
+                                            $mediaUploaded = true;
+                                        } else {
+                                            error_log("Error - Failed to move file: " . error_get_last()['message']);
+                                        }
+                                    }
+                                } else {
+                                    error_log("Error - Temp file not found at: $tempFile");
+                                }
+                            } else {
+                                error_log("Debug - No preUploadedFile in data");
                             }
             
+                            // if (!empty($data['media'])) {
+                            //     $base64Data = $data['media'];
+                            //     $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
+                            //     $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
+                            //     $timeNow = date('YmdHis');
+                            //     $filename = "{$id}_{$timeNow}.{$fileExtension}";
+                            //     $media_save = "{$mediaFolder}/{$filename}";
+            
+                            //     file_put_contents($media_save, $mediaData);
+            
+                            //     // Update the record with media_path
+                            //     $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                            //     $updateStatement->execute([$filename, $id]);
+            
+                            //     $data['media_path'] = $filename;
+                            // }
+            
                             $from->send(json_encode(['action' => 'post_content', 'success' => true, 'data' => $data]));
-                            echo ucfirst($type) . " " . (!empty($data['media']) ? 'with' : 'without') . " media uploaded!\n";
+                            echo ucfirst($type) . " " . ($mediaUploaded ? 'with' : 'without') . " media uploaded!\n";
                         } else {
                             echo "Error: " . $success . "\n";
                             $from->send(json_encode(['error' => 'Error processing ' . $type . '. Try again later']));
@@ -4491,17 +4698,17 @@ class ContentHandler implements MessageComponentInterface
     }
 
     public function onClose(ConnectionInterface $conn) {
-        echo "Server: Connection {$conn->resourceId} is closing\n";
+        // echo "Server: Connection {$conn->resourceId} is closing\n";
 
         // Clean up monitoring timers
         if (isset($conn->pingInterval)) {
             $this->loop->cancelTimer($conn->pingInterval);
-            echo "Server: Cancelled ping interval for client {$conn->resourceId}\n";
+            // echo "Server: Cancelled ping interval for client {$conn->resourceId}\n";
         }
         if (isset($this->pingTimeouts[$conn->resourceId])) {
             $this->loop->cancelTimer($this->pingTimeouts[$conn->resourceId]);
             unset($this->pingTimeouts[$conn->resourceId]);
-            echo "Server: Cancelled ping timeout for client {$conn->resourceId}\n";
+            // echo "Server: Cancelled ping timeout for client {$conn->resourceId}\n";
         }
 
         $this->clients->detach($conn);

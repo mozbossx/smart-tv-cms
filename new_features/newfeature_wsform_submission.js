@@ -56,23 +56,50 @@ function submitFormViaWebSocket() {
     }
 
     // Check for file input
+    // const mediaInput = document.getElementById('media');
+    // if (mediaInput && mediaInput.files.length > 0) {
+    //     const mediaFile = mediaInput.files[0];
+    //     const reader = new FileReader();
+
+    //     reader.onload = function (e) {
+    //         const base64Data = e.target.result;
+    //         formData.set('media', base64Data);
+
+    //         formData.forEach((value, key) => {
+    //             data[key] = value;
+    //         });
+
+    //         sendDataToWebSocket(data, loadingModal, contentType, isEditMode);
+    //     };
+
+    //     reader.readAsDataURL(mediaFile);
+    // } 
+
+
+    // Check for media input with pre-uploaded file
     const mediaInput = document.getElementById('media');
-    if (mediaInput && mediaInput.files.length > 0) {
-        const mediaFile = mediaInput.files[0];
-        const reader = new FileReader();
+    const preUploadedFile = window.getPreUploadedFile ? window.getPreUploadedFile() : window.preUploadedFile;
+    console.log('Debug - Checking media upload:', {
+        hasMediaInput: !!mediaInput,
+        hasFiles: mediaInput?.files?.length > 0,
+        preUploadedFile: preUploadedFile
+    });
 
-        reader.onload = function (e) {
-            const base64Data = e.target.result;
-            formData.set('media', base64Data);
+    if (mediaInput && mediaInput.files.length > 0 && preUploadedFile) {
+        data.preUploadedFile = preUploadedFile;
+        data.originalFileName = mediaInput.files[0].name;
+        data.mediaType = mediaInput.files[0].type;
 
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
+        console.log('Debug - Adding pre-uploaded file to data:', preUploadedFile);
 
-            sendDataToWebSocket(data, loadingModal, contentType, isEditMode);
-        };
+        // Add all other form data
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
 
-        reader.readAsDataURL(mediaFile);
+        console.log(data);
+
+        sendDataToWebSocket(data, loadingModal, contentType, isEditMode);
     } else {
         formData.forEach((value, key) => {
             data[key] = value;
@@ -98,7 +125,35 @@ function sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, i
     // Update loading message for data processing
     document.getElementById('loadingMessage').textContent = 'Processing your content...';
 
-    ws.send(JSON.stringify(data));
+    const tryReconnect = () => {
+        // Hide loading modal during reconnection
+        loadingModal.style.display = 'none';
+        document.getElementById('loadingMessage').textContent = 'Reconnecting to server...';
+        
+        // Fetch the WebSocket URL and attempt to reconnect
+        fetch('websocket_conn.php')
+            .then(response => response.text())
+            .then(url => {
+                window.ws = new WebSocket(url);
+                // Once reconnected, retry sending the data
+                window.ws.onopen = function() {
+                    loadingModal.style.display = 'flex';
+                    document.getElementById('loadingMessage').textContent = 'Processing your content...';
+                    sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, isEditMode);
+                };
+            })
+            .catch(error => {
+                console.error('Error reconnecting:', error);
+                // Retry reconnection after delay
+                setTimeout(tryReconnect, 1500);
+            });
+    };
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(data));
+    } else {
+        tryReconnect();
+    }
 
     // Listen for messages from the WebSocket server
     ws.onmessage = function(event) {
@@ -130,6 +185,7 @@ function sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, i
         loadingModal.style.display = 'none';
         document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
         document.getElementById('errorModal').style.display = 'flex';
+        tryReconnect();
     };
 
     // Add error handling for WebSocket connection
@@ -137,6 +193,7 @@ function sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, i
         loadingModal.style.display = 'none';
         document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';
         document.getElementById('errorModal').style.display = 'flex';
+        tryReconnect();
     };
 }
 
