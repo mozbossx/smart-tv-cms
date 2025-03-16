@@ -33,6 +33,40 @@ $resultSelectExtistingTvs = mysqli_query($conn, $querySelectExtistingTvs);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Manage Templates</title>
+    <style>
+        .form-field {
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .form-field input[type="password"] {
+            padding-right: 40px;
+        }
+
+        .form-field i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .form-field input {
+            width: 100%;
+            padding: 1rem 2rem 1rem 3rem;
+            border: 1px solid #858585;
+            background: #f4f4f4;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-field input:focus {
+            border-color: #007638;
+            outline: none;
+        }
+    </style>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -61,10 +95,10 @@ $resultSelectExtistingTvs = mysqli_query($conn, $querySelectExtistingTvs);
                             echo '
                                 <!-- search form -->
                                 <form class="search-form" style="width: 550px; max-width: 100%; margin: 0 auto; margin-bottom: 10px;">
-                                    <div class="floating-label-container">
-                                        <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchTvs()">
-                                        <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search for TV Name, Brand, Department, or ID</label>
-                                        <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                                    <div class="form-field">
+                                        <i class="bi bi-search"></i>
+                                        <input type="text" id="searchInput" required placeholder="Search TVs" onkeyup="searchTvs()">
+                                        <button type="button" id="clearSearch" style="display: none; position: absolute; right: 40px; font-size: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
                                             <i class="fa fa-times" aria-hidden="true"></i>
                                         </button>
                                     </div>

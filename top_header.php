@@ -103,9 +103,9 @@ $displayInterval = $displayTimeRange['display_interval'];
                         <li><a href="view_pending_contents.php?pageid=ViewPendingContents&userId=<?php echo $user_id; ?>&userType=<?php echo $user_type; ?>">Pending <span id="pendingContentCount" class="pending-content-count" style="color: <?php echo $light_theme_color_20_percent; ?>;"></span></a></li>
                     </ul>
                 </li>
-                <li>
+                <!-- <li>
                     <a onclick="openSurveyModal()" style="cursor: pointer;">Take Survey</a>
-                </li>
+                </li> -->
                 <?php if ($user_type === 'Admin') { ?>
                 <li>
                     <a id="dropdown-arrow" href="admin_options.php?pageid=AdminOptions?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
@@ -216,7 +216,7 @@ $displayInterval = $displayTimeRange['display_interval'];
 </div>
 
 <!-- Take Survey Modal -->
-<div id="takeSurveyModal" class="modal">
+<!-- <div id="takeSurveyModal" class="modal">
     <div class="modal-content" style="padding: 15px; text-align: center;">
         <div class="green-bar-vertical">
             <h1 style="color: <?php echo $theme_color; ?>; font-size: 50px"><i class="fa fa-wpforms" aria-hidden="true"></i></h1>
@@ -229,7 +229,7 @@ $displayInterval = $displayTimeRange['display_interval'];
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <script src="misc/js/capitalize_first_letter.js"></script>
 <script>
@@ -276,10 +276,10 @@ $displayInterval = $displayTimeRange['display_interval'];
         window.location.href = 'notifications.php?pageid=Notifications?userId=' + user_id + '' + full_name;
     }
 
-    function openSurveyModal() {
-        const takeSurveyModal = document.getElementById("takeSurveyModal");
-        takeSurveyModal.style.display = "flex";
-    }
+    // function openSurveyModal() {
+    //     const takeSurveyModal = document.getElementById("takeSurveyModal");
+    //     takeSurveyModal.style.display = "flex";
+    // }
 
     function changeDisplayTimeModal() {
         const changeDisplayTimeModal = document.getElementById("changeDisplayTimeModal");

@@ -158,7 +158,7 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
                                     <span class="color-label">Blue</span>
                                 </div>
                                 <div class="color-option-container">
-                                    <div class="color-option" data-color="#860202" style="background-color: #860202" onclick="updateTheme('#860202')"></div>
+                                    <div class="color-option" data-color="#ff0000" style="background-color: #ff0000" onclick="updateTheme('#ff0000')"></div>
                                     <span class="color-label">Red</span>
                                 </div>
                                 <div class="color-option-container">
@@ -174,6 +174,10 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
                                     <span class="color-label">Brown</span>
                                 </div>
                                 <div class="color-option-container">
+                                    <div class="color-option" data-color="#860202" style="background-color: #860202" onclick="updateTheme('#860202')"></div>
+                                    <span class="color-label">Maroon</span>
+                                </div>
+                                <div class="color-option-container">
                                     <div class="color-option" data-color="#00686c" style="background-color: #00686c" onclick="updateTheme('#00686c')"></div>
                                     <span class="color-label">Teal</span>
                                 </div>
@@ -184,6 +188,18 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
                                 <div class="color-option-container">
                                     <div class="color-option" data-color="#49006c" style="background-color: #49006c" onclick="updateTheme('#49006c')"></div>
                                     <span class="color-label">Violet</span>
+                                </div>
+                                <div class="color-option-container">
+                                    <div class="color-option" data-color="#ff5b00" style="background-color: #ff5b00" onclick="updateTheme('#ff5b00')"></div>
+                                    <span class="color-label">Orange</span>
+                                </div>
+                                <div class="color-option-container">
+                                    <div class="color-option" data-color="#e403e4" style="background-color: #e403e4" onclick="updateTheme('#e403e4')"></div>
+                                    <span class="color-label">Magenta</span>
+                                </div>
+                                <div class="color-option-container">
+                                    <div class="color-option" data-color="#636b2f" style="background-color: #636b2f" onclick="updateTheme('#636b2f')"></div>
+                                    <span class="color-label">Olive</span>
                                 </div>
                             </div>
                         </div>

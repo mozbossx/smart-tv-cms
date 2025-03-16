@@ -13,6 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Initialize PHPMailer
     $mail = new PHPMailer(true);
 
+    if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.4') {
+        $loginPageLink = "http://192.168.1.4:8080/CMS%20Final/login.php?pageid=Login";
+    } else {
+        $loginPageLink = "https://usccms.online/login.php?pageid=Login";
+    }
+
     try {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
@@ -30,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->Body = "
             <p>Hello $full_name,</p>
             <p>Your registration to USC Smart TV CMS is approved by $evaluator_name. You can now log in to the system by clicking the link below.</p>
-            <a href='http://192.168.1.3:8080/CMS%20Final/login.php?pageid=login'>Log in to USC Smart TV CMS</a>
+            <a href='$loginPageLink'>Log in to USC Smart TV CMS</a>
             <br>
             <p>Regards,<br>University of San Carlos</p>
         ";

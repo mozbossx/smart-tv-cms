@@ -125,6 +125,20 @@ try {
                 WHERE user_id = ?
             ");
             $stmt->execute([$item["{$type}_author_id"]]);
+
+            // Delete pending notification if it exists
+            $stmt = $pdo->prepare("
+                DELETE FROM notifications_tb 
+                WHERE status = 'pending' 
+                AND content_id = ? 
+                AND content_type = ? 
+                AND user_id = ?
+            ");
+            $stmt->execute([
+                $item["{$type}_id"],
+                $type,
+                $item["{$type}_author_id"]
+            ]);
             
             logMessage("Created notification for user {$item["{$type}_author_id"]} about deleted pending content {$item["{$type}_id"]}");
         }

@@ -33,6 +33,41 @@ if (!$resultAllSmartTVs) {
     <link rel="stylesheet" href="style.css">
     <title>Manage Smart TVs</title>
     <style>
+        .form-field {
+            position: relative;
+            box-sizing: border-box;
+            margin-top: 10px;
+        }
+
+        .form-field input[type="password"] {
+            padding-right: 40px;
+        }
+
+        .form-field i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .form-field input {
+            width: 100%;
+            padding: 0.5rem 2rem 0.5rem 3rem;
+            border: 1px solid #858585;
+            background: #f4f4f4;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+            height: 35px;
+        }
+
+        .form-field input:focus {
+            border-color: #007638;
+            outline: none;
+        }
+
         th {
             cursor: pointer;
         }
@@ -65,9 +100,10 @@ if (!$resultAllSmartTVs) {
                         <?php include('error_message.php'); ?>
                         <div style="display: flex; justify-content: space-between;">
                             <form class="search-form" style="width: 300px; max-width: 100%; margin: 0;">
-                                <div class="floating-label-container" style="margin-top: 10px;">
-                                    <input type="text" id="searchInput" required class="floating-label-input" style="height: 35px; padding-top: 8px; padding-bottom: 8px" onkeyup="searchSmartTVsTable()" placeholder="Search Smart TVs Table">
-                                    <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                                <div class="form-field">
+                                    <i class="bi bi-search"></i>
+                                    <input type="text" id="searchInput" required placeholder="Search" onkeyup="searchSmartTVsTable()">
+                                    <button type="button" id="clearSearch" style="display: none; position: absolute; right: 40px; font-size: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
                                         <i class="fa fa-times" aria-hidden="true"></i>
                                     </button>
                                 </div>

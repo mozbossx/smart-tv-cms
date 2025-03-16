@@ -17,7 +17,7 @@ body {
     padding: 16rem 4rem;
     position: relative;
     overflow: hidden;
-    border-bottom: 10px solid #fbbf16;
+    height: 100vh;
 }
 
 .hero-section::before {
@@ -73,7 +73,7 @@ body {
 }
 
 .hero-content {
-    max-width: 1200px;
+    /* max-width: 1200px; */
     margin: 0 auto;
     position: relative;
     z-index: 2;
@@ -123,9 +123,10 @@ body {
 }
 
 .features-section {
-    max-width: 1200px;
-    margin: 4rem auto;
+    /* max-width: 1200px; */
+    margin: auto;
     padding: 0 2rem;
+    border-top: 10px solid #fbbf16;
 }
 
 .section-title {
@@ -174,7 +175,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
-    max-width: 1200px;
+    /* max-width: 1200px; */
     margin: 0 auto;
 }
 

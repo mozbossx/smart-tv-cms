@@ -42,7 +42,7 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
     </section>
 
     <section class="features-section">
-        <div style="display: flex; flex-direction: row; justify-content: center; margin-bottom: 15px">
+        <div style="display: flex; flex-direction: row; justify-content: center; margin-bottom: 15px; margin-top: 4rem">
             <img src="images/usc_icon.png" class="usc-logo">
             <img src="images/soe_icon.png" class="soe-logo">
         </div>

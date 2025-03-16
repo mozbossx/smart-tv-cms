@@ -145,11 +145,6 @@ if (isset($_POST['submit'])) {
             margin-bottom: 5px;
         }
 
-        .form-field {
-            position: relative;
-            box-sizing: border-box;
-        }
-
         .toggle-password {
             position: absolute;
             top: 50%;
@@ -165,6 +160,11 @@ if (isset($_POST['submit'])) {
 
         .toggle-password i {
             font-style: normal;
+        }
+
+        .form-field {
+            position: relative;
+            box-sizing: border-box;
         }
 
         .form-field input[type="password"] {
