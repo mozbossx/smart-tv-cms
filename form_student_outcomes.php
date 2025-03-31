@@ -88,49 +88,53 @@ if ($isEditMode && isset($_GET['so_id'])) {
                                 <input type="hidden" name="so_id" value="<?php echo htmlspecialchars($_GET['so_id']); ?>">
                                 <input type="hidden" name="action_value" value="edit">
                             <?php endif; ?>
-                            <h1 style="text-align: center">Student Outcomes (SO) Form</h1>
-                            <div class="floating-label-container">
-                                <div id="quillSoTitleEditorContainer">
-                                    <label for="quillSoTitleEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">SO Title</label>
-                                    <div id="so_title"></div>
-                                </div>
-                                <input type="hidden" name="so_title" id="soTitleHiddenInput">
-                                <?php if ($isEditMode && $contentData): ?>
-                                    <input type="hidden" id="existing_so_content_title" value="<?php echo htmlspecialchars($contentData['so_title']); ?>">
-                                <?php endif; ?>
+                            <div class="form-title-container">
+                                <h1 class="form-title"><i class="fa fa-graduation-cap" style="margin-right: 6px"></i>Student Outcomes (SO) Form</h1>
                             </div>
-                            <div class="floating-label-container">
-                                <div id="quillSoDescriptionEditorContainer">
-                                    <label for="quillSoDescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">SO Description</label>
-                                    <div id="so_description" style="height: 100px;"></div>
+                            <div class="form-container">
+                                <div class="floating-label-container">
+                                    <div id="quillSoTitleEditorContainer">
+                                        <label for="quillSoTitleEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">SO Title</label>
+                                        <div id="so_title"></div>
+                                    </div>
+                                    <input type="hidden" name="so_title" id="soTitleHiddenInput">
+                                    <?php if ($isEditMode && $contentData): ?>
+                                        <input type="hidden" id="existing_so_content_title" value="<?php echo htmlspecialchars($contentData['so_title']); ?>">
+                                    <?php endif; ?>
                                 </div>
-                                <input type="hidden" name="so_description" id="soDescriptionHiddenInput">
-                                <?php if ($isEditMode && $contentData): ?>
-                                    <input type="hidden" id="existing_so_content_description" value="<?php echo htmlspecialchars($contentData['so_description']); ?>">
-                                <?php endif; ?>
-                            </div>
-                            <div class="floating-label-container">
-                                <div id="quillSoSubdescriptionEditorContainer">
-                                    <label for="quillSoSubdescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">SO Sub-Description (Optional)</label>
-                                    <div id="so_subdescription" style="height: 150px;"></div>
+                                <div class="floating-label-container">
+                                    <div id="quillSoDescriptionEditorContainer">
+                                        <label for="quillSoDescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">SO Description</label>
+                                        <div id="so_description" style="height: 100px;"></div>
+                                    </div>
+                                    <input type="hidden" name="so_description" id="soDescriptionHiddenInput">
+                                    <?php if ($isEditMode && $contentData): ?>
+                                        <input type="hidden" id="existing_so_content_description" value="<?php echo htmlspecialchars($contentData['so_description']); ?>">
+                                    <?php endif; ?>
                                 </div>
-                                <input type="hidden" name="so_subdescription" id="soSubdescriptionHiddenInput">
-                                <?php if ($isEditMode && $contentData): ?>
-                                    <input type="hidden" id="existing_so_content_subdescription" value="<?php echo htmlspecialchars($contentData['so_subdescription']); ?>">
-                                <?php endif; ?>
-                            </div>
-                            <?php 
-                                $type = 'so';
-                            ?>
-                            <?php include('misc/php/displaytime_tvdisplay.php')?>
-                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
-                                <div>
-                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
-                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
-                                    </button>
+                                <div class="floating-label-container">
+                                    <div id="quillSoSubdescriptionEditorContainer">
+                                        <label for="quillSoSubdescriptionEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">SO Sub-Description (Optional)</label>
+                                        <div id="so_subdescription" style="height: 150px;"></div>
+                                    </div>
+                                    <input type="hidden" name="so_subdescription" id="soSubdescriptionHiddenInput">
+                                    <?php if ($isEditMode && $contentData): ?>
+                                        <input type="hidden" id="existing_so_content_subdescription" value="<?php echo htmlspecialchars($contentData['so_subdescription']); ?>">
+                                    <?php endif; ?>
                                 </div>
+                                <?php 
+                                    $type = 'so';
+                                ?>
+                                <?php include('misc/php/displaytime_tvdisplay.php')?>
+                                <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end">
+                                    <div>
+                                        <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
+                                            Preview <i class="fa fa-chevron-right" style="padding-left: 5px"></i> 
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php include('misc/php/preview_modal_new.php') ?>
                             </div>
-                            <?php include('misc/php/preview_modal.php') ?>
                         </form>
                     </div>
                 </div>

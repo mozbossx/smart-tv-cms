@@ -40,17 +40,46 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
+        .form-field {
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .form-field input[type="password"] {
+            padding-right: 40px;
+        }
+
+        .form-field i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .form-field input {
+            width: 100%;
+            padding: 1rem 2rem 1rem 3rem;
+            border: 1px solid #858585;
+            background: #f4f4f4;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-field input:focus {
+            border-color: #007638;
+            outline: none;
+        }
+
         #scrollDiv {
-            height: calc(100vh - 250px); 
+            height: calc(100vh - 285px); 
         }
         /* Media query for smaller screens */
         @media only screen and (max-width: 1000px) {
-            #searchByKeywordsForm, #searchByContentTypeForm {
-                margin: 0 auto;
-            }
-
             #scrollDiv {
-                height: calc(100vh - 260px);
+                height: calc(100vh - 290px);
             }
         }
     </style>
@@ -63,35 +92,15 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form" style="max-width: 800px; margin: 0 auto;">
-                    <div id="pendingContentsList" class="content-container" style="height: calc(100vh - 160px); overflow: hidden;">
-                        <h1 class="content-title" style="text-align: center;">
-                            <i class="fa fa-clock-o" style="margin-right: 6px" aria-hidden="true"></i>Pending Contents <span id="pendingContentsCount" style="font-weight: bold; color: #6E6E6E;"></span>
-                            <?php
-                                echo '<p style="font-size: 13px; color: '.$theme_color.';">Pending contents will be permanently deleted after reaching their expiration date.</p>';
-                            ?>
-                        </h1>
-                        <!-- <div class="archives-buttons-flex">
-                            <form class="search-form" id="searchByKeywordsForm" style="width: 300px; max-width: 100%; margin-bottom: 10px;">
-                                <div class="floating-label-container">
-                                    <input type="text" id="searchInput" required placeholder=" " class="floating-label-input" onkeyup="searchPendingContents()">
-                                    <label for="searchInput" class="floating-label"><i class="fa fa-search" style="margin-right: 6px" aria-hidden="true"></i> Search for keywords</label>
-                                    <button type="button" id="clearSearch" style="display: none; position: absolute; right: 12px; font-size: 16px; top: 56%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
-                                        <i class="fa fa-times" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </form>
-
-                            <form class="search-form" id="searchByContentTypeForm" style="width: 300px; max-width: 100%; margin-left: auto; margin-bottom: 10px;">
-                                <div class="floating-label-container">
-                                    <select id="contentType" class="floating-label-input">
-                                        <option value="all">All</option>
-                                    </select>
-                                    <label for="contentType" class="floating-label">Show by Content Type</label>
-                                </div>
-                            </form>
-                        </div> -->
-                        <div id="scrollDiv" class="scroll-div" style="padding: 10px">
-                            <div id="pendingContentsContainer" style="margin-right: 10px;"></div>
+                    <div id="pendingContentsList" class="content-container" style="height: calc(100vh - 160px); overflow: hidden; padding: 0">
+                        <div style="background: <?php echo $theme_color; ?>; padding: 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+                            <h1 class="content-title" style="text-align: left; font-size: 20px; padding: 5px">
+                                <i class="fa fa-check" style="margin-right: 6px" aria-hidden="true"></i>Pending Contents
+                            </h1>
+                        </div>
+                        <p id="trashMessage2" style="font-size: 16px; color: #6E6E6E; padding: 12px; text-align: center">Pending items will be permanently deleted after reaching their expiration date.</p>
+                        <div id="scrollDiv" class="scroll-div" style="padding-left: 15px; padding-right: 5px; margin-right: 10px;">
+                            <div id="pendingContentsContainer" style="margin-right: 5px;"></div>
                         </div>
                     </div>
                 </div>

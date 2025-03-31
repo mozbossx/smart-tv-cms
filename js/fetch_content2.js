@@ -112,7 +112,7 @@ const fetchTrashDays = async () => {
 // Utility function to create buttons
 const createDeleteButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.innerHTML = `${text}`;
     button.className = 'light-green-button';
     button.style = `
         margin-top: 10px;
@@ -124,7 +124,7 @@ const createDeleteButton = (text, iconClass, onClick) => {
 
 const createTrashButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.innerHTML = `${text}`;
     button.className = 'light-green-button';
     button.style = `
         margin-top: 10px;
@@ -136,7 +136,7 @@ const createTrashButton = (text, iconClass, onClick) => {
 
 const createArchiveButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.innerHTML = `${text}`;
     button.className = 'light-green-button';
     button.style = `
         margin-top: 10px;
@@ -148,7 +148,7 @@ const createArchiveButton = (text, iconClass, onClick) => {
 
 const createEditButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.innerHTML = `${text}`;
     button.className = 'green-button';
     button.onclick = onClick;
     return button;
@@ -211,7 +211,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
             break;
         case 'peo':
         case 'so':
-            contentHtml += `<pre class="ann-body" style="word-break: break-word"><b>${data[`${type}_title`]}</b></pre>
+            contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[`${type}_title`]}</pre>
                             <pre class="ann-body" style="word-break: break-word">${data[`${type}_description`]}</pre>
                             <pre class="ann-body" style="word-break: break-word">${data[`${type}_subdescription`]}</pre>`;
             break;
@@ -446,8 +446,8 @@ const updateUI = (data, type) => {
     if (data.media_path && type !== 'facility') {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
-        mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; margin: 0 auto; border-radius: 5px">` :
-            isVideo ? `<video width="100%" height="100%" controls controlsList="nodownload nofullscreen nopictureinpicture nopictureinpicture" style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
+        mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 75%; max-height: 75%; display: block; margin: 0 auto; border-radius: 5px">` :
+            isVideo ? `<video width="75%" height="75%" controls controlsList="nodownload nofullscreen nopictureinpicture nopictureinpicture" style="width: 75%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     } 
 
     const contentDiv = createContentDiv(data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, type);
@@ -650,7 +650,7 @@ function createNodeStructure(members) {
             innerHTML: `
                 <div class="node-content" style="width: auto; max-width: 400px;">
                     ${member.picture ? 
-                        `<img src="${member.picture}" class="node-image" alt="${member.name}">` : 
+                        `<img src="servers/orgchart_media/${member.picture}" class="node-image" alt="${member.name}">` : 
                         `<img src="images/profile_picture.png" class="node-image" alt="Default Profile">`
                     }
                     <div class="node-details">
@@ -869,14 +869,12 @@ const showArchiveModal = (contentId, contentType, authorId, loggedInFullName, au
     
     modalContent.innerHTML = `
         <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
-        <p id="trashMessage" style="text-align: center">Proceed to archive?</p>
-        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for ${currentArchiveDays} days before being moved to Trash.</p>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-archive"></i> Archive</h1>
+        <p id="trashMessage" style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to move to Archives? Archived items are stored for ${currentArchiveDays} days before being moved to Trash.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
-            <button type="button" class="grey-button" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="grey-button" style="margin-right: 5px" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
             <button type="button" class="yellow-button" onclick="archiveItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, Archive</button>
         </div>
     `;
@@ -904,15 +902,13 @@ const showTrashModal = (contentId, contentType, authorId, loggedInFullName, auth
     
     modalContent.innerHTML = `
         <span class="close" onclick="document.getElementById('confirmTrash${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-        <p id="trashMessage" style="text-align: center">Proceed to move to Trash?</p>
-        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Trashed items are stored for ${currentTrashDays} days before being permanently deleted.</p>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-trash"></i> Trash</h1>
+        <p id="trashMessage" style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to move to Trash? Trashed items are stored for ${currentTrashDays} days before being permanently deleted.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
             <!-- <button type="button" class="grey-button" onclick="document.getElementById('confirmTrash${capitalizedType}Modal').style.display='none'">Cancel</button> -->
-            <button type="button" class="grey-button" onclick="showDeleteModal(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Delete Forever</button>
+            <button type="button" class="grey-button" style="margin-right: 5px" onclick="showDeleteModal(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Delete Forever</button>
             <button type="button" class="red-button" onclick="trashItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, move to Trash</button>
         </div>
     `;
@@ -944,14 +940,12 @@ const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, aut
     
     modalContent.innerHTML = `
         <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to delete forever?</p>
-        <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Permanently deleted items cannot be recovered.</p>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-trash"></i> Permanent Delete</h1>
+        <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to delete permanently? Permanently deleted items cannot be recovered.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
-            <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="grey-button" style="margin-right: 5px" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
             <button type="button" class="red-button" onclick="deleteItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, delete forever</button>
         </div>
     `;

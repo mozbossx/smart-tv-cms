@@ -55,6 +55,7 @@ if (mysqli_num_rows($result) > 0) {
         $tvDepartment = $row['tv_department'];
         $tvHeight = $row['height_px'];
         $tvWidth = $row['width_px'];
+        $tvStatus = $row['active_status'];
     }
 }
 
@@ -84,6 +85,12 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <script src="misc/js/treant-js-master/Treant.js"></script>
     <link rel="stylesheet" href="misc/js/treant-js-master/Treant.css" />
     <title><?php echo $tvName; ?></title>
+    <style>
+        .create-post-button-1:hover {
+            cursor: pointer;
+            background: <?php echo $dark_theme_color_50_percent; ?> !important;
+        }
+    </style>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -98,7 +105,11 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     </ol>
                 </nav>
                 <?php
-                echo '<h1 class="content-title" id="tvNameContent" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($tvName) . '</h1>';
+                // Initial status icon color based on database value
+                $statusIcon = $tvStatus === 'active' ? 
+                '<i class="fa fa-circle" style="color: #2ECC71;"></i>' : 
+                '<i class="fa fa-circle" style="color: #E74C3C;"></i>';
+                echo '<h1 id="tvNameContent" style="text-align: center; padding-bottom: 0;"><i class="fa fa-tv" style="margin-right: 6px" aria-hidden="true"></i>' . htmlspecialchars($tvName) . '<span id="activeTvStatus_' . $tvId . '" style="font-size: 22px; margin-left: 10px">' . $statusIcon . '</span></h1>';
                 echo '<div style="display: flex; justify-content: center; align-items: center;">';
                     echo '<p style="margin: 0; margin-right: 5px; color: #6E6E6E"><small>ID: ' . $tvId . '</small></p>'; 
                     echo '<p id="tvBrandUserHome_' . $tvId . '" style="margin: 0; color: #6E6E6E;"><small>| ' . $tvBrand . '</small></p>'; 
@@ -111,7 +122,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 echo "</div>";
                 echo "<div class='scale-buttons' style='background: none;'>";
                 if ($user_type == 'Admin' || $user_type == 'Super Admin') {
-                    echo "<button class='light-green-button' style='padding: 8px 16px; margin-left: 20px' onclick=\"window.location.href='edit_template.php?tvId=$tvId&initialize=false'\"><i class='fa fa-window-restore' style='margin-right: 6px' aria-hidden='true'></i>Edit Template</button>";
+                    echo "<button class='green-button' style='padding: 8px 16px; margin-left: 20px' onclick=\"window.location.href='edit_template.php?tvId=$tvId&initialize=false'\"><i class='fa fa-window-restore' aria-hidden='true'></i></button>";
                 }
                 echo "</div>";
                 echo "</div>";
@@ -135,23 +146,24 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         continue;
                     }
                     
-                    echo "<div id='{$type}List' class='content-container'>";
+                    echo "<div id='{$type}List' class='content-container' style='padding: 0; padding-bottom: 20px; margin: 10px'>";
+                    echo '<div style="background: '.$theme_color.'; display: flex; flex-direction: row; justify-content: space-between">';
                     if ($type == 'announcement') {
-                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements <span id='announcementCount' style='color: #6E6E6E;'></span></h1>";
+                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements <span id='announcementCount' style='color: $light_theme_color_70_percent;'></span></h1>";
                     } else if ($type == 'event') {
-                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-calendar-check-o' style='margin-right: 6px' aria-hidden='true'></i>Events <span id='eventCount' style='color: #6E6E6E;'></span></h1>";
+                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-calendar-check-o' style='margin-right: 6px' aria-hidden='true'></i>Events <span id='eventCount' style='color: $light_theme_color_70_percent;'></span></h1>";
                     } else if ($type == 'news') {
-                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-newspaper-o' style='margin-right: 6px' aria-hidden='true'></i>News <span id='newsCount' style='color: #6E6E6E;'></span></h1>";
+                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-newspaper-o' style='margin-right: 6px' aria-hidden='true'></i>News <span id='newsCount' style='color: $light_theme_color_70_percent;'></span></h1>";
                     } else if ($type == 'promaterial') {
-                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-object-group' style='margin-right: 6px' aria-hidden='true'></i>Promotional Materials <span id='promaterialCount' style='color: #6E6E6E;'></span></h1>";
+                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-object-group' style='margin-right: 6px' aria-hidden='true'></i>Promotional Materials <span id='promaterialCount' style='color: $light_theme_color_70_percent;'></span></h1>";
                     } else if ($type == 'peo') {
-                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO) <span id='peoCount' style='color: #6E6E6E;'></span></h1>";
+                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO) <span id='peoCount' style='color: $light_theme_color_70_percent;'></span></h1>";
                     } else if ($type == 'so') {
-                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO) <span id='soCount' style='color: #6E6E6E;'></span></h1>";
+                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO) <span id='soCount' style='color: $light_theme_color_70_percent;'></span></h1>";
                     } else if ($type == 'orgchart') {
-                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Department Organizational Chart <span id='orgchartCount' style='color: #6E6E6E;'></span></h1>";
+                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Department Organizational Chart <span id='orgchartCount' style='color: $light_theme_color_70_percent;'></span></h1>";
                     } else if ($type == 'facility') {
-                        echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-building' style='margin-right: 6px' aria-hidden='true'></i>Facilities <span id='facilityCount' style='color: #6E6E6E;'></span></h1>";
+                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-building' style='margin-right: 6px' aria-hidden='true'></i>Facilities <span id='facilityCount' style='color: $light_theme_color_70_percent;'></span></h1>";
                     } else {
                         // For new features
                         $feature = array_filter($featuresNewFeatures, function($f) use ($type) {
@@ -159,42 +171,24 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         });
                         $feature = reset($feature);
                         if ($feature) {
-                            echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']} <span id='{$type}Count' style='color: #6E6E6E;'></span></h1>";
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']} <span id='{$type}Count' style='color: $light_theme_color_70_percent;'></span></h1>";
                         } else {
-                            echo "<h1 class='content-title' style='text-align: center; width: 75%; justify-self: center'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . " <span id='{$type}Count' style='color: #6E6E6E;'></span></h1>";
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . " <span id='{$type}Count' style='color: $light_theme_color_70_percent;'></span></h1>";
                         }
                     }
                     echo '<div style="display: flex; justify-content: space-between; align-items: center;">';
                     if ($type == 'promaterial') {
-                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_promotional_material.php?pageid=PromotionalMaterialsForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                        echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_promotional_material.php?pageid=PromotionalMaterialsForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
                     } else if ($type == 'so') {
-                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_student_outcomes.php?pageid=StudentOutcomesForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                        echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_student_outcomes.php?pageid=StudentOutcomesForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
                     } else if ($type == 'orgchart') {
-                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_department_organizational_chart.php?pageid=DepartmentOrganizationalChart&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                        echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_department_organizational_chart.php?pageid=DepartmentOrganizationalChart&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
                     } else {
-                        echo '<button id="createPostButton" class="grey-button" style="flex: 1; margin-top: 5px;height: 35px;" onclick="window.location.href=\'form_' . $type . '.php?pageid=' . $type . 'Form&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i> Add New</button>';
+                        echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_' . $type . '.php?pageid=' . $type . 'Form&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
                     }
-                    echo '<div style="display: flex; align-items: center; justify-content: flex-end; flex: 3;">';
-                    echo '<label for="sortBy_' . $type . '" style="margin-top: 5px; margin-right: 10px;">Sort By:</label>';
-                    echo '<select id="sortBy_' . $type . '" class="select-button" style="margin-top: 5px; height: 35px; width: 40%;">';
-                        if ($type !== 'facility' && $type !== 'orgchart' && $type !== 'peo' && $type !== 'so') {
-                            echo '<option value="post_datetime_newest">Post Date/Time (Newest First)</option>';
-                            echo '<option value="post_datetime_oldest">Post Date/Time (Oldest First)</option>';
-                            echo '<option value="expiration_datetime_newest">Expiration Date/Time (Descending)</option>';
-                            echo '<option value="expiration_datetime_oldest">Expiration Date/Time (Ascending)</option>';
-                            echo '<option value="display_time_longest">Display Time (Longer Duration First)</option>';
-                            echo '<option value="display_time_shortest">Display Time (Shorter Duration First)</option>';
-                        } else {
-                            echo '<option value="post_datetime_newest">Post Date/Time (Newest First)</option>';
-                            echo '<option value="post_datetime_oldest">Post Date/Time (Oldest First)</option>';
-                            echo '<option value="display_time_longest">Display Time (Longer Duration First)</option>';
-                            echo '<option value="display_time_shortest">Display Time (Shorter Duration First)</option>';
-                        }
-                        
-                    echo '</select>';
-                    echo '</div>';
                     echo "</div>";
-                    echo "<div class='scroll-div' style='margin-top: 10px;'>";
+                    echo '</div>';
+                    echo "<div class='scroll-div' style='margin-top: 10px; margin-left: 15px; margin-right: 15px;'>";
                     echo "<div id='{$type}CarouselContainer'>";
 
                     echo "</div>"; // Close carousel container

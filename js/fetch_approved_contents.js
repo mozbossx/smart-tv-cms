@@ -18,7 +18,7 @@ function formatDateTime(dateTimeString) {
 const createEditButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
-    button.className = 'light-green-button';
+    button.className = 'green-button';
     button.style = `
         margin-top: 10px;
         margin-right: 5px;
@@ -30,7 +30,7 @@ const createEditButton = (text, iconClass, onClick) => {
 const createDeleteButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
-    button.className = 'green-button';
+    button.className = 'light-green-button';
     button.style = `margin-top: 10px; margin-right: 5px;`;
     button.onclick = onClick;
     return button;
@@ -71,7 +71,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
     contentHtml += `
             <div class="line-separator"></div>
             <p class="expiration-date" style="color: #6E6E6E"><small>Expires on ${formattedExpirationDateTime}</small></p>
-            <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>${data.author_name === full_name ? 'Posted by you' : `Posted by ${data.author_name}`} on ${formattedCreatedDateTime}</small></p>
+            <p class="expiration-date" style="margin-bottom: 10px; color: #6E6E6E"><small>Posted by ${data.author_name} on ${formattedCreatedDateTime}</small></p>
             <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs  |  <i class="fa fa-tv" aria-hidden="true" style="margin-left: 5px"></i> ${tvDisplay}</p>
         </div>
     `;
@@ -104,14 +104,12 @@ const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, aut
     
     modalContent.innerHTML = `
         <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to delete forever?</p>
-        <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Permanently deleted items cannot be recovered.</p>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-trash"></i> Permanent Delete</h1>
+        <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to delete permanently? Permanently deleted items cannot be recovered.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
-            <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="grey-button" style="margin-right: 5px" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
             <button type="button" class="red-button" onclick="deleteItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, delete forever</button>
         </div>
     `;
@@ -154,7 +152,7 @@ const updateUI = async (data, type) => {
     if (data.media_path) {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
-        mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; margin: 0 auto; border-radius: 5px">` :
+        mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 50%; max-height: 375px; display: block; margin: 0 auto; border-radius: 5px">` :
             isVideo ? `<video width="100%" height="100%" controls style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
@@ -226,10 +224,9 @@ const updateUI = async (data, type) => {
             )
         );
 
-
-        if (data.author_name === full_name) {
-            buttonContainer.appendChild(editButton);
+        if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin') || data[`${type}_author_id`] === parseInt(user_id)) {
             buttonContainer.appendChild(deleteButton);
+            buttonContainer.appendChild(editButton);
         }
 
         // Set main container styles
@@ -417,15 +414,9 @@ const getFeatureInfo = async (type) => {
 
 // Function to search approved contents
 function searchApprovedContents() {
-    const searchInput = document.getElementById('searchInput');
-    const clearButton = document.getElementById('clearSearch');
-    const keyword = searchInput.value.toLowerCase();
     const contentType = document.getElementById('contentType').value;
     
-    // Show/hide clear button
-    clearButton.style.display = keyword ? 'block' : 'none';
-
-    const approvedContents = document.querySelectorAll('#approvedContentsContainer > div');
+    const approvedItems = document.querySelectorAll('#approvedContentsContainer > div');
     let hasVisibleItems = false;
 
     // Remove any existing "no results" message first
@@ -434,17 +425,14 @@ function searchApprovedContents() {
         existingNoResultsMsg.remove();
     }
 
-    approvedContents.forEach(item => {
+    approvedItems.forEach(item => {
         // Skip the noResultsMessage div if it exists
         if (item.id === 'noResultsMessage') return;
 
-        const textContent = item.textContent.toLowerCase();
         const itemTypeElement = item.querySelector('.content-type-label');
         const itemType = itemTypeElement ? itemTypeElement.textContent.toLowerCase().trim() : '';
-
-        const matchesKeyword = keyword === '' || textContent.includes(keyword);
         
-        // Special handling for Promotional Material
+        // Only check content type now
         let matchesType = false;
         if (contentType === 'all') {
             matchesType = true;
@@ -455,12 +443,12 @@ function searchApprovedContents() {
                          itemType.includes(contentType.replace(/_/g, ' ').toLowerCase());
         }
         
-        item.style.display = (matchesKeyword && matchesType) ? 'block' : 'none';
-        if (matchesKeyword && matchesType) hasVisibleItems = true;
+        item.style.display = matchesType ? 'block' : 'none';
+        if (matchesType) hasVisibleItems = true;
     });
 
     // Show "no results" message if needed
-    if (!hasVisibleItems && approvedContents.length > 0) {
+    if (!hasVisibleItems && approvedItems.length > 0) {
         const msg = document.createElement('div');
         msg.id = 'noResultsMessage';
         msg.style = `
@@ -469,18 +457,9 @@ function searchApprovedContents() {
             color: #666;
             margin-top: 20px;
         `;
-        msg.textContent = 'No approved contents match your search';
+        msg.textContent = 'No approved items match your filter';
         document.getElementById('approvedContentsContainer').appendChild(msg);
     }
-}
-
-// Function to clear search
-function clearSearch() {
-    const searchInput = document.getElementById('searchInput');
-    const clearButton = document.getElementById('clearSearch');
-    searchInput.value = '';
-    clearButton.style.display = 'none';
-    searchApprovedContents();
 }
 
 // Function to populate content type dropdown
@@ -685,9 +664,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await createModals();
 
     populateContentTypeDropdown();
-
-    // Add clear button click handler
-    document.getElementById('clearSearch').addEventListener('click', clearSearch);
 
     // Fetch and update all content
     fetchAndUpdateAll();

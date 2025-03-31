@@ -112,7 +112,7 @@ include 'admin_access_only.php';
         <div class="main-container">
             <div class="column1">
                 <div class="content-inside-form">
-                    <div class="content-form">
+                    <div class="content-form" style="padding: 0">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                                 <?php 

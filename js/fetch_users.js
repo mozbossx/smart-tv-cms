@@ -116,9 +116,7 @@ const showUserTableSummary = () => {
     const modal = createModal('userTableSummaryModal', `
         <div class="modal-content" style="padding: 25px;">
             <span class="close" onclick="closeModal('userTableSummary')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-table" aria-hidden="true"></i></h1>
-            <p style="text-align: center">Users Table Summary</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-table"></i> Users Table Summary</h1>
             ${summaryHtml}
         </div>
     `);
@@ -242,15 +240,13 @@ const showDeleteConfirmModal = (userCount, evaluatorName, selectedUsers) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px">
             <span class="close" id="closeDeleteConfirmModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-trash"></i> Delete</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to delete ${userCount} user(s)? This message will be sent thru the email of the user(s).</p>
             <br>
-            <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-            <p id="deleteConfirmMessage" style="text-align: center">Proceed to delete ${userCount} user(s)?</p>
-            <p id="deleteMessage" style="text-align: center; font-size: 13px; color: #6E6E6E">This message will be sent thru the user's email.</p>
             <div class="floating-label-container">
                 <textarea name="evaluator_message_delete_multiple" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area" id="evaluator_message_delete_multiple"></textarea>
                 <label for="evaluator_message_delete_multiple" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User</label>
             </div>
-            <br>
             <br>
             <div style="text-align: right;">
                 <button id="cancelDeleteConfirmButton" class="grey-button" type="button">Cancel</button>
@@ -499,9 +495,8 @@ const showModal = (modalId, actionButton, action) => {
 const insertApproveUserModalContent = (userId) => createModal('ApproveUserModal', `
     <div class="modal-content" style="padding: 15px">
         <span class="close" id="closeApproveUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
-        <p id="approveMessage" style="text-align: center">Proceed to approve this user?</p>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-check-circle"></i> Approve User</h1>
+        <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to approve this user?</p>
         <br>
         <div style="text-align: right;">
             <button id="cancelApproveUserModalButton" class="grey-button" type="button">Cancel</button>
@@ -513,10 +508,9 @@ const insertApproveUserModalContent = (userId) => createModal('ApproveUserModal'
 const insertRejectUserModalContent = (userId) => createModal('RejectUserModal', `
     <div class="modal-content" style="padding: 15px">
         <span class="close" id="closeRejectUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-user-times"></i> Reject User</h1>
+        <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to reject this user? This message will be sent thru the user's email.</p>
         <br>
-        <h1 style="font-size: 50px"><i class="fa fa-user-times" aria-hidden="true"></i></h1>
-        <p id="rejectMessage" style="text-align: center">Proceed to reject this user?</p>
-        <p id="deleteMessage" style="text-align: center; font-size: 13px; color: #6E6E6E">This message will be sent thru the user's email.</p>
         <div class="floating-label-container">
             <textarea name="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area" id="evaluator_message"></textarea>
             <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User</label>
@@ -532,10 +526,9 @@ const insertRejectUserModalContent = (userId) => createModal('RejectUserModal', 
 const insertDeleteUserModalContent = (userId) => createModal('DeleteUserModal', `
     <div class="modal-content" style="padding: 15px">
         <span class="close" id="closeDeleteUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-trash"></i> Delete User</h1>
+        <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to delete this user? This message will be sent thru the user's email.</p>
         <br>
-        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to delete this user?</p>
-        <p id="deleteMessage" style="text-align: center; font-size: 13px; color: #6E6E6E">This message will be sent thru the user's email.</p>
         <div class="floating-label-container">
             <textarea name="evaluator_message" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area" id="evaluator_message"></textarea>
             <label for="evaluator_message" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User</label>
@@ -581,10 +574,8 @@ const showAutoDeleteModal = () => {
             const modalContent = `
                 <div class="modal-content" style="padding: 15px">
                     <span class="close" id="closeAutoDeleteModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-                    <br>
-                    <h1 style="font-size: 50px"><i class="fa fa-user-times" aria-hidden="true"></i></h1>
-                    <p style="text-align: center">Auto Delete User Due to Inactivity</p>
-                    <p style="text-align: center; font-size: 13px; color: #6E6E6E">Set the number of days of inactivity before auto-deletion</p>
+                    <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-user-times"></i> Auto Delete User(s)</h1>
+                    <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Set the number of days of user inactivity before auto-deletion.</p>
                     <form id="autoDeleteForm">
                         <div class="table-container">
                             <table style="font-size: 13px">
@@ -688,9 +679,7 @@ const showAddUserModal = (userId) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px">
             <span class="close" id="closeAddUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-user-plus" aria-hidden="true"></i></h1>
-            <p id="addMessage" style="text-align: center">Add New User(s)</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-user-plus"></i> Add New User(s)</h1>
             <form id="addUserForm" style="margin-top: 10px">
                 <div class="tab">
                     <button type="button" class="tablinks active" onclick="openTab(event, 'SingleUser')">Single User</button>
@@ -1108,9 +1097,7 @@ const populateEditUserModal = (userId) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px">
             <span class="close" id="closeEditUserModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-pencil" aria-hidden="true"></i></h1>
-            <p id="editMessage" style="text-align: center">Edit User</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-pencil"></i> Edit User</h1>
             <form id="editUserForm">
                 <div class="floating-label-container">
                     <input type="text" name="full_name" id="edit_full_name" placeholder=" " class="floating-label-input-text-area" style="background: none; border: none; box-shadow: none; pointer-events: none" readonly>

@@ -681,10 +681,10 @@ nav a{
 .main-form {
     max-width: 600px;
     margin: 10px auto;
-    padding: 20px;
+    /* padding: 20px; */
     background-color: #f8f9fa;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 0px 12px 0px rgb(0 0 0 / 53%);
 }
 
 .floating-label-container {
@@ -911,10 +911,14 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .content-title{
-    font-size: 25px;
-    padding-bottom: 12px;
+    font-weight: normal;
+    font-size: 15px;
     user-select: none;
     margin: 0; 
+    color: white;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .view-all-button {
@@ -1328,9 +1332,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 .node-actions {
     display: flex;
     justify-content: center;
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-    margin-top: 5px;
 }
 
 .add-member-node-btn {
@@ -1379,6 +1380,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     width: 60px; /* Fixed width for image */
     height: 60px; /* Fixed height for image */
     margin-right: 15px; /* Space between the image and text */
+    margin-left: 15px;
 }
 
 .custom-node .details {
@@ -1612,7 +1614,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 .content-inside-form {
     width: auto;
     height: 100%;
-    background-color: #ffffffd7;
     border-radius: 6px;
     color: #000;
     text-align: left;
@@ -1631,9 +1632,9 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     box-sizing: border-box;
     flex-grow: 1;
     overflow-y: auto; /* Add vertical scroll if content overflows */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 0px 12px 0px rgb(0 0 0 / 53%);
     /* background-color: #007638; */
-    border-radius: 5px;
+    border-radius: 10px;
     color: #000000;
     text-align: left;
     cursor: default;
@@ -1675,8 +1676,8 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 
 .media-container img,
 .media-container video {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 75%;
+    max-height: 75%;
     object-fit: contain;
 }
 
@@ -1818,10 +1819,12 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     font-size: 12px;
     cursor: default;
     height: auto;
+    padding-bottom: 70px;
 }
 
 .button-container {
     width: 25%;
+    height: 90px;
     box-sizing: border-box;
     padding-right: 8px;
     padding-bottom: 8px;
@@ -1829,12 +1832,13 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 
 .content-button {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
     height: 100%;
     text-align: center;
     text-decoration: none;
     color: #fff;
-    border-radius: 5px;
+    border-radius: 10px;
     overflow: hidden;
     /* box-shadow: 0px 6px 9px 0px rgba(0, 0, 0, 0.25); */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -1854,23 +1858,26 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 }
 
 .button-icon {
-    flex: 1;
     display: flex;
+    color: white;
+    height: 100%;
     align-items: center;
-    justify-content: center;
-    background: none; /* Adjust the color as needed */
-    padding-top: 10px;
+    padding: 20px;
+    width: 30px;
+    text-align: center;
+    place-content: center;
+    flex-wrap: wrap;
 }
 
 .button-icon i {
-    font-size: 50px;
-    color: #000;
+    font-size: 25px;
+    color: #ffffff;
     transition: transform 0.3s ease;
 }
 
 .button-text {
-    flex: 1;
-    padding: 10px;
+    text-align: left;
+    padding-left: 10px;
     background: none;
     color: black;
     font-size: 15px;
@@ -1918,7 +1925,7 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
 
 .modal-content {
     background-color: #ffffff;
-    padding: 7px;
+    padding: 15px;
     text-align: center;
     width: 90%;
     max-width: 400px; /* Set a maximum width if needed */
@@ -2221,7 +2228,6 @@ textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type=
     overflow-x: auto;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); 
-    grid-gap: 15px; 
 }
 
 .split-container{
@@ -2545,6 +2551,9 @@ tr:nth-child(even) {
 .user-details-table {
     width: 100%;
     border-collapse: collapse;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    overflow: hidden;
 }
 
 .user-details-table th, .user-details-table td {
@@ -3136,6 +3145,7 @@ input[type=range]:focus::-ms-fill-upper {
     padding-left: 10px;
     padding-right: 10px;
     padding-bottom: 10px;
+    margin-top: 8px;
 }
 
 .user-type-pill {
@@ -3143,20 +3153,28 @@ input[type=range]:focus::-ms-fill-upper {
     color: white;
     padding: 5px 8px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: 12px;
     white-space: nowrap;
 }
 
 .theme-container {
-    padding: 10px;
     border-radius: 10px;
+    box-shadow: 0px 0px 12px 0px rgb(0 0 0 / 53%);
+}
+
+.user-details-container {
+    box-shadow: 0px 0px 12px 0px rgb(0 0 0 / 53%);
+    border-radius: 10px;
+    
 }
 
 .color-carousel {
     display: flex;
     gap: 15px;
     overflow-x: auto;
-    padding: 10px;
+    padding-bottom: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .color-option-container {
@@ -3164,7 +3182,9 @@ input[type=range]:focus::-ms-fill-upper {
     flex-direction: column;
     align-items: center;
     gap: 5px;
+    padding: 5px;
 }
+
 
 .color-option {
     width: 40px;
@@ -3178,6 +3198,10 @@ input[type=range]:focus::-ms-fill-upper {
 
 .color-option:hover {
     transform: scale(1.1);
+}
+
+.color-option.active {
+    border: 3px solid #000;
 }
 
 .color-label {
@@ -3264,7 +3288,18 @@ input[type=range]:focus::-ms-fill-upper {
     overflow: hidden;
 }
 
+.form-title-container {
+    padding: 15px;
+    border-top-right-radius: 8px;
+    border-top-left-radius: 8px;
+}
 
+.form-title {
+    font-weight: normal;
+    color: white;
+    font-size: 15px;
+    text-align: left;
+}
 
 /* Media query for smaller screens */
 @media only screen and (max-width: 1000px) {

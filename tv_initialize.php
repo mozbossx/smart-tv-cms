@@ -34,7 +34,7 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
         setcookie('tv_id', $tvId, time() + (10 * 365 * 24 * 60 * 60)); // Expire in 10 years
 
         // Insert default background color into background_tv_tb
-        $defaultColor = '#ffffff';
+        $defaultColor = '#000000';
         $sql_bg = "INSERT INTO background_tv_tb (tv_id, tv_name, background_hex_color) VALUES ($tvId, '$tv_name', '$defaultColor')";
         mysqli_query($conn, $sql_bg);
 

@@ -5,6 +5,7 @@ include 'config_connection.php';
 
 // fetch user data for the currently logged-in user
 include 'get_session.php';
+include 'user_theme_color.php';
 
 // Fetch all features from the database
 $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456");
@@ -36,6 +37,11 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Create Post</title>
+    <style>
+        .button-icon {
+            background: <?php echo $theme_color; ?>;
+        }
+    </style>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -73,7 +79,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         <?php if ($user_type === 'Admin' || $user_type === 'Super Admin'){ ?>
                             <div class="button-container">
                                 <a href="general_info.php?pageid=GeneralInformationForm?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
-                                    <div class="button-icon"><i class="fa fa-sitemap"></i></div>
+                                    <div class="button-icon"><i class="fa fa-university"></i></div>
                                     <div class="button-text">General Information</div>
                                 </a>
                             </div>
@@ -85,8 +91,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                         <?php } ?>
                     </div>
-                    <div class="line-separator"></div>
-                    <h4>Added New Features</h4>
+                    <div class="line-separator" style="margin-bottom: 20px"></div>
                     <?php 
                         if (count($featuresNewFeatures) == 0){
                             echo '<p style="text-align: left; font-size: 20px; color: <?php echo $dark_theme_color_40_percent; ?>;">No new features added yet.</p>';
@@ -94,22 +99,25 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     ?>
                     <div class="button-flex" style="margin-top: 10px;">
                         <?php foreach ($featuresNewFeatures as $feature): ?>
-                            <div class="button-container" data-feature-id="<?php echo $feature['feature_id']; ?>">
+                            <div class="button-container" style="height: auto; min-height: 90px" data-feature-id="<?php echo $feature['feature_id']; ?>">
                                 <?php if ($user_type === 'Super Admin' || $user_type === 'Admin'){ ?>
-                                <button 
-                                    style="display: block; position: absolute; margin-left: 10px; margin-top: 10px; margin-bottom: 5px; background-color: transparent; border: none; cursor: pointer; color: <?php echo $dark_theme_color_40_percent; ?>; font-size: 25px; z-index: 1;" 
+                                <button class="delete-feature-button"
+                                    style="display: block; position: relative; margin-left: 5px; margin-bottom: -32px; background: <?php echo $light_theme_color_70_percent?>; border: 1px black solid; cursor: pointer; color: <?php echo $dark_theme_color_40_percent; ?>; font-size: 15px; z-index: 5; padding: 5px; border-radius: 100%" 
                                     onclick="deleteFeatureModal(<?php echo $feature['feature_id']; ?>)"><i class="fa fa-trash"></i>
                                 </button>
                                 <?php } ?>
                                 <a href="<?php echo $feature['file_name']; ?>?pageid=<?php echo ucfirst($feature['feature_name']); ?>Form?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
                                     <div class="button-icon"><i class="fa <?php echo $feature['icon']; ?>"></i></div>
+                                    <div style="display: flex; flex-direction: column">
+                                    <div style="font-size: 10px; font-weight: bold; text-align: left; color: <?php echo $theme_color ?>; padding-left: 10px; padding-top: 10px"><?php echo $feature['department']; ?></div>
                                     <div class="button-text"><?php echo $feature['feature_name']; ?></div>
-                                    <div class="user-type-pills">
-                                        <?php 
-                                        $userTypes = explode(',', $feature['allowed_user_types']);
-                                        foreach ($userTypes as $type): ?>
-                                            <span class="user-type-pill"><?php echo trim($type); ?></span>
-                                        <?php endforeach; ?>
+                                        <div class="user-type-pills">
+                                            <?php 
+                                            $userTypes = explode(',', $feature['allowed_user_types']);
+                                            foreach ($userTypes as $type): ?>
+                                                <span class="user-type-pill"><?php echo trim($type); ?></span>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
                                 </a>
                             </div>
@@ -122,10 +130,8 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <div id="confirmDeleteFeatureModal" class="modal">
         <div class="modal-content" style="padding: 15px;">
             <span class="close" onclick="document.getElementById('confirmDeleteFeatureModal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-            <p id="deleteMessage" style="text-align: center">Proceed to delete this feature?</p>
-            <p id="deleteMessage2" style="text-align: center; font-size: 15px; color: #808080;">This action cannot be undone.</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-trash"></i> Delete Feature</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to delete this feature? Deleted features cannot be recovered.</p>
             <br>
             <div style="text-align: right;">
                 <button type="button" class="grey-button" style="margin-right: 5px;" onclick="document.getElementById('confirmDeleteFeatureModal').style.display='none'">Cancel</button>

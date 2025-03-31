@@ -51,7 +51,7 @@ if ($isEditMode && isset($_GET['event_id'])) {
             <div class="column1">
                 <div class="content-inside-form">
                     <div class="content-form">
-                    <nav aria-label="breadcrumb">
+                        <nav aria-label="breadcrumb">
                             <ol class="breadcrumb" style="background: none">
                             <?php if ($isEditMode): ?>
                                 <li class="breadcrumb-item"><a href="user_home.php?pageid=UserHome?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>">Home</a></li>
@@ -84,47 +84,47 @@ if ($isEditMode && isset($_GET['event_id'])) {
                                 <input type="hidden" name="event_id" value="<?php echo htmlspecialchars($_GET['event_id']); ?>">
                                 <input type="hidden" name="action_value" value="edit">
                             <?php endif; ?>
-                            <h1 style="text-align: center">Event Form</h1>
-                            <!-- <div class="floating-label-container">
-                                <textarea name="event_body" rows="3" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input-text-area" id="event_body"></textarea>
-                                <label for="event_body" style="background: #FFFF; width: auto; padding: 5px; margin-top: 2px; border-radius: 0" class="floating-label-text-area">Event Heading</label>
-                            </div> -->
-                            <div class="floating-label-container">
-                                <div id="quillEditorContainer">
-                                    <label for="quillEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">Event</label>
-                                    <div id="event_body" style="height: 150px;"></div>
+                            <div class="form-title-container">
+                                <h1 class="form-title"><i class="fa fa-calendar-check-o" style="margin-right: 6px"></i>Event Form</h1>
+                            </div>
+                            <div class="form-container">
+                                <div class="floating-label-container">
+                                    <div id="quillEditorContainer">
+                                        <label for="quillEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">Event</label>
+                                        <div id="event_body" style="height: 150px;"></div>
+                                    </div>
+                                    <input type="hidden" name="event_body" id="eventBodyHiddenInput">
+                                    <?php if ($isEditMode && $contentData): ?>
+                                        <input type="hidden" id="existing_event_content" value="<?php echo htmlspecialchars($contentData['event_body']); ?>">
+                                    <?php endif; ?>
                                 </div>
-                                <input type="hidden" name="event_body" id="eventBodyHiddenInput">
-                                <?php if ($isEditMode && $contentData): ?>
-                                    <input type="hidden" id="existing_event_content" value="<?php echo htmlspecialchars($contentData['event_body']); ?>">
+                                <?php include('misc/php/upload_preview_media.php')?>
+                                <div class="form-row">
+                                    <?php 
+                                        $type = 'event';
+                                    ?>
+                                    <?php include('misc/php/expiration_date.php')?>
+                                    <?php include('misc/php/displaytime_tvdisplay.php')?>
+                                </div>
+                                <?php if (!$isEditMode): ?>
+                                <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end">
+                                    <div>
+                                        <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
+                                            Preview <i class="fa fa-chevron-right" style="padding-left: 5px"></i> 
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php else: ?>
+                                <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end">
+                                    <div>
+                                        <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
+                                            Preview <i class="fa fa-chevron-right" style="padding-left: 5px"></i> 
+                                        </button>
+                                    </div>
+                                </div>
                                 <?php endif; ?>
+                                <?php include('misc/php/preview_modal_new.php') ?>
                             </div>
-                            <?php include('misc/php/upload_preview_media.php')?>
-                            <div class="form-row">
-                                <?php 
-                                    $type = 'event';
-                                ?>
-                                <?php include('misc/php/expiration_date.php')?>
-                                <?php include('misc/php/displaytime_tvdisplay.php')?>
-                            </div>
-                            <?php if (!$isEditMode): ?>
-                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
-                                <div>
-                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
-                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
-                                    </button>
-                                </div>
-                            </div>
-                            <?php else: ?>
-                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
-                                <div>
-                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
-                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
-                                    </button>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-                            <?php include('misc/php/preview_modal.php') ?>
                         </form>
                     </div>
                 </div>

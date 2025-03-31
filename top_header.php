@@ -12,6 +12,25 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 include 'get_session.php';
 include 'user_theme_color.php';
 
+// Fetch all feature types from the features_tb table
+$featuresQuery = "SELECT type FROM features_tb";
+$featuresResult = $conn->query($featuresQuery);
+$featureTypes = [];
+if ($featuresResult && $featuresResult->num_rows > 0) {
+    while ($row = $featuresResult->fetch_assoc()) {
+        $featureTypes[] = $row['type'];
+    }
+}
+
+// Check if current page is a feature form
+$is_feature_form = false;
+foreach ($featureTypes as $feature) {
+    if ($current_page === 'form_' . $feature . '.php') {
+        $is_feature_form = true;
+        break;
+    }
+}
+
 // Check if the user is logged in
 if (!isset($_SESSION['full_name']) || !isset($_SESSION['email'])) {
     header('location: login.php?pageid=Login');
@@ -49,7 +68,7 @@ $displayInterval = $displayTimeRange['display_interval'];
             <img src="images/USC Logo Full.png" class="logo-header" id="logo" onclick="goToHome()">
             <img src="images/usc_icon.png" class="logo-header-2" id="logo-2" onclick="goToHome()">
         </div>
-        <nav id='menu' style="z-index: 10000; background-color: <?php echo $theme_color; ?>;">
+        <nav id='menu' style="z-index: 10000; box-shadow: 0px 5px 20px 0px rgb(0 0 0 / 18%); background-color: <?php echo $theme_color; ?>;">
             <input type='checkbox' id='responsive-menu' onclick='updatemenu()'><label for="responsive-menu"></label>
             <ul>
                 <li>
@@ -58,7 +77,7 @@ $displayInterval = $displayTimeRange['display_interval'];
                 </li>
                 <li>
                     <a id="dropdown-arrow" href="create_post.php?pageid=CreatePost?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                        <?php echo ((!isset($_GET['action']) && ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'form_add_new_feature.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php'))) ? 'class="active-header-content" style="color:black"' : ''; ?>>
+                        <?php echo ((!isset($_GET['action']) && ($current_page === 'create_post.php' || $current_page === 'form_announcement.php' || $current_page === 'form_event.php' || $current_page === 'form_news.php' || $current_page === 'form_promotional_material.php' || $current_page === 'form_add_new_feature.php' || $current_page === 'general_info.php' || $current_page === 'form_peo.php' || $current_page === 'form_student_outcomes.php' || $current_page === 'form_department_organizational_chart.php' || $current_page === 'form_facility.php' || $is_feature_form))) ? 'class="active-header-content" style="color:black"' : ''; ?>>
                         Create Post
                     </a>
                     <ul class='sub-menus'>
@@ -164,9 +183,7 @@ $displayInterval = $displayTimeRange['display_interval'];
 <div id="changeDisplayTimeModal" class="modal">
     <div class="modal-content" style="padding: 15px">
         <span class="close" onclick="document.getElementById('changeDisplayTimeModal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-clock-o" aria-hidden="true"></i></h1>
-        <p id="addMessage" style="text-align: center">Change Display TIme</p>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-clock-o"></i> Change Display TIme</h1>
         <form id="changeDisplayTimeForm" style="margin-top: 10px">
             <div class="floating-label-container">
                 <input type="number" name="display_seconds_range_first" id="display_seconds_range_first" required placeholder=" " class="floating-label-input-text-area">
@@ -182,7 +199,7 @@ $displayInterval = $displayTimeRange['display_interval'];
             </div>
             <br>
             <div style="text-align: right;">
-                <button type="submit" id="changeDisplayTimeButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0"><b>Change Display Time</b></button>
+                <button type="submit" id="changeDisplayTimeButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Change Display Time</button>
             </div>
         </form>
     </div>
@@ -605,6 +622,20 @@ $displayInterval = $displayTimeRange['display_interval'];
 
     #usersTable th, #smartTVsTable th {
         background-color: <?php echo $light_theme_color_70_percent; ?>;
+    }
+    input[type="checkbox"] {
+        accent-color: <?php echo $theme_color; ?>;
+    }
+    .form-title-container {
+        background: <?php echo $theme_color; ?>;
+    }
+    .form-container {
+        background: <?php echo $light_theme_color_95_percent; ?>;
+        border-radius: 20px;
+        padding: 20px;
+    }
+    .pending-content-message {
+        color: <?php echo $theme_color; ?>;
     }
 </style>
 

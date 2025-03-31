@@ -83,33 +83,37 @@ if ($isEditMode && isset($_GET['promaterial_id'])) {
                                 <input type="hidden" name="promaterial_id" value="<?php echo htmlspecialchars($_GET['promaterial_id']); ?>">
                                 <input type="hidden" name="action_value" value="edit">
                             <?php endif; ?>
-                            <h1 style="text-align: center">Promotional Material Form</h1>
-                            <?php include('misc/php/upload_preview_media.php')?>
-                            <div class="form-row">
-                                <?php 
-                                    $type = 'promaterial';
-                                ?>
-                                <?php include('misc/php/expiration_date.php')?>
-                                <?php include('misc/php/displaytime_tvdisplay.php')?>
+                            <div class="form-title-container">
+                                <h1 class="form-title"><i class="fa fa-newspaper-o" style="margin-right: 6px"></i>Promotional Material Form</h1>
                             </div>
-                            <?php if (!$isEditMode): ?>
-                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
-                                <div>
-                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
-                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
-                                    </button>
+                            <div class="form-container">
+                                <?php include('misc/php/upload_preview_media.php')?>
+                                <div class="form-row">
+                                    <?php 
+                                        $type = 'promaterial';
+                                    ?>
+                                    <?php include('misc/php/expiration_date.php')?>
+                                    <?php include('misc/php/displaytime_tvdisplay.php')?>
                                 </div>
-                            </div>
-                            <?php else: ?>
-                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
-                                <div>
-                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
-                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
-                                    </button>
+                                <?php if (!$isEditMode): ?>
+                                <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end">
+                                    <div>
+                                        <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
+                                            Preview <i class="fa fa-chevron-right" style="padding-left: 5px"></i> 
+                                        </button>
+                                    </div>
                                 </div>
+                                <?php else: ?>
+                                <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end">
+                                    <div>
+                                        <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenPreviewModal()">
+                                            Preview <i class="fa fa-chevron-right" style="padding-left: 5px"></i> 
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+                                <?php include('misc/php/preview_modal_new.php') ?>
                             </div>
-                            <?php endif; ?>
-                            <?php include('misc/php/preview_modal.php') ?>
                         </form>
                     </div>
                 </div>

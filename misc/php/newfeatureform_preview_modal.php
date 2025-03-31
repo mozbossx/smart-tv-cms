@@ -1,8 +1,8 @@
 <div id="previewModal" class="modal">
-    <div class="modal-content-preview">
+    <div class="modal-content-preview" style="padding: 15px">
         <div class="flex-preview-content">
             <div style="display: flex, flex-direction: column; flex: 2; height: auto; overflow: auto">
-                <div id="previewContainer" style="height: 60vh; overflow: auto; padding-right: 15px;"></div>
+                <div id="previewContainer" style="height: 60vh; overflow: auto; padding: 15px;"></div>
             </div>
             <!-- The container consists of child_background_color, child_font_style, child_font_color-->
             <div class="preview-content" id="previewContent"></div>
@@ -88,8 +88,11 @@
     function getPreviewContainer() {
         const formData = new FormData(document.getElementById('newFeatureForm'));
         let previewContainer = `
-            <div class="main-form">
-                <h2 style="text-align: center; overflow-wrap: break-word"><i class="fa ${formData.get('selected_icon')}"></i> ${formData.get('name_of_feature')} Form</h2>
+            <div class="main-form" style="pointer-events: none">
+                <div class="form-title-container">
+                    <h1 class="form-title"><i class="fa ${formData.get('selected_icon')}" style="margin-right: 6px"></i>${formData.get('name_of_feature')} Form</h1>
+                </div>
+                <div class="form-container">
         `;
 
         const numberOfInputs = parseInt(formData.get('number_of_inputs'));
@@ -139,22 +142,31 @@
         }
 
         previewContainer += `
-                <div class="form-column" style="flex: 1">
-                    <div class="floating-label-container" style="flex: 1">
-                        <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
-                            <option value="">Select Display Time</option>
-                        </select>
-                        <label for="display_time" class="floating-label">Display Time (seconds)</label>
+                    <div class="form-column" style="flex: 1">
+                        <div class="floating-label-container" style="flex: 1">
+                            <select id="display_time" name="display_time" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
+                                <option value="">Select Display Time</option>
+                            </select>
+                            <label for="display_time" class="floating-label">Display Time (seconds)</label>
+                        </div>
+                        <div class="floating-label-container" style="flex: 1">
+                            <button type="button" id="tvModalButton" class="floating-label-input" style="background: #FFFF">
+                                Select TV Displays
+                            </button>
+                            <label for="tv_id" class="floating-label">TV Display</label>
+                        </div>
                     </div>
-                    <div class="floating-label-container" style="flex: 1">
-                        <button type="button" id="tvModalButton" class="floating-label-input" style="background: #FFFF">
-                            Select TV Displays
+                </div>
+                <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end">
+                    <div>
+                        <button type="button" class="preview-button" style="margin-right: 0; user-select: none; pointer-events: none">
+                            <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
                         </button>
-                        <label for="tv_id" class="floating-label">TV Display</label>
                     </div>
                 </div>
             </div>
         </div>
+
         `;
 
         return previewContainer;

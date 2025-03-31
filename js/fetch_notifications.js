@@ -11,12 +11,12 @@ function connectWebSocket() {
     // Determine if we're in localhost or production
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
-                       window.location.hostname === '192.168.1.14' ||
-                       window.location.hostname === '192.168.1.4';
+                       window.location.hostname === '192.168.1.12' ||
+                       window.location.hostname === '192.168.1.14';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.1.4:8081'
+        ? 'ws://192.168.1.14:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -45,11 +45,11 @@ function connectWebSocket() {
                 }
             }, 10000); // 10 second interval
 
-            if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
-                loadingWebsocketConnectionModal.style.display = 'none';
-                successWebsocketConnectionModal.style.display = 'flex';
-                successWebsocketConnectionMessage.textContent = 'Server Connected Successfully!';
-            }
+            // if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
+            //     loadingWebsocketConnectionModal.style.display = 'none';
+            //     successWebsocketConnectionModal.style.display = 'flex';
+            //     successWebsocketConnectionMessage.textContent = 'Server Connected Successfully!';
+            // }
 
             // Fetch initial data after connection
             fetchNotifications();
@@ -114,11 +114,11 @@ function connectWebSocket() {
             clearTimeout(clientPingTimeout);
             // console.log('Client: Cleared all timers');
 
-            if (loadingWebsocketConnectionModal) {
-                loadingWebsocketConnectionModal.style.display = 'flex';
-                successWebsocketConnectionModal.style.display = 'none';
-                loadingWebsocketConnectionMessage.textContent = 'Server Disconnected. Reconnecting...';
-            }
+            // if (loadingWebsocketConnectionModal) {
+            //     loadingWebsocketConnectionModal.style.display = 'flex';
+            //     successWebsocketConnectionModal.style.display = 'none';
+            //     loadingWebsocketConnectionMessage.textContent = 'Server Disconnected. Reconnecting...';
+            // }
 
             // Attempt to reconnect
             setTimeout(() => {
@@ -1182,12 +1182,11 @@ function showConfirmApproveModal(userId, email, fullName, userType, evaluatorNam
     modal.innerHTML = `
         <div class="modal-content">
             <span class="close" onclick="closeModal('confirmApproveUser')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-thumbs-up" aria-hidden="true"></i></h1>
-            <p>Proceed to approve this user?</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-thumbs-up"></i> Approve User</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to approve this user?</p>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="closeModal('confirmApproveUser')">Cancel</button>
+                <button type="button" class="grey-button" style="margin-right: 5px" onclick="closeModal('confirmApproveUser')">Cancel</button>
                 <button type="button" class="green-button" style="margin-right: 0" onclick="approveUser(${userId}, '${email}', '${fullName}', '${userType}', '${evaluatorName}', '${department}', ${evaluatorId})">Yes, Approve</button>
             </div>
         </div>
@@ -1200,17 +1199,16 @@ function showConfirmRejectModal(userId, email, fullName, userType, evaluatorName
     modal.innerHTML = `
         <div class="modal-content">
             <span class="close" onclick="closeModal('confirmRejectUser')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-thumbs-down" aria-hidden="true"></i></h1>
-            <p>Proceed to reject this user?</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-thumbs-down"></i> Reject User</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to reject this user?</p>
             <br>
             <div class="floating-label-container">
                 <textarea name="evaluator_message_reject_user" id="evaluator_message_reject_user" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-                <label for="evaluator_message_reject_user" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+                <label for="evaluator_message_reject_user" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Reason (required)</label>
             </div>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="closeModal('confirmRejectUser')">Cancel</button>
+                <button type="button" class="grey-button" style="margin-right: 5px" onclick="closeModal('confirmRejectUser')">Cancel</button>
                 <button type="button" class="red-button" style="margin-right: 0" onclick="rejectUser(${userId}, '${email}', '${fullName}', '${userType}', '${evaluatorName}', '${department}', ${evaluatorId})">Yes, Reject</button>
             </div>
         </div>
@@ -1221,14 +1219,13 @@ function showConfirmRejectModal(userId, email, fullName, userType, evaluatorName
 function showConfirmApproveContentModal(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId) {
     const modal = document.getElementById('confirmApproveContentModal');
     modal.innerHTML = `
-        <div class="modal-content" style="padding: 10px;">
+        <div class="modal-content" style="padding: 15px;">
             <span class="close" onclick="closeModal('confirmApproveContent')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-thumbs-up" aria-hidden="true"></i></h1>
-            <p>Proceed to approve this ${contentType}?</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-thumbs-up"></i> Approve Content</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to approve this ${contentType}?</p>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="closeModal('confirmApproveContent')">Cancel</button>
+                <button type="button" class="grey-button" style="margin-right: 5px" onclick="closeModal('confirmApproveContent')">Cancel</button>
                 <button type="button" class="green-button" style="margin-right: 0" onclick="approveContent(${contentId}, '${contentType}', '${fullName}', '${department}', ${userId}, ${contentTvId}, '${evaluatorName}', ${evaluatorId})">Yes, Approve</button>
             </div>
         </div>
@@ -1239,19 +1236,18 @@ function showConfirmApproveContentModal(contentId, contentType, fullName, depart
 function showConfirmRejectContentModal(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId) {
     const modal = document.getElementById('confirmRejectContentModal');
     modal.innerHTML = `
-        <div class="modal-content" style="padding: 10px;">
+        <div class="modal-content" style="padding: 15px;">
             <span class="close" onclick="closeModal('confirmRejectContent')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-thumbs-down" aria-hidden="true"></i></h1>
-            <p>Proceed to reject this ${contentType}?</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-thumbs-down"></i> Reject Content</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to reject this ${contentType}?</p>
             <br>
             <div class="floating-label-container">
                 <textarea name="evaluator_message_reject_content" id="evaluator_message_reject_content" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-                <label for="evaluator_message_reject_content" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User's Content (required)</label>
+                <label for="evaluator_message_reject_content" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Reason (required)</label>
             </div>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="closeModal('confirmRejectContent')">Cancel</button>
+                <button type="button" class="grey-button" style="margin-right: 5px" onclick="closeModal('confirmRejectContent')">Cancel</button>
                 <button type="button" class="red-button" style="margin-right: 0" onclick="rejectContent(${contentId}, '${contentType}', '${fullName}', '${department}', ${userId}, ${contentTvId}, '${evaluatorName}', ${evaluatorId})">Yes, Reject</button>
             </div>
         </div>
@@ -1265,7 +1261,7 @@ function showConfirmDeleteContentModal(contentId, contentType, authorId, loggedI
     const evaluatorMessageHtml = user_id != authorId ? `
         <div class="floating-label-container">
             <textarea name="evaluator_message_delete_content_notification" id="evaluator_message_delete_content_notification" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-            <label for="evaluator_message_delete_content_notification" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
+            <label for="evaluator_message_delete_content_notification" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Reason (required)</label>
         </div>
         <br>
     ` : '';
@@ -1273,13 +1269,12 @@ function showConfirmDeleteContentModal(contentId, contentType, authorId, loggedI
     confirmDeleteContentModal.innerHTML = `
         <div class="modal-content">
             <span class="close" onclick="closeModal('confirmDeleteContent')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-            <p>Proceed to delete this ${contentType}?</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-trash"></i> Delete Content</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to delete this ${contentType}?</p>
             <br>
             ${evaluatorMessageHtml}
             <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="closeModal('confirmDeleteContent')">Cancel</button>
+                <button type="button" class="grey-button" style="margin-right: 5px" onclick="closeModal('confirmDeleteContent')">Cancel</button>
                 <button type="button" class="red-button" style="margin-right: 0" onclick="deleteContent(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, Delete</button>
             </div>
         </div>
@@ -2028,7 +2023,7 @@ Ws.addEventListener('message', function(event) {
                 `;
 
                 modal.innerHTML = `
-                    <div class="modal-content" style="text-align: left; position: absolute; padding: 10px;">
+                    <div class="modal-content" style="text-align: left; position: absolute; padding: 15px;">
                         <p>${capitalizeFirstLetter(contentType)}</p>
                         <span class="close" onclick="closeModal('viewContent')" style="position: absolute; right: 5px; top: 5px"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
                         <br>

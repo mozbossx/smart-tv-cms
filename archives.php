@@ -74,16 +74,12 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
         }
 
         #scrollDiv {
-            height: calc(100vh - 330px); 
+            height: calc(100vh - 275px); 
         }
         /* Media query for smaller screens */
         @media only screen and (max-width: 1000px) {
-            #searchByKeywordsForm, #searchByContentTypeForm {
-                margin: 0 auto;
-            }
-
             #scrollDiv {
-                height: calc(100vh - 400px);
+                height: calc(100vh - 290px);
             }
         }
     </style>
@@ -95,43 +91,30 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
         <?php include('sidebar.php'); ?>
         <div class="main-container">
             <div class="column1">
-                <div class="content-inside-form" style="max-width: 800px; margin: 0 auto;">
-                    <div id="archivesList" class="content-container" style="height: calc(100vh - 160px); overflow: hidden;">
-                        <h1 class="content-title" style="text-align: center;">
-                            <i class="fa fa-archive" style="margin-right: 6px" aria-hidden="true"></i>Archives
-                            <?php
-                                if ($user_type == 'Super Admin') {
-                                    echo '<p id="trashMessage2" style="font-size: 13px; color: '.$theme_color.';">Archived items are stored for <button type="button" id="archiveDaysButton" style="background: none; border: none; color: '.$dark_theme_color_50_percent.'; font-weight: bold; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="changeNumberOfArchiveDays()"></button> before being moved to Trash.</p>';
-                                } else {
-                                    echo '<p id="trashMessage2" style="font-size: 13px; color: '.$theme_color.';">Archived items are stored for <span id="archiveDaysSpan" style="background: none; border: none; color: '.$dark_theme_color_50_percent.'; font-weight: bold; font-size: 13px;"></span> before being moved to Trash.</p>';
-                                }
-                            ?>
-                        </h1>
-                        <div class="archives-buttons-flex">
-                            <!-- search form -->
-                            <form class="search-form" id="searchByKeywordsForm" style="width: 300px; max-width: 100%; align-self: center">
-                                <div class="form-field">
-                                    <i class="bi bi-search"></i>
-                                    <input type="text" id="searchInput" required placeholder="Search" onkeyup="searchArchives()">
-                                    <button type="button" id="clearSearch" style="display: none; position: absolute; right: 40px; font-size: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
-                                        <i class="fa fa-times" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </form>
-
-                            <!-- Search by Content Type form -->
-                            <form class="search-form" id="searchByContentTypeForm" style="width: 300px; max-width: 100%; margin-left: auto; margin-bottom: 10px;">
-                                <div class="floating-label-container">
-                                    <select id="contentType" class="floating-label-input">
+                <div class="content-inside-form" style="max-width: 600px; margin: 0 auto;">
+                    <div id="archivesList" class="content-container" style="height: calc(100vh - 160px); overflow: hidden; padding: 0">
+                        <div style="background: <?php echo $theme_color; ?>; padding: 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+                            <h1 class="content-title" style="text-align: left; font-size: 20px; padding: 5px">
+                                <i class="fa fa-archive" style="margin-right: 6px" aria-hidden="true"></i>Archives
+                            </h1>
+                            <form id="searchByContentTypeForm">
+                                <div>
+                                    <select id="contentType" style="max-width: 200px; padding: 5px; border-radius: 5px">
                                         <option value="all">All</option>
                                         <!-- foreach content type -->
                                     </select>
-                                    <label for="contentType" class="floating-label">Show by Content Type</label>
                                 </div>
                             </form>
                         </div>
-                        <div id="scrollDiv" class="scroll-div" style="padding: 10px">
-                            <div id="archivesContainer" style="margin-right: 10px;"></div>
+                        <?php
+                            if ($user_type == 'Super Admin') {
+                                echo '<p id="trashMessage2" style="font-size: 16px; color: #6E6E6E; padding: 12px; text-align: center">Archived items are stored for <button type="button" id="archiveDaysButton" style="background: none; border: none; color: '.$dark_theme_color_50_percent.'; font-weight: bold; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="changeNumberOfArchiveDays()"></button> before being moved to Trash.</p>';
+                            } else {
+                                echo '<p id="trashMessage2" style="font-size: 16px; color: #6E6E6E; padding: 12px; text-align: center">Archived items are stored for <span id="archiveDaysSpan" style="background: none; border: none; color: '.$dark_theme_color_50_percent.'; font-weight: bold; font-size: 13px;"></span> before being moved to Trash.</p>';
+                            }
+                        ?>
+                        <div id="scrollDiv" class="scroll-div"  style="padding-left: 15px; padding-right: 5px; margin-right: 10px">
+                            <div id="archivesContainer" style="margin-right: 5px;"></div>
                         </div>
                     </div>
                 </div>

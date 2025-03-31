@@ -47,103 +47,107 @@ include 'admin_access_only.php';
                         </nav>
                         <form id="newFeatureForm" enctype="multipart/form-data" class="main-form">
                             <?php include('error_message.php'); ?>
-                            <h1 style="text-align: center">Add New Feature Form</h1>
-                            <div class="floating-label-container">
-                                <input type="text" name="name_of_feature" id="name_of_feature" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input" maxlength="40">
-                                <label for="name_of_feature" class="floating-label">Name of Feature</label>
+                            <div class="form-title-container">
+                                <h1 class="form-title"><i class="fa fa-plus" style="margin-right: 6px"></i>Add New Feature Form</h1>
                             </div>
-                            <div class="form-row" style="margin-bottom: 5px">
-                                <div class="floating-label-container" style="flex: 1">
-                                    <select id="number_of_inputs" name="number_of_inputs" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
-                                        <option value="">Select Number of Inputs</option>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                    </select>
-                                    <label for="number_of_inputs" class="floating-label">Number of Inputs</label>
+                            <div class="form-container">
+                                <div class="floating-label-container">
+                                    <input type="text" name="name_of_feature" id="name_of_feature" required placeholder=" " style="background: #FFFF; width: 100%" class="floating-label-input" maxlength="40">
+                                    <label for="name_of_feature" class="floating-label">Name of Feature</label>
                                 </div>
-                                <div class="floating-label-container" style="flex: 1">
-                                    <button type="button" id="featureIconsModalButton" class="floating-label-input" style="background: #FFFF">
-                                        Select Feature Icon
-                                    </button>
-                                    <label for="featureIconsModalButton" class="floating-label">Feature Icon</label>
-                                    <input type="hidden" id="selected_icon" name="selected_icon" style="display: none">
+                                <div class="form-row" style="margin-bottom: 5px">
+                                    <div class="floating-label-container" style="flex: 1">
+                                        <select id="number_of_inputs" name="number_of_inputs" class="floating-label-input" required style="background: #FFFF; padding-left: 8px">
+                                            <option value="">Select Number of Inputs</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </select>
+                                        <label for="number_of_inputs" class="floating-label">Number of Inputs</label>
+                                    </div>
+                                    <div class="floating-label-container" style="flex: 1">
+                                        <button type="button" id="featureIconsModalButton" class="floating-label-input" style="background: #FFFF">
+                                            Select Feature Icon
+                                        </button>
+                                        <label for="featureIconsModalButton" class="floating-label">Feature Icon</label>
+                                        <input type="hidden" id="selected_icon" name="selected_icon" style="display: none">
+                                    </div>
                                 </div>
-                            </div>
-                            <div id="newInput" style="display: none">
-                                <!-- Inputs will be added here -->
-                            </div>
-                            <div id="userTypeAccess" style="display: none; background: #FFFFFF; border-radius: 5px; padding: 12px; box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px">
-                                <p style="border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Users who can access this feature</b></p>
-                                <br>
-                                <?php
-                                    // fetch user type data
-                                    $sqlUserType = "SELECT * FROM user_types_tb WHERE user_type != 'Super Admin'";
-                                    $resultUserType = mysqli_query($conn, $sqlUserType);
+                                <div id="newInput" style="display: none">
+                                    <!-- Inputs will be added here -->
+                                </div>
+                                <div id="userTypeAccess" style="display: none; background: #FFFFFF; border-radius: 5px; padding: 12px; box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px">
+                                    <p style="border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Users who can access this feature</b></p>
+                                    <br>
+                                    <?php
+                                        // fetch user type data
+                                        $sqlUserType = "SELECT * FROM user_types_tb WHERE user_type != 'Super Admin'";
+                                        $resultUserType = mysqli_query($conn, $sqlUserType);
 
-                                    if (mysqli_num_rows($resultUserType) > 0) {
-                                        // Loop through each user type
-                                        while ($rowUserType = mysqli_fetch_assoc($resultUserType)) {
-                                            // Use echo to output the HTML and PHP variables
+                                        if (mysqli_num_rows($resultUserType) > 0) {
+                                            // Loop through each user type
+                                            while ($rowUserType = mysqli_fetch_assoc($resultUserType)) {
+                                                // Use echo to output the HTML and PHP variables
+                                                echo '
+                                                <div id="accessFields" style="user-select: none">
+                                                    <label style="display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px">
+                                                        <input type="checkbox" name="user_type[]" class="userCheckbox" value="' . $rowUserType['user_type'] . '">
+                                                        ' . $rowUserType['user_type'] . ' 
+                                                    </label>
+                                                </div>';
+                                            }
                                             echo '
                                             <div id="accessFields" style="user-select: none">
                                                 <label style="display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px">
-                                                    <input type="checkbox" name="user_type[]" class="userCheckbox" value="' . $rowUserType['user_type'] . '">
-                                                    ' . $rowUserType['user_type'] . ' 
+                                                    <input type="checkbox" id="checkAll"> All Users
                                                 </label>
                                             </div>';
+                                        } else {
+                                            echo "No user types found.";
                                         }
-                                        echo '
-                                        <div id="accessFields" style="user-select: none">
-                                            <label style="display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px">
-                                                <input type="checkbox" id="checkAll"> All Users
-                                            </label>
-                                        </div>';
-                                    } else {
-                                        echo "No user types found.";
-                                    }
-                                ?>
-                            </div>
-                            <input type="hidden" id="content_has_expiration_date" name="content_has_expiration_date" value="yes">
-                            <div id="departmentSelection" class="floating-label-container" style="display: none">
-                                <select name="department" id="department" class="floating-label-input" style="background: #FFFF; padding-left: 8px">
-                                    <option value="">~</option>
-                                    <?php if ($user_type === 'Super Admin'): ?>
-                                        <option value="COMPUTER ENGINEERING">Computer Engineering</option>
-                                        <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
-                                        <option value="CIVIL ENGINEERING">Civil Engineering</option>
-                                        <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
-                                        <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
-                                        <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
-                                        <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
-                                    <?php else: ?>
-                                        <option value="<?php echo $department; ?>" selected><?php echo $department; ?></option>
-                                    <?php endif; ?>
-                                </select>
-                                <label for="department" class="floating-label">Department</label>
-                            </div>
-                            <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px">
-                                <div>
-                                    <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenNewFeaturePreviewModal()">
-                                        <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
-                                    </button>
+                                    ?>
                                 </div>
-                            </div>
-                            <div id="featureIconsModal" class="modal">
-                                <div class="modal-content" style="padding: 10px">
-                                    <h1 style="font-size: 50px"><i class="fa fa-info-circle" aria-hidden="true"></i></h1>
-                                    <p>Select Feature Icon</p>
-                                    <br>
-                                    <div id="featureIconsGridList" class="icon-grid" style="height: 150px; max-height: 200px; overflow: auto; text-align: left; padding-right: 10px">
-                                        <!-- Grid List with Font Awesome Icons -->
-                                    </div>
-                                    <br>
-                                    <div style="display: flex; float: right">
-                                        <button type="button" id="cancelFeatureIconsModal" class="grey-button">Cancel</button>
+                                <input type="hidden" id="content_has_expiration_date" name="content_has_expiration_date" value="yes">
+                                <div id="departmentSelection" class="floating-label-container" style="display: none">
+                                    <select name="department" id="department" class="floating-label-input" style="background: #FFFF; padding-left: 8px">
+                                        <option value="">~</option>
+                                        <?php if ($user_type === 'Super Admin'): ?>
+                                            <option value="COMPUTER ENGINEERING">Computer Engineering</option>
+                                            <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
+                                            <option value="CIVIL ENGINEERING">Civil Engineering</option>
+                                            <option value="INDUSTRIAL ENGINEERING">Industrial Engineering</option>
+                                            <option value="ELECTRICAL ENGINEERING">Electrical Engineering</option>
+                                            <option value="MECHANICAL ENGINEERING">Mechanical Engineering</option>
+                                            <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
+                                        <?php else: ?>
+                                            <option value="<?php echo $department; ?>" selected><?php echo $department; ?></option>
+                                        <?php endif; ?>
+                                    </select>
+                                    <label for="department" class="floating-label">Department</label>
+                                </div>
+                                <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end">
+                                    <div>
+                                        <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenNewFeaturePreviewModal()">
+                                            <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
+                                        </button>
                                     </div>
                                 </div>
+                                <div id="featureIconsModal" class="modal">
+                                    <div class="modal-content" style="padding: 15px">
+                                        <h1 style="font-size: 50px"><i class="fa fa-info-circle" aria-hidden="true"></i></h1>
+                                        <p>Select Feature Icon</p>
+                                        <br>
+                                        <div id="featureIconsGridList" class="icon-grid" style="height: 150px; max-height: 200px; overflow: auto; text-align: left; padding-right: 10px">
+                                            <!-- Grid List with Font Awesome Icons -->
+                                        </div>
+                                        <br>
+                                        <div style="display: flex; float: right">
+                                            <button type="button" id="cancelFeatureIconsModal" class="grey-button">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php include('misc/php/newfeatureform_preview_modal.php') ?>
                             </div>
-                            <?php include('misc/php/newfeatureform_preview_modal.php') ?>
                         </form>
                     </div>
                 </div>
@@ -198,10 +202,12 @@ include 'admin_access_only.php';
                     
                     if (this.value === 'media') {
                         nameContainer.style.display = 'none';
-                        nameInput.value = 'Media Upload Only zz';  // Set a default value for media inputs
+                        nameInput.value = 'Media Upload Only';  // Set a default value for media inputs
                     } else {
                         nameContainer.style.display = 'block';
-                        nameInput.value = '';  // Clear the value when switching back to text
+                        if (nameInput.value == '' || nameInput.value == null) {
+                            nameInput.value = '';
+                        }
                     }
                 });
             }

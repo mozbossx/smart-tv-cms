@@ -431,13 +431,11 @@ if (isset($_POST["submit"])) {
 
     <div id="createAccountModal" class="modal">
         <div class="modal-content" style="padding: 15px">
-            <div class="green-bar-vertical">
-                <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
-                <p style="text-align: center"><?php echo $successMessage; ?></p>
-                <br>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button id="proceedBtn" class="green-button" style="margin: 0; background-color: #334b35;">Proceed</button>
-                </div>
+            <h1 style="color: #334b35; text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-check-circle"></i> Success</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;"><?php echo $successMessage; ?></p>
+            <br>
+            <div style="align-items: right; text-align: right; right: 0">
+                <button id="proceedBtn" class="green-button" style="margin: 0; background-color: #334b35;">Proceed</button>
             </div>
         </div>
     </div>

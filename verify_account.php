@@ -277,38 +277,32 @@ if (isset($_SESSION['mail'])) {
     </div>
     <div id="successMessageVerificationModal" class="modal">
         <div class="modal-content" style="padding: 15px">
-            <div class="green-bar-vertical">
-                <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
-                <p style="text-align: center" id="successMessageVerification"></p>
-                <br>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button id="okayButtonSuccess" class="green-button" style="margin: 0; background-color: #334b35;">Okay</button>
-                </div>
+            <h1 style="color: #334b35; text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-check-circle"></i> Success</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;" id="successMessageVerification"></p>
+            <br>
+            <div style="align-items: right; text-align: right; right: 0">
+                <button id="okayButtonSuccess" class="green-button" style="margin: 0; background-color: #334b35;">Okay</button>
             </div>
         </div>
     </div>
     <div id="errorMessageVerificationModal" class="modal">
         <div class="modal-content" style="padding: 15px">
-            <div class="red-bar-vertical">
-                <h1 style="color: rgb(134, 43, 43); font-size: 50px"><i class="fa fa-times-circle" aria-hidden="true"></i></h1>
-                <p style="text-align: center" id="errorMessageVerification"></p>
-                <br>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button id="okayButtonError" class="red-button" style="margin: 0; background-color: rgb(134, 43, 43); border: none;">Okay</button>
-                </div>
+            <h1 style="color: rgb(134, 43, 43); text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-times-circle"></i> Error</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;" id="errorMessageVerification"></p>
+            <br>
+            <div style="align-items: right; text-align: right; right: 0">
+                <button id="okayButtonError" class="red-button" style="margin: 0; background-color: rgb(134, 43, 43); border: none;">Okay</button>
             </div>
         </div>
     </div>
     <div id="facultyOrStaffModal" class="modal">
         <div class="modal-content" style="padding: 15px">
-            <div class="green-bar-vertical">
-                <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-question-circle" aria-hidden="true"></i></h1>
-                <p style="text-align: center">Are you a faculty or staff member?</p>
-                <br>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button id="facultyBtn" class="green-button" style="margin: 0; background-color: #334b35;">Faculty</button>
-                    <button id="staffBtn" class="green-button" style="margin: 0; background-color: #334b35;">Staff</button>
-                </div>
+            <h1 style="color: #334b35; text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-question-circle"></i> Role</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Are you a Faculty or Staff member?</p>
+            <br>
+            <div style="align-items: right; text-align: right; right: 0">
+                <button id="facultyBtn" class="green-button" style="margin: 0; background-color: #334b35;">Faculty</button>
+                <button id="staffBtn" class="green-button" style="margin: 0; background-color: #334b35;">Staff</button>
             </div>
         </div>
     </div>
@@ -330,11 +324,11 @@ if (isset($_SESSION['mail'])) {
             // Determine if we're in localhost or production
             const isLocalhost = window.location.hostname === 'localhost' || 
                             window.location.hostname === '127.0.0.1' ||
-                            window.location.hostname === '192.168.1.4';
+                            window.location.hostname === '192.168.1.14';
             
             // Choose WebSocket URL based on environment
             const wsUrl = isLocalhost 
-                ? 'ws://192.168.1.4:8081?email=<?php echo urlencode($email); ?>'
+                ? 'ws://192.168.1.14:8081?email=<?php echo urlencode($email); ?>'
                 : 'wss://usccms.online/ws?email=<?php echo urlencode($email); ?>';
 
             const newWs = new WebSocket(wsUrl);

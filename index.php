@@ -46,7 +46,7 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
             <img src="images/usc_icon.png" class="usc-logo">
             <img src="images/soe_icon.png" class="soe-logo">
         </div>
-        <h2 class="section-title">Key Features</h2>
+        <h2 class="section-title">Features</h2>
         <div class="features-grid">
             <div class="feature-card">
                 <h3 class="feature-title">Mobile Control</h3>
@@ -59,40 +59,6 @@ $subheading = "Empowering Interactive Digital Displays for the University of San
             <div class="feature-card">
                 <h3 class="feature-title">Customizable Display</h3>
                 <p class="feature-description">Adjust content container sizes, fonts, colors, and backgrounds to match the department's theme.</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="user-roles">
-        <h2 class="section-title">User Roles & Capabilities</h2>
-        <div class="role-cards">
-            <div class="role-card">
-                <h3 class="role-title">Faculty, Staff, and Students</h3>
-                <ul class="role-features">
-                    <li>Post content for approval</li>
-                    <li>Manage personal profile</li>
-                    <li>Access personal content</li>
-                    <li>Track submission status</li>
-                </ul>
-            </div>
-            <div class="role-card">
-                <h3 class="role-title">Administrator</h3>
-                <ul class="role-features">
-                    <li>Direct content submission</li>
-                    <li>Manage departmental users</li>
-                    <li>Customize TV templates</li>
-                    <li>Control display settings</li>
-                    <li>User role management within department</li>
-                </ul>
-            </div>
-            <div class="role-card">
-                <h3 class="role-title">Super Administrator</h3>
-                <ul class="role-features">
-                    <li>Cross-department management</li>
-                    <li>System-wide control</li>
-                    <li>Advanced customization</li>
-                    <li>User role management across departments</li>
-                </ul>
             </div>
         </div>
     </section>

@@ -15,153 +15,6 @@ function formatDateTime(dateTimeString) {
     return `${formattedDate} (${formattedTime})`;
 }
 
-// Function to search pending contents
-// function searchPendingContents() {
-//     const searchInput = document.getElementById('searchInput');
-//     const clearButton = document.getElementById('clearSearch');
-//     const keyword = searchInput.value.toLowerCase();
-//     const contentType = document.getElementById('contentType').value;
-    
-//     // Show/hide clear button
-//     clearButton.style.display = keyword ? 'block' : 'none';
-
-//     const pendingItems = document.querySelectorAll('#pendingContentsContainer > div');
-//     let hasVisibleItems = false;
-
-//     // Remove any existing "no results" message first
-//     const existingNoResultsMsg = document.getElementById('noResultsMessage');
-//     if (existingNoResultsMsg) {
-//         existingNoResultsMsg.remove();
-//     }
-
-//     pendingItems.forEach(item => {
-//         // Skip the noResultsMessage div if it exists
-//         if (item.id === 'noResultsMessage') return;
-
-//         const textContent = item.textContent.toLowerCase();
-//         const itemTypeElement = item.querySelector('.content-type-label');
-//         const itemType = itemTypeElement ? itemTypeElement.textContent.toLowerCase().trim() : '';
-        
-//         // Add debug logging
-//         console.log('Item type:', itemType);
-//         console.log('Content type to match:', contentType.toLowerCase());
-
-//         const matchesKeyword = keyword === '' || textContent.includes(keyword);
-//         // Update the type matching logic to handle dynamic feature names
-//         const matchesType = contentType === 'all' || 
-//                           itemType.includes(contentType.toLowerCase()) ||
-//                           itemType.includes(contentType.replace(/_/g, ' ').toLowerCase());
-        
-//         item.style.display = (matchesKeyword && matchesType) ? 'block' : 'none';
-//         if (matchesKeyword && matchesType) hasVisibleItems = true;
-//     });
-
-//     // Show "no results" message if needed
-//     if (!hasVisibleItems && pendingItems.length > 0) {
-//         const msg = document.createElement('div');
-//         msg.id = 'noResultsMessage';
-//         msg.style = `
-//             text-align: center;
-//             font-size: 1.2em;
-//             color: #666;
-//             margin-top: 20px;
-//         `;
-//         msg.textContent = 'No pending items match your search';
-//         document.getElementById('pendingContentsContainer').appendChild(msg);
-//     }
-// }
-
-// // Function to clear search
-// function clearSearch() {
-//     const searchInput = document.getElementById('searchInput');
-//     const clearButton = document.getElementById('clearSearch');
-//     searchInput.value = '';
-//     clearButton.style.display = 'none';
-//     searchPendingContents();
-// }
-
-// // Function to populate content type dropdown
-// function populateContentTypeDropdown() {
-//     // First fetch all features
-//     fetch('database/fetch_feature_info.php?type=all')
-//         .then(response => response.json())
-//         .then(features => {
-//             const select = document.getElementById('contentType');
-//             const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
-            
-//             // Add dynamic features
-//             if (Array.isArray(features)) {
-//                 features.forEach(feature => {
-//                     const featureType = feature.type;
-//                     if (!contentTypes.includes(featureType)) {
-//                         contentTypes.push(featureType);
-//                     }
-//                 });
-//             }
-
-//             // Clear existing options except "All"
-//             while (select.options.length > 1) {
-//                 select.remove(1);
-//             }
-
-//             // Fetch counts for all content types
-//             Promise.all(contentTypes.map(type =>
-//                 fetch(`database/fetch_pending_contents.php?type=${type}&pending=true`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.error) {
-//                             console.error(`Error fetching ${type}:`, data.error);
-//                             return { type, count: 0 };
-//                         }
-
-//                         const count = data.filter(item => 
-//                             item.isArchived === 0 && 
-//                             item.isTrashed === 0 && 
-//                             item.status === 'Pending' &&
-//                             hasPermissionToView({ ...item, contentType: type })
-//                         ).length;
-
-//                         return { type, count };
-//                     })
-//                     .catch(error => {
-//                         console.error(`Error fetching ${type}:`, error);
-//                         return { type, count: 0 };
-//                     })
-//             ))
-//             .then(results => {
-//                 let totalCount = 0;
-
-//                 // Calculate total count and store individual counts
-//                 results.forEach(({ type, count }) => {
-//                     totalCount += count;
-//                 });
-
-//                 // Update "All" option with total count
-//                 select.options[0].textContent = `All (${totalCount})`;
-//                 document.getElementById('pendingContentsCount').innerHTML = `(${totalCount})`;
-
-//                 // Add options for each content type with counts
-//                 results.forEach(({ type, count }) => {
-//                     if (count > 0 || type === 'announcement' || type === 'event' || type === 'news' || type === 'promaterial') {
-//                         const option = document.createElement('option');
-//                         option.value = type;
-//                         option.textContent = `${formatContentType(type)} (${count})`;
-//                         select.appendChild(option);
-//                     }
-//                 });
-//             })
-//             .catch(error => {
-//                 console.error('Error fetching content type counts:', error);
-//             });
-
-//             // Add change event listener
-//             select.addEventListener('change', searchPendingContents);
-//         })
-//         .catch(error => {
-//             console.error('Error fetching features:', error);
-//         });
-// }
-
 const createApproveButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
@@ -182,15 +35,6 @@ const createRejectButton = (text, iconClass, onClick) => {
         margin-top: 10px;
         margin-right: 5px;
     `;
-    button.onclick = onClick;
-    return button;
-};
-
-const createDeleteButton = (text, iconClass, onClick) => {
-    const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
-    button.className = 'green-button';
-    button.style = `margin-top: 10px; margin-right: 5px;`;
     button.onclick = onClick;
     return button;
 };
@@ -232,46 +76,6 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
     return contentHtml;
 };
 
-// Function to show delete modal
-const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
-    const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
-    const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
-    console.log(modal);
-    const modalContent = document.getElementById(`delete${capitalizedType}ModalContent`);
-    modalContent.className = 'modal-content';
-    modalContent.style = `
-        padding: 15px;
-    `;
-
-    let evaluatorMessageHtml = '';
-
-    if (contentType !== 'orgchart') {
-        evaluatorMessageHtml = user_id != authorId ? `
-            <div class="floating-label-container">
-                <textarea name="evaluator_message_delete" id="evaluator_message_delete" rows="6" required placeholder=" " style="width: 100%" class="floating-label-input-text-area"></textarea>
-                <label for="evaluator_message_delete" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Message to this User (required)</label>
-            </div>
-            <br>
-        ` : '';
-    }
-    
-    modalContent.innerHTML = `
-        <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to delete forever?</p>
-        <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Permanently deleted items cannot be recovered.</p>
-        <br>
-        ${evaluatorMessageHtml}
-        <div style="text-align: right;">
-            <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
-            <button type="button" class="red-button" onclick="deleteItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, delete forever</button>
-        </div>
-    `;
-    
-    modal.style.display = 'flex';
-};
-
 // Function to update UI for announcement, event, news, etc.
 const updateUI = async (data, type) => {
     if (!hasPermissionToView(data)) {
@@ -291,7 +95,7 @@ const updateUI = async (data, type) => {
     if (data.media_path) {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
-        mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; margin: 0 auto; border-radius: 5px">` :
+        mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 50%; max-height: 375px; display: block; margin: 0 auto; border-radius: 5px">` :
             isVideo ? `<video width="100%" height="100%" controls style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
@@ -317,7 +121,7 @@ const updateUI = async (data, type) => {
         const contentContainer = document.createElement('div');
         contentContainer.className = 'content-container-con';
         // if author_id is equal to user_id, display "You" instead of own name
-        contentContainer.innerHTML = `<p class="ann-author" style="margin-bottom: 15px; font-size: 15px; color: #6E6E6E; font-weight: bold">${data.author_name} (${data.author_user_type}) wants to post <b> ${type} </b> on TV: ${tvInfo.tv_display}</p>` + contentDiv;
+        contentContainer.innerHTML = `<p class="pending-content-message" style="margin-bottom: 15px; font-size: 15px; font-weight: bold;"><i class="fa fa-exclamation-circle" aria-hidden="true"></i> ${data.author_name} (${data.author_user_type}) wants to post <b> ${type} </b> on TV: ${tvInfo.tv_display}</p>` + contentDiv;
 
         contentContainer.style = `
             border-radius: 15px;
@@ -362,30 +166,11 @@ const updateUI = async (data, type) => {
             )
         );
 
-        // const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => 
-        //     showDeleteModal(
-        //         data[`${type}_id`], 
-        //         type, 
-        //         data[`${type}_author_id`], 
-        //         full_name, 
-        //         data.author_name, 
-        //         data.author_user_type, 
-        //         data.author_department, 
-        //         data.tv_id
-        //     )
-        // );
-
-
         if (userType === 'Super Admin' || (userType === 'Admin' && data[`user_type`] !== 'Super Admin')) {
             buttonContainer.appendChild(approveButton);
             buttonContainer.appendChild(rejectButton);
         }
 
-        // if (data[`${type}_author_id`] === parseInt(user_id)) {
-        //     buttonContainer.appendChild(deleteButton);
-        // }
-
-        // Set main container styles
         containerDiv.style = `
             margin-bottom: 20px;
             padding: 20px;
@@ -419,38 +204,6 @@ const hasPermissionToView = (content) => {
     }
 
     return false;
-};
-
-// Function to delete an item
-const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
-    const evaluatorMessageDeleteForever = document.getElementById('evaluator_message_delete');
-    let evaluatorMessage = null;
-
-    if (evaluatorMessageDeleteForever) {
-        evaluatorMessage = evaluatorMessageDeleteForever.value;
-        if (!evaluatorMessage) {
-            alert('Evaluator message is required.');
-            return;
-        }
-    }
-
-    const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
-    const confirmDeleteModal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
-    const data = {
-        action: 'delete_content',
-        type: contentType,
-        [`${contentType}_id`]: contentId, // Dynamically set the ID based on the type
-        user_id: user_id,
-        author_id: authorId ? authorId : null,
-        author_name: authorName ? authorName : null,
-        author_user_type: authorUserType ? authorUserType : null,
-        author_department: authorDepartment ? authorDepartment : null,
-        evaluator_name: loggedInFullName ? loggedInFullName : null,
-        evaluator_message: evaluatorMessage ? evaluatorMessage : null,
-        tv_id: tvId ? tvId : null
-    };
-    confirmDeleteModal.style.display = 'none';
-    Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
 // Helper function to format content type for display
@@ -681,12 +434,6 @@ Ws.addEventListener('message', function(event) {
 document.addEventListener('DOMContentLoaded', async () => {
     // Create modals with dynamic features
     await createModals();
-
-    // Initialize search functionality
-    // populateContentTypeDropdown();
-    
-    // Add clear button click handler
-    // document.getElementById('clearSearch').addEventListener('click', clearSearch);
 
     // Fetch and update all content
     fetchAndUpdateAll();

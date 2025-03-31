@@ -16,12 +16,12 @@ function connectWebSocket() {
     // Determine if we're in localhost or production
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
-                       window.location.hostname === '192.168.1.14' ||
-                       window.location.hostname === '192.168.1.4';
+                       window.location.hostname === '192.168.1.12' ||
+                       window.location.hostname === '192.168.1.14';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.1.4:8081'
+        ? 'ws://192.168.1.14:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -253,7 +253,7 @@ const updateUI = (data, type) => {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
         mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}">` :
-            isVideo ? `<video preload="metadata" muted><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
+            isVideo ? `<video preload="metadata" muted autoplay><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
     // Special handling for orgchart type
@@ -610,7 +610,7 @@ const updateUI = (data, type) => {
             border: none;
             border-top-left-radius: 5px;
             border-top-right-radius: 5px;
-            text-align: justify;
+            text-align: left;
             height: 100%;
             bottom: 0;
         `;
@@ -676,6 +676,7 @@ function initializeTextFitting(type, id) {
         wrapperDiv.style.width = '100%';
         wrapperDiv.style.height = '100%';
         
+        
         // Create a new paragraph element
         const paragraph = document.createElement('p');
         paragraph.id = messageId;
@@ -725,8 +726,8 @@ function fitText(messageId) {
 
     try {
         messageWrapper.textfill({
-            maxFontPixels: -1, // 0 means no maximum size
-            minFontPixels: 8,
+            maxFontPixels: 55, // 0 means no maximum size
+            minFontPixels: 10,
             widthOnly: false,
             explicitWidth: messageWrapper.width(),
             explicitHeight: messageWrapper.height(),
@@ -879,7 +880,7 @@ const createOrgChart = (orgchartId, chartData) => {
             connectors: {
                 type: 'step',
                 style: {
-                    'stroke-width': '6px'
+                    'stroke-width': '4px'
                 }
             },
             node: {
@@ -950,7 +951,7 @@ const createNodeStructure = (members) => {
             innerHTML: `
                 <div class="node-content" style="width: auto">
                     ${member.picture ? 
-                        `<img src="${member.picture}" class="node-image" alt="${member.name}" style="width: 40px; height: 40px;">` : 
+                        `<img src="servers/orgchart_media/${member.picture}" class="node-image" alt="${member.name}" style="width: 40px; height: 40px;">` : 
                         `<img src="images/profile_picture.png" class="node-image" alt="Default Profile" style="width: 40px; height: 40px;">`
                     }
                     <div class="node-details" style="width: auto; max-width: 500px;">
@@ -1007,7 +1008,7 @@ const setupOrgChartResizeObserver = (container) => {
                     }
                 }
             }
-        }, 100); // Small delay for performance
+        }, 1000); // Small delay for performance
     });
 
     resizeObserver.observe(container);
@@ -1070,14 +1071,17 @@ const showNextContent = (type) => {
     const contentsArray = contents[type + 's'];
 
     if (contentsArray.length > 0) {
-        // Remove active class from the current item
+        // Remove active class from the current item and handle video cleanup
         if (contentsArray[currentIndex[currentIndexKey]]) {
-            const currentVideo = contentsArray[currentIndex[currentIndexKey]].querySelector('video');
+            const currentItem = contentsArray[currentIndex[currentIndexKey]];
+            const currentVideo = currentItem.querySelector('video');
             if (currentVideo) {
                 currentVideo.pause();
                 currentVideo.currentTime = 0;
+                currentVideo.src = currentVideo.src; // Reset video source
+                currentVideo.load(); // Reload video
             }
-            contentsArray[currentIndex[currentIndexKey]].classList.remove('active');
+            currentItem.classList.remove('active');
         }
 
         // Increment the index and wrap around if necessary
@@ -1085,23 +1089,30 @@ const showNextContent = (type) => {
 
         // Add active class to the new current item
         if (contentsArray[currentIndex[currentIndexKey]]) {
-            contentsArray[currentIndex[currentIndexKey]].classList.add('active');
+            const newItem = contentsArray[currentIndex[currentIndexKey]];
+            newItem.classList.add('active');
             updatePageNumber(currentIndexKey);
+
             // Handle video if present
-            const newVideo = contentsArray[currentIndex[currentIndexKey]].querySelector('video');
+            const newVideo = newItem.querySelector('video');
             if (newVideo) {
-                // Reset video to start
+                // Reset video state
                 newVideo.currentTime = 0;
+                newVideo.load();
                 
-                // Play video and set up event listener for when it ends
+                // Play video with proper error handling
                 const playPromise = newVideo.play();
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
-                        // Video started playing
-                        // Use video duration for display time
+                        // Video started playing successfully
                         const videoDuration = Math.ceil(newVideo.duration);
-                        const contentDiv = contentsArray[currentIndex[currentIndexKey]];
-                        contentDiv.dataset.displayTime = videoDuration;
+                        newItem.dataset.displayTime = videoDuration;
+                        
+                        // Clear any existing interval
+                        if (displayTimeIntervals[currentIndexKey]) {
+                            clearInterval(displayTimeIntervals[currentIndexKey]);
+                        }
+                        
                         resetDisplayTime(type);
                     }).catch(error => {
                         console.error("Error playing video:", error);
@@ -1109,6 +1120,11 @@ const showNextContent = (type) => {
                         resetDisplayTime(type);
                     });
                 }
+
+                // Add ended event listener
+                newVideo.addEventListener('ended', () => {
+                    showNextContent(type);
+                }, { once: true }); // Use once: true to prevent memory leaks
             } else {
                 // No video, use normal display time
                 resetDisplayTime(type);
@@ -1584,7 +1600,10 @@ Ws.addEventListener('message', function (event) {
         }, 500);
     } else if (data.action === 'edit_smart_tv') {
         fetchSmartTVDetails();
-    } else if (data.action === 'delete_smart_tv' || data.action === 'delete_feature') {
+    } else if (data.action === 'delete_feature') {
+        // When a feature is deleted, reload all TV screens
+        location.reload();
+    } else if (data.action === 'delete_smart_tv') {
         const urlParams = new URLSearchParams(window.location.search);
         const tvId = urlParams.get('tvId');
         if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {

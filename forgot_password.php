@@ -36,8 +36,8 @@ if (isset($_POST["submit"])) {
         $_SESSION['reset_token'] = $token;
         $_SESSION['reset_email'] = $email;
 
-        if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.4') {
-            $passwordResetLink = "http://192.168.1.4:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
+        if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.14') {
+            $passwordResetLink = "http://192.168.1.14:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
         } else {
             $passwordResetLink = "https://usccms.online/enter_new_forgot_password.php?token=$token";
         }
@@ -317,7 +317,7 @@ if (isset($_POST["submit"])) {
                     
                     <div class="button-flex">
                         <div class="left-side-button">
-                            <a href="login.php?pageid=Login" class="cancel-button-2">Cancel</a>
+                            <a href="login.php?pageid=Login" class="cancel-button-2" style="color: black">Cancel</a>
                         </div>
                         <div class="right-side-button">
                             <input type="submit" name="submit" value="Confirm" class="create-account-button">

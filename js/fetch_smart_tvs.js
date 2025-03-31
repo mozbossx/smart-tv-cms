@@ -37,16 +37,13 @@ const insertDeleteSmartTVModalContent = (tvId) => {
     const modalContainer = document.getElementById('confirmDeleteSmartTVModal');
     modalContainer.innerHTML = `
         <div class="modal-content" style="padding: 15px;">
-            <div class="red-bar-vertical">
-                <span class="close" id="closeDeleteSmartTVModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-                <br>
-                <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-                <p id="deleteMessage" style="text-align: center">Proceed to delete this smart TV?</p>
-                <br>
-                <div style="text-align: right;">
-                    <button id="cancelDeleteSmartTVModalButton" class="grey-button" type="button">Cancel</button>
-                    <button id="deleteSmartTVButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Yes, I want to delete</button>
-                </div>
+            <span class="close" id="closeDeleteSmartTVModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-trash"></i> Delete TV</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to delete this smart TV? All of its contents will be deleted as well.</p>
+            <br>
+            <div style="text-align: right;">
+                <button id="cancelDeleteSmartTVModalButton" class="grey-button" type="button">Cancel</button>
+                <button id="deleteSmartTVButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Yes, I want to delete</button>
             </div>
         </div>
     `;
@@ -189,9 +186,7 @@ const populateEditSmartTVModal = (tvId) => {
     modalContainer.innerHTML = `
         <div class="modal-content" style="padding: 15px">
             <span class="close" id="closeEditSmartTVModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-pencil" aria-hidden="true"></i></h1>
-            <p id="editMessage" style="text-align: center">Edit Smart TV</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-pencil"></i> Edit TV</h1>
             <form id="editSmartTVForm">
                 <div class="floating-label-container">
                     <input type="text" name="tv_id" id="edit_tv_id" placeholder=" " class="floating-label-input-text-area" style="background: none; box-shadow: none; border: none; pointer-events: none" readonly>

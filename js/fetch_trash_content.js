@@ -104,13 +104,9 @@ const createTrashDaysModal = () => {
     modal.className = 'modal';
     modal.innerHTML = `
         <div class="modal-content" style="padding: 15px;">
-            <span class="close" onclick="document.getElementById('changeTrashDaysModal').style.display='none'">
-                <i class="fa fa-times-circle" aria-hidden="true"></i>
-            </span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-clock-o" aria-hidden="true"></i></h1>
-            <p style="text-align: center">Change number of days before trashed items are permanently deleted</p>
-            <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Minimum number of days is 10.</p>
+            <span class="close" onclick="document.getElementById('changeTrashDaysModal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-clock-o"></i> Trash Days</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Change number of days before trashed items are permanently deleted by the system. Minimum number of days is 10.</p>
             <br>
             <div class="floating-label-container">
                 <input type="number" id="newTrashDays" required placeholder=" " class="floating-label-input" min="1">
@@ -118,7 +114,7 @@ const createTrashDaysModal = () => {
             </div>
             <br>
             <div style="text-align: right;">
-                <button type="button" class="grey-button" onclick="document.getElementById('changeTrashDaysModal').style.display='none'">Cancel</button>
+                <button type="button" class="grey-button" style="margin-right: 5px" onclick="document.getElementById('changeTrashDaysModal').style.display='none'">Cancel</button>
                 <button type="button" class="green-button" onclick="updateTrashDays()">Update</button>
             </div>
         </div>
@@ -200,14 +196,8 @@ const calculateDaysRemaining = (trashedDate) => {
 
 // Function to search trash
 function searchTrash() {
-    const searchInput = document.getElementById('searchInput');
-    const clearButton = document.getElementById('clearSearch');
-    const keyword = searchInput.value.toLowerCase();
     const contentType = document.getElementById('contentType').value;
     
-    // Show/hide clear button
-    clearButton.style.display = keyword ? 'block' : 'none';
-
     const trashedItems = document.querySelectorAll('#trashContainer > div');
     let hasVisibleItems = false;
 
@@ -221,13 +211,10 @@ function searchTrash() {
         // Skip the noResultsMessage div if it exists
         if (item.id === 'noResultsMessage') return;
 
-        const textContent = item.textContent.toLowerCase();
         const itemTypeElement = item.querySelector('.content-type-label');
         const itemType = itemTypeElement ? itemTypeElement.textContent.toLowerCase().trim() : '';
         
-        const matchesKeyword = keyword === '' || textContent.includes(keyword);
-        
-        // Special handling for Promotional Material
+        // Only check content type now
         let matchesType = false;
         if (contentType === 'all') {
             matchesType = true;
@@ -238,8 +225,8 @@ function searchTrash() {
                          itemType.includes(contentType.replace(/_/g, ' ').toLowerCase());
         }
         
-        item.style.display = (matchesKeyword && matchesType) ? 'block' : 'none';
-        if (matchesKeyword && matchesType) hasVisibleItems = true;
+        item.style.display = matchesType ? 'block' : 'none';
+        if (matchesType) hasVisibleItems = true;
     });
 
     // Show "no results" message if needed
@@ -252,18 +239,9 @@ function searchTrash() {
             color: #666;
             margin-top: 20px;
         `;
-        msg.textContent = 'No trashed items match your search';
+        msg.textContent = 'No trashed items match your filter';
         document.getElementById('trashContainer').appendChild(msg);
     }
-}
-
-// Function to clear search
-function clearSearch() {
-    const searchInput = document.getElementById('searchInput');
-    const clearButton = document.getElementById('clearSearch');
-    searchInput.value = '';
-    clearButton.style.display = 'none';
-    searchTrash();
 }
 
 // Function to populate content type dropdown
@@ -357,7 +335,7 @@ function populateContentTypeDropdown() {
 
 const createRestoreButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.innerHTML = `${text}`;
     button.className = 'green-button';
     button.style = `
         margin-top: 10px;
@@ -369,7 +347,7 @@ const createRestoreButton = (text, iconClass, onClick) => {
 
 const createDeleteButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.innerHTML = `${text}`;
     button.className = 'light-green-button';
     button.style = `
         margin-top: 10px;
@@ -381,7 +359,7 @@ const createDeleteButton = (text, iconClass, onClick) => {
 
 const createArchiveButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
-    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+    button.innerHTML = `${text}`;
     button.className = 'light-green-button';
     button.style = `
         margin-top: 10px;
@@ -393,7 +371,7 @@ const createArchiveButton = (text, iconClass, onClick) => {
 
 // const createEditButton = (text, iconClass, onClick) => {
 //     const button = document.createElement('button');
-//     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
+//     button.innerHTML = `${text}`;
 //     button.className = 'green-button';
 //     button.onclick = onClick;
 //     return button;
@@ -402,7 +380,7 @@ const createArchiveButton = (text, iconClass, onClick) => {
 // Function to create content div
 const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formattedExpirationDateTime, formattedTrashDateTime, type, tvDisplay) => {
     let contentHtml = `
-        <div class="content-container-con">
+        <div class="content-container-con" style="padding: 0">
             ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
     `;
 
@@ -465,7 +443,7 @@ const updateUI = async (data, type) => {
     if (data.media_path) {
         const isImage = /\.(jpg|jpeg|png|gif)$/i.test(data.media_path);
         const isVideo = /\.(mp4|webm|ogg)$/i.test(data.media_path);
-        mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; margin: 0 auto; border-radius: 5px">` :
+        mediaContent = isImage ? `<img src="servers/${type}_media/${data.media_path}" style="width: auto; height: auto; max-width: 50%; max-height: 375px; display: block; margin: 0 auto; border-radius: 5px">` :
             isVideo ? `<video width="100%" height="100%" controls style="width: 100%"><source src="servers/${type}_media/${data.media_path}" type="video/mp4"></video>` : '';
     }
 
@@ -513,7 +491,7 @@ const updateUI = async (data, type) => {
         contentContainer.innerHTML = contentDiv;
         contentContainer.style = `
             border-radius: 15px;
-            padding: 15px;
+            padding: 5px;
             color: black;
             height: auto;
             text-align: left;
@@ -915,15 +893,13 @@ const showRestoreModal = async (contentId, contentType, authorId, loggedInFullNa
     
     modalContent.innerHTML = `
         <span class="close" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-refresh" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to restore this ${contentType} to TV: ${tvInfo.tv_display}?</p>
-        <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Restored items will be displayed in the TV.</p>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-refresh"></i> Restore</h1>
+        <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to restore this ${contentType} to TV: ${tvInfo.tv_display}?</p>
         <br>
         ${evaluatorMessageHtml}
         ${expirationDateHtml}
         <div style="text-align: right;">
-            <button type="button" class="grey-button" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="grey-button" style="margin-right: 5px" onclick="document.getElementById('confirmRestore${capitalizedType}Modal').style.display='none'">Cancel</button>
             <button type="button" class="green-button" onclick="restoreItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId}, ${isExpired})">Yes, Restore</button>
         </div>
     `;
@@ -951,14 +927,12 @@ const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, aut
     
     modalContent.innerHTML = `
         <span class="close" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-trash" aria-hidden="true"></i></h1>
-        <p id="deleteMessage" style="text-align: center">Proceed to delete forever?</p>
-        <p id="deleteMessage2" style="font-size: 13px; color: #6E6E6E;">Permanently deleted items cannot be recovered.</p>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-trash"></i> Permanent Delete</h1>
+        <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to delete forever? Permanently deleted items cannot be recovered.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
-            <button type="button" class="grey-button" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="grey-button" style="margin-right: 5px" onclick="document.getElementById('confirmDelete${capitalizedType}Modal').style.display='none'">Cancel</button>
             <button type="button" class="red-button" onclick="deleteItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, delete forever</button>
         </div>
     `;
@@ -986,14 +960,12 @@ const showArchiveModal = (contentId, contentType, authorId, loggedInFullName, au
     
     modalContent.innerHTML = `
         <span class="close" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-        <br>
-        <h1 style="font-size: 50px"><i class="fa fa-archive" aria-hidden="true"></i></h1>
-        <p id="trashMessage" style="text-align: center">Proceed to archive?</p>
-        <p id="trashMessage2" style="font-size: 13px; color: #6E6E6E;">Archived items are stored for ${currentArchiveDays} days before being moved to Trash.</p>
+        <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-archive"></i> Archive</h1>
+        <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to archive? Archived items are stored for ${currentArchiveDays} days before being moved to Trash.</p>
         <br>
         ${evaluatorMessageHtml}
         <div style="text-align: right;">
-            <button type="button" class="grey-button" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
+            <button type="button" class="grey-button" style="margin-right: 5px;" onclick="document.getElementById('confirmArchive${capitalizedType}Modal').style.display='none'">Cancel</button>
             <button type="button" class="yellow-button" onclick="archiveItem(${contentId}, '${contentType}', ${authorId}, '${loggedInFullName}', '${authorName}', '${authorUserType}', '${authorDepartment}', ${tvId})">Yes, Archive</button>
         </div>
     `;
@@ -1141,9 +1113,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize search functionality
     populateContentTypeDropdown();
     
-    // Add clear button click handler
-    document.getElementById('clearSearch').addEventListener('click', clearSearch);
-
     // Start the expiration checker
     // startExpirationChecker();
 

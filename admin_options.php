@@ -4,6 +4,7 @@ session_start();
 include 'config_connection.php';
 
 include 'get_session.php';
+include 'user_theme_color.php';
 
 include 'admin_access_only.php';
 
@@ -23,6 +24,11 @@ include 'admin_access_only.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Admin Options</title>
+    <style>
+        .button-icon {
+            background: <?php echo $theme_color; ?>;
+        }
+    </style>
 </head>
 <body>
 <div class="main-section" id="all-content">

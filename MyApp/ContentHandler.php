@@ -3131,29 +3131,6 @@ class ContentHandler implements MessageComponentInterface
                     OR user_id = ? OR user_id = ?
                 ");
                 $stmtUpdateNotificationCounts->execute([$department, $evaluator_id, $user_id]);
-
-                // Update notification status
-                // $stmtUpdateNotificationTable = $this->pdo->prepare("UPDATE notifications_tb SET status = 'rejected', notification_type = 'content_rejected', evaluator_name = ?, evaluator_message = ? WHERE user_id = ? AND content_id = ? AND content_type = ?");
-                // $stmtUpdateNotificationTable->execute([$evaluator_name, $evaluator_message, $user_id, $content_id, $content_type]);
-
-                // // Create a new notification for the user
-                // $stmtInsertNotificationTable = $this->pdo->prepare("INSERT INTO notifications_tb (user_id, content_id, content_type, notification_type, status, evaluator_name, evaluator_message) VALUES (?, ?, ?, 'content_rejected_by_admin', 'rejected', ?, ?)");
-                // $stmtInsertNotificationTable->execute([$user_id, $content_id, $content_type, $evaluator_name, $evaluator_message]);
-
-                // // Increase the notification count of the Admin or Super Admin and notify them that a student or faculty posted new content
-                // $stmtUpdateAdminOrSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE full_name = ?");
-                // $stmtUpdateAdminOrSuperAdminNotificationCount->execute([$evaluator_name]);
-
-                // // Check the current notification count of the student or faculty
-                // $stmtCheckNotificationCount = $this->pdo->prepare("SELECT notification_count FROM users_tb WHERE user_id = ?");
-                // $stmtCheckNotificationCount->execute([$user_id]);
-                // $currentNotificationCount = $stmtCheckNotificationCount->fetchColumn();
-
-                // // Only update the notification count if it's currently 0
-                // if ($currentNotificationCount == 0) {
-                //     $stmtUpdateStudentOrFacultyNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = 1 WHERE user_id = ?");
-                //     $stmtUpdateStudentOrFacultyNotificationCount->execute([$user_id]);
-                // }
     
                 // Broadcast update notification to all clients
                 $this->broadcastNotification('new_notification');
@@ -3238,302 +3215,6 @@ class ContentHandler implements MessageComponentInterface
             }
         }
 
-        else if (isset($data['action']) && $data['action'] === 'save_draft') {
-            // Access values from the connection object
-            $user_id = $from->user_id;
-            $full_name = $from->full_name;
-            $user_type = $from->user_type;
-            $department = $from->department;
-            if (isset($data['tv_ids']) && is_array($data['tv_ids']) && !empty($data['tv_ids'])) { // Check for tv_id as an array
-                error_log("TV IDs are selected."); // Log for debugging
-                // $tv_ids = $data['tv_ids'];
-                foreach ($data['tv_ids'] as $tv_ids) { 
-                    $status = 'Draft';
-                    $category = match ($data['type']) {
-                        'event' => 'Event',
-                        'announcement' => 'Announcement',
-                        'news' => 'News',
-                        'promaterial' => 'Promotional Materials',
-                        'peo' => 'PEO',
-                        'so' => 'SO',
-                        default => 'Unknown'
-                    };
-
-                    $isArchived = 0;
-
-                    // Determine media folder
-                    $mediaFolder = match ($data['type']) {
-                        'event' => 'event_media',
-                        'announcement' => 'announcement_media',
-                        'news' => 'news_media',
-                        'promaterial' => 'promaterial_media',
-                        default => null
-                    };
-
-                    if ($mediaFolder && !file_exists($mediaFolder)) {
-                        mkdir($mediaFolder, 0777, true);
-                    }
-
-                    $table = match ($data['type']) {
-                        'announcement' => 'announcements_tb',
-                        'event' => 'events_tb',
-                        'news' => 'news_tb',
-                        'promaterial' => 'promaterials_tb',
-                        'peo' => 'peo_tb',
-                        'so' => 'so_tb',
-                        default => 'No Table Found'
-                    };
-
-                    $idField = match ($data['type']) {
-                        'announcement' => 'announcement_id',
-                        'event' => 'event_id',
-                        'news' => 'news_id',
-                        'promaterial' => 'promaterial_id',
-                        'peo' => 'peo_id',
-                        'so' => 'so_id',
-                        default => 'No Content ID Found'
-                    };
-
-                    $authorField = match ($data['type']) {
-                        'announcement' => 'announcement_author_id',
-                        'event' => 'event_author_id',
-                        'news' => 'news_author_id',
-                        'promaterial' => 'promaterial_author_id',
-                        'peo' => 'peo_author_id',
-                        'so' => 'so_author_id',
-                        default => 'No Author Found'
-                    };
-
-                    // Common fields for all types
-                    $fields = [
-                        'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                        'category', 'isArchived', 'status'
-                    ];
-                    $values = [
-                        $department, $user_type, $user_id, $tv_ids, $data['display_time'] ?? null,
-                        $category, $isArchived, $status
-                    ];
-
-                    // Add type-specific fields
-                    if ($data['type'] === 'event') {
-                        $fields[] = 'event_body';
-                        $fields[] = 'expiration_datetime';
-                        $values[] = $data['event_body'] ?? null;
-                        $values[] = $data['expiration_datetime'] ?? null;
-                    } elseif ($data['type'] === 'news') {
-                        $fields[] = 'news_body';
-                        $fields[] = 'expiration_datetime';
-                        $values[] = $data['news_body'] ?? null;
-                        $values[] = $data['expiration_datetime'] ?? null;
-                    } elseif ($data['type'] === 'announcement') {
-                        $fields[] = 'announcement_body';
-                        $fields[] = 'expiration_datetime';
-                        $values[] = $data['announcement_body'] ?? null;
-                        $values[] = $data['expiration_datetime'] ?? null;
-                    } elseif ($data['type'] === 'promaterial') {
-                        $fields[] = 'expiration_datetime';
-                        $values[] = $data['expiration_datetime'] ?? null;
-                    } elseif ($data['type'] === 'peo') {
-                        $fields[] = 'peo_title';
-                        $fields[] = 'peo_description';
-                        $fields[] = 'peo_subdescription';                        
-                        $values[] = $data['peo_title'] ?? null;
-                        $values[] = $data['peo_description'] ?? null;
-                        $values[] = $data['peo_subdescription'] ?? null;                        
-                    } elseif ($data['type'] === 'so') {
-                        $fields[] = 'so_title';
-                        $fields[] = 'so_description';
-                        $fields[] = 'so_subdescription';
-                        $values[] = $data['so_title'] ?? null;
-                        $values[] = $data['so_description'] ?? null;
-                        $values[] = $data['so_subdescription'] ?? null;
-                    }
-
-                    $fieldList = implode(', ', $fields);
-                    $placeholderList = implode(', ', array_fill(0, count($fields), '?'));
-
-                    $statement = $this->pdo->prepare(
-                        "INSERT INTO $table ($fieldList) VALUES ($placeholderList)"
-                    );
-
-                    $success = $statement->execute($values);
-
-                    if ($success) {
-                        $id = $this->pdo->lastInsertId();
-                        $data[$idField] = $id;
-                        $data[$authorField] = $user_id;
-                        $data['category'] = $category;
-                        $data['user_type'] = $user_type;
-                        $data['status'] = $status;
-
-                        if (!empty($data['media'])) {
-                            $base64Data = $data['media'];
-                            $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
-                            $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
-                            $timeNow = date('YmdHis');
-                            $filename = "{$id}_{$timeNow}.{$fileExtension}";
-                            $media_save = "{$mediaFolder}/{$filename}";
-
-                            file_put_contents($media_save, $mediaData);
-
-                            // Update the record with media_path
-                            $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
-                            $updateStatement->execute([$filename, $id]);
-
-                            $data['media_path'] = $filename;
-                        }
-
-                        $from->send(json_encode(['success' => true, 'data' => $data]));
-                        echo ucfirst($data['type']) . " draft saved " . (!empty($data['media']) ? 'with' : 'without') . " media!\n";
-                    } else {
-                        $from->send(json_encode(['error' => 'Error saving draft for ' . $data['type'] . '. Try again later']));
-                    }
-                }
-            } else if (empty($data['tv_ids'])) {
-                error_log("No TV IDs provided."); // Log for debugging
-                $status = 'Draft';
-                $category = match ($data['type']) {
-                    'event' => 'Event',
-                    'announcement' => 'Announcement',
-                    'news' => 'News',
-                    'promaterial' => 'Promotional Materials',
-                    'peo' => 'PEO',
-                    'so' => 'SO',
-                    default => 'Unknown'
-                };
-
-                $isArchived = 0;
-
-                // Determine media folder
-                $mediaFolder = match ($data['type']) {
-                    'event' => 'event_media',
-                    'announcement' => 'announcement_media',
-                    'news' => 'news_media',
-                    'promaterial' => 'promaterial_media',
-                    default => null
-                };
-
-                if ($mediaFolder && !file_exists($mediaFolder)) {
-                    mkdir($mediaFolder, 0777, true);
-                }
-
-                $table = match ($data['type']) {
-                    'announcement' => 'announcements_tb',
-                    'event' => 'events_tb',
-                    'news' => 'news_tb',
-                    'promaterial' => 'promaterials_tb',
-                    'peo' => 'peo_tb',
-                    'so' => 'so_tb',
-                    default => 'No Table Found'
-                };
-
-                $idField = match ($data['type']) {
-                    'announcement' => 'announcement_id',
-                    'event' => 'event_id',
-                    'news' => 'news_id',
-                    'promaterial' => 'promaterial_id',
-                    'peo' => 'peo_id',
-                    'so' => 'so_id',
-                    default => 'No Content ID Found'
-                };
-
-                $authorField = match ($data['type']) {
-                    'announcement' => 'announcement_author_id',
-                    'event' => 'event_author_id',
-                    'news' => 'news_author_id',
-                    'promaterial' => 'promaterial_author_id',
-                    'peo' => 'peo_author_id',
-                    'so' => 'so_author_id',
-                    default => 'No Author Found'
-                };
-                
-                // Common fields for all types
-                $fields = [
-                    'department', 'user_type', $authorField, 'tv_id', 'display_time',
-                    'category', 'isArchived', 'status'
-                ];
-                $values = [
-                    $department, $user_type, $user_id, null, $data['display_time'] ?? null,
-                    $category, $isArchived, $status
-                ];
-
-                // Add type-specific fields
-                if ($data['type'] === 'event') {
-                    $fields[] = 'event_body';
-                    $fields[] = 'expiration_datetime';
-                    $values[] = $data['event_body'] ?? null;
-                    $values[] = $data['expiration_datetime'] ?? null;
-                } elseif ($data['type'] === 'news') {
-                    $fields[] = 'news_body';
-                    $fields[] = 'expiration_datetime';
-                    $values[] = $data['news_body'] ?? null;
-                    $values[] = $data['expiration_datetime'] ?? null;
-                } elseif ($data['type'] === 'announcement') {
-                    $fields[] = 'announcement_body';
-                    $fields[] = 'expiration_datetime';
-                    $values[] = $data['announcement_body'] ?? null;
-                    $values[] = $data['expiration_datetime'] ?? null;
-                } elseif ($data['type'] === 'promaterial') {
-                    $fields[] = 'expiration_datetime';
-                    $values[] = $data['expiration_datetime'] ?? null;
-                } elseif ($data['type'] === 'peo') {
-                    $fields[] = 'peo_title';
-                    $fields[] = 'peo_description';
-                    $fields[] = 'peo_subdescription';
-                    $values[] = $data['peo_title'] ?? null;
-                    $values[] = $data['peo_description'] ?? null;
-                    $values[] = $data['peo_subdescription'] ?? null;                    
-                } elseif ($data['type'] === 'so') {
-                    $fields[] = 'so_title';
-                    $fields[] = 'so_description';
-                    $fields[] = 'so_subdescription';
-                    $values[] = $data['so_title'] ?? null;
-                    $values[] = $data['so_description'] ?? null;
-                    $values[] = $data['so_subdescription'] ?? null;
-                }
-
-                $fieldList = implode(', ', $fields);
-                $placeholderList = implode(', ', array_fill(0, count($fields), '?'));
-
-                $statement = $this->pdo->prepare(
-                    "INSERT INTO $table ($fieldList) VALUES ($placeholderList)"
-                );
-
-                $success = $statement->execute($values);
-
-                if ($success) {
-                    $id = $this->pdo->lastInsertId();
-                    $data[$idField] = $id;
-                    $data[$authorField] = $user_id;
-                    $data['category'] = $category;
-                    $data['user_type'] = $user_type;
-                    $data['status'] = $status;
-
-                    if (!empty($data['media'])) {
-                        $base64Data = $data['media'];
-                        $mediaData = base64_decode(preg_replace('#^data:video/\w+;base64,|^data:image/\w+;base64,#i', '', $base64Data));
-                        $fileExtension = strpos($base64Data, 'data:video') === 0 ? 'mp4' : 'png';
-                        $timeNow = date('YmdHis');
-                        $filename = "{$id}_{$timeNow}.{$fileExtension}";
-                        $media_save = "{$mediaFolder}/{$filename}";
-
-                        file_put_contents($media_save, $mediaData);
-
-                        // Update the record with media_path
-                        $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
-                        $updateStatement->execute([$filename, $id]);
-
-                        $data['media_path'] = $filename;
-                    }
-
-                    $from->send(json_encode(['success' => true, 'data' => $data]));
-                    echo ucfirst($data['type']) . " draft saved " . (!empty($data['media']) ? 'with' : 'without') . " media!\n";
-                } else {
-                    $from->send(json_encode(['error' => 'Error saving draft for ' . $data['type'] . '. Try again later']));
-                }
-            }
-        }
-
         else if (isset($data['action']) && $data['action'] === 'post_content') {
             // Access values from the connection object
             $user_id = $from->user_id;
@@ -3550,7 +3231,43 @@ class ContentHandler implements MessageComponentInterface
                         $orgChartData = $data['orgChartData'];
                         $display_time = $data['display_time'];
                         $orgchart_id = rand(100, 999); // Generate a unique ID for this orgchart
+                        
+                        // Create orgchart folder if it doesn't exist
+                        $orgchartFolder = 'orgchart_media';
+                        if (!file_exists($orgchartFolder)) {
+                            mkdir($orgchartFolder, 0777, true);
+                        }
+                        
                         foreach ($orgChartData as $member) {
+                            // Handle picture saving
+                            $picturePath = '';
+                            if (!empty($member['picture'])) {
+                                // Get the base64 part
+                                $base64Data = preg_replace('#^data:image/\w+;base64,#i', '', $member['picture']);
+                                
+                                // Generate filename: orgchart_id.parent_node_id
+                                $fileName = $orgchart_id . '.' . $member['id'];
+                                if ($member['parent_id']) {
+                                    $fileName .= '.' . $member['parent_id'];
+                                }
+                                
+                                // Determine file extension based on the image data
+                                $fileExtension = '.jpg'; // Default extension
+                                if (preg_match('/^data:image\/(\w+);base64,/', $member['picture'], $matches)) {
+                                    $fileExtension = '.' . $matches[1];
+                                }
+                                
+                                $fileName .= $fileExtension;
+                                $filePath = $orgchartFolder . '/' . $fileName;
+                                
+                                // Decode and save the file
+                                $decodedImage = base64_decode($base64Data);
+                                if ($decodedImage !== false) {
+                                    file_put_contents($filePath, $decodedImage);
+                                    $picturePath = $filePath;
+                                }
+                            }
+                            
                             $stmt = $this->pdo->prepare("
                                 INSERT INTO org_chart_members (parent_node_id, parent_id, orgchart_id, name, title, type, display_time, tv_id, picture)
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -3564,7 +3281,7 @@ class ContentHandler implements MessageComponentInterface
                                 'orgchart',
                                 $display_time,
                                 $tv_ids,
-                                $member['picture']
+                                $fileName
                             ]);
                             
                         }
@@ -3577,6 +3294,18 @@ class ContentHandler implements MessageComponentInterface
                         echo "A member is being added! \n";
                     }
                 } else if ($data['type'] === 'event' || $data['type'] === 'announcement' || $data['type'] === 'news' || $data['type'] === 'promaterial' || $data['type'] === 'peo' || $data['type'] === 'so') {
+                    // Store the original temp file path if it exists
+                    $originalTempFile = null;
+                    if (isset($data['preUploadedFile'])) {
+                        $tempFile = 'temp/' . $data['preUploadedFile'];
+                        if (file_exists($tempFile)) {
+                            $originalTempFile = $tempFile;
+                            error_log("Debug - Original temp file found: $tempFile");
+                        } else {
+                            error_log("Error - Original temp file not found at: $tempFile");
+                        }
+                    }
+                    
                     // For Announcement, Event, News, Promotional Materials, PEO, and SO only
                     foreach ($data['tv_ids'] as $tv_ids) {
                         $status = ($user_type == 'Admin' || $user_type == 'Super Admin') ? 'Approved' : 'Pending';
@@ -3811,49 +3540,79 @@ class ContentHandler implements MessageComponentInterface
                             $mediaUploaded = false;  // Flag to track if media was uploaded
 
                             // Handle pre-uploaded file
-                            if (isset($data['preUploadedFile'])) {
-                                error_log("Debug - Found preUploadedFile: " . $data['preUploadedFile']);
+                            // if (isset($data['preUploadedFile'])) {
+                            //     error_log("Debug - Found preUploadedFile: " . $data['preUploadedFile']);
                                 
-                                $tempFile = 'temp/' . $data['preUploadedFile'];
-                                error_log("Debug - Full temp file path: $tempFile");
-                                error_log("Debug - Temp file exists: " . (file_exists($tempFile) ? 'yes' : 'no'));
+                            //     $tempFile = 'temp/' . $data['preUploadedFile'];
+                            //     error_log("Debug - Full temp file path: $tempFile");
+                            //     error_log("Debug - Temp file exists: " . (file_exists($tempFile) ? 'yes' : 'no'));
                         
-                                if (file_exists($tempFile)) {
-                                    // Determine media folder
-                                    $mediaFolder = match ($data['type']) {
-                                        'event' => 'event_media',
-                                        'announcement' => 'announcement_media',
-                                        'news' => 'news_media',
-                                        'promaterial' => 'promaterial_media',
-                                        default => null
-                                    };
-                                    error_log("Debug - Media folder determined: $mediaFolder");
+                            //     if (file_exists($tempFile)) {
+                            //         // Determine media folder
+                            //         $mediaFolder = match ($data['type']) {
+                            //             'event' => 'event_media',
+                            //             'announcement' => 'announcement_media',
+                            //             'news' => 'news_media',
+                            //             'promaterial' => 'promaterial_media',
+                            //             default => null
+                            //         };
+                            //         error_log("Debug - Media folder determined: $mediaFolder");
                         
-                                    if ($mediaFolder) {
-                                        // Generate new filename
-                                        $timeNow = date('YmdHis');
-                                        $fileExtension = pathinfo($data['originalFileName'], PATHINFO_EXTENSION);
-                                        $filename = "{$id}_{$timeNow}.{$fileExtension}";
-                                        $targetFile = "{$mediaFolder}/{$filename}";
+                            //         if ($mediaFolder) {
+                            //             // Generate new filename
+                            //             $timeNow = date('YmdHis');
+                            //             $fileExtension = pathinfo($data['originalFileName'], PATHINFO_EXTENSION);
+                            //             $filename = "{$id}_{$timeNow}.{$fileExtension}";
+                            //             $targetFile = "{$mediaFolder}/{$filename}";
                                         
-                                        error_log("Debug - Target file path: $targetFile");
+                            //             error_log("Debug - Target file path: $targetFile");
                             
-                                        // Move the file from temp to final location
-                                        if (rename($tempFile, $targetFile)) {
-                                            error_log("Debug - File successfully moved");
-                                            // Update the record with media_path
-                                            $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
-                                            $updateStatement->execute([$filename, $id]);
+                            //             // Move the file from temp to final location
+                            //             if (rename($tempFile, $targetFile)) {
+                            //                 error_log("Debug - File successfully moved");
+                            //                 // Update the record with media_path
+                            //                 $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                            //                 $updateStatement->execute([$filename, $id]);
                                             
-                                            $data['media_path'] = $filename;
-                                            $mediaUploaded = true;
-                                        } else {
-                                            error_log("Error - Failed to move file: " . error_get_last()['message']);
-                                        }
+                            //                 $data['media_path'] = $filename;
+                            //                 $mediaUploaded = true;
+                            //             } else {
+                            //                 error_log("Error - Failed to move file: " . error_get_last()['message']);
+                            //             }
+                            //         }
+                            //     } else {
+                            //         error_log("Error - Temp file not found at: $tempFile");
+                            //     }
+                            // } else {
+                            //     error_log("Debug - No preUploadedFile in data");
+                            // }
+
+                            if ($originalTempFile && file_exists($originalTempFile)) {
+                                // Generate unique filename for each TV
+                                $fileExtension = pathinfo($data['originalFileName'], PATHINFO_EXTENSION);
+                                $newFileName = $id . '_' . date('YmdHis') . '_' . $tv_ids . '.' . $fileExtension;
+                                $targetPath = $mediaFolder . '/' . $newFileName;
+                            
+                                // Copy for all TVs except the last one
+                                if ($tv_ids === end($data['tv_ids'])) {
+                                    // For the last TV, move the file
+                                    error_log("Debug - Moving file for last TV: $originalTempFile to $targetPath");
+                                    if (!rename($originalTempFile, $targetPath)) {
+                                        error_log("Error - Failed to move file for last TV");
                                     }
                                 } else {
-                                    error_log("Error - Temp file not found at: $tempFile");
+                                    // For all other TVs, copy the file
+                                    error_log("Debug - Copying file for TV $tv_ids: $originalTempFile to $targetPath");
+                                    if (!copy($originalTempFile, $targetPath)) {
+                                        error_log("Error - Failed to copy file for TV $tv_ids");
+                                    }
                                 }
+                            
+                                // Update database with media path
+                                $stmt = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                                $stmt->execute([$newFileName, $id]);
+                                error_log("Debug - Updated database with media path: $newFileName for ID: $id");
+                                $mediaUploaded = true;
                             } else {
                                 error_log("Debug - No preUploadedFile in data");
                             }
@@ -4125,6 +3884,18 @@ class ContentHandler implements MessageComponentInterface
                         $from->send(json_encode($response));
                     }
                 } else {
+                    // Store the original temp file path if it exists
+                    $originalTempFile = null;
+                    if (isset($data['preUploadedFile'])) {
+                        $tempFile = 'temp/' . $data['preUploadedFile'];
+                        if (file_exists($tempFile)) {
+                            $originalTempFile = $tempFile;
+                            error_log("Debug - Original temp file found: $tempFile");
+                        } else {
+                            error_log("Error - Original temp file not found at: $tempFile");
+                        }
+                    }
+
                     // For New Features only
                     foreach ($data['tv_ids'] as $tv_ids) { 
                         $type = $data['type'] ?? null;
@@ -4325,50 +4096,81 @@ class ContentHandler implements MessageComponentInterface
                             $mediaUploaded = false;  // Flag to track if media was uploaded
 
                             // Handle pre-uploaded file
-                            if (isset($data['preUploadedFile'])) {
-                                error_log("Debug - Found preUploadedFile: " . $data['preUploadedFile']);
+                            // if (isset($data['preUploadedFile'])) {
+                            //     error_log("Debug - Found preUploadedFile: " . $data['preUploadedFile']);
                                 
-                                $tempFile = 'temp/' . $data['preUploadedFile'];
-                                error_log("Debug - Full temp file path: $tempFile");
-                                error_log("Debug - Temp file exists: " . (file_exists($tempFile) ? 'yes' : 'no'));
+                            //     $tempFile = 'temp/' . $data['preUploadedFile'];
+                            //     error_log("Debug - Full temp file path: $tempFile");
+                            //     error_log("Debug - Temp file exists: " . (file_exists($tempFile) ? 'yes' : 'no'));
                         
-                                if (file_exists($tempFile)) {
-                                    // Determine media folder
-                                    // $mediaFolder = match ($data['type']) {
-                                    //     'event' => 'event_media',
-                                    //     'announcement' => 'announcement_media',
-                                    //     'news' => 'news_media',
-                                    //     'promaterial' => 'promaterial_media',
-                                    //     default => null
-                                    // };
-                                    $mediaFolder = $data['type'] . '_media';
-                                    error_log("Debug - Media folder determined: $mediaFolder");
+                            //     if (file_exists($tempFile)) {
+                            //         // Determine media folder
+                            //         // $mediaFolder = match ($data['type']) {
+                            //         //     'event' => 'event_media',
+                            //         //     'announcement' => 'announcement_media',
+                            //         //     'news' => 'news_media',
+                            //         //     'promaterial' => 'promaterial_media',
+                            //         //     default => null
+                            //         // };
+                            //         $mediaFolder = $data['type'] . '_media';
+                            //         error_log("Debug - Media folder determined: $mediaFolder");
                         
-                                    if ($mediaFolder) {
-                                        // Generate new filename
-                                        $timeNow = date('YmdHis');
-                                        $fileExtension = pathinfo($data['originalFileName'], PATHINFO_EXTENSION);
-                                        $filename = "{$id}_{$timeNow}.{$fileExtension}";
-                                        $targetFile = "{$mediaFolder}/{$filename}";
+                            //         if ($mediaFolder) {
+                            //             // Generate new filename
+                            //             $timeNow = date('YmdHis');
+                            //             $fileExtension = pathinfo($data['originalFileName'], PATHINFO_EXTENSION);
+                            //             $filename = "{$id}_{$timeNow}.{$fileExtension}";
+                            //             $targetFile = "{$mediaFolder}/{$filename}";
                                         
-                                        error_log("Debug - Target file path: $targetFile");
+                            //             error_log("Debug - Target file path: $targetFile");
                             
-                                        // Move the file from temp to final location
-                                        if (rename($tempFile, $targetFile)) {
-                                            error_log("Debug - File successfully moved");
-                                            // Update the record with media_path
-                                            $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
-                                            $updateStatement->execute([$filename, $id]);
+                            //             // Move the file from temp to final location
+                            //             if (rename($tempFile, $targetFile)) {
+                            //                 error_log("Debug - File successfully moved");
+                            //                 // Update the record with media_path
+                            //                 $updateStatement = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                            //                 $updateStatement->execute([$filename, $id]);
                                             
-                                            $data['media_path'] = $filename;
-                                            $mediaUploaded = true;
-                                        } else {
-                                            error_log("Error - Failed to move file: " . error_get_last()['message']);
-                                        }
+                            //                 $data['media_path'] = $filename;
+                            //                 $mediaUploaded = true;
+                            //             } else {
+                            //                 error_log("Error - Failed to move file: " . error_get_last()['message']);
+                            //             }
+                            //         }
+                            //     } else {
+                            //         error_log("Error - Temp file not found at: $tempFile");
+                            //     }
+                            // } else {
+                            //     error_log("Debug - No preUploadedFile in data");
+                            // }
+
+                            if ($originalTempFile && file_exists($originalTempFile)) {
+                                // Generate unique filename for each TV
+                                $fileExtension = pathinfo($data['originalFileName'], PATHINFO_EXTENSION);
+                                $newFileName = $id . '_' . date('YmdHis') . '_' . $tv_ids . '.' . $fileExtension;
+                                $mediaFolder = $data['type'] . '_media';
+                                $targetPath = $mediaFolder . '/' . $newFileName;
+                            
+                                // Copy for all TVs except the last one
+                                if ($tv_ids === end($data['tv_ids'])) {
+                                    // For the last TV, move the file
+                                    error_log("Debug - Moving file for last TV: $originalTempFile to $targetPath");
+                                    if (!rename($originalTempFile, $targetPath)) {
+                                        error_log("Error - Failed to move file for last TV");
                                     }
                                 } else {
-                                    error_log("Error - Temp file not found at: $tempFile");
+                                    // For all other TVs, copy the file
+                                    error_log("Debug - Copying file for TV $tv_ids: $originalTempFile to $targetPath");
+                                    if (!copy($originalTempFile, $targetPath)) {
+                                        error_log("Error - Failed to copy file for TV $tv_ids");
+                                    }
                                 }
+                            
+                                // Update database with media path
+                                $stmt = $this->pdo->prepare("UPDATE $table SET media_path = ? WHERE $idField = ?");
+                                $stmt->execute([$newFileName, $id]);
+                                error_log("Debug - Updated database with media path: $newFileName for ID: $id");
+                                $mediaUploaded = true;
                             } else {
                                 error_log("Debug - No preUploadedFile in data");
                             }
@@ -4668,6 +4470,17 @@ class ContentHandler implements MessageComponentInterface
         
             // Send response to the client
             $from->send(json_encode($response));
+
+            // Broadcast the message to all connected clients
+            if ($response['success']) {
+                foreach ($this->clients as $client) {
+                    if ($client !== $from) {
+                        $client->send(json_encode($response));
+                    }
+                }
+            }
+
+            return;
         }
 
         else if (isset($data['action']) && $data['action'] === 'reset_notification_count') {
@@ -4843,7 +4656,10 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                                 <input type=\"hidden\" name=\"{$typeVar}_id\" value=\"<?php echo htmlspecialchars(\$_GET['{$typeVar}_id']); ?>\">
                                 <input type=\"hidden\" name=\"action_value\" value=\"edit\">
                             <?php endif; ?>
-                            <h1 style=\"text-align: center\">$featureName Form</h1>
+                            <div class=\"form-title-container\">
+                                <h1 class=\"form-title\"><i class=\"fa $icon\" style=\"margin-right: 6px\"></i>$featureName Form</h1>
+                            </div>
+                            <div class=\"form-container\">
                             ";
 
                             $quillInitialization = "";
@@ -4871,6 +4687,13 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                                         if (existing{$inputName}Content) {
                                             {$inputName}Quill.root.innerHTML = existing{$inputName}Content.value;
                                         }
+                                        // Create a quillEditors object to make the editor accessible to the preview modal
+                                        window.quillEditors = window.quillEditors || {};
+                                        window.quillEditors.{$inputName}Quill = {$inputName}Quill;
+                                        
+                                        // Add direct reference to window for cross-compatibility
+                                        window.{$inputName}Quill = {$inputName}Quill;
+
                                     ";
                                     $quillContentAssignment .= "
                                         document.getElementById('{$inputName}HiddenInput').value = {$inputName}Quill.root.innerHTML;
@@ -4898,14 +4721,15 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                             $content .= "
                                 <?php include('misc/php/displaytime_tvdisplay.php')?>
                             </div>
-                            <div style=\"display: flex; flex-direction: row; margin-left: auto; margin-top: 10px\">
+                            <div style=\"display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end\">
                                 <div>
-                                    <button type=\"button\" name=\"preview\" id=\"previewButton\" class=\"preview-button\" style=\"margin-right: 0\" onclick=\"validateAndOpenNewFeaturePreviewModal()\">
-                                        <i class=\"fa fa-eye\" style=\"padding-right: 5px\"></i> Preview 
+                                    <button type=\"button\" name=\"preview\" id=\"previewButton\" class=\"preview-button\" style=\"margin-right: 0\" onclick=\"validateAndOpenPreviewModal()\">
+                                        Preview <i class=\"fa fa-chevron-right\" style=\"padding-left: 5px\"></i> 
                                     </button>
                                 </div>
                             </div>
-                            <?php include('new_features/newfeature_preview_modal.php') ?>
+                            <?php include('misc/php/preview_modal_new.php') ?>
+                            </div>
                         </form>
                     </div>
                 </div>

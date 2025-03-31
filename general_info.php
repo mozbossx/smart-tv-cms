@@ -5,6 +5,7 @@ include 'config_connection.php';
 
 // fetch user data for the currently logged-in user
 include 'get_session.php';
+include 'user_theme_color.php';
 
 // check if the user is not Super Admin or Admin
 include 'admin_access_only.php';
@@ -25,6 +26,11 @@ include 'admin_access_only.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <title>General Information</title>
+    <style>
+        .button-icon {
+            background: <?php echo $theme_color; ?>;
+        }
+    </style>
 </head>
 <body>
     <div class="main-section" id="all-content">
@@ -55,7 +61,7 @@ include 'admin_access_only.php';
                         </div>
                         <div class="button-container">
                             <a href="form_department_organizational_chart.php?pageid=DepartmentOrganizationalChart?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>" class="content-button">
-                                <div class="button-icon"><i class="fa fa-university"></i></div>
+                                <div class="button-icon"><i class="fa fa-sitemap"></i></div>
                                 <div class="button-text">Department Organizational Chart</div>
                             </a>
                         </div>

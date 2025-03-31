@@ -51,10 +51,10 @@ if (isset($_SESSION['reset_email'])) {
         <?php if ($email) { ?>
         <h1 class="reset-link-heading">Reset Link sent to: </h1>
         <p class="display-email"><?php echo $email; ?></p>
-        <h1 style="font-size: 50px; color: #334b35; text-align: center"><i class="fa fa-envelope" aria-hidden="true"></i></h1>
+        <h1 style="font-size: 50px; color: #007638; text-align: center"><i class="fa fa-envelope" aria-hidden="true"></i></h1>
         <p class="reset-link-subheading">Please check inbox and click the reset password link.</p>
         <div class="button-flex" style="flex-direction: column; align-items: center;">
-            <a href="https://gmail.com" target="_blank" class="green-button" style="background-color: #334b35; margin-bottom: 10px; margin-right: 0; text-decoration: none; font-size: 15px;">Open Gmail</a>
+            <a href="https://gmail.com" target="_blank" class="green-button" style="background-color: #007638; margin-bottom: 10px; margin-right: 0; text-decoration: none; font-size: 15px;">Open Gmail</a>
             <a href="login.php?pageid=Login" class="go-to-home-link" style="text-decoration: underline; font-size: 15px;">Back to Login Page</a>
         </div>
         <?php } else { ?>

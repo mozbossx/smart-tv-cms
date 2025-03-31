@@ -41,27 +41,23 @@ function changePasswordSubmit() {
     document.getElementById('changePasswordForm').submit();
 }
 
-// JavaScript to toggle password visibility and show/hide labels
 const togglePassword = document.querySelector("#togglePassword");
+const password = document.querySelector("[name='password']");
 const toggleConfirmPassword = document.querySelector("#toggleConfirmPassword");
-const password1 = document.querySelector("[name='password']");
-const password2 = document.querySelector("[name='confirm_password']");
-const floatingInput = document.querySelector(".floating-label-input");
+const passwordConfirm = document.querySelector("[name='confirm_password']");
 
 togglePassword.addEventListener("click", function () {
-    // Toggle the type attribute
-    const type = password1.getAttribute("type") === "password" ? "text" : "password";
-    password1.setAttribute("type", type);
-    // Toggle the text of the toggle button
-    this.textContent = type === "password" ? "Show" : "Hide";
+    const type = password.getAttribute("type") === "password" ? "text" : "password";
+    password.setAttribute("type", type);
+    this.classList.toggle("bi-eye");
+    this.classList.toggle("bi-eye-slash");
 });
 
 toggleConfirmPassword.addEventListener("click", function () {
-    // Toggle the type attribute
-    const type = password2.getAttribute("type") === "password" ? "text" : "password";
-    password2.setAttribute("type", type);
-    // Toggle the text of the toggle button
-    this.textContent = type === "password" ? "Show" : "Hide";
+    const type = passwordConfirm.getAttribute("type") === "password" ? "text" : "password";
+    passwordConfirm.setAttribute("type", type);
+    this.classList.toggle("bi-eye");
+    this.classList.toggle("bi-eye-slash");
 });
 
 
@@ -73,9 +69,14 @@ function updateTheme(color) {
     document.querySelectorAll('.color-option').forEach(option => {
         option.classList.remove('active');
     });
+
+    document.querySelectorAll('.color-option-container').forEach(optionContainer => {
+        optionContainer.classList.remove('active');
+    });
     
     // Add active class to selected option
     document.querySelector(`[data-color="${color}"]`).classList.add('active');
+    document.querySelector(`[data-color-container="${color}"]`).classList.add('active');
     
     // Submit the form automatically
     const formData = new FormData();
@@ -96,9 +97,41 @@ function updateTheme(color) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Get the current color from the hidden input
     const currentColor = document.getElementById('theme_color').value;
-    const matchingOption = document.querySelector(`[data-color="${currentColor}"]`);
-    if (matchingOption) {
-        matchingOption.classList.add('active');
+    console.log("Current theme color on load:", currentColor);
+    
+    // Find and activate the matching color option
+    const colorOptions = document.querySelectorAll('.color-option');
+    const colorOptionContainers = document.querySelectorAll('.color-option-container');
+    let matchFound = false;
+    
+    // Remove active class from all options first
+    colorOptions.forEach(option => {
+        option.classList.remove('active');
+    });
+    
+    colorOptionContainers.forEach(container => {
+        container.classList.remove('active');
+    });
+    
+    // Add active class to matching elements
+    colorOptions.forEach(option => {
+        if (option.getAttribute('data-color') === currentColor) {
+            option.classList.add('active');
+            matchFound = true;
+            console.log("Applied active class to color-option:", currentColor);
+        }
+    });
+    
+    colorOptionContainers.forEach(container => {
+        if (container.getAttribute('data-color-container') === currentColor) {
+            container.classList.add('active');
+            console.log("Applied active class to color-option-container:", currentColor);
+        }
+    });
+    
+    if (!matchFound) {
+        console.warn("No matching color option found for:", currentColor);
     }
 });

@@ -7,7 +7,7 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
 <!-- progress bar container -->
 <div id="uploadProgressContainer" style="display: none; margin-top: 10px; width: 100%;">
     <div style="width: 100%; background-color: #f0f0f0; border-radius: 4px;">
-        <div id="uploadProgressBar" style="width: 0%; height: 20px; background-color: #4CAF50; border-radius: 4px; transition: width 0.3s;">
+        <div id="uploadProgressBar" style="width: 0%; height: 20px; background-color: <?php echo $dark_theme_color_50_percent; ?>; border-radius: 4px; transition: width 0.3s;">
             <div id="uploadProgressText" style="color: white; text-align: center; line-height: 20px; font-size: 12px;">0%</div>
         </div>
     </div>
@@ -22,6 +22,10 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         <input type="file" name="media" id="media" accept="video/*, image/*" onchange="handleMediaSelect()" hidden>
         <label for="media" class="green-button">Choose File</label>
 
+        <?php if ($isEditMode && $mediaPath): ?>
+            <input type="hidden" name="media_path" id="media_path" value="<?php echo htmlspecialchars($mediaPath); ?>">
+        <?php endif; ?>
+        
         <?php 
         // Only show cancel button if NOT in promaterial edit mode
         if (!($isEditMode && isset($_GET['type']) && $_GET['type'] === 'promaterial')): 
@@ -35,27 +39,28 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
             <img id="image-preview" style="display:none; max-width: 100%; max-height: 100%;">
         </div>
         <?php if ($isEditMode && $mediaPath): ?>
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const previewMedia = document.querySelector('.preview-media');
-            const videoPreview = document.getElementById('video-preview');
-            const imagePreview = document.getElementById('image-preview');
-            if (document.getElementById('cancelMediaButton')) {
-                const cancelMediaButton = document.getElementById('cancelMediaButton');
-                cancelMediaButton.style.display = 'inline-block';
-            }
-           
-            previewMedia.style.display = 'flex';
+            <script>
+            // If in Edit Mode
+            document.addEventListener('DOMContentLoaded', function() {
+                const previewMedia = document.querySelector('.preview-media');
+                const videoPreview = document.getElementById('video-preview');
+                const imagePreview = document.getElementById('image-preview');
+                if (document.getElementById('cancelMediaButton')) {
+                    const cancelMediaButton = document.getElementById('cancelMediaButton');
+                    cancelMediaButton.style.display = 'inline-block';
+                }
             
-            <?php if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $mediaPath)): ?>
-            imagePreview.src = 'servers/<?php echo $_GET['type']; ?>_media/<?php echo $mediaPath; ?>';
-            imagePreview.style.display = 'block';
-            <?php else: ?>
-            videoPreview.src = 'servers/<?php echo $_GET['type']; ?>_media/<?php echo $mediaPath; ?>';
-            videoPreview.style.display = 'block';
-            <?php endif; ?>
-        });
-        </script>
+                previewMedia.style.display = 'flex';
+                
+                <?php if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $mediaPath)): ?>
+                imagePreview.src = 'servers/<?php echo $_GET['type']; ?>_media/<?php echo $mediaPath; ?>';
+                imagePreview.style.display = 'block';
+                <?php else: ?>
+                videoPreview.src = 'servers/<?php echo $_GET['type']; ?>_media/<?php echo $mediaPath; ?>';
+                videoPreview.style.display = 'block';
+                <?php endif; ?>
+            });
+            </script>
         <?php endif; ?>
     </div>
 </div>
@@ -99,8 +104,8 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
             console.log('Debug - File selected:', file.name);
             
             // Show progress container
-            progressContainer.style.display = 'block';
-            uploadStatus.textContent = 'Preparing upload...';
+            if (progressContainer) progressContainer.style.display = 'block';
+            if (uploadStatus) uploadStatus.textContent = 'Preparing upload...';
 
             // Create FormData for upload
             const formData = new FormData();
@@ -111,7 +116,7 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
             xhr.open('POST', 'misc/php/handle_pre_upload.php', true);
 
             xhr.upload.onprogress = function(e) {
-                if (e.lengthComputable) {
+                if (e.lengthComputable && progressBar && progressText) {
                     const percentComplete = (e.loaded / e.total) * 100;
                     progressBar.style.width = percentComplete + '%';
                     progressText.textContent = Math.round(percentComplete) + '%';
@@ -127,28 +132,34 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
                             // Explicitly set as a global variable
                             window.preUploadedFile = response.tempFile;
                             console.log('Debug - Stored preUploadedFile:', window.preUploadedFile);
-                            uploadStatus.textContent = 'File pre-uploaded successfully!';
+                            if (uploadStatus) uploadStatus.remove();
                             // Store in sessionStorage as backup
                             sessionStorage.setItem('preUploadedFile', response.tempFile);
-                            previewMedia();
+                            // Call previewMedia as a global function
+                            if (typeof window.previewMedia === 'function') {
+                                window.previewMedia();
+                            } else {
+                                console.error('Debug - previewMedia function not found');
+                                resetUpload();
+                            }
                         } else {
-                            uploadStatus.textContent = 'Error: ' + response.error;
+                            if (uploadStatus) uploadStatus.textContent = 'Error: ' + response.error;
                             resetUpload();
                         }
                     } catch (e) {
                         console.error('Debug - JSON parse error:', e);
-                        uploadStatus.textContent = 'Error processing server response';
+                        if (uploadStatus) uploadStatus.textContent = 'Error processing server response';
                         resetUpload();
                     }
                 } else {
-                    uploadStatus.textContent = 'Upload failed. Please try again.';
+                    if (uploadStatus) uploadStatus.textContent = 'Upload failed. Please try again.';
                     resetUpload();
                 }
             };
 
             xhr.onerror = function() {
                 console.error('Debug - Upload error:', xhr.statusText);
-                uploadStatus.textContent = 'Upload failed. Please try again.';
+                if (uploadStatus) uploadStatus.textContent = 'Upload failed. Please try again.';
                 resetUpload();
             };
 
@@ -162,11 +173,12 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         const progressText = document.getElementById('uploadProgressText');
         const uploadStatus = document.getElementById('uploadStatus');
         
-        progressContainer.style.display = 'none';
-        uploadStatus.style.display = 'none';
-        progressBar.style.width = '0%';
-        progressText.textContent = '0%';
-        preUploadedFile = null;
+        if (progressContainer) progressContainer.style.display = 'none';
+        if (uploadStatus) uploadStatus.style.display = 'none';
+        if (progressBar) progressBar.style.width = '0%';
+        if (progressText) progressText.textContent = '0%';
+        window.preUploadedFile = null;
+        sessionStorage.removeItem('preUploadedFile');
     }
 
     // Add this function to check preUploadedFile status
@@ -181,26 +193,32 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         var imagePreview = document.getElementById('image-preview');
         var previewMedia = document.querySelector('.preview-media'); 
         var displayTimeSelect = document.getElementById('display_time');
-        if (document.getElementById('cancelMediaButton')) {
-            var cancelMediaButton = document.getElementById('cancelMediaButton');
+        var cancelMediaButton = document.getElementById('cancelMediaButton');
+
+        // Clear existing previews first
+        if (videoPreview) {
+            videoPreview.src = '';
+            videoPreview.style.display = 'none';
+        }
+        if (imagePreview) {
+            imagePreview.src = '';
+            imagePreview.style.display = 'none';
         }
 
-        if (mediaInput.files && mediaInput.files[0]) {
+        if (mediaInput && mediaInput.files && mediaInput.files[0]) {
             var reader = new FileReader();
             var fileType = mediaInput.files[0].type;
 
             reader.onload = function (e) {
                 // If it's a video file
-                if (fileType.startsWith('video/')) {
+                if (fileType.startsWith('video/') && videoPreview) {
                     // Create a temporary video element to get duration
                     var tempVideo = document.createElement('video');
                     tempVideo.src = e.target.result;
                     
                     tempVideo.onloadedmetadata = function() {
-                        // Round up the duration to nearest second
                         const videoDuration = Math.ceil(tempVideo.duration);
                         
-                        // Set the video duration as display time
                         if (displayTimeSelect) {                           
                             displayTimeSelect.innerHTML = `<option value="${videoDuration}">${videoDuration} seconds</option>`;
                             displayTimeSelect.value = videoDuration;
@@ -208,31 +226,23 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
                         }
                     };
 
-                    // Display video preview
                     videoPreview.src = e.target.result;
                     videoPreview.style.display = 'block';
-                    imagePreview.style.display = 'none';
                 } 
-                
                 // If it's an image file
-                else if (fileType.startsWith('image/')) {
-                    // For images, enable display time selection
+                else if (fileType.startsWith('image/') && imagePreview) {
                     if (displayTimeSelect) {
                         displayTimeSelect.innerHTML = originalDisplayTimeOptions;
                         displayTimeSelect.style.color = '';
                     }
 
-                    // Display image preview
                     imagePreview.src = e.target.result;
                     imagePreview.style.display = 'block';
-                    videoPreview.style.display = 'none';
                 }
 
                 // Show the preview-media container
-                previewMedia.style.display = 'flex';
-                if (cancelMediaButton) {
-                    cancelMediaButton.style.display = 'inline-block';
-                }
+                if (previewMedia) previewMedia.style.display = 'flex';
+                if (cancelMediaButton) cancelMediaButton.style.display = 'inline-block';
             };
 
             reader.readAsDataURL(mediaInput.files[0]);

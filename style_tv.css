@@ -191,7 +191,7 @@ body {
 }
 
 .media-container {
-    max-height: 50%;
+    max-height: 75%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -247,7 +247,7 @@ body {
     padding: 5px;
     box-sizing: border-box; /* Include padding in size calculation */
     overflow: hidden; /* Prevent text overflow */
-    text-align: justify;
+    text-align: left;
 }
 
 .page-number-container {
@@ -392,7 +392,8 @@ body {
     border: 2px solid #000000; /* Light border around the image */
     width: 60px; /* Fixed width for image */
     height: 60px; /* Fixed height for image */
-    margin-right: 5px; /* Space between the image and text */
+    margin-right: 15px; /* Space between the image and text */
+    margin-left: 15px;
 }
 
 .custom-node .details {

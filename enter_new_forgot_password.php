@@ -318,7 +318,7 @@ if (isset($_POST["submit"])) {
                     
                     <div class="button-flex">
                         <div class="left-side-button">
-                            <button type="button" id="cancelButton" class="cancel-button-2" style="height: 100%;">Cancel</button>
+                            <button type="button" id="cancelButton" class="cancel-button-2" style="height: 100%; color: black">Cancel</button>
                         </div>
                         <div class="right-side-button">
                             <button type="submit" name="submit" value="Reset Password" class="create-account-button">Reset Password</button>
@@ -331,27 +331,23 @@ if (isset($_POST["submit"])) {
     <!-- Reset Password Successful Modal -->
     <div id="resetPasswordSuccessModal" class="modal">
         <div class="modal-content" style="padding: 15px">
-            <div class="green-bar-vertical">
-                <h1 style="color: #334b35; font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
-                <p><?php echo $successMessage; ?></p>
-                <br>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button id="proceedBtn" class="green-button" style="margin: 0; background-color: #334b35;">Login Page</button>
-                </div>
+            <h1 style="color: #334b35; text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-check-circle"></i> Success</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;"><?php echo $successMessage; ?></p>
+            <br>
+            <div style="align-items: right; text-align: right; right: 0">
+                <button id="proceedBtn" class="green-button" style="margin: 0; background-color: #334b35;">Login Page</button>
             </div>
         </div>
     </div>
     <!-- Confirm Cancel Modal -->
     <div id="confirmCancelModal" class="modal">
         <div class="modal-content" style="padding: 15px">
-            <div class="red-bar-vertical">
-                <h1 style="color: #7E0B22; font-size: 50px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1>
-                <p>Proceed to cancel reset password?</p>
-                <br>
-                <div style="align-items: right; text-align: right; right: 0">
-                    <button id="closeConfirmCancelModal" class="grey-button" style="margin: 0">Close</button>
-                    <button id="confirmCancelButton" class="red-button" style="margin: 0; background-color: rgb(134, 43, 43); border: none;">Yes, Cancel</button>
-                </div>
+            <h1 style="color: #7E0B22; text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-exclamation-triangle"></i> Confirmation</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">Proceed to cancel reset password?</p>
+            <br>
+            <div style="align-items: right; text-align: right; right: 0">
+                <button id="closeConfirmCancelModal" class="grey-button" style="margin: 5px">Cancel</button>
+                <button id="confirmCancelButton" class="red-button" style="margin: 0; background-color: rgb(134, 43, 43); border: none;">Yes, Cancel</button>
             </div>
         </div>
     </div>
