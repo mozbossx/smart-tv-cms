@@ -1,6 +1,9 @@
 <?php
 include '../config_connection.php';
 
+// sending JSON response headers
+header('Content-Type: application/json');
+
 $data = json_decode(file_get_contents('php://input'), true);
 
 if (!$data || !isset($data['settings'])) {
@@ -12,15 +15,23 @@ $conn->begin_transaction();
 
 try {
     $stmt = $conn->prepare("UPDATE auto_delete_user_inactivity_tb 
-                           SET faculty_days = ?, staff_days = ?, student_days = ? 
+                           SET faculty_days = ?, staff_days = ?, student_days = ?,
+                               faculty_enabled = ?, staff_enabled = ?, student_enabled = ?
                            WHERE department = ?");
 
     foreach ($data['settings'] as $department => $values) {
         $facultyDays = $values['faculty_days'];
         $staffDays = $values['staff_days'];
         $studentDays = $values['student_days'];
+        $facultyEnabled = $values['faculty_enabled'] ? 1 : 0;
+        $staffEnabled = $values['staff_enabled'] ? 1 : 0;
+        $studentEnabled = $values['student_enabled'] ? 1 : 0;
 
-        $stmt->bind_param("iiis", $facultyDays, $staffDays, $studentDays, $department);
+        $stmt->bind_param("iiiiiis", 
+            $facultyDays, $staffDays, $studentDays,
+            $facultyEnabled, $staffEnabled, $studentEnabled,
+            $department
+        );
         
         if (!$stmt->execute()) {
             throw new Exception("Failed to update settings for department: $department");

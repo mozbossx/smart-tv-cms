@@ -451,10 +451,10 @@ const updateUI = async (data, type) => {
         typeLabel.style = `
             display: inline-block;
             padding: 5px 10px;
-            border: 1px solid black;
             color: black;
             border-radius: 15px;
             font-size: 0.8em;
+            font-weight: normal;
             margin-bottom: 10px;
         `;
 
@@ -941,6 +941,12 @@ let featureIcons = {};
 // Function to fetch and update content for all types
 const fetchAndUpdateAll = async () => {
     try {
+        // Show loading indicator
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'flex';
+        }
+
         // Get all available features first
         const response = await fetch('database/fetch_feature_info.php?type=all');
         const features = await response.json();
@@ -1009,6 +1015,11 @@ const fetchAndUpdateAll = async () => {
             new Date(b.datetime_archived) - new Date(a.datetime_archived)
         );
 
+        // Hide loading indicator
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+
         if (allContent.length === 0) {
             archivesContainer.innerHTML = `
                 <div style="text-align: center; font-size: 1.2em; color: #666; margin-top: 5px;">
@@ -1024,6 +1035,11 @@ const fetchAndUpdateAll = async () => {
         }
     } catch (error) {
         console.error('Error fetching archived content:', error);
+        // Hide loading indicator in case of error
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
     }
 };
 

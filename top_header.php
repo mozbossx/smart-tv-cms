@@ -541,7 +541,6 @@ $displayInterval = $displayTimeRange['display_interval'];
     .days-remaining-label {
         background: <?php echo $light_theme_color_90_percent; ?>;
         color: <?php echo $dark_theme_color_50_percent; ?>;
-        font-weight: bold;
     }
     .content-type-label {
         background: <?php echo $light_theme_color_60_percent; ?>;
@@ -636,6 +635,9 @@ $displayInterval = $displayTimeRange['display_interval'];
     }
     .pending-content-message {
         color: <?php echo $theme_color; ?>;
+    }
+    .loading-spinner {
+        border-top: 5px solid <?php echo $theme_color; ?>;
     }
 </style>
 

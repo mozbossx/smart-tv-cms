@@ -225,7 +225,7 @@ $conn->close();
                             <div class="left-sidebar" id="leftSidebar">
                                 <div class="content-container" style="margin-top: 0; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
                                     <div class="panel-close-btn">
-                                        <button onclick="closeLeftSidebar()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
+                                        <button onclick="closeLeftSidebar()"><i class="fa fa-chevron-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
                                     <p style="color: <?php echo $theme_color; ?>; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Show/Hide Content Containers</b></p>
                                     <form id="visibilitySettingsForm" style="padding: 8px; height: 42vh; overflow-y: auto;">
@@ -239,14 +239,14 @@ $conn->close();
                                 </div>
                             </div>
                             <div class="scale-buttons-2">
-                                <button type="button" id="openSidebarButton" class="open-sidebar-button open" style="width: 40px;" onclick="openSidebar()"><i class="fa fa-angle-right"></i></button>
-                                <button type="button" id="updateTemplateButton" style="display: none; width: 40px;"><i class="fa fa-floppy-o"></i></button>
+                                <button type="button" id="openSidebarButton" class="open-sidebar-button open" style="width: 80px;" onclick="openSidebar()">Open <i class="fa fa-chevron-right"></i></button>
+                                <button type="button" id="updateTemplateButton" style="display: none; width: 80px;">Save <i class="fa fa-floppy-o"></i></button>
                             </div>
                             <!-- Top Bar Customization Left-side panel -->
                             <div id="topbarLeftSidePanel" class="left-side-panel" >
                                 <div class="content-container" style="background: <?php echo $light_theme_color_90_percent; ?>; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
                                     <div class="panel-close-btn">
-                                        <button onclick="closeTopbarLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
+                                        <button onclick="closeTopbarLeftSidePanel()"><i class="fa fa-chevron-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
                                     <p style="color: <?php echo $theme_color; ?>; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: center;"><b>Top Bar</b></p>
                                     <form id="editTopBarColorForm" enctype="multipart/form-data" style="height: 45vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">
@@ -396,7 +396,7 @@ $conn->close();
                             <div id="backgroundLeftSidePanel" class="left-side-panel">
                                 <div class="content-container" style="background: <?php echo $light_theme_color_90_percent; ?>; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
                                     <div class="panel-close-btn">
-                                        <button onclick="closeBackgroundLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
+                                        <button onclick="closeBackgroundLeftSidePanel()"><i class="fa fa-chevron-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
                                     <p style="color: <?php echo $theme_color; ?>; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: center;"><b>Background</b></p>
                                     <form id="editBackgroundColorForm" enctype="multipart/form-data" style="height: 42vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">                                        
@@ -437,7 +437,7 @@ $conn->close();
                             <div id="contentContainerLeftSidePanel" class="left-side-panel">
                                 <div class="content-container" style="background: <?php echo $light_theme_color_90_percent; ?>; overflow: hidden; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
                                     <div class="panel-close-btn">
-                                        <button onclick="closeContainerLeftSidePanel()"><i class="fa fa-angle-left" aria-hidden="true"></i> Collapse</button>
+                                        <button onclick="closeContainerLeftSidePanel()"><i class="fa fa-chevron-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
                                     <form id="editContentContainerForm" enctype="multipart/form-data" style="height: 50vh; overflow: hidden;">
                                         <!-- Dynamic content will be added here -->

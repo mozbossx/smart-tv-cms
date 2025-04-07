@@ -9,7 +9,7 @@
         </div>
         <!-- Operation buttons inside the Preview modal -->
         <div class="flex-button-modal">
-            <button type="button" class="grey-button" id="closeButton" style="margin-top: 0; margin-right: 5px" onclick="closePreviewModal()">Cancel</button>
+            <button type="button" class="grey-button" id="closeButton" style="margin-top: 0; margin-right: 10px" onclick="closePreviewModal()">Cancel</button>
             <button type="button" name="post" class="green-button" style="margin-top: 0; margin-right: 0" onclick="submitFormViaWebSocket()">Submit</button>
         </div>
     </div>
@@ -160,7 +160,7 @@
                 <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end">
                     <div>
                         <button type="button" class="preview-button" style="margin-right: 0; user-select: none; pointer-events: none">
-                            <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
+                            Preview <i class="fa fa-chevron-right" style="padding-left: 5px"></i> 
                         </button>
                     </div>
                 </div>

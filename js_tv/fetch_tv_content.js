@@ -17,11 +17,11 @@ function connectWebSocket() {
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
                        window.location.hostname === '192.168.1.12' ||
-                       window.location.hostname === '192.168.1.14';
+                       window.location.hostname === '10.215.191.46';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.1.14:8081'
+        ? 'ws://10.215.191.46:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -726,7 +726,7 @@ function fitText(messageId) {
 
     try {
         messageWrapper.textfill({
-            maxFontPixels: 55, // 0 means no maximum size
+            maxFontPixels: 40, // 0 means no maximum size
             minFontPixels: 10,
             widthOnly: false,
             explicitWidth: messageWrapper.width(),
@@ -1077,9 +1077,10 @@ const showNextContent = (type) => {
             const currentVideo = currentItem.querySelector('video');
             if (currentVideo) {
                 currentVideo.pause();
-                currentVideo.currentTime = 0;
-                currentVideo.src = currentVideo.src; // Reset video source
-                currentVideo.load(); // Reload video
+                currentVideo.removeAttribute('src'); // Remove source
+                currentVideo.load(); // Reset video element
+                // Remove any existing event listeners
+                currentVideo.replaceWith(currentVideo.cloneNode(true));
             }
             currentItem.classList.remove('active');
         }
@@ -1098,33 +1099,48 @@ const showNextContent = (type) => {
             if (newVideo) {
                 // Reset video state
                 newVideo.currentTime = 0;
-                newVideo.load();
                 
-                // Play video with proper error handling
-                const playPromise = newVideo.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        // Video started playing successfully
-                        const videoDuration = Math.ceil(newVideo.duration);
-                        newItem.dataset.displayTime = videoDuration;
-                        
-                        // Clear any existing interval
-                        if (displayTimeIntervals[currentIndexKey]) {
-                            clearInterval(displayTimeIntervals[currentIndexKey]);
-                        }
-                        
-                        resetDisplayTime(type);
-                    }).catch(error => {
-                        console.error("Error playing video:", error);
-                        // If video fails to play, use default display time
-                        resetDisplayTime(type);
-                    });
+                // Clear any existing interval first
+                if (displayTimeIntervals[currentIndexKey]) {
+                    clearInterval(displayTimeIntervals[currentIndexKey]);
+                    displayTimeIntervals[currentIndexKey] = null;
                 }
 
-                // Add ended event listener
-                newVideo.addEventListener('ended', () => {
+                // Set up new video
+                const playVideo = () => {
+                    const playPromise = newVideo.play();
+                    if (playPromise !== undefined) {
+                        playPromise
+                            .then(() => {
+                                // Video started playing successfully
+                                const videoDuration = Math.ceil(newVideo.duration);
+                                newItem.dataset.displayTime = videoDuration;
+                                resetDisplayTime(type);
+                            })
+                            .catch(error => {
+                                console.error("Error playing video:", error);
+                                // If video fails to play, use default display time
+                                resetDisplayTime(type);
+                            });
+                    }
+                };
+
+                // Set up ended event listener
+                const handleVideoEnd = () => {
+                    if (displayTimeIntervals[currentIndexKey]) {
+                        clearInterval(displayTimeIntervals[currentIndexKey]);
+                        displayTimeIntervals[currentIndexKey] = null;
+                    }
+                    // Remove the event listener to prevent memory leaks
+                    newVideo.removeEventListener('ended', handleVideoEnd);
                     showNextContent(type);
-                }, { once: true }); // Use once: true to prevent memory leaks
+                };
+
+                // Add ended event listener
+                newVideo.addEventListener('ended', handleVideoEnd, { once: true });
+
+                // Start playing the video
+                playVideo();
             } else {
                 // No video, use normal display time
                 resetDisplayTime(type);

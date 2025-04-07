@@ -1053,7 +1053,7 @@ function fitText(messageId) {
 
     try {
         messageWrapper.textfill({
-            maxFontPixels: 55, // 0 means no maximum size
+            maxFontPixels: 40, // 0 means no maximum size
             minFontPixels: 10,
             widthOnly: false,
             explicitWidth: messageWrapper.width(),

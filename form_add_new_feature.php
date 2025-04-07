@@ -128,7 +128,7 @@ include 'admin_access_only.php';
                                 <div style="display: flex; flex-direction: row; margin-left: auto; margin-top: 10px; justify-content: flex-end">
                                     <div>
                                         <button type="button" name="preview" id="previewButton" class="preview-button" style="margin-right: 0" onclick="validateAndOpenNewFeaturePreviewModal()">
-                                            <i class="fa fa-eye" style="padding-right: 5px"></i> Preview 
+                                            Preview <i class="fa fa-chevron-right" style="padding-left: 5px"></i> 
                                         </button>
                                     </div>
                                 </div>

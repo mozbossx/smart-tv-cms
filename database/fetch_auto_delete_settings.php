@@ -9,7 +9,10 @@ while ($row = $result->fetch_assoc()) {
     $settings[$row['department']] = [
         'faculty_days' => (int)$row['faculty_days'],
         'staff_days' => (int)$row['staff_days'],
-        'student_days' => (int)$row['student_days']
+        'student_days' => (int)$row['student_days'],
+        'faculty_enabled' => (bool)$row['faculty_enabled'],
+        'staff_enabled' => (bool)$row['staff_enabled'],
+        'student_enabled' => (bool)$row['student_enabled']
     ];
 }
 

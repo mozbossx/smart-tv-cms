@@ -67,7 +67,10 @@ try {
         $settings[$row['department']] = [
             'faculty_days' => $row['faculty_days'],
             'staff_days' => $row['staff_days'],
-            'student_days' => $row['student_days']
+            'student_days' => $row['student_days'],
+            'faculty_enabled' => (bool)$row['faculty_enabled'],
+            'staff_enabled' => (bool)$row['staff_enabled'],
+            'student_enabled' => (bool)$row['student_enabled']
         ];
     }
     
@@ -99,8 +102,9 @@ try {
         // Get threshold based on user type
         $roleKey = strtolower($user['user_type']) . '_days';
         $maxInactiveDays = $settings[$user['department']][$roleKey] ?? null;
+        $isEnabled = $settings[$user['department']][$roleKey . '_enabled'] ?? false;
 
-        if (!$maxInactiveDays) {
+        if (!$maxInactiveDays || !$isEnabled) {
             logMessage("No inactivity threshold found for {$user['user_type']} in {$user['department']}");
             continue;
         }

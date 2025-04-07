@@ -324,6 +324,12 @@ const getFeatureInfo = async (type) => {
 // Function to fetch and update content for all types
 const fetchAndUpdateAll = async () => {
     try {
+        // Show loading indicator
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'flex';
+        }
+
         // Get all available features first
         const response = await fetch('database/fetch_feature_info.php?type=all');
         const features = await response.json();
@@ -385,6 +391,11 @@ const fetchAndUpdateAll = async () => {
             new Date(b.created_datetime) - new Date(a.created_datetime)
         );
 
+        // Hide loading indicator
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+
         if (allContent.length === 0) {
             pendingContentsContainer.innerHTML = `
                 <div style="text-align: center; font-size: 1.2em; color: #666; margin-top: 5px;">
@@ -400,6 +411,11 @@ const fetchAndUpdateAll = async () => {
         }
     } catch (error) {
         console.error('Error fetching pending content:', error);
+        // Hide loading indicator in case of error
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
     }
 };
 

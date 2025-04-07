@@ -45,6 +45,34 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             box-sizing: border-box;
         }
 
+        /* Loading animation styles */
+        .loading-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            flex-direction: column;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 10px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .form-field input[type="password"] {
             padding-right: 40px;
         }
@@ -109,6 +137,10 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                         <p id="trashMessage2" style="font-size: 16px; color: #6E6E6E; padding: 12px; text-align: center">Rejected items will be permanently deleted after reaching their expiration date.</p>
                         <div id="scrollDiv" class="scroll-div" style="padding-left: 15px; padding-right: 5px; margin-right: 10px;">
                             <div id="rejectedContentsContainer" style="margin-right: 5px;"></div>
+                            <div id="loadingIndicator" class="loading-container">
+                                <div class="loading-spinner"></div>
+                                <div class="loading-text">Loading rejected content...</div>
+                            </div>
                         </div>
                     </div>
                 </div>

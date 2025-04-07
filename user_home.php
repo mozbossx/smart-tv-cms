@@ -86,7 +86,7 @@ $resultSelectExtistingTvs = mysqli_query($conn, $querySelectExtistingTvs);
                 if (mysqli_num_rows($resultSelectExtistingTvs) > 0) {
                     echo '
                     <!-- search form -->
-                    <form class="search-form" style="width: 550px; max-width: 100%; margin: 0 auto; margin-bottom: 10px;">
+                    <form class="search-form" style="width: 550px; max-width: 100%; margin: 10px auto; margin-bottom: 10px;">
                         <div class="form-field">
                             <i class="bi bi-search"></i>
                             <input type="text" id="searchInput" required placeholder="Search TVs" onkeyup="searchTvs()">

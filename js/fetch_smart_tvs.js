@@ -57,7 +57,7 @@ const sendWebSocketMessage = (data) => {
             Ws.onopen = () => Ws.send(JSON.stringify(data));
             Ws.onmessage = (event) => {
                 const message = JSON.parse(event.data);
-                if (message.success) {
+                if (message.success == true) {
                     let successMessage = '';
                     switch (message.action) {
                         case 'edit_smart_tv':
@@ -93,9 +93,8 @@ const showSuccessModal = (message) => {
     const modalContent = `
         <div class="modal-content" style="padding: 15px;">
             <span class="close" id="closeSuccessModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-check-circle" aria-hidden="true"></i></h1>
-            <p id="successMessage" style="text-align: center">${message}</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-check-circle"></i> Success</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">${message}</p>
             <br>
             <div style="text-align: right;">
                 <button id="okaySuccessModalButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Okay</button>
@@ -111,12 +110,15 @@ const showSuccessModal = (message) => {
 };
 
 const showErrorModal = (message) => {
+    const editSmartTVModal = document.getElementById('editSmartTVModal');
+    if (editSmartTVModal) {
+        editSmartTVModal.style.display = 'none';
+    }
     const modalContent = `
         <div class="modal-content" style="padding: 15px">
             <span class="close" id="closeErrorModalButton"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-            <br>
-            <h1 style="font-size: 50px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></h1>
-            <p id="errorText" style="text-align: center">${message}</p>
+            <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-exclamation-triangle"></i> Error</h1>
+            <p style="text-align: left; font-weight: 500; font-size: 16px; color: #6E6E6E;">${message}</p>
             <br>
             <div style="text-align: right;">
                 <button id="okayErrorModalButton" class="red-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Okay</button>
@@ -230,10 +232,23 @@ const populateEditSmartTVModal = (tvId) => {
         .then(tv => {
             console.log('Fetched smart TV data:', tv); // Log fetched tv data to check if it's correct
             if (tv) {
-                document.getElementById('edit_tv_name').value = tv.tv_name || '';
-                document.getElementById('edit_tv_brand').value = tv.tv_brand || '';
-                document.getElementById('edit_tv_id').value = tv.tv_id || '';
-                document.getElementById('edit_tv_department').value = tv.tv_department || '';
+                const tvNameInput = document.getElementById('edit_tv_name');
+                const tvBrandInput = document.getElementById('edit_tv_brand');
+                const tvIdInput = document.getElementById('edit_tv_id');
+                const tvDepartmentSelect = document.getElementById('edit_tv_department');
+
+                // Set values and store original values
+                tvNameInput.value = tv.tv_name || '';
+                tvNameInput.defaultValue = tv.tv_name || '';
+
+                tvBrandInput.value = tv.tv_brand || '';
+                tvBrandInput.defaultValue = tv.tv_brand || '';
+
+                tvIdInput.value = tv.tv_id || '';
+                tvIdInput.defaultValue = tv.tv_id || '';
+
+                tvDepartmentSelect.value = tv.tv_department || '';
+                tvDepartmentSelect.setAttribute('data-original-value', tv.tv_department || '');
             } else {
                 console.error('TV data is null or undefined');
             }
@@ -254,9 +269,37 @@ const showEditSmartTVModal = (tvId) => {
     const editSmartTVForm = document.getElementById('editSmartTVForm');
     editSmartTVForm.onsubmit = function(event) {
         event.preventDefault(); // Prevent the default form submission
-        const tvName = document.getElementById('edit_tv_name').value;
-        const tvBrand = document.getElementById('edit_tv_brand').value;
-        const tvDepartment = document.getElementById('edit_tv_department').value;
+        const tvName = document.getElementById('edit_tv_name').value.trim();
+        const tvBrand = document.getElementById('edit_tv_brand').value.trim();
+        const tvDepartment = document.getElementById('edit_tv_department').value.trim();
+
+        // Get the original values from the form
+        const originalTvName = document.getElementById('edit_tv_name').defaultValue.trim();
+        const originalTvBrand = document.getElementById('edit_tv_brand').defaultValue.trim();
+        const originalTvDepartment = document.getElementById('edit_tv_department').getAttribute('data-original-value') || '';
+
+        // Check if any changes were made
+        if (tvName === originalTvName && tvBrand === originalTvBrand && tvDepartment === originalTvDepartment) {
+            modal.style.display = 'none';
+            return;
+        }
+
+        // Validate TV Name and TV Brand
+        if (tvName === '' || tvName === null || tvName === 'Unknown') {
+            showErrorModal('TV Name cannot be empty or "Unknown". Please enter a valid TV name.');
+            return;
+        }
+
+        if (tvBrand === '' || tvBrand === null || tvBrand === 'Unknown') {
+            showErrorModal('TV Brand cannot be empty or "Unknown". Please enter a valid TV brand.');
+            return;
+        }
+
+        // Validate TV Department
+        if (tvDepartment === '' || tvDepartment === null) {
+            showErrorModal('TV Department cannot be empty. Please select a valid department.');
+            return;
+        }
 
         editSmartTV(tvId, tvName, tvBrand, tvDepartment);
         modal.style.display = 'none';

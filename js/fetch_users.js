@@ -114,10 +114,14 @@ const showUserTableSummary = () => {
     `;
 
     const modal = createModal('userTableSummaryModal', `
-        <div class="modal-content" style="padding: 25px;">
+        <div class="modal-content" style="padding: 15px;">
             <span class="close" onclick="closeModal('userTableSummary')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-table"></i> Users Table Summary</h1>
             ${summaryHtml}
+            <br>
+            <div style="text-align: right;">
+                <button type="button" onclick="document.getElementById('userTableSummaryModal').style.display='none'" class="grey-button">Close</button>
+            </div>
         </div>
     `);
 
@@ -130,7 +134,7 @@ const displayUserTable = (data) => {
             <thead>
                 <tr style="user-select: none;">
                     <th class="checkbox-column" style="display: none; padding: 25px"></th>
-                    <th onclick="sortTable(1)">User ID</th>
+                    <th onclick="sortTable(1)">UID</th>
                     <th onclick="sortTable(2)">Full Name</th>
                     <th onclick="sortTable(3)">Email</th>
                     <th onclick="sortTable(4)">Role</th>
@@ -582,18 +586,36 @@ const showAutoDeleteModal = () => {
                                 <thead>
                                     <tr>
                                         <th>Department</th>
-                                        <th>Faculty (Days)</th>
-                                        <th>Staff (Days)</th>
-                                        <th>Student (Days)</th>
+                                        <th>Faculty</th>
+                                        <th>Staff</th>
+                                        <th>Student</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     ${Object.entries(departmentsToShow).map(([dept, data]) => `
                                         <tr>
                                             <td>${dept}</td>
-                                            <td><input type="number" min="1" value="${data.faculty_days}" class="days-input" name="faculty_${dept}"></td>
-                                            <td><input type="number" min="1" value="${data.staff_days}" class="days-input" name="staff_${dept}"></td>
-                                            <td><input type="number" min="1" value="${data.student_days}" class="days-input" name="student_${dept}"></td>
+                                            <td>
+                                                <div style="display: flex; align-items: center; gap: 10px;">
+                                                    <input type="checkbox" class="enable-checkbox" name="faculty_enabled_${dept}" ${data.faculty_enabled ? 'checked' : ''} style="width: 15px; height: 15px;">
+                                                    <input type="number" min="10" value="${data.faculty_days}" class="days-input" name="faculty_${dept}" style="width: 70px;" ${!data.faculty_enabled ? 'disabled' : ''}>
+                                                    <span style="margin-left: 5px">days</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style="display: flex; align-items: center; gap: 10px;">
+                                                    <input type="checkbox" class="enable-checkbox" name="staff_enabled_${dept}" ${data.staff_enabled ? 'checked' : ''} style="width: 15px; height: 15px;">
+                                                    <input type="number" min="10" value="${data.staff_days}" class="days-input" name="staff_${dept}" style="width: 70px;" ${!data.staff_enabled ? 'disabled' : ''}>
+                                                    <span style="margin-left: 5px">days</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style="display: flex; align-items: center; gap: 10px;">
+                                                    <input type="checkbox" class="enable-checkbox" name="student_enabled_${dept}" ${data.student_enabled ? 'checked' : ''} style="width: 15px; height: 15px;">
+                                                    <input type="number" min="10" value="${data.student_days}" class="days-input" name="student_${dept}" style="width: 70px;" ${!data.student_enabled ? 'disabled' : ''}>
+                                                    <span style="margin-left: 5px">days</span>
+                                                </div>
+                                            </td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -620,6 +642,14 @@ const showAutoDeleteModal = () => {
                 modal.style.display = 'none';
             };
 
+            // Add event listeners for checkboxes
+            document.querySelectorAll('.enable-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const inputField = this.parentElement.querySelector('.days-input');
+                    inputField.disabled = !this.checked;
+                });
+            });
+
             document.getElementById('autoDeleteForm').onsubmit = (e) => {
                 e.preventDefault();
                 updateAllInactivityDays();
@@ -631,23 +661,40 @@ const showAutoDeleteModal = () => {
 const updateAllInactivityDays = () => {
     const formData = {};
     const inputs = document.querySelectorAll('.days-input');
-    let hasEmptyFields = false;
+    const checkboxes = document.querySelectorAll('.enable-checkbox');
+    let hasInvalidFields = false;
 
-    inputs.forEach(input => {
-        if (!input.value || input.value < 1) {
-            hasEmptyFields = true;
-            return;
+    // First, process all checkboxes to set enabled states
+    checkboxes.forEach(checkbox => {
+        const [role, , dept] = checkbox.name.split('_');
+        if (!formData[dept]) {
+            formData[dept] = {};
         }
+        formData[dept][`${role}_enabled`] = checkbox.checked;
+    });
 
+    // Then process all inputs
+    inputs.forEach(input => {
         const [role, dept] = input.name.split('_');
         if (!formData[dept]) {
             formData[dept] = {};
         }
-        formData[dept][`${role}_days`] = parseInt(input.value);
+
+        // Only validate enabled fields
+        if (formData[dept][`${role}_enabled`]) {
+            if (!input.value || input.value < 1) {
+                hasInvalidFields = true;
+                return;
+            }
+            formData[dept][`${role}_days`] = parseInt(input.value);
+        } else {
+            // For disabled fields, keep the existing value but don't validate
+            formData[dept][`${role}_days`] = parseInt(input.value) || 0;
+        }
     });
 
-    if (hasEmptyFields) {
-        alert('Please fill in all fields with valid numbers (minimum 1 day).');
+    if (hasInvalidFields) {
+        alert('Please fill in all enabled fields with valid numbers (minimum 1 day).');
         return;
     }
 
