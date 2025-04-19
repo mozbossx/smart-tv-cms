@@ -17,11 +17,11 @@ function connectWebSocket() {
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
                        window.location.hostname === '192.168.1.12' ||
-                       window.location.hostname === '10.215.191.46';
+                       window.location.hostname === '192.168.1.5';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://10.215.191.46:8081'
+        ? 'ws://192.168.1.5:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -1358,22 +1358,37 @@ const fetchAndUpdateContents = (type) => {
                     fetch(`database/fetch_orgchart.php?tvId=${tvId}`)
                         .then(response => response.json())
                         .then(data => {
+                            let hasMatchingOrgchart = false;
                             Object.entries(data).forEach(([orgchartId, orgchartData]) => {
-                                updateUI({
-                                    orgchart_id: orgchartId,
-                                    chartData: orgchartData,
-                                    display_time: orgchartData.display_time
-                                }, 'orgchart');
+                                // updateUI({
+                                //     orgchart_id: orgchartId,
+                                //     chartData: orgchartData,
+                                //     display_time: orgchartData.display_time
+                                // }, 'orgchart');
+                                // Check if the orgchart's department matches the TV's department
+                                if (orgchartData.members && orgchartData.members.length > 0 && 
+                                    orgchartData.members[0].department === tvDepartment) {
+                                    hasMatchingOrgchart = true;
+                                    updateUI({
+                                        orgchart_id: orgchartId,
+                                        chartData: orgchartData,
+                                        display_time: orgchartData.display_time
+                                    }, 'orgchart');
+                                }
                             });
-                            if (Object.keys(data).length > 0) {
-                                // currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
-                                currentIndex['orgchart'] = Math.min(currentIndex['orgchart'], contents['orgcharts'].length - 1); // Starts at the first item;
-                                startCarousel('orgchart');
-                            } else {
+
+                            // Show "no message" if no matching orgcharts were found
+                            if (!hasMatchingOrgchart) {
                                 displayNoMessage('orgchart');
+                            } else {
+                                currentIndex['orgchart'] = Math.min(currentIndex['orgchart'], contents['orgcharts'].length - 1);
+                                startCarousel('orgchart');
                             }
                         })
-                        .catch(error => console.error('Error fetching orgcharts:', error));
+                        .catch(error => {
+                            console.error('Error fetching orgcharts:', error);
+                            displayNoMessage('orgchart');
+                        });
                 } else if (type !== 'orgchart') {
                     fetch(`database/fetch_${type}.php`)
                     .then(response => response.json())
@@ -1382,7 +1397,8 @@ const fetchAndUpdateContents = (type) => {
                             const filteredData = data.filter(item =>
                                 item.tv_id === parseInt(tvId, 10) &&
                                 item.isArchived === 0 &&
-                                item.isTrashed === 0
+                                item.isTrashed === 0 && 
+                                item.department === tvDepartment
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
@@ -1397,7 +1413,8 @@ const fetchAndUpdateContents = (type) => {
                                 item.status === 'Approved' &&
                                 item.tv_id === parseInt(tvId, 10) &&
                                 item.isArchived === 0 &&
-                                item.isTrashed === 0
+                                item.isTrashed === 0 && 
+                                item.department === tvDepartment
                             );
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
@@ -1430,12 +1447,21 @@ const fetchAndUpdateContents = (type) => {
                         }
 
                         if (Array.isArray(data) && data.length > 0) {
-                            data.forEach(item => {
-                                if (item.tv_id === parseInt(tvId, 10)) {
-                                    updateUI(item, type);
-                                }
-                            });
-                        } else if (data && typeof data === 'object' && data.tv_id === parseInt(tvId, 10)) {
+                            const filteredData = data.filter(item => 
+                                item.tv_id === parseInt(tvId, 10) &&
+                                item.department === tvDepartment
+                            );
+                            filteredData.forEach(item => updateUI(item, type));
+                            
+                            // Previous working code below
+                            // data.forEach(item => {
+                            //     if (item.tv_id === parseInt(tvId, 10)) {
+                            //         updateUI(item, type);
+                            //     }
+                            // });
+                        } else if (data && typeof data === 'object' && 
+                                data.tv_id === parseInt(tvId, 10) &&
+                                data.department === tvDepartment) {
                             updateUI(data, type);
                         }
 
@@ -1614,8 +1640,9 @@ Ws.addEventListener('message', function (event) {
         setTimeout(() => {
             fetchAndUpdateContents(type);
         }, 500);
-    } else if (data.action === 'edit_smart_tv') {
-        fetchSmartTVDetails();
+    } else if (data.action === 'edit_smart_tv' || data.action === 'delete_user' || data.action === 'user_deleted' || data.action === 'edit_user' || data.action === 'user_edited') {
+        location.reload();
+        // fetchSmartTVDetails();
     } else if (data.action === 'delete_feature') {
         // When a feature is deleted, reload all TV screens
         location.reload();

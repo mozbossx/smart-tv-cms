@@ -796,11 +796,13 @@ const displayNoMessage = (type) => {
         margin-top: 5px;
     `;
     if (type === 'promaterial') {
-        messageDiv.textContent = `No promotional materials to be displayed`;
+        messageDiv.textContent = `No Promotional Materials to be displayed`;
     } else if (type === 'peo') {
         messageDiv.textContent = `No Program Education Objective (PEO) to be displayed`;
     } else if (type === 'so') {
         messageDiv.textContent = `No Student Outcome (SO) to be displayed`;
+    } else if (type === 'orgchart') {
+        messageDiv.textContent = `No Department Organizational Chart to be displayed`;
     } else {
         messageDiv.textContent = `No ${type} to be displayed`;
     }
@@ -965,12 +967,11 @@ const getFeatureInfo = async (type) => {
     }
 };
 
-const fetchOrgChartData = async (type, tvId) => {
+const fetchOrgChartData = async (type, tvId, tvDepartment) => {
     try {
+        // Fetch orgchart data
         const response = await fetch(`database/fetch_orgchart.php?tvId=${tvId}`);
         const data = await response.json();
-
-        // console.log("Fetched orgchart data:", data); // Debug log
         
         // Clear existing content
         const carouselContainer = document.getElementById(`${type}CarouselContainer`);
@@ -978,7 +979,9 @@ const fetchOrgChartData = async (type, tvId) => {
             carouselContainer.innerHTML = '';
         }
 
-        // Process each orgchart
+        let hasMatchingOrgchart = false;
+
+        // Filter and process orgcharts that match the TV's department
         Object.entries(data).forEach(([orgchartId, chartData]) => {
             const orgchartData = {
                 orgchart_id: orgchartId,
@@ -986,10 +989,16 @@ const fetchOrgChartData = async (type, tvId) => {
                 chartData: chartData, // Contains members array and other chart data
                 tv_id: tvId
             };
-            updateUI(orgchartData, type);
+            
+            // Check department from the first member of the orgchart
+            if (chartData.members && chartData.members.length > 0 && chartData.members[0].department === tvDepartment) {
+                hasMatchingOrgchart = true;
+                updateUI(orgchartData, type);
+            }
         });
 
-        if (Object.keys(data).length === 0) {
+        // Display no message if no matching orgcharts were found
+        if (!hasMatchingOrgchart) {
             displayNoMessage(type);
         }
     } catch (error) {
@@ -999,22 +1008,24 @@ const fetchOrgChartData = async (type, tvId) => {
 };
 
 // Function to fetch and update content for all types
-function fetchAndUpdate(type) {
+async function fetchAndUpdate(type) {
     const urlParams = new URLSearchParams(window.location.search);
     const tvId = urlParams.get('tvId');
 
     // If we're not on a TV contents page, don't try to update the UI
     if (!tvId) return;
     
+    // Get TV department first
+    const tvDepartment = await TvDepartment.get(tvId);
+    
     if (type === 'orgchart') {
-        fetchOrgChartData(type, tvId);
+        fetchOrgChartData(type, tvId, tvDepartment);
         return;
     } else if (type !== 'orgchart') {
-        fetch(`database/fetch_content.php?type=${type}&tvId=${tvId}`)
-        .then(response => response.json())
-        .then(data => {
+        try {
+            const response = await fetch(`database/fetch_content.php?type=${type}&tvId=${tvId}`);
+            const data = await response.json();
             let filteredData;
-            // console.log("Data of ", type,":", data);
 
             if (Array.isArray(data)) {
                 filteredData = data.filter(item => {
@@ -1022,13 +1033,15 @@ function fetchAndUpdate(type) {
                     if (type === 'peo' || type === 'so' || type === 'facility') {
                         return item.tv_id === parseInt(tvId, 10) && 
                                item.isArchived === 0 && 
-                               item.isTrashed === 0
+                               item.isTrashed === 0 &&
+                               item.department === tvDepartment;
                     }
                     // Regular handling for other content types
                     return item.tv_id === parseInt(tvId, 10) && 
                            item.isArchived === 0 && 
                            item.isTrashed === 0 && 
-                           item.status === 'Approved';
+                           item.status === 'Approved' &&
+                           item.department === tvDepartment;
                 });
             } else if (typeof data === 'object' && data !== null) {
                 // If data is a single object, wrap it in an array
@@ -1037,13 +1050,15 @@ function fetchAndUpdate(type) {
                     if (type === 'peo' || type === 'so' || type === 'facility') {
                         return item.tv_id === parseInt(tvId, 10) && 
                                item.isArchived === 0 && 
-                               item.isTrashed === 0 
+                               item.isTrashed === 0 &&
+                               item.department === tvDepartment;
                     }
                     // Regular handling for other content types
                     return item.tv_id === parseInt(tvId, 10) && 
                            item.isArchived === 0 && 
                            item.isTrashed === 0 && 
-                           item.status === 'Approved';
+                           item.status === 'Approved' &&
+                           item.department === tvDepartment;
                 });
             } else {
                 console.error(`Unexpected data format for ${type}:`, data);
@@ -1068,12 +1083,11 @@ function fetchAndUpdate(type) {
                     }
                 }
             }
-        })
-        .catch(error => {
+        } catch (error) {
             console.error(`Error fetching ${type} of TV ${tvId}:`, error);
             // Set count to 0 if there's an error
             updateContentCount(type, 0);
-        });
+        }
     }
 }
 

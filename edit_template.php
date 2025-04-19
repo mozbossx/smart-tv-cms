@@ -238,17 +238,17 @@ $conn->close();
                                     </form>
                                 </div>
                             </div>
-                            <div class="scale-buttons-2">
+                            <div class="scale-buttons-2" style="z-index: 1">
                                 <button type="button" id="openSidebarButton" class="open-sidebar-button open" style="width: 80px;" onclick="openSidebar()">Open <i class="fa fa-chevron-right"></i></button>
                                 <button type="button" id="updateTemplateButton" style="display: none; width: 80px;">Save <i class="fa fa-floppy-o"></i></button>
                             </div>
-                            <!-- Top Bar Customization Left-side panel -->
+                            <!-- TV Bar Customization Left-side panel -->
                             <div id="topbarLeftSidePanel" class="left-side-panel" >
                                 <div class="content-container" style="background: <?php echo $light_theme_color_90_percent; ?>; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
                                     <div class="panel-close-btn">
                                         <button onclick="closeTopbarLeftSidePanel()"><i class="fa fa-chevron-left" aria-hidden="true"></i> Collapse</button>
                                     </div>
-                                    <p style="color: <?php echo $theme_color; ?>; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: center;"><b>Top Bar</b></p>
+                                    <p style="color: <?php echo $theme_color; ?>; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; text-align: center;"><b>TV Bar</b></p>
                                     <form id="editTopBarColorForm" enctype="multipart/form-data" style="height: 45vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px">
                                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px;">
                                             <select id="topbar_position" name="topbar_position" class="floating-label-input" style="background: <?php echo $light_theme_color_80_percent; ?>; box-shadow: none; height: 100%;">
@@ -275,7 +275,7 @@ $conn->close();
                                         </div>
                                         <div class="floating-label-container" style="margin-top: 0; margin-bottom: 10px; width: 100%; height: 60px; background: <?php echo $light_theme_color_80_percent; ?>; margin-right: 5px; border-radius: 5px; ">
                                             <input type="color" id="topbar_color" name="topbar_color" class="floating-label-input" style="height: 60px; width: 100%; background: none; box-shadow: none; padding-right: 12px" value="<?php echo htmlspecialchars($topbarColor); ?>">
-                                            <label for="topbar_color" class="floating-label">Top Bar Color</label>
+                                            <label for="topbar_color" class="floating-label">TV Bar Color</label>
                                         </div>
                                         <div class="line-separator" style="margin: 0px;"></div>
                                         <p style="color: <?php echo $theme_color; ?>; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>TV Name</b></p>
@@ -456,7 +456,7 @@ $conn->close();
             <button onclick="handleEditClick()" style="border-radius: 40px; padding: 10px; box-shadow: -1px -1px 22px 1px rgba(0,0,0,0.45); -webkit-box-shadow: -1px -1px 22px 1px rgba(0,0,0,0.45); -moz-box-shadow: -1px -1px 22px 1px rgba(0,0,0,0.45);">
                 <span id="editContainerText" style="display: none;">Edit Container</span>
                 <span id="editBackgroundText" style="display: none;">Edit Background</span>
-                <span id="editTopbarText" style="display: none;">Edit Topbar</span>
+                <span id="editTopbarText" style="display: none;">Edit TV Bar</span>
             </button>
         </div>
     </div>
@@ -580,7 +580,7 @@ $conn->close();
         }
 
         function openContentContainerLeftSidePanel(containerId) {
-            closeTopbarLeftSidePanel();  // Close the top bar panel if it's open
+            closeTopbarLeftSidePanel();  // Close the tv bar panel if it's open
             closeBackgroundLeftSidePanel();  // Close the background panel if it's open
             contentContainerLeftSidePanel.classList.add('open');
             closeSidebar();
@@ -722,7 +722,7 @@ $conn->close();
         }
 
         function openBackgroundLeftSidePanel() {
-            closeTopbarLeftSidePanel();  // Close the top bar panel if it's open
+            closeTopbarLeftSidePanel();  // Close the tv bar panel if it's open
             closeContainerLeftSidePanel();  // Close the container panel if it's open
             closeSidebar();
             backgroundLeftSidePanel.classList.add('open');

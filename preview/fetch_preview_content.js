@@ -509,47 +509,45 @@ function createPreviewContent(data, type) {
             `;
         }
     } if (type === 'orgchart') {
-        divElement.innerHTML = `
-            <div class="content-container-con">
-                <div id="orgChartParentContainer-preview" class="content-main">
-                    <div id="orgChartContainerParent-preview" class="orgchart-container">
-                        <div id="orgChartContainer-preview" class="orgchart-container-parent">
-                            <div class="orgchart-content"></div>
+        // Create a unique container for this preview
+        const previewId = `preview-${Date.now()}`;
+        const chartContainerId = `orgChartContainer-${previewId}`;
+        const chartContainerParentId = `orgChartContainerParent-${previewId}`;
+        
+        const previewHtml = `
+            <div class="carousel-item preview-item active" style="display: block; height: 100%;">
+                <div class="content-container-con">
+                    <div class="content-main">
+                        <div id="${chartContainerParentId}" class="orgchart-container-parent" style="width: 100%; height: 100%; position: relative;">
+                            <div id="${chartContainerId}" class="orgchart-container" style="width: 100%; height: 100%;"></div>
                         </div>
                     </div>
-                </div>
-                <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right">
-                                <i class="fa fa-hourglass-half" aria-hidden="true"></i> 
-                                <span class="time-left">${data.display_time}s</span>
-                            </p>
+                    <div class="content-details">
+                        <div style="display: flex; flex-direction: row; margin: 0">
+                            <div>
+                                <p class="author"><small>Preview</small></p>
+                            </div>
+                            <div style="margin-left: auto; margin-top: auto">
+                                <p class="display-time" style="text-align: right">
+                                    <i class="fa fa-hourglass-half" aria-hidden="true"></i>
+                                    <span class="time-left">${data.display_time}s</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         `;
-
-        // First clear the container
-        container.innerHTML = '';
         
-        // Then append the new element
-        container.appendChild(divElement);
-
-        // Create the org chart in the preview
-        if (data.chartData && data.chartData.members) {
-            setTimeout(() => {
-                try {
-                    createOrgChart('preview', data.chartData);
-                    console.log("Created org chart preview");
-                } catch (e) {
-                    console.error("Error creating org chart preview:", e);
-                }
-            }, 100);
-        } else {
-            console.error("No chart data available for preview");
-        }
+        container.innerHTML = previewHtml;
+        
+        // Initialize the org chart after a short delay to ensure container is ready
+        setTimeout(() => {
+            if (data.chartData && data.chartData.members) {
+                createOrgChart(previewId, data.chartData);
+            }
+        }, 100);
+        
         return;
     } else if (type === 'facility') {
         // Special handling for facility type
@@ -1075,7 +1073,7 @@ const createOrgChart = (orgchartId, chartData) => {
     const container = document.getElementById(containerId);
     const containerParent = document.getElementById(containerParentId);
 
-    if (!container) {
+    if (!container || !containerParent) {
         console.error(`Container not found for orgchart ${orgchartId}`);
         return;
     }
@@ -1099,6 +1097,45 @@ const createOrgChart = (orgchartId, chartData) => {
             },
             node: {
                 HTMLclass: 'node'
+            },
+            callback: {
+                onTreeLoaded: function() {
+                    // After tree is loaded, apply scaling
+                    const treant = document.querySelector(`#${containerId}`).closest('.Treant');
+                    const svg = treant ? treant.querySelector('svg') : null;
+
+                    if (!treant || !svg) {
+                        console.error(`Treant or SVG not found for orgchart ${orgchartId}`);
+                        return;
+                    }
+
+                    // Get the natural dimensions of the chart
+                    const svgWidth = svg.width.baseVal.value;
+                    const svgHeight = svg.height.baseVal.value;
+                    
+                    // Get the container dimensions
+                    const containerWidth = containerParent.clientWidth;
+                    const containerHeight = containerParent.clientHeight;
+
+                    // Calculate scale to fit
+                    const scaleX = containerWidth / svgWidth;
+                    const scaleY = containerHeight / svgHeight;
+                    const scale = Math.min(scaleX, scaleY, 1) * 0.9; // 0.9 to leave some margin
+
+                    // Apply scaling
+                    treant.style.transform = `scale(${scale})`;
+                    treant.style.transformOrigin = 'center center';
+                    treant.style.width = `${svgWidth}px`;
+                    treant.style.height = `${svgHeight}px`;
+                    treant.style.position = 'absolute';
+                    treant.style.left = '50%';
+                    treant.style.top = '50%';
+                    treant.style.marginLeft = `-${svgWidth / 2}px`;
+                    treant.style.marginTop = `-${svgHeight / 2}px`;
+
+                    // Store the chart data for potential reinitialization
+                    containerParent.chartData = chartData;
+                }
             }
         },
         nodeStructure: createNodeStructure(chartData)
@@ -1106,45 +1143,9 @@ const createOrgChart = (orgchartId, chartData) => {
 
     try {
         // Create the Treant instance
-        new Treant(chartConfig, () => {
-            const treant = document.querySelector(`#${containerId}`).closest('.Treant');
-            const svg = treant ? treant.querySelector('svg') : null;
-
-            if (!treant) {
-                console.error(`Treant not found for orgchart ${orgchartId}`);
-                return;
-            }
-
-            if (!svg) {
-                console.error(`SVG not found for orgchart ${orgchartId}`);
-                return;
-            }
-
-            // First, make the Treant match the SVG dimensions
-            const svgWidth = svg.width.baseVal.value;
-            const svgHeight = svg.height.baseVal.value;
-            
-            // Set both width and height of Treant to match SVG
-            treant.style.width = `${svgWidth}px`;
-            treant.style.height = `${svgHeight}px`;
-
-            // Reset transform to get true dimensions
-            treant.style.transform = 'none';
-            
-            // Calculate scale ratios
-            const containerWidth = containerParent.offsetWidth;
-            const containerHeight = containerParent.offsetHeight;
-            const scale = Math.min(
-                containerWidth / svgWidth,
-                containerHeight / svgHeight,
-                1
-            ) * 0.9;
-
-            // Apply the transform
-            treant.style.zoom = `${scale}`;
-            treant.style.transformOrigin = 'center center';
-        });
+        new Treant(chartConfig);
         console.log("Org chart created successfully");
+
     } catch (error) {
         console.error("Error creating org chart:", error);
         container.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
@@ -1223,33 +1224,6 @@ function createNodeStructure(data) {
         children: rootNodes
     };
 }
-
-// Add resize observer to handle container resizing
-const setupOrgChartResizeObserver = (container) => {
-    let resizeTimeout;
-    const resizeObserver = new ResizeObserver((entries) => {
-        // Clear any existing timeout
-        if (resizeTimeout) {
-            clearTimeout(resizeTimeout);
-        }
-
-        // Set a new timeout to debounce the resize event
-        resizeTimeout = setTimeout(() => {
-            for (const entry of entries) {
-                const activeItem = entry.target.closest('.carousel-item');
-                if (activeItem && activeItem.classList.contains('active')) {
-                    const chartData = activeItem.chartData;
-                    if (chartData) {
-                        createOrgChart(activeItem.dataset.orgchartId, chartData);
-                    }
-                }
-            }
-        }, 100); // Small delay for performance
-    });
-
-    resizeObserver.observe(container);
-    return resizeObserver;
-};
 
 const renderVisibleOrgChart = () => {
     const activeItem = document.querySelector('.carousel-item.active');

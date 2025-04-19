@@ -185,13 +185,18 @@ $displayInterval = $displayTimeRange['display_interval'];
         <span class="close" onclick="document.getElementById('changeDisplayTimeModal').style.display='none'"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
         <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-clock-o"></i> Change Display TIme</h1>
         <form id="changeDisplayTimeForm" style="margin-top: 10px">
-            <div class="floating-label-container">
-                <input type="number" name="display_seconds_range_first" id="display_seconds_range_first" required placeholder=" " class="floating-label-input-text-area">
-                <label for="display_seconds_range_first" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Minimum Display Time (seconds)</label>
-            </div>
-            <div class="floating-label-container">
-                <input type="number" name="display_seconds_range_last" id="display_seconds_range_last" required placeholder=" " class="floating-label-input-text-area">
-                <label for="display_seconds_range_last" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Maximum Display Time (seconds)</label>
+            <div style="display: flex; flex-direction: row; justify-content: space-between">
+                <div class="floating-label-container">
+                    <input type="number" name="display_seconds_range_first" id="display_seconds_range_first" required placeholder=" " class="floating-label-input-text-area">
+                    <label for="display_seconds_range_first" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Minimum Time (seconds)</label>
+                </div>
+                <div style="align-content: center; padding-left: 5px; padding-right: 5px; margin-top: 7px">
+                    <i class="fa fa-arrows-h" aria-hidden="true"></i>
+                </div>
+                <div class="floating-label-container">
+                    <input type="number" name="display_seconds_range_last" id="display_seconds_range_last" required placeholder=" " class="floating-label-input-text-area">
+                    <label for="display_seconds_range_last" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Maximum Time (seconds)</label>
+                </div>
             </div>
             <div class="floating-label-container">
                 <input type="number" name="display_interval" id="display_interval" required placeholder=" " class="floating-label-input-text-area">
@@ -199,6 +204,7 @@ $displayInterval = $displayTimeRange['display_interval'];
             </div>
             <br>
             <div style="text-align: right;">
+                <button type="button" onclick="document.getElementById('changeDisplayTimeModal').style.display='none'" class="grey-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Cancel</button>
                 <button type="submit" id="changeDisplayTimeButton" class="green-button" style="margin-left: 7px; margin-right: 0; margin-bottom: 0">Change Display Time</button>
             </div>
         </form>

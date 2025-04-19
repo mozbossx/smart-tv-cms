@@ -16,14 +16,9 @@ if ($isEditMode) {
     mysqli_stmt_bind_param($stmt, "i", $editTvId);
 } else {
     // Original logic for non-edit mode
-    if ($user_type == 'Super Admin') {
-        $sql = "SELECT tv_id, tv_name, tv_department FROM smart_tvs_tb WHERE tv_name != 'Unknown' AND tv_brand != 'Unknown'";
-        $stmt = mysqli_prepare($conn, $sql);
-    } else {
-        $sql = "SELECT tv_id, tv_name, tv_department FROM smart_tvs_tb WHERE tv_department = ? AND tv_name != 'Unknown' AND tv_brand != 'Unknown'";
-        $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "s", $user_department);
-    }
+    $sql = "SELECT tv_id, tv_name, tv_department FROM smart_tvs_tb WHERE tv_department = ? AND tv_name != 'Unknown' AND tv_brand != 'Unknown'";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "s", $user_department);
 }
 
 mysqli_stmt_execute($stmt);

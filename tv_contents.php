@@ -43,10 +43,17 @@ if (isset($_GET['tvId'])) {
     $tvStmt->close();
 }
 
-// Fetch data from smart_tvs_tb
-$query = "SELECT * FROM smart_tvs_tb WHERE tv_id = '$tvId'";
-$result = mysqli_query($conn, $query);
+// Fetch data from smart_tvs_tb and get visible containers
+$query = "SELECT st.*, ct.visible, ct.type 
+          FROM smart_tvs_tb st 
+          LEFT JOIN containers_tb ct ON st.tv_id = ct.tv_id 
+          WHERE st.tv_id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $tvId);
+$stmt->execute();
+$result = $stmt->get_result();
 
+$visibleContainers = array();
 if (mysqli_num_rows($result) > 0) {
     while ($row = mysqli_fetch_assoc($result)) {
         $tvId = $row['tv_id'];
@@ -56,6 +63,11 @@ if (mysqli_num_rows($result) > 0) {
         $tvHeight = $row['height_px'];
         $tvWidth = $row['width_px'];
         $tvStatus = $row['active_status'];
+        
+        // Store visible container types
+        if (isset($row['type']) && isset($row['visible']) && $row['visible'] == 1) {
+            $visibleContainers[] = $row['type'];
+        }
     }
 }
 
@@ -127,7 +139,6 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 echo "</div>";
                 echo "</div>";
                 ?>
-                <div class="content-grid-container">
                 <?php
                 // Array of content types
                 $contentTypes = ['announcement', 'event',  'news', 'promaterial', 'peo', 'so', 'orgchart', 'facility'];
@@ -138,62 +149,71 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     $contentTypes[] = strtolower(str_replace(' ', '_', $feature['feature_name']));
                 }
 
-                // Loop through each content type
-                foreach ($contentTypes as $type) {
-                    // Skip certain content types for non-admin users
-                    if (($type == 'peo' || $type == 'so' || $type == 'orgchart' || $type == 'facility') && 
-                        $user_type != 'Admin' && $user_type != 'Super Admin') {
-                        continue;
-                    }
-                    
-                    echo "<div id='{$type}List' class='content-container' style='padding: 0; padding-bottom: 20px; margin: 10px'>";
-                    echo '<div style="background: '.$theme_color.'; display: flex; flex-direction: row; justify-content: space-between">';
-                    if ($type == 'announcement') {
-                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements <span id='announcementCount' style='color: $light_theme_color_70_percent;'></span></h1>";
-                    } else if ($type == 'event') {
-                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-calendar-check-o' style='margin-right: 6px' aria-hidden='true'></i>Events <span id='eventCount' style='color: $light_theme_color_70_percent;'></span></h1>";
-                    } else if ($type == 'news') {
-                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-newspaper-o' style='margin-right: 6px' aria-hidden='true'></i>News <span id='newsCount' style='color: $light_theme_color_70_percent;'></span></h1>";
-                    } else if ($type == 'promaterial') {
-                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-object-group' style='margin-right: 6px' aria-hidden='true'></i>Promotional Materials <span id='promaterialCount' style='color: $light_theme_color_70_percent;'></span></h1>";
-                    } else if ($type == 'peo') {
-                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO) <span id='peoCount' style='color: $light_theme_color_70_percent;'></span></h1>";
-                    } else if ($type == 'so') {
-                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO) <span id='soCount' style='color: $light_theme_color_70_percent;'></span></h1>";
-                    } else if ($type == 'orgchart') {
-                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Department Organizational Chart <span id='orgchartCount' style='color: $light_theme_color_70_percent;'></span></h1>";
-                    } else if ($type == 'facility') {
-                        echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-building' style='margin-right: 6px' aria-hidden='true'></i>Facilities <span id='facilityCount' style='color: $light_theme_color_70_percent;'></span></h1>";
-                    } else {
-                        // For new features
-                        $feature = array_filter($featuresNewFeatures, function($f) use ($type) {
-                            return strtolower(str_replace(' ', '_', $f['feature_name'])) === $type;
-                        });
-                        $feature = reset($feature);
-                        if ($feature) {
-                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']} <span id='{$type}Count' style='color: $light_theme_color_70_percent;'></span></h1>";
-                        } else {
-                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . " <span id='{$type}Count' style='color: $light_theme_color_70_percent;'></span></h1>";
-                        }
-                    }
-                    echo '<div style="display: flex; justify-content: space-between; align-items: center;">';
-                    if ($type == 'promaterial') {
-                        echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_promotional_material.php?pageid=PromotionalMaterialsForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
-                    } else if ($type == 'so') {
-                        echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_student_outcomes.php?pageid=StudentOutcomesForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
-                    } else if ($type == 'orgchart') {
-                        echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_department_organizational_chart.php?pageid=DepartmentOrganizationalChart&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
-                    } else {
-                        echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_' . $type . '.php?pageid=' . $type . 'Form&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
-                    }
-                    echo "</div>";
+                // Check if there are any visible containers
+                if (empty($visibleContainers)) {
+                    echo '<div style="text-align: center; margin-bottom: 50px; width: 100%;">';
+                    echo '<h2 style="color: #666;">No containers are currently visible.</h2>';
                     echo '</div>';
-                    echo "<div class='scroll-div' style='margin-top: 10px; margin-left: 15px; margin-right: 15px;'>";
-                    echo "<div id='{$type}CarouselContainer'>";
+                } else {
+                    echo '<div class="content-grid-container">';
+                    // Loop through each content type
+                    foreach ($contentTypes as $type) {
+                        // Skip if container is not visible or if non-admin trying to access admin-only content
+                        if (!in_array($type, $visibleContainers) || 
+                            (($type == 'peo' || $type == 'so' || $type == 'orgchart' || $type == 'facility') && 
+                             $user_type != 'Admin' && $user_type != 'Super Admin')) {
+                            continue;
+                        }
+                        
+                        echo "<div id='{$type}List' class='content-container' style='padding: 0; padding-bottom: 20px; margin: 10px'>";
+                        echo '<div style="background: '.$theme_color.'; display: flex; flex-direction: row; justify-content: space-between">';
+                        if ($type == 'announcement') {
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-bullhorn' style='margin-right: 6px' aria-hidden='true'></i>Announcements <span id='announcementCount' style='color: $light_theme_color_70_percent;'></span></h1>";
+                        } else if ($type == 'event') {
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-calendar-check-o' style='margin-right: 6px' aria-hidden='true'></i>Events <span id='eventCount' style='color: $light_theme_color_70_percent;'></span></h1>";
+                        } else if ($type == 'news') {
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-newspaper-o' style='margin-right: 6px' aria-hidden='true'></i>News <span id='newsCount' style='color: $light_theme_color_70_percent;'></span></h1>";
+                        } else if ($type == 'promaterial') {
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-object-group' style='margin-right: 6px' aria-hidden='true'></i>Promotional Materials <span id='promaterialCount' style='color: $light_theme_color_70_percent;'></span></h1>";
+                        } else if ($type == 'peo') {
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-map' style='margin-right: 6px' aria-hidden='true'></i>Program Educational Objectives (PEO) <span id='peoCount' style='color: $light_theme_color_70_percent;'></span></h1>";
+                        } else if ($type == 'so') {
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-graduation-cap' style='margin-right: 6px' aria-hidden='true'></i>Student Outcomes (SO) <span id='soCount' style='color: $light_theme_color_70_percent;'></span></h1>";
+                        } else if ($type == 'orgchart') {
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-sitemap' style='margin-right: 6px' aria-hidden='true'></i>Department Organizational Chart <span id='orgchartCount' style='color: $light_theme_color_70_percent;'></span></h1>";
+                        } else if ($type == 'facility') {
+                            echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-building' style='margin-right: 6px' aria-hidden='true'></i>Facilities <span id='facilityCount' style='color: $light_theme_color_70_percent;'></span></h1>";
+                        } else {
+                            // For new features
+                            $feature = array_filter($featuresNewFeatures, function($f) use ($type) {
+                                return strtolower(str_replace(' ', '_', $f['feature_name'])) === $type;
+                            });
+                            $feature = reset($feature);
+                            if ($feature) {
+                                echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa {$feature['icon']}' style='margin-right: 6px' aria-hidden='true'></i>{$feature['feature_name']} <span id='{$type}Count' style='color: $light_theme_color_70_percent;'></span></h1>";
+                            } else {
+                                echo "<h1 class='content-title' style='padding: 15px; text-align: left; width: 75%'><i class='fa fa-{$type}' style='margin-right: 6px' aria-hidden='true'></i>" . ucfirst(str_replace('_', ' ', $type)) . " <span id='{$type}Count' style='color: $light_theme_color_70_percent;'></span></h1>";
+                            }
+                        }
+                        echo '<div style="display: flex; justify-content: space-between; align-items: center;">';
+                        if ($type == 'promaterial') {
+                            echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_promotional_material.php?pageid=PromotionalMaterialsForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
+                        } else if ($type == 'so') {
+                            echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_student_outcomes.php?pageid=StudentOutcomesForm&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
+                        } else if ($type == 'orgchart') {
+                            echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_department_organizational_chart.php?pageid=DepartmentOrganizationalChart&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
+                        } else {
+                            echo '<button id="createPostButton" class="create-post-button-1" style="background: '.$theme_color.'; color: white; border: none; height: 100%; padding-left: 15px; padding-right: 15px; font-size: 25px" onclick="window.location.href=\'form_' . $type . '.php?pageid=' . $type . 'Form&userId=' . $user_id . ' ' . urlencode($full_name) . '&tvId=' . $tvId . '\'"><i class="fa fa-plus" aria-hidden="true"></i></button>';
+                        }
+                        echo "</div>";
+                        echo '</div>';
+                        echo "<div class='scroll-div' style='margin-top: 10px; margin-left: 15px; margin-right: 15px;'>";
+                        echo "<div id='{$type}CarouselContainer'>";
 
-                    echo "</div>"; // Close carousel container
-                    echo "</div>"; // Close scroll div
-                    echo "</div>"; // Close content container
+                        echo "</div>"; // Close carousel container
+                        echo "</div>"; // Close scroll div
+                        echo "</div>"; // Close content container
+                    }
                 }
                 ?>
                 </div>
@@ -202,6 +222,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <!-- JavaScript to fetch all content using WebSocket-->
+    <script src="js/fetch_tv_department.js"></script>
     <script src="js/fetch_content2.js"></script>
     <?php include('misc/php/success_modal.php'); ?>
     <script>

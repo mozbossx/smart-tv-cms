@@ -219,7 +219,7 @@ body {
 }
 
 .content-title {
-    font-weight: bolder;
+    font-weight: normal;
     user-select: none;
     padding-bottom: 6px;
     margin: 0;

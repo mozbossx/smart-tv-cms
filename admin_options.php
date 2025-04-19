@@ -57,7 +57,7 @@ include 'admin_access_only.php';
                                 <div class="button-text">Manage Templates</div>
                             </a>
                         </div>
-                        <div class="button-container">
+                        <div class="button-container" style="cursor: pointer">
                             <span class="content-button" onclick="changeDisplayTimeModal()">
                                 <div class="button-icon"><i class="fa fa-clock-o"></i></div>
                                 <div class="button-text">Change Display Time</div>

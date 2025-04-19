@@ -94,7 +94,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     <div class="line-separator" style="margin-bottom: 20px"></div>
                     <?php 
                         if (count($featuresNewFeatures) == 0){
-                            echo '<p style="text-align: left; font-size: 20px; color: <?php echo $dark_theme_color_40_percent; ?>;">No new features added yet.</p>';
+                            echo '<p style="text-align: left; font-size: 20px; color: <?php echo $dark_theme_color_40_percent; ?>;">No new features added.</p>';
                         }
                     ?>
                     <div class="button-flex" style="margin-top: 10px;">

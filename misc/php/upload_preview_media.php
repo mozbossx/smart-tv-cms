@@ -102,6 +102,23 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         if (mediaInput.files && mediaInput.files[0]) {
             const file = mediaInput.files[0];
             console.log('Debug - File selected:', file.name);
+
+            // Check if it's a video file
+            if (file.type.startsWith('video/')) {
+                // 150MB in bytes
+                const maxSize = 150 * 1024 * 1024;
+                
+                if (file.size > maxSize) {
+                    if (uploadStatus) {
+                        uploadStatus.textContent = 'Error: Video file size must be less than 150MB';
+                        uploadStatus.style.color = 'red';
+                        uploadStatus.style.display = 'block';
+                    }
+                    // Reset the file input
+                    mediaInput.value = '';
+                    return;
+                }
+            }
             
             // Show progress container
             if (progressContainer) progressContainer.style.display = 'block';

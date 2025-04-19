@@ -820,9 +820,37 @@
                 items[currentIndex].classList.add('active');
 
                 // Small delay to ensure DOM updates before fitting
+                // setTimeout(() => {
+                //     updateTvName();
+                //     fitFrameToParent();
+                // }, 100);
+
                 setTimeout(() => {
                     updateTvName();
                     fitFrameToParent();
+
+                    // Get the current content type
+                    const selectedType = document.querySelector('[name="type"]').value;
+                    
+                    // After switching TV, check if this is an org chart and reinitialize
+                    if (selectedType === 'orgchart') {
+                        const activeItem = items[currentIndex];
+                        const tvId = activeItem.getAttribute('data-tv-id');
+                        const iframe = document.querySelector(`#tvFrame-${tvId} iframe`);
+                    
+                        if (iframe && iframe.contentWindow) {
+                            const previewData = {
+                                action: 'updatePreview',
+                                type: 'orgchart',
+                                content: {
+                                    members: orgChartData,
+                                    reinitialize: true // Flag to indicate this is a reinitialization
+                                },
+                                displayTime: document.querySelector('[name="display_time"]').value
+                            };
+                            iframe.contentWindow.postMessage(previewData, '*');
+                        }
+                    }
                 }, 100);
             };
 

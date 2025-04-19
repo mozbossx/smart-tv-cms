@@ -166,7 +166,7 @@ include 'misc/php/options_tv.php';
                                     </div>
                                 </div>
                                 <div class="dot-indicators"></div>
-                                <br><br>
+                                <div class="line-separator"></div>
                                 <div class="floating-label-container">
                                     <div id="quillEditorContainer">
                                         <label for="quillEditorContainer" style="position: absolute; z-index: 10; top: 50px; left: 16px; color: <?php echo $theme_color; ?>; font-size: 12px; font-weight: bold">Facility Body</label>

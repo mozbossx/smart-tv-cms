@@ -259,8 +259,8 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
                                         <div class="color-option" data-color="#00686c" style="background-color: #00686c" onclick="updateTheme('#00686c')"></div>
                                         <span class="color-label">Teal</span>
                                     </div>
-                                    <div class="color-option-container" data-color-container="#252525">
-                                        <div class="color-option" data-color="#252525" style="background-color: #252525" onclick="updateTheme('#252525')"></div>
+                                    <div class="color-option-container" data-color-container="#000000">
+                                        <div class="color-option" data-color="#000000" style="background-color: #000000" onclick="updateTheme('#000000')"></div>
                                         <span class="color-label">Black</span>
                                     </div>
                                     <div class="color-option-container" data-color-container="#49006c">
@@ -270,10 +270,6 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
                                     <div class="color-option-container" data-color-container="#ff5b00">
                                         <div class="color-option" data-color="#ff5b00" style="background-color: #ff5b00" onclick="updateTheme('#ff5b00')"></div>
                                         <span class="color-label">Orange</span>
-                                    </div>
-                                    <div class="color-option-container" data-color-container="#e403e4">
-                                        <div class="color-option" data-color="#e403e4" style="background-color: #e403e4" onclick="updateTheme('#e403e4')"></div>
-                                        <span class="color-label">Magenta</span>
                                     </div>
                                     <div class="color-option-container" data-color-container="#636b2f">
                                         <div class="color-option" data-color="#636b2f" style="background-color: #636b2f" onclick="updateTheme('#636b2f')"></div>

@@ -12,7 +12,7 @@ if (isset($_SESSION['full_name'])) {
 
 // Get dynamic content from CMS/Database
 $welcomeMessage = "Smart TV Content Management System";
-$subheading = "Empowering Interactive Digital Displays for the University of San Carlos";
+$subheading = "Interactive Digital Displays for the University of San Carlos";
 ?>
 
 <!DOCTYPE html>

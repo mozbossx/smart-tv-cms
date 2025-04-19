@@ -411,10 +411,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
 
     contentHtml += `
             <div class="line-separator"></div>
-            <p class="ann-author" style="color: #6E6E6E; margin-top: 10px"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
-            ${formattedExpirationDateTime && !['peo', 'so'].includes(type) ? 
-                `<p class="ann-author" style="color: #6E6E6E;"><small>Expires on ${formattedExpirationDateTime}</small></p>` : 
-                ''}
+            <p class="ann-author" style="color: #6E6E6E;"><small>Posted by ${data.author_name || 'Unknown'} on ${formattedCreatedDateTime}</small></p>
             <p class="ann-author" style="color: #6E6E6E; margin-bottom: 10px"><small>Trashed on ${formattedTrashDateTime}</small></p>
             <p class="display-time"><i class="fa fa-hourglass-half" aria-hidden="true"></i> ${data.display_time} secs  |  <i class="fa fa-tv" aria-hidden="true" style="margin-left: 5px"></i> ${tvDisplay}</p>
         </div>

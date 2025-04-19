@@ -2195,6 +2195,35 @@ class ContentHandler implements MessageComponentInterface
             $user = $stmt->rowCount() > 0;
         
             if ($user && !empty($changedFields)) {
+                // If user is promoted to Admin or Super Admin, approve all their pending posts
+                if (in_array('user_type', $changedFields) && ($newUserType === 'Admin' || $newUserType === 'Super Admin')) {
+                    // Get all content types that can have pending status
+                    $contentTypes = ['announcement', 'event', 'news', 'promaterial'];
+                    
+                    foreach ($contentTypes as $type) {
+                        $table = ($type === 'news') ? $type . '_tb' : $type . 's_tb';
+                        $authorField = $type . '_author_id';
+                        
+                        // Update all pending posts to approved
+                        $stmtUpdatePosts = $this->pdo->prepare("UPDATE {$table} SET status = 'Approved' WHERE {$authorField} = ? AND status = 'Pending'");
+                        $stmtUpdatePosts->execute([$userId]);
+                        
+                        // If any posts were updated, add notifications
+                        if ($stmtUpdatePosts->rowCount() > 0) {
+                            // Get the updated posts
+                            $stmtGetPosts = $this->pdo->prepare("SELECT {$type}_id as content_id FROM {$table} WHERE {$authorField} = ? AND status = 'Approved'");
+                            $stmtGetPosts->execute([$userId]);
+                            $updatedPosts = $stmtGetPosts->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            foreach ($updatedPosts as $post) {
+                                // Delete the existing pending notification of the promoted user
+                                $stmtDeletePendingNotification = $this->pdo->prepare("DELETE FROM notifications_tb WHERE content_id = ? AND content_type = ? AND status = 'pending'");
+                                $stmtDeletePendingNotification->execute([$post['content_id'], $type]);
+                            }
+                        }
+                    }
+                }
+
                 // Prepare the notification message and data
                 $notificationFields = [];
                 $notificationValues = [];
@@ -3269,8 +3298,8 @@ class ContentHandler implements MessageComponentInterface
                             }
                             
                             $stmt = $this->pdo->prepare("
-                                INSERT INTO org_chart_members (parent_node_id, parent_id, orgchart_id, name, title, type, display_time, tv_id, picture)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                INSERT INTO org_chart_members (parent_node_id, parent_id, orgchart_id, name, title, type, display_time, tv_id, picture, department)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                             ");
                             $stmt->execute([
                                 $member['id'],
@@ -3281,7 +3310,8 @@ class ContentHandler implements MessageComponentInterface
                                 'orgchart',
                                 $display_time,
                                 $tv_ids,
-                                $fileName
+                                $fileName,
+                                $department
                             ]);
                             
                         }

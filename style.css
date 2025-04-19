@@ -2500,12 +2500,16 @@ tr:nth-child(even) {
     overflow-y: auto;
     height: 325px;
     word-break: break-word;
+    padding-right: 8px;
 }
 
 .notifications-container-mobile {
     overflow-y: auto;
     height: 325px;
     word-break: break-word;
+    padding-right: 8px;
+
+    
 }
 
 .notification-details {

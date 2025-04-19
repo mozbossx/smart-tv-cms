@@ -427,7 +427,7 @@ const generateOperationsButtons = (userId, email, fullName, department, status, 
     if (String(userId) === String(loggedInUserId)) return '';
 
     // If logged-in user is Admin and the user in the row is Super Admin, don't show edit/delete buttons
-    if (loggedInUserType === 'Admin' && userType === 'Super Admin') {
+    if (loggedInUserType === 'Admin' && (userType === 'Super Admin' || userType === 'Admin')) {
         return '';
     }
 
