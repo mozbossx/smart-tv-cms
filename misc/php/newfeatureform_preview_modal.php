@@ -27,78 +27,9 @@
     }
 
     function validateAndOpenNewFeaturePreviewModal() {
-        if (!validateForm()) {
-            return;
+        if (validateForm()) {
+            openPreviewModal();
         }
-
-        // Get feature name and trim whitespace
-        const featureName = document.getElementById('name_of_feature').value.trim();
-        
-        // Update the input value with trimmed version
-        document.getElementById('name_of_feature').value = featureName;
-        
-        // Define reserved names
-        const reservedNames = [
-            'announcement',
-            'announcements',
-            'event',
-            'events',
-            'news',
-            'new',
-            'promaterial',
-            'promaterials',
-            'promotional material', 
-            'promotional materials', 
-            'peo', 
-            'peos',
-            'program educational objectives', 
-            'so', 
-            'sos',
-            'student outcomes', 
-            'orgchart', 
-            'orgcharts',
-            'organizational chart',
-            'organizational charts',
-            'department organizational chart',
-            'department organizational charts',
-            'facility',
-            'facilitys',
-            'facilities',
-            'users',
-            'user'
-        ];
-        
-        // Check for reserved names (case-insensitive and trimmed)
-        if (reservedNames.some(name => name.toLowerCase() === featureName.toLowerCase())) {
-            errorModalMessage('This feature name is reserved. Please choose a different name.');
-            return;
-        }
-
-        // Check for invalid characters (after trimming)
-        if (!/^[a-zA-Z\s]+$/.test(featureName)) {
-            errorModalMessage('Feature name can only contain letters and spaces.');
-            return;
-        }
-
-        // Check if feature exists via WebSocket
-        const data = {
-            action: 'check_feature_name',
-            name_of_feature: featureName
-        };
-        
-        ws.send(JSON.stringify(data));
-        
-        ws.addEventListener('message', function checkFeatureHandler(event) {
-            const response = JSON.parse(event.data);
-            if (response.action === 'check_feature_name') {
-                ws.removeEventListener('message', checkFeatureHandler);
-                if (response.success === false) {
-                    errorModalMessage(response.message);
-                } else {
-                    openPreviewModal();
-                }
-            }
-        });
     }
 
     function validateForm() {
@@ -272,8 +203,7 @@
                     modules: {
                         toolbar: [
                             ['bold', 'italic', 'underline'],
-                            ['link'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }]
+                            ['link']
                         ]
                     },
                     readOnly: true

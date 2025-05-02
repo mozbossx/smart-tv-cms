@@ -4252,41 +4252,6 @@ class ContentHandler implements MessageComponentInterface
             }
         }
 
-        else if (isset($data['action']) && $data['action'] === 'check_feature_name') {
-            try {
-                $featureName = $data['name_of_feature'];
-                $tableName = strtolower(str_replace(' ', '_', $featureName)) . '_tb';
-
-                // Check if table exists
-                $stmt = $this->pdo->prepare("SHOW TABLES LIKE ?");
-                $stmt->execute([$tableName]);
-                $tableExists = $stmt->rowCount() > 0;
-
-                if ($tableExists) {
-                    $response = [
-                        'action' => 'check_feature_name',
-                        'success' => false,
-                        'message' => 'A feature with this name already exists. Please choose a different name.',
-                        'messageType' => 'error'
-                    ];
-                } else {
-                    $response = [
-                        'action' => 'check_feature_name',
-                        'success' => true
-                    ];
-                }
-                $from->send(json_encode($response));
-            } catch (\Exception $e) {
-                $response = [
-                    'action' => 'check_feature_name',
-                    'success' => false,
-                    'message' => 'Error checking feature name. Please try again.',
-                    'messageType' => 'error'
-                ];
-                $from->send(json_encode($response));
-            }
-        }
-
         // For Creating New Feature only
         else if (isset($data['action']) && $data['action'] === 'post_new_feature') {
             try {
