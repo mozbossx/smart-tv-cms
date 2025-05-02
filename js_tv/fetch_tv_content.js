@@ -544,8 +544,8 @@ const updateUI = (data, type) => {
                                         'department', 'user_type', 'category', 'evaluated_by', `${type}_author_id`, `${type}_id`,
                                         'evaluated_message', 'author_name',  
                                         'author_user_type', 'author_department', 'datetime_archived', 
-                                        'datetime_trashed', 'media_path'].includes(key))
-                                    .map(([key, value]) => `${key}: ${value}`)
+                                        'datetime_trashed', 'media_path', 'media_upload_only'].includes(key))
+                                    .map(([key, value]) => `${value}`)
                                     .join('')}
                             </div>
                         </div>
