@@ -4338,7 +4338,8 @@ class ContentHandler implements MessageComponentInterface
                 foreach ($data['inputs'] as $input) {
                     $columnName = strtolower(str_replace(' ', '_', $input['name']));
                     $columnType = ($input['type'] == 'text') ? 'TEXT' : 'VARCHAR(255)';
-                    $nullableString = ($input['required'] == 'yes') ? 'NOT NULL' : 'NULL';
+                    // $nullableString = ($input['required'] == 'yes') ? 'NOT NULL' : 'NULL';
+                    $nullableString = 'NULL';
                     $sql = "ALTER TABLE $tableName ADD COLUMN $columnName $columnType $nullableString";
                     $this->pdo->exec($sql);
         

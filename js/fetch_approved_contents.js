@@ -208,7 +208,13 @@ const updateUI = async (data, type) => {
                 tv_id: data.tv_id,
                 action: 'edit'
             }).toString();
-            window.location.href = `form_${type}.php?${queryParams}`;
+            if (type === 'promaterial') {
+                window.location.href = `form_promotional_material.php?${queryParams}`;
+            } else if (type === 'so') {
+                window.location.href = `form_student_outcomes.php?${queryParams}`;
+            } else {
+                window.location.href = `form_${type}.php?${queryParams}`;
+            }
         });
 
         const deleteButton = createDeleteButton('Delete', '', () => 
