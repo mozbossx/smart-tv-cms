@@ -58,7 +58,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         default:
             // For dynamic features, display all content fields except metadata
             for (let key in data) {
-                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|author_user_type|author_department|datetime_archived|datetime_trashed)$/) 
+                if (!key.match(/^(created_datetime|expiration_datetime|display_time|status|isArchived|isTrashed|tv_id|author_id|type|contentType|department|user_type|category|evaluated_by|evaluated_message|author_name|media_path|media_upload_only_zz|author_user_type|author_department|datetime_archived|datetime_trashed|media_upload_only)$/) 
                     && !key.endsWith('_id')) {
                     contentHtml += `<pre class="ann-body" style="word-break: break-word">${data[key]}</pre>`;
                 }
