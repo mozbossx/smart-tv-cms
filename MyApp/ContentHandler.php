@@ -2871,6 +2871,22 @@ class ContentHandler implements MessageComponentInterface
             $tvBrand = $data['tv_brand'];
             $tvDepartment = $data['tv_department'];
 
+            // Check if TV name already exists for a different TV
+            $stmtCheck = $this->pdo->prepare("SELECT COUNT(*) FROM smart_tvs_tb WHERE tv_name = ? AND tv_id != ?");
+            $stmtCheck->execute([$tvName, $tvId]);
+            $nameExists = $stmtCheck->fetchColumn() > 0;
+
+            if ($nameExists) {
+                $response = [
+                    'action' => 'edit_smart_tv',
+                    'success' => false,
+                    'message' => 'A TV with this name already exists. Please choose a different name.'
+                ];
+                $from->send(json_encode($response));
+                echo "TV name already exists! Please choose another name\n";
+                return;
+            }
+
             // Perform the update in the database
             $stmt = $this->pdo->prepare("UPDATE smart_tvs_tb SET tv_name = ?, tv_brand = ?, tv_department = ? WHERE tv_id = ?");
             $stmt->execute([$tvName, $tvBrand, $tvDepartment, $tvId]);
@@ -2894,7 +2910,7 @@ class ContentHandler implements MessageComponentInterface
 
                 echo "TV details updated for tv_id: {$tvId}\n";
             } else {
-                $response = ['action' => 'edit_smart_tv', 'success' => false];
+                $response = ['action' => 'edit_smart_tv', 'success' => false, 'message' => 'Failed to update TV details.'];
                 $from->send(json_encode($response));
             }
             return;

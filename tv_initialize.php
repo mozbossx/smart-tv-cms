@@ -71,7 +71,7 @@ if ($tvId === null || (!isset($_COOKIE['tv_id']) && !$isIframe)) {
         $containerYaxisEvents = 5.0;
         $containerXaxisNews = 826.0;
         $containerYaxisNews = 5.0;
-        $containerXaxisPromaterials = 1200.0;
+        $containerXaxisPromaterials = 1.0;
         $containerYaxisPromaterials = 5.0;
         
         $sql_announcement_container = "INSERT INTO containers_tb (tv_id, container_name, type, visible, xaxis, yaxis) VALUES ($tvId, '$containerNameAnnouncements', '$containerTypeAnnouncements', $containerVisibleAnnouncements, $containerXaxisAnnouncements, $containerYaxisAnnouncements)";

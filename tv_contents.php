@@ -36,7 +36,13 @@ if (isset($_GET['tvId'])) {
         }
     } else {
         // If no TV found, redirect to user_home.php
-        header('location: user_home.php');
+        // header('location: user_home.php');
+        // exit;
+        echo '
+            <script>
+                alert("TV does not exist!"); 
+                window.location.href = "user_home.php";
+            </script>';
         exit;
     }
 

@@ -49,44 +49,120 @@ const insertDeleteSmartTVModalContent = (tvId) => {
     `;
 }
 
+// Old Code: 
+// const sendWebSocketMessage = (data) => {
+//     fetch('websocket_conn.php')
+//         .then(response => response.text())
+//         .then(url => {
+//             const Ws = new WebSocket(url);
+//             Ws.onopen = () => Ws.send(JSON.stringify(data));
+//             Ws.onmessage = (event) => {
+//                 const message = JSON.parse(event.data);
+//                 if (message.success == true) {
+//                     let successMessage = '';
+//                     switch (message.action) {
+//                         case 'edit_smart_tv':
+//                             successMessage = 'Smart TV updated successfully!';
+//                             document.getElementById('editSmartTVModal').style.display = 'none';
+//                             showSuccessModal(successMessage);
+//                             break;
+//                         case 'delete_smart_tv':
+//                             successMessage = 'Smart TV deleted successfully!';
+//                             document.getElementById('confirmDeleteSmartTVModal').style.display = 'none';
+//                             showSuccessModal(successMessage);
+//                             break;
+//                     }
+//                     // Fetch fresh data after successful operation
+//                     fetch('database/fetch_smart_tvs2.php')
+//                         .then(response => response.json())
+//                         .then(tvData => {
+//                             displaySmartTVTable(tvData);
+//                         })
+//                         .catch(error => console.error('Error fetching updated smart TVs:', error));
+//                 } else if (message.success == false) {
+//                     let errorMessage = message.message || 'An error occurred. Please try again.';
+//                     showErrorModal(errorMessage);
+//                 }
+//             };
+//             Ws.onclose = () => console.log('WebSocket connection closed');
+//             Ws.onerror = (error) => console.error('WebSocket error:', error);
+//         })
+//         .catch(error => console.error('Error fetching WebSocket URL:', error));
+// };
+
 const sendWebSocketMessage = (data) => {
-    fetch('websocket_conn.php')
-        .then(response => response.text())
-        .then(url => {
-            const Ws = new WebSocket(url);
-            Ws.onopen = () => Ws.send(JSON.stringify(data));
-            Ws.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                if (message.success == true) {
-                    let successMessage = '';
-                    switch (message.action) {
-                        case 'edit_smart_tv':
-                            successMessage = 'Smart TV updated successfully!';
-                            document.getElementById('editSmartTVModal').style.display = 'none';
-                            showSuccessModal(successMessage);
-                            break;
-                        case 'delete_smart_tv':
-                            successMessage = 'Smart TV deleted successfully!';
-                            document.getElementById('confirmDeleteSmartTVModal').style.display = 'none';
-                            showSuccessModal(successMessage);
-                            break;
+    let reconnectAttempts = 0;
+    const reconnectDelay = 1000; // Start with 1 second delay
+    let ws = null;
+
+    const connect = () => {
+        fetch('websocket_conn.php')
+            .then(response => response.text())
+            .then(url => {
+                ws = new WebSocket(url);
+
+                ws.onopen = () => {
+                    console.log('WebSocket connection established');
+                    reconnectAttempts = 0; // Reset attempts on successful connection
+                    ws.send(JSON.stringify(data));
+                };
+
+                ws.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    if (message.success == true) {
+                        let successMessage = '';
+                        switch (message.action) {
+                            case 'edit_smart_tv':
+                                successMessage = 'Smart TV updated successfully!';
+                                document.getElementById('editSmartTVModal').style.display = 'none';
+                                showSuccessModal(successMessage);
+                                break;
+                            case 'delete_smart_tv':
+                                successMessage = 'Smart TV deleted successfully!';
+                                document.getElementById('confirmDeleteSmartTVModal').style.display = 'none';
+                                showSuccessModal(successMessage);
+                                break;
+                        }
+                        // Fetch fresh data after successful operation
+                        fetch('database/fetch_smart_tvs2.php')
+                            .then(response => response.json())
+                            .then(tvData => {
+                                displaySmartTVTable(tvData);
+                            })
+                            .catch(error => console.error('Error fetching updated smart TVs:', error));
+                    } else if (message.success == false) {
+                        let errorMessage = message.message || 'An error occurred. Please try again.';
+                        showErrorModal(errorMessage);
                     }
-                    // Fetch fresh data after successful operation
-                    fetch('database/fetch_smart_tvs2.php')
-                        .then(response => response.json())
-                        .then(tvData => {
-                            displaySmartTVTable(tvData);
-                        })
-                        .catch(error => console.error('Error fetching updated smart TVs:', error));
-                } else if (message.success == false) {
-                    let errorMessage = message.message || 'An error occurred. Please try again.';
-                    showErrorModal(errorMessage);
-                }
-            };
-            Ws.onclose = () => console.log('WebSocket connection closed');
-            Ws.onerror = (error) => console.error('WebSocket error:', error);
-        })
-        .catch(error => console.error('Error fetching WebSocket URL:', error));
+                };
+
+                ws.onclose = (event) => {
+                    console.log('WebSocket connection closed', event.code, event.reason);
+                    const timeoutDelay = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000); // Exponential backoff with max 10s
+                    console.log(`Attempting to reconnect in ${timeoutDelay}ms...`);
+                    setTimeout(() => {
+                        reconnectAttempts++;
+                        connect();
+                    }, timeoutDelay);
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    if (ws.readyState === WebSocket.CLOSED) {
+                        connect();
+                    }
+                };
+            })
+            .catch(error => {
+                console.error('Error fetching WebSocket URL:', error);
+                setTimeout(() => {
+                    reconnectAttempts++;
+                    connect();
+                }, reconnectDelay);
+            });
+    };
+
+    connect(); // Initial connection attempt
 };
 
 const showSuccessModal = (message) => {

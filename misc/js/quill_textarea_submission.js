@@ -5,8 +5,7 @@ let quillEditors = {};
 // Common toolbar configuration
 const toolbarOptions = [
     ['bold', 'italic', 'underline'],
-    ['link'],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }]
+    ['link']
 ];
 
 if (contentType === 'announcement') {

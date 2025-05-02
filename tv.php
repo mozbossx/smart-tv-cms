@@ -88,7 +88,7 @@ include 'tv_initialize.php';
                             transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);"
                     onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
                     <div>
-                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>;"><i class="<?php echo $iconClass; ?>" style="margin-right: 6px" aria-hidden="true"></i><?php echo $container['container_name']; ?></h1>
+                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>;"><?php echo $container['container_name']; ?></h1>
                     </div>
                     <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
                         style="background: <?php echo $container['child_background_color']; ?>;

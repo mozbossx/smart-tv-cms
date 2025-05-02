@@ -401,7 +401,7 @@ include 'misc/php/options_tv.php';
                     nodeStructure: rootNode
                 });
             } else {
-                chartContainer.innerHTML = '<p style="text-align: center; color: <?php echo $theme_color; ?>; font-size: 1.2em; padding: 20px;">No members in the organizational chart. Please <a href="#" onclick="openAddMemberModal()" style="font-weight: bolder; font-size: 14px">add</a> at least one member.</p>';
+                chartContainer.innerHTML = '<p style="text-align: center; color: <?php echo $theme_color; ?>; font-size: 1.2em; padding: 20px;">No members in the organizational chart. Please <a href="#" onclick="openAddMemberModal()" style="font-weight: bolder; font-size: 14px; color: <?php echo $theme_color?>">add</a> at least one member.</p>';
             }
         }
 
