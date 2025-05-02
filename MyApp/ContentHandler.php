@@ -4758,8 +4758,7 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                                             modules: {
                                                 toolbar: [
                                                     ['bold', 'italic', 'underline'],
-                                                    ['link'],
-                                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }]
+                                                    ['link']
                                                 ]
                                             }
                                         });

@@ -63,7 +63,9 @@
             'department organizational charts',
             'facility',
             'facilitys',
-            'facilities'
+            'facilities',
+            'users',
+            'user'
         ];
         
         // Check for reserved names (case-insensitive and trimmed)
