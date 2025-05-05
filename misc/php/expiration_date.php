@@ -14,7 +14,7 @@ $expirationDateTime = ($isEditMode && isset($contentData['expiration_datetime'])
         name="expiration_datetime" 
         value="<?php echo htmlspecialchars($expirationDateTime); ?>"
         data-is-valid="true">
-    <div id="expiration-success-message" style="display: none; margin-top: 3px; margin-left: 10px; font-size: 14px; padding: 5px"></div>
+    <div id="expiration-success-message" style="display: none; margin-top: 3px; margin-left: 10px; font-size: 14px; "></div>
 </div>    
 
 <!-- Expiration Date & Time Modal -->
