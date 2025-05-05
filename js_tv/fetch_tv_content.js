@@ -1955,6 +1955,59 @@ function createContainerElement(container) {
     return containerDiv;
 }
 
+// Function to check all containers for empty content
+const checkAllContainersForNoContent = () => {
+    // Get all content types from the containers
+    const containers = document.querySelectorAll('[id$="CarouselContainer"]');
+    const contentTypes = Array.from(containers).map(container => 
+        container.id.replace('CarouselContainer', '')
+    );
+    
+    contentTypes.forEach(type => {
+        // Skip types that don't use this check
+        if (type === 'orgchart' || type === 'facility' || type === 'peo' || type === 'so') return;
+
+        // Check if the type has any content
+        const hasContent = contents[`${type}s`] && contents[`${type}s`].length > 0;
+        
+        // Get the container element and its checkbox
+        const containerElement = document.querySelector(`[data-container-id][data-type="${type}"]`);
+        const checkbox = document.querySelector(`input[id^="container_"][id$="${containerElement?.dataset.containerId}"]`);
+        
+        if (containerElement && checkbox) {
+            if (!hasContent && containerElement.style.display !== 'none') {
+                // Hide the container
+                containerElement.style.display = 'none';
+                
+                // Disable and uncheck the checkbox
+                checkbox.checked = false;
+                checkbox.disabled = true;
+                
+                // Send WebSocket message to update visibility in database
+                if (isConnectedToWebSocket && Ws && Ws.readyState === WebSocket.OPEN) {
+                    const containersData = {};
+                    containersData[containerElement.dataset.containerId] = 0;
+                    
+                    const data = {
+                        action: 'show_hide_content',
+                        tv_id: new URLSearchParams(window.location.search).get('tvId'),
+                        containers: containersData
+                    };
+                    
+                    Ws.send(JSON.stringify(data));
+                }
+            } else if (hasContent && containerElement.style.display === 'none') {
+                // Show the container if it has content but is hidden
+                containerElement.style.display = 'block';
+                checkbox.disabled = false;
+            }
+        }
+    });
+};
+
+// Set up periodic checks for empty containers (every 30 seconds)
+setInterval(checkAllContainersForNoContent, 30000);
+
 document.addEventListener('DOMContentLoaded', () => {
     // Get all content types from the containers
     const containers = document.querySelectorAll('[id$="CarouselContainer"]');
@@ -1982,4 +2035,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //     setupFontSizeObserver(type);
     // });
     fetchSmartTVDetails();
+    
+    // Initial check
+    checkAllContainersForNoContent();
 });

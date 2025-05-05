@@ -87,7 +87,7 @@ window.onload = detectDevice;
         <?php foreach ($containers as $container): ?>
             <?php if ($container['type'] !== 'orgchart'):  ?>
                 <?php $containerNameLower = strtolower($container['type']); ?>
-                <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
+                <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" data-type="<?php echo $containerNameLower; ?>"
                     data-x="<?php echo $container['xaxis']; ?>"
                     data-y="<?php echo $container['yaxis']; ?>"
                     style="background: <?php echo $container['parent_background_color']; ?>;
@@ -112,7 +112,7 @@ window.onload = detectDevice;
             <?php endif; ?>
             <?php if ($container['type'] === 'orgchart'):  ?>
                 <?php $containerNameLower = strtolower($container['type']); ?>
-                <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
+                <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" data-type="<?php echo $containerNameLower; ?>"
                     data-x="<?php echo $container['xaxis']; ?>"
                     data-y="<?php echo $container['yaxis']; ?>"
                     style="background: <?php echo $container['parent_background_color']; ?>;
