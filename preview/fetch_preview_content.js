@@ -1,5 +1,134 @@
+let isConnectedToWebSocket = false;
+
 function isIframe() {
     return window.self !== window.top;
+}
+
+function connectWebSocket() {
+    console.log('Attempting WebSocket connection...');
+    
+    // Determine if we're in localhost or production
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname === '192.168.1.12' ||
+                       window.location.hostname === '192.168.1.5';
+    
+    // Choose WebSocket URL based on environment
+    const wsUrl = isLocalhost 
+        ? 'ws://192.168.1.5:8081'
+        : 'wss://usccms.online/ws';
+    
+    try {
+        const ws = new WebSocket(wsUrl);
+        let clientPingInterval;
+        let clientPingTimeout;
+
+        const heartbeat = () => {
+            clearTimeout(clientPingTimeout);
+            clientPingTimeout = setTimeout(() => {
+                // console.log('Client: Connection lost - no pong received');
+                ws.close();
+            }, 20000); // 20 second timeout
+        };
+        
+        ws.onopen = function() {
+            // console.log('Client: WebSocket Connected Successfully to:', wsUrl);
+            isConnectedToWebSocket = true;
+
+            if (!isIframe()) {
+                console.log('Client: Updating TV status to active');
+                // Periodic ping to update last_ping
+                setInterval(() => {
+                    if (isConnectedToWebSocket && Ws && Ws.readyState === WebSocket.OPEN) {
+                        updateTvStatus('active');
+                    }
+                }, 15000); // Send ping every 15 seconds
+            }
+
+            // Client-initiated pings
+            clientPingInterval = setInterval(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    // console.log('Client: Sending ping to server');
+                    ws.send(JSON.stringify({ action: 'ping' }));
+                    heartbeat();
+                }
+            }, 15000); // 15 second interval
+
+            if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
+                loadingWebsocketConnectionModal.style.display = 'none';
+                successWebsocketConnectionModal.style.display = 'flex';
+                successWebsocketConnectionMessage.textContent = 'Server Connected Successfully! Reloading in 3 seconds...';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            }
+        };
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            // Handle ping/pong messages
+            switch(data.action) {
+                case 'ping':
+                    // Respond to server's ping
+                    // console.log('Client: Received ping from server, sending pong!');
+                    ws.send(JSON.stringify({ action: 'pong' }));
+                    return;
+                case 'pong':
+                    // Reset client's heartbeat timeout
+                    // console.log('Client: Received pong from server, resetting heartbeat timeout!');
+                    heartbeat();
+                    return;
+            }
+        };
+        
+        ws.onclose = function(event) {
+            // console.log('Client: WebSocket connection closed');
+            isConnectedToWebSocket = false;
+            clearInterval(clientPingInterval);
+            clearTimeout(clientPingTimeout);
+
+            updateTvStatus('inactive');
+            // console.log('Client: Cleared all timers');
+
+            if (loadingWebsocketConnectionModal) {
+                loadingWebsocketConnectionModal.style.display = 'flex';
+                successWebsocketConnectionModal.style.display = 'none';
+                loadingWebsocketConnectionMessage.textContent = 'Server Disconnected. Reconnecting...';
+            }
+
+            // Attempt to reconnect
+            setTimeout(() => {
+                console.log('Client: Attempting to reconnect.......');
+                Ws = connectWebSocket();
+            }, 5000);
+        };
+        
+        return ws;
+    } catch (error) {
+        console.error('Client: Error creating WebSocket:', error.message);
+        isConnectedToWebSocket = false;
+        
+        loadingWebsocketConnectionModal.style.display = 'none';
+        successWebsocketConnectionModal.style.display = 'flex';
+        successWebsocketConnectionMessage.textContent = 'There was an error connecting to the WebSocket. Please try again later.';
+        setTimeout(() => {
+            Ws = connectWebSocket();
+        }, 5000);
+        return null;
+    }
+}
+
+let Ws = null;
+
+try {
+    Ws = connectWebSocket();
+} catch (error) {
+    console.error('Error initializing WebSocket:', error);
+    console.log('Attempting reconnection in 5 seconds...');
+    setTimeout(() => {
+        Ws = connectWebSocket();
+    }, 5000);
 }
 
 // Modify the preview update event listener
@@ -1287,6 +1416,305 @@ function createContainerElement(container) {
 
     return containerDiv;
 }
+
+Ws.addEventListener('message', function (event) {
+    const data = JSON.parse(event.data);
+
+    if (data.action === 'delete_content' || data.action === 'archive_content' || data.action === 'trash_content') {
+        const type = data.type;
+        const id = data[`${type}_id`]; 
+
+        if (type == 'orgchart') {
+            // Refresh TV since there's an issue for the orgchart when posting it
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                location.reload();
+            }
+        } else {
+            const removeContent = (type, id) => {
+                const contentDiv = document.querySelector(`[data-${type}-id="${id}"]`);
+                if (contentDiv) {
+                    const indexToRemove = contents[`${type}s`].findIndex(item => item.dataset[`${type}Id`] === id);
+                    if (indexToRemove !== 0) {
+                        contents[`${type}s`].splice(indexToRemove, 1); // Remove from the array
+                        currentIndex[type] = Math.max(0, currentIndex[type] - 1); // Adjust the current index
+                    }
+                    contentDiv.remove(); // Remove from DOM
+                    fetchAndUpdateContents(type);
+                }
+            };
+    
+            if (data.success) {
+                removeContent(type, id); // Call the helper function
+            } 
+        } 
+    } else if (data.action === 'restore_content' || data.action === 'restore_content_and_update_expiration') {
+        if (data.type === 'announcement') {
+            fetchAndUpdateContents('announcement');
+        } else if (data.type === 'event') {
+            fetchAndUpdateContents('event');
+        } else if (data.type === 'news') {
+            fetchAndUpdateContents('news');
+        } else if (data.type === 'promaterial') {
+            fetchAndUpdateContents('promaterial');
+        } else if (data.type === 'peo') {
+            fetchAndUpdateContents('peo');
+        } else if (data.type === 'so') {
+            fetchAndUpdateContents('so');
+        } else {
+            // For new features 
+            // Refresh TV since there's an issue for the new feature when posting it
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                location.reload();
+            }
+        }
+    } else if (data.action === 'update_content') {
+        if (data.type === 'announcement') {
+            fetchAndUpdateContents('announcement');
+        } else if (data.type === 'event') {
+            fetchAndUpdateContents('event');
+        } else if (data.type === 'news') {
+            fetchAndUpdateContents('news');
+        } else if (data.type === 'promaterial') {
+            fetchAndUpdateContents('promaterial');
+        } else if (data.type === 'peo') {
+            fetchAndUpdateContents('peo');
+        } else if (data.type === 'so') {
+            fetchAndUpdateContents('so');
+        } else if (data.type === 'orgchart') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
+                location.reload();
+            }
+        } else {
+            // For new features 
+            const type = data.type;
+            fetchAndUpdateContents(type);
+        }
+    } else if (data.action === 'post_content') {
+        if (data.type === 'announcement') {
+            fetchAndUpdateContents('announcement');
+        } else if (data.type === 'event') {
+            fetchAndUpdateContents('event');
+        } else if (data.type === 'news') {
+            fetchAndUpdateContents('news');
+        } else if (data.type === 'promaterial') {
+            fetchAndUpdateContents('promaterial');
+        } else if (data.type === 'peo') {
+            fetchAndUpdateContents('peo');
+        } else if (data.type === 'so') {
+            fetchAndUpdateContents('so');
+        } else if (data.type === 'orgchart') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
+                location.reload();
+            }
+        } else if (data.type === 'facility') {
+            // Refresh TV since there's an issue for the facility when posting it
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
+                location.reload();
+            }
+        } else {
+            // For new features 
+            const type = data.type;
+            fetchAndUpdateContents(type);
+        }
+    } else if (data.action === 'approve_post') {
+        const type = data.content_type || data.type;
+        
+        // Fetch and update the content immediately
+        setTimeout(() => {
+            fetchAndUpdateContents(type);
+        }, 500);
+    } else if (data.action === 'edit_smart_tv' || data.action === 'delete_user' || data.action === 'user_deleted' || data.action === 'edit_user' || data.action === 'user_edited') {
+        location.reload();
+        // fetchSmartTVDetails();
+    } else if (data.action === 'delete_feature') {
+        // When a feature is deleted, reload all TV screens
+        location.reload();
+    } else if (data.action === 'delete_smart_tv') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tvId = urlParams.get('tvId');
+        if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+            location.reload();
+        }
+    } else if (data.action === 'update_topbar_position') {
+        if (data.success) {
+            const topbarElement = document.getElementById('topbar');
+            const mainContainer = document.getElementById('main-container');
+            
+            // Remove topbar from its current position
+            topbarElement.remove();
+            
+            if (data.topbar_position === 'top') {
+                // Insert before main container
+                mainContainer.parentNode.insertBefore(topbarElement, mainContainer);
+            } else {
+                // Insert after main container
+                mainContainer.parentNode.insertBefore(topbarElement, mainContainer.nextSibling);
+            }
+        }
+    } else if (data.action === 'update_department_logo') {
+        if (data.success) {
+            const departmentLogoTopbar = document.getElementById('department_logo_topbar');
+            departmentLogoTopbar.src = '';
+            departmentLogoTopbar.src = data.department_logo_path;
+        }
+    } else if (data.action === 'update_background_image') {
+        if (data.success) {
+            const backgroundElement = document.getElementById('tvBackgroundColor');
+            backgroundElement.style.backgroundImage = '';
+            backgroundElement.style.backgroundImage = `url('servers/tv_backgrounds/${data.tv_id}/${data.background_image_path}')`;
+        }
+    } else if (data.action === 'update_background_type') {
+        if (data.success) {
+            const backgroundElement = document.getElementById('tvBackgroundColor');
+            if (data.isStaticBackground == 1) {
+                // Handle static background color
+                backgroundElement.style.background = data.background_hex_color;
+                // Clear any existing background image
+                backgroundElement.style.backgroundImage = '';
+                backgroundElement.style.backgroundSize = '';
+                backgroundElement.style.backgroundPosition = '';
+                backgroundElement.style.backgroundRepeat = '';
+            } else if (data.isImageBackground == 1) {
+                // Handle background image
+                backgroundElement.style.backgroundImage = `url('servers/tv_backgrounds/${data.tv_id}/${data.background_image_path}')`;
+                backgroundElement.style.backgroundSize = 'cover';
+                backgroundElement.style.backgroundPosition = 'center';
+                backgroundElement.style.backgroundRepeat = 'no-repeat';
+                // Clear any existing background color
+            }
+        }
+    } else if (data.action === 'update_container_positions') {
+        if (data.success) {
+            const containers = data.containers;
+            containers.forEach(container => {
+                const containerElement = document.querySelector(`[data-container-id="${container.container_id}"]`);
+                if (containerElement) {
+                    containerElement.style.transform = `translate(${container.xaxis}px, ${container.yaxis}px)`;
+                    containerElement.style.height = `${container.height_px}px`;
+                    containerElement.style.width = `${container.width_px}px`;
+                }
+            });
+        }
+    } else if (data.action === 'show_hide_content') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tvId = urlParams.get('tvId');
+        if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+            location.reload();
+        }
+        // TODO: Fix this
+        // if (data.success) {
+        //     const containers = data.containers;
+        //     const mainContainer = document.getElementById('main-container');
+            
+        //     containers.forEach(container => {
+        //         const containerElement = document.querySelector(`[data-container-id="${container.container_id}"]`);
+        //         const type = container.type;
+                
+        //         if (container.visible == 0 && containerElement) {
+        //             // Remove container from DOM if it's being hidden
+        //             containerElement.remove();
+                    
+        //             // Clear its content array
+        //             contents[`${type}s`] = [];
+                    
+        //             // Clear any existing intervals
+        //             if (displayTimeIntervals[type]) {
+        //                 clearInterval(displayTimeIntervals[type]);
+        //                 displayTimeIntervals[type] = null;
+        //             }
+        //         } else if (container.visible == 1 && !containerElement) {
+        //             // Create and add the new container
+        //             const newContainer = createContainerElement(container);
+        //             mainContainer.appendChild(newContainer);
+                    
+        //             // Initialize the content for this container
+        //             currentIndex[type] = 0;
+        //             contents[`${type}s`] = [];
+        //             displayTimeIntervals[type] = null;
+                    
+        //             // Fetch and load content for the new container
+        //             fetchAndUpdateContents(type);
+        //         }
+        //     });
+        // }
+    } else if (data.action === 'update_background_color') {
+        if (data.success) {
+            const backgroundElement = document.getElementById('tvBackgroundColor');
+            backgroundElement.style.backgroundColor = data.background_hex_color;
+        }
+    } else if (data.action === 'update_container_colors') {
+        if (data.success) {
+            const containers = data.containers;
+            containers.forEach(container => {
+                const containerElement = document.querySelector(`[data-container-id="${container.container_id}"]`);
+                if (containerElement) {
+                    containerElement.style.backgroundColor = container.parent_background_color;
+                    const titleElement = containerElement.querySelector('.content-title');
+                    if (titleElement) {
+                        titleElement.style.color = container.parent_font_color;
+                        titleElement.style.fontFamily = container.parent_font_family;
+                        titleElement.style.fontStyle = container.parent_font_style;
+                    }
+
+                    // Update the carousel container styles
+                    const { carouselContainer } = getContainerElements(container.type); // Get the carousel container
+                    if (carouselContainer) {
+                        carouselContainer.style.backgroundColor = container.child_background_color; // Change the background color
+                        carouselContainer.style.color = container.child_font_color; // Change the text color
+                        carouselContainer.style.fontFamily = container.child_font_family; // Change the font family
+                        carouselContainer.style.fontStyle = container.child_font_style; // Change the font style
+                    } else {
+                        console.error(`Carousel container not found for type: ${container.type}`);
+                    }
+                } else {
+                    // console.error(`Container not found for ID: ${container.container_id}`);
+                }
+            });
+        }
+    } else if (data.action === 'update_topbar_color') {
+        if (data.success) {
+            const topbarElement = document.getElementById('topbar');
+            if (topbarElement) {
+                topbarElement.style.backgroundColor = data.topbar_hex_color;
+                topbarElement.querySelector('.tv-name').style.color = data.topbar_tvname_font_color;
+                topbarElement.querySelector('.tv-name').style.fontStyle = data.topbar_tvname_font_style;
+                topbarElement.querySelector('.tv-name').style.fontFamily = data.topbar_tvname_font_family;
+
+                topbarElement.querySelector('.tv-id').style.color = data.topbar_tvid_font_color;
+                topbarElement.querySelector('.tv-id').style.fontStyle = data.topbar_tvid_font_style;
+                topbarElement.querySelector('.tv-id').style.fontFamily = data.topbar_tvid_font_family;
+
+                topbarElement.querySelector('.time').style.color = data.topbar_time_font_color;
+                topbarElement.querySelector('.time').style.fontStyle = data.topbar_time_font_style;
+                topbarElement.querySelector('.time').style.fontFamily = data.topbar_time_font_family;
+
+                topbarElement.querySelector('.date').style.color = data.topbar_date_font_color;
+                topbarElement.querySelector('.date').style.fontStyle = data.topbar_date_font_style;
+                topbarElement.querySelector('.date').style.fontFamily = data.topbar_date_font_family;
+            }
+        }
+    } else if (data.action === 'save_layout') {
+        if (data.success) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            const message = JSON.stringify({ action: 'load_layout', tv_id: tvId });
+            Ws.send(message);
+        }
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchSmartTVDetails();

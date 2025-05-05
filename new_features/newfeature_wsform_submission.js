@@ -161,6 +161,31 @@ function sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, i
         if (message.action === 'post_content' || message.action === 'update_content') {
             if (message.success === true) {
                 loadingModal.style.display = 'none';
+
+                const contentType = document.querySelector('[name="type"]').value;
+
+                // Send email notification for new posts from Student, Faculty, or Staff
+                if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
+                    // Send email notification
+                    const emailData = new FormData();
+                    emailData.append('content_type', contentType);
+                    emailData.append('author_name', full_name);
+                    emailData.append('author_type', userType);
+                    emailData.append('author_department', userDepartment);
+
+                    fetch('send_pending_content_email.php', {
+                        method: 'POST',
+                        body: emailData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Email notification status:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error sending email notification:', error);
+                    });
+                }
+                
                 if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
                     document.getElementById('successMessageVersion2').textContent = isEditMode 
                         ? `Your post has been updated and will be reviewed by an admin.`

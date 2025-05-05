@@ -277,9 +277,9 @@ body {
 
 .custom-node {
     padding: 3px;
-    border-radius: 6px;
+    border-radius: 15px;
     background-color: white;
-    border: 1px solid #000000;
+    border: 3px solid #000000;
     display: flex;
     flex-direction: column;
     gap: 3px;
