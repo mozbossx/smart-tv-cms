@@ -115,7 +115,6 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
         .form-fields {
             display: flex;
             flex-direction: column;
-            gap: 0.7rem;
             margin-bottom: 5px;
         }
 
@@ -139,6 +138,16 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
         .form-field {
             position: relative;
             box-sizing: border-box;
+            margin-bottom: 2px;
+        }
+
+        .validation-message {
+            display: none;
+            color: #666;
+            font-size: 0.7rem;
+            padding-left: 10px;
+            margin-bottom: 8px;
+            text-align: left;
         }
 
         .form-field input[type="password"] {
@@ -296,21 +305,25 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
             <span class="close" onclick="closeModal('changePassword')"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
             <h1 style="text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-unlock"></i> Change Password</h1>
             <form action="change_password.php" method="POST" enctype="multipart/form-data" id="changePasswordForm">
-                <div class="form-fields">
+                <div class="form-fields" style="margin-bottom: 0.2rem;">
                     <div class="form-field">
                         <i class="bi bi-lock"></i>
-                        <input type="password" name="password" required placeholder="Password" minlength="6">
+                        <input type="password" name="password" required placeholder="Password" minlength="6" id="passwordInput">
                         <span class="toggle-password">
                             <i class="bi bi-eye-slash" id="togglePassword"></i>
                         </span>
                     </div>
-                    <div class="form-field">
+                    <div class="validation-message" id="passwordValidation">Password must be at least 6 characters long</div>
+
+                    <div class="form-field" style="margin-top: 5px;">
                         <i class="bi bi-lock"></i>
-                        <input type="password" name="confirm_password" required placeholder="Confirm Password" minlength="6">
+                        <input type="password" name="confirm_password" required placeholder="Confirm Password" minlength="6" id="confirmPasswordInput">
                         <span class="toggle-password">
                             <i class="bi bi-eye-slash" id="toggleConfirmPassword"></i>
                         </span>
                     </div>
+                    <div class="validation-message" id="confirmPasswordValidation">Passwords must match</div>
+
                     <div style="display: none; height: 0">
                         <input type="hidden" name="user_id" value="<?php echo $user_id; ?>" readonly>
                     </div>
@@ -340,5 +353,72 @@ $success_message = isset($_GET['success']) ? $_GET['success'] : null;
         </div>
     </div>
     <script src="js/fetch_myprofile.js"></script>
+    <script>
+        // Existing password toggle code
+        const togglePassword = document.querySelector("#togglePassword");
+        const toggleConfirmPassword = document.querySelector("#toggleConfirmPassword");
+        const passwordInput = document.querySelector("[name='password']");
+        const confirmPasswordInput = document.querySelector("[name='confirm_password']");
+
+        togglePassword.addEventListener("click", function () {
+            const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+            passwordInput.setAttribute("type", type);
+            this.classList.toggle("bi-eye");
+            this.classList.toggle("bi-eye-slash");
+        });
+
+        toggleConfirmPassword.addEventListener("click", function () {
+            const type = confirmPasswordInput.getAttribute("type") === "password" ? "text" : "password";
+            confirmPasswordInput.setAttribute("type", type);
+            this.classList.toggle("bi-eye");
+            this.classList.toggle("bi-eye-slash");
+        });
+
+        // New validation code
+        const passwordValidation = document.getElementById('passwordValidation');
+        const confirmPasswordValidation = document.getElementById('confirmPasswordValidation');
+
+        let passwordHasBeenFocused = false;
+        let confirmPasswordHasBeenFocused = false;
+
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
+        function validateConfirmPassword() {
+            return passwordInput.value === confirmPasswordInput.value;
+        }
+
+        function updatePasswordValidation() {
+            if (passwordHasBeenFocused) {
+                passwordValidation.style.display = validatePassword(passwordInput.value) ? "none" : "block";
+            }
+        }
+
+        function updateConfirmPasswordValidation() {
+            if (confirmPasswordHasBeenFocused) {
+                confirmPasswordValidation.style.display = validateConfirmPassword() ? "none" : "block";
+            }
+        }
+
+        passwordInput.addEventListener("focus", () => {
+            passwordHasBeenFocused = true;
+            updatePasswordValidation();
+        });
+        passwordInput.addEventListener("input", () => {
+            updatePasswordValidation();
+            if (confirmPasswordHasBeenFocused) {
+                updateConfirmPasswordValidation();
+            }
+        });
+        passwordInput.addEventListener("blur", updatePasswordValidation);
+
+        confirmPasswordInput.addEventListener("focus", () => {
+            confirmPasswordHasBeenFocused = true;
+            updateConfirmPasswordValidation();
+        });
+        confirmPasswordInput.addEventListener("input", updateConfirmPasswordValidation);
+        confirmPasswordInput.addEventListener("blur", updateConfirmPasswordValidation);
+    </script>
 </body>
 </html>

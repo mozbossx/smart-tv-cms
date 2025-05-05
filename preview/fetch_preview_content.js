@@ -309,12 +309,12 @@ function createPreviewContent(data, type) {
                     </div>
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${formattedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -332,12 +332,12 @@ function createPreviewContent(data, type) {
                     </div>
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${formattedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -355,12 +355,12 @@ function createPreviewContent(data, type) {
                     </div>
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${formattedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -373,12 +373,12 @@ function createPreviewContent(data, type) {
                     ${mediaContent ? `<div class="media-container" style="height: 100%; display: flex; align-items: center; justify-content: center; max-height: 100%">${mediaContent}</div>` : '<div style="text-align: center; padding: 20px;">No media content</div>'}
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${formattedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -400,15 +400,12 @@ function createPreviewContent(data, type) {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right">
-                                    <i class="fa fa-hourglass-half" aria-hidden="true"></i> 
-                                    <span class="time-left">${data.display_time}s</span>
-                                </p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -436,15 +433,12 @@ function createPreviewContent(data, type) {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right">
-                                    <i class="fa fa-hourglass-half" aria-hidden="true"></i> 
-                                    <span class="time-left">${data.display_time}s</span>
-                                </p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -465,15 +459,12 @@ function createPreviewContent(data, type) {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right">
-                                    <i class="fa fa-hourglass-half" aria-hidden="true"></i> 
-                                    <span class="time-left">${data.display_time}s</span>
-                                </p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -493,15 +484,12 @@ function createPreviewContent(data, type) {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right">
-                                    <i class="fa fa-hourglass-half" aria-hidden="true"></i> 
-                                    <span class="time-left">${data.display_time}s</span>
-                                </p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -523,15 +511,12 @@ function createPreviewContent(data, type) {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Preview</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right">
-                                    <i class="fa fa-hourglass-half" aria-hidden="true"></i>
-                                    <span class="time-left">${data.display_time}s</span>
-                                </p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -603,12 +588,12 @@ function createPreviewContent(data, type) {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -624,12 +609,12 @@ function createPreviewContent(data, type) {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -666,12 +651,12 @@ function createPreviewContent(data, type) {
                         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px; display: block;">${mediaContent}</div>` : ''}
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -769,12 +754,12 @@ function createPreviewContent(data, type) {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -793,12 +778,12 @@ function createPreviewContent(data, type) {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${formattedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -911,15 +896,11 @@ function applyTextFitting(type, id) {
 // Function to get the containers based on type
 const getContainerElements = (type) => {
     const carouselContainer = document.getElementById(`${type}CarouselContainer`);
-    const pageNumberContainer = document.getElementById(`${type}PageNumberContainer`);
     const containerName = document.getElementById(`${type}ContainerName`);
 
     // Check if the containers are found
     if (!carouselContainer) {
         console.error(`Carousel container for ${type} not found from getContainerElements in fetch_tv_content.js.`);
-    }
-    if (!pageNumberContainer) {
-        console.error(`Page number container for ${type} not found from getContainerElements in fetch_tv_content.js.`);
     }
 
     if (!containerName) {
@@ -928,7 +909,6 @@ const getContainerElements = (type) => {
 
     return {
         carouselContainer,
-        pageNumberContainer,
         containerName
     };
 };
@@ -1301,18 +1281,9 @@ function createContainerElement(container) {
     carouselDiv.style.fontFamily = container.child_font_family;
     carouselDiv.style.fontStyle = container.child_font_style;
 
-    // Create page number container
-    const pageNumberDiv = document.createElement('div');
-    pageNumberDiv.id = `${container.type}PageNumberContainer`;
-    pageNumberDiv.className = 'page-number';
-    pageNumberDiv.style.color = container.parent_font_color;
-    pageNumberDiv.style.fontFamily = container.parent_font_family;
-    pageNumberDiv.style.fontStyle = container.parent_font_style;
-
     // Assemble the container
     containerDiv.appendChild(titleDiv);
     containerDiv.appendChild(carouselDiv);
-    containerDiv.appendChild(pageNumberDiv);
 
     return containerDiv;
 }

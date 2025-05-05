@@ -569,11 +569,11 @@ $displayInterval = $displayTimeRange['display_interval'];
         background: <?php echo $light_theme_color_70_percent; ?>;
         color: <?php echo $theme_color; ?>;
     }
-    .open-sidebar-button.open, #updateTemplateButton {
+    .open-sidebar-button.open, #updateTemplateButton, #autoTileButton {
         background: <?php echo $dark_theme_color_50_percent; ?>;
         color: white;
     }
-    .open-sidebar-button.open:hover, #updateTemplateButton:hover {
+    .open-sidebar-button.open:hover, #updateTemplateButton:hover, #autoTileButton:hover {
         background: <?php echo $dark_theme_color_60_percent; ?>;
         color: white;
     }

@@ -141,7 +141,6 @@ if (isset($_POST['submit'])) {
         .form-fields {
             display: flex;
             flex-direction: column;
-            gap: 0.7rem;
             margin-bottom: 5px;
         }
 
@@ -165,6 +164,7 @@ if (isset($_POST['submit'])) {
         .form-field {
             position: relative;
             box-sizing: border-box;
+            margin-bottom: 2px;
         }
 
         .form-field input[type="password"] {
@@ -263,6 +263,14 @@ if (isset($_POST['submit'])) {
                 font-size: 1.5rem;
             }
         }
+
+        .validation-message {
+            display: none;
+            color: #666;
+            font-size: 0.7rem;
+            padding-left: 10px;
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body class="login-page">
@@ -285,14 +293,16 @@ if (isset($_POST['submit'])) {
                             <i class="bi bi-envelope"></i>
                             <input type="email" name="email" required placeholder="USC Email" value="<?php echo $email; ?>">
                         </div>
+                        <div class="validation-message" id="emailValidation">Email must contain @usc.edu.ph</div>
                         
-                        <div class="form-field">
+                        <div class="form-field" style="margin-top: 5px;">
                             <i class="bi bi-lock"></i>
                             <input type="password" name="password" required placeholder="Password" value="<?php echo $password; ?>" minlength="6">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="togglePasswordVisible"></i>
                             </span>
                         </div>
+                        <div class="validation-message" id="passwordValidation">Password must be at least 6 characters long</div>
                         
                         
                     </div>
@@ -319,6 +329,54 @@ if (isset($_POST['submit'])) {
             this.classList.toggle("bi-eye");
             this.classList.toggle("bi-eye-slash");
         });
+
+        const emailInput = document.querySelector("[name='email']");
+        const passwordInput = document.querySelector("[name='password']");
+        const emailValidation = document.getElementById("emailValidation");
+        const passwordValidation = document.getElementById("passwordValidation");
+
+        let emailHasBeenFocused = false;
+        let passwordHasBeenFocused = false;
+
+        function validateEmail(email) {
+            return email.includes("@usc.edu.ph");
+        }
+
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
+        function updateEmailValidation() {
+            if (emailHasBeenFocused) {
+                emailValidation.style.display = validateEmail(emailInput.value) ? "none" : "block";
+            }
+        }
+
+        function updatePasswordValidation() {
+            if (passwordHasBeenFocused) {
+                passwordValidation.style.display = validatePassword(passwordInput.value) ? "none" : "block";
+            }
+        }
+
+        emailInput.addEventListener("focus", () => {
+            emailHasBeenFocused = true;
+            updateEmailValidation();
+        });
+
+        emailInput.addEventListener("input", updateEmailValidation);
+        emailInput.addEventListener("blur", updateEmailValidation);
+
+        passwordInput.addEventListener("focus", () => {
+            passwordHasBeenFocused = true;
+            updatePasswordValidation();
+        });
+
+        passwordInput.addEventListener("input", updatePasswordValidation);
+        passwordInput.addEventListener("blur", updatePasswordValidation);
+
+        // Hide validation messages initially
+        emailValidation.style.display = "none";
+        passwordValidation.style.display = "none";
     </script>
 
 </body>

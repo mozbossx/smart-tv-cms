@@ -239,8 +239,9 @@ $conn->close();
                                 </div>
                             </div>
                             <div class="scale-buttons-2" style="z-index: 1">
-                                <button type="button" id="openSidebarButton" class="open-sidebar-button open" style="width: 80px;" onclick="openSidebar()">Open <i class="fa fa-chevron-right"></i></button>
-                                <button type="button" id="updateTemplateButton" style="display: none; width: 80px;">Save <i class="fa fa-floppy-o"></i></button>
+                                <button type="button" id="openSidebarButton" class="open-sidebar-button open" style="width: 90px;" onclick="openSidebar()">Open <i class="fa fa-chevron-right"></i></button>
+                                <button type="button" id="autoTileButton" style="width: 90px;">Auto <i class="fa fa-th"></i></button>
+                                <button type="button" id="updateTemplateButton" style="display: none; width: 90px;">Save <i class="fa fa-floppy-o"></i></button>
                             </div>
                             <!-- TV Bar Customization Left-side panel -->
                             <div id="topbarLeftSidePanel" class="left-side-panel" >
@@ -824,24 +825,6 @@ $conn->close();
                 floatingMenu.style.top = `${adjustedY}px`;
             }
 
-            // function showFloatingMenuAtPosition(x, y) {
-            //     console.log('Showing menu at:', x, y); // Debug log
-            //     const floatingMenu = document.getElementById('floatingMenu');
-            //     const iframe = document.getElementById('tv-iframe');
-            //     const iframeRect = iframe.getBoundingClientRect();
-            //     const scale = parseFloat(document.querySelector('.scale-slider').value);
-                
-            //     // Calculate position relative to the iframe
-            //     const adjustedX = iframeRect.left + (x * scale);
-            //     const adjustedY = iframeRect.top + (y * scale);
-
-            //     floatingMenu.style.display = 'block';
-            //     floatingMenu.style.position = 'fixed';
-            //     floatingMenu.style.zIndex = '1000';
-            //     floatingMenu.style.left = `${adjustedX}px`;
-            //     floatingMenu.style.top = `${adjustedY}px`;
-            // }
-
             const backgroundImageInput = document.getElementById('media');
             const imagePreview = document.getElementById('background_image_preview');
             backgroundImageInput.addEventListener('change', function(e) {
@@ -1137,6 +1120,98 @@ $conn->close();
                     Ws.send(JSON.stringify(data));
                 });
             });
+
+            // Auto-tiling functionality
+            const autoTileButton = document.getElementById('autoTileButton');
+            
+            function autoTileContainers() {
+                const iframe = document.getElementById('tv-iframe');
+                const iframeContent = iframe.contentWindow;
+                const containers = iframeContent.document.querySelectorAll('.content-container');
+                const mainContainer = iframeContent.document.querySelector('.main-container');
+                
+                if (!mainContainer || containers.length === 0) return;
+                
+                const GAP = 3.5; // Gap between containers and from edges
+                const mainRect = mainContainer.getBoundingClientRect();
+                const containerArray = Array.from(containers).filter(container => 
+                    container.style.display !== 'none'
+                );
+                
+                const numContainers = containerArray.length;
+                if (numContainers === 0) return;
+
+                // Calculate available space considering gaps
+                const availableWidth = mainRect.width - (GAP * 2); // Account for left and right edge gaps
+                const availableHeight = mainRect.height - (GAP * 2); // Account for top and bottom edge gaps
+
+                // Handle different layout cases based on number of visible containers
+                if (numContainers === 1) {
+                    // Single container - fill entire space with gaps
+                    const container = containerArray[0];
+                    container.style.width = `${availableWidth}px`;
+                    container.style.height = `${availableHeight}px`;
+                    container.style.transform = `translate(${GAP}px, ${GAP}px)`;
+                    container.setAttribute('data-x', GAP);
+                    container.setAttribute('data-y', GAP);
+                } 
+                else if (numContainers === 2) {
+                    // Two containers - split horizontally with equal width
+                    const containerWidth = (availableWidth - GAP) / 2; // Account for gap between containers
+                    const containerHeight = availableHeight;
+                    
+                    containerArray.forEach((container, index) => {
+                        container.style.width = `${containerWidth}px`;
+                        container.style.height = `${containerHeight}px`;
+                        const x = GAP + (index * (containerWidth + GAP));
+                        container.style.transform = `translate(${x}px, ${GAP}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', GAP);
+                    });
+                }
+                else if (numContainers === 3) {
+                    // Three containers - split horizontally with equal width
+                    const containerWidth = (availableWidth - (GAP * 2)) / 3; // Account for gaps between containers
+                    const containerHeight = availableHeight;
+                    
+                    containerArray.forEach((container, index) => {
+                        container.style.width = `${containerWidth}px`;
+                        container.style.height = `${containerHeight}px`;
+                        const x = GAP + (index * (containerWidth + GAP));
+                        container.style.transform = `translate(${x}px, ${GAP}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', GAP);
+                    });
+                }
+                else {
+                    // More than 3 containers - create a grid layout
+                    const numColumns = 3; // Maximum 3 columns
+                    const numRows = Math.ceil(numContainers / numColumns);
+                    
+                    const containerWidth = (availableWidth - (GAP * (numColumns - 1))) / numColumns;
+                    const containerHeight = (availableHeight - (GAP * (numRows - 1))) / numRows;
+                    
+                    containerArray.forEach((container, index) => {
+                        const row = Math.floor(index / numColumns);
+                        const col = index % numColumns;
+                        
+                        container.style.width = `${containerWidth}px`;
+                        container.style.height = `${containerHeight}px`;
+                        
+                        const x = GAP + (col * (containerWidth + GAP));
+                        const y = GAP + (row * (containerHeight + GAP));
+                        
+                        container.style.transform = `translate(${x}px, ${y}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', y);
+                    });
+                }
+                
+                // Show update button since layout has changed
+                showUpdateButton();
+            }
+            
+            autoTileButton.addEventListener('click', autoTileContainers);
         });
     </script>
 </body>

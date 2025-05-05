@@ -174,7 +174,7 @@ include 'misc/php/options_tv.php';
                                     </div>
                                     <input type="hidden" name="facility_body" id="facilityBodyHiddenInput">
                                 </div>
-                                <div class="form-row">
+                                <div class="form-column">
                                     <?php 
                                         $type = 'facility';
                                     ?>
@@ -203,6 +203,7 @@ include 'misc/php/options_tv.php';
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo !empty($tv_names) ? json_encode($tv_names) : '{}'; ?>; 
+        const userDepartment = <?php echo json_encode($department); ?>;
     </script>
     <script>
         let currentSlide = 0;

@@ -144,13 +144,21 @@ if (isset($_POST["submit"])) {
         .form-fields {
             display: flex;
             flex-direction: column;
-            gap: 0.6rem;
             margin-bottom: 1.8rem;
         }
 
         .form-field {
             position: relative;
             box-sizing: border-box;
+            margin-bottom: 2px;
+        }
+
+        .validation-message {
+            display: none;
+            color: #666;
+            font-size: 0.7rem;
+            padding-left: 10px;
+            margin-bottom: 8px;
         }
 
         .toggle-password {
@@ -299,21 +307,24 @@ if (isset($_POST["submit"])) {
                 <p class="forgot-password-subheading">Please enter your new password.</p>
                 <?php include('error_message.php'); ?>
                 <form action="" method="post">
-                    <div class="form-fields">
+                    <div class="form-fields" style="margin-bottom: 1rem;">
                         <div class="form-field">
                             <i class="bi bi-lock"></i>
-                            <input type="password" name="new_password" required placeholder="Password" value="<?php echo $new_password; ?>" minlength="6">
+                            <input type="password" name="new_password" required placeholder="Password" value="<?php echo $new_password; ?>" minlength="6" id="passwordInput">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="togglePasswordVisible"></i>
                             </span>
                         </div>
-                        <div class="form-field">
+                        <div class="validation-message" id="passwordValidation">Password must be at least 6 characters long</div>
+
+                        <div class="form-field" style="margin-top: 5px;">
                             <i class="bi bi-lock"></i>
-                            <input type="password" name="confirm_new_password" required placeholder="Confirm Password" value="<?php echo $confirm_new_password; ?>" minlength="6">
+                            <input type="password" name="confirm_new_password" required placeholder="Confirm Password" value="<?php echo $confirm_new_password; ?>" minlength="6" id="confirmPasswordInput">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="toggleConfirmPassword"></i>
                             </span>
                         </div>
+                        <div class="validation-message" id="confirmPasswordValidation">Passwords must match</div>
                     </div>
                     
                     <div class="button-flex">
@@ -388,6 +399,53 @@ if (isset($_POST["submit"])) {
             exit;
         });
 
+        // New validation code
+        const passwordInput = document.getElementById('passwordInput');
+        const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+        const passwordValidation = document.getElementById('passwordValidation');
+        const confirmPasswordValidation = document.getElementById('confirmPasswordValidation');
+
+        let passwordHasBeenFocused = false;
+        let confirmPasswordHasBeenFocused = false;
+
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
+        function validateConfirmPassword() {
+            return passwordInput.value === confirmPasswordInput.value;
+        }
+
+        function updatePasswordValidation() {
+            if (passwordHasBeenFocused) {
+                passwordValidation.style.display = validatePassword(passwordInput.value) ? "none" : "block";
+            }
+        }
+
+        function updateConfirmPasswordValidation() {
+            if (confirmPasswordHasBeenFocused) {
+                confirmPasswordValidation.style.display = validateConfirmPassword() ? "none" : "block";
+            }
+        }
+
+        passwordInput.addEventListener("focus", () => {
+            passwordHasBeenFocused = true;
+            updatePasswordValidation();
+        });
+        passwordInput.addEventListener("input", () => {
+            updatePasswordValidation();
+            if (confirmPasswordHasBeenFocused) {
+                updateConfirmPasswordValidation();
+            }
+        });
+        passwordInput.addEventListener("blur", updatePasswordValidation);
+
+        confirmPasswordInput.addEventListener("focus", () => {
+            confirmPasswordHasBeenFocused = true;
+            updateConfirmPasswordValidation();
+        });
+        confirmPasswordInput.addEventListener("input", updateConfirmPasswordValidation);
+        confirmPasswordInput.addEventListener("blur", updateConfirmPasswordValidation);
     </script>
 </body>
 </html>

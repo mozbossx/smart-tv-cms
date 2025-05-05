@@ -47,22 +47,25 @@
         // Get the content based on the type
         if (selectedType === 'announcement') {
             contentBody = quillEditors.announcementBodyQuill.root.innerHTML.trim();
+            const textContent = contentBody.replace(/<[^>]*>/g, '').trim();
             // Validate announcement requires text content
-            if (contentBody === "" || contentBody === "<p><br></p>") {
+            if (contentBody === "" || contentBody === "<p><br></p>" || !textContent) {
                 errorModalMessage("Please provide the announcement text content.");
                 return;
             }
         } else if (selectedType === 'event') {
             contentBody = quillEditors.eventBodyQuill.root.innerHTML.trim();
-            // Validate event requires text content
-            if (contentBody === "" || contentBody === "<p><br></p>") {
+            const textContent = contentBody.replace(/<[^>]*>/g, '').trim();
+            // Validate announcement requires text content
+            if (contentBody === "" || contentBody === "<p><br></p>" || !textContent) {
                 errorModalMessage("Please provide the event text content.");
                 return;
             }
         } else if (selectedType === 'news') {
             contentBody = quillEditors.newsBodyQuill.root.innerHTML.trim();
-            // Validate news requires text content
-            if (contentBody === "" || contentBody === "<p><br></p>") {
+            const textContent = contentBody.replace(/<[^>]*>/g, '').trim();
+            // Validate announcement requires text content
+            if (contentBody === "" || contentBody === "<p><br></p>" || !textContent) {
                 errorModalMessage("Please provide the news text content.");
                 return;
             }
@@ -72,10 +75,37 @@
             peoTitle = quillEditors.peoTitleQuill.root.innerHTML.trim();
             peoDescription = quillEditors.peoDescriptionQuill.root.innerHTML.trim();
             peoSubdescription = quillEditors.peoSubdescriptionQuill.root.innerHTML.trim();
+
+            // Validate PEO content
+            const peoTitleText = peoTitle.replace(/<[^>]*>/g, '').trim();
+            const peoDescriptionText = peoDescription.replace(/<[^>]*>/g, '').trim();
+
+            if (!peoTitleText || peoTitle === "<p><br></p>") {
+                errorModalMessage("Please provide the PEO title.");
+                return;
+            }
+            if (!peoDescriptionText || peoDescription === "<p><br></p>") {
+                errorModalMessage("Please provide the PEO description.");
+                return;
+            }
+
         } else if (selectedType === 'so') {
             soTitle = quillEditors.soTitleQuill.root.innerHTML.trim();
             soDescription = quillEditors.soDescriptionQuill.root.innerHTML.trim();
             soSubdescription = quillEditors.soSubdescriptionQuill.root.innerHTML.trim();
+
+            // Validate SO content
+            const soTitleText = soTitle.replace(/<[^>]*>/g, '').trim();
+            const soDescriptionText = soDescription.replace(/<[^>]*>/g, '').trim();
+
+            if (!soTitleText || soTitle === "<p><br></p>") {
+                errorModalMessage("Please provide the SO title.");
+                return;
+            }
+            if (!soDescriptionText || soDescription === "<p><br></p>") {
+                errorModalMessage("Please provide the SO description.");
+                return;
+            }
         } else {
             // Handle new feature types
             // First look for any Quill editor in the window.quillEditors object that isn't a standard type

@@ -4754,7 +4754,7 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                             }
                         
                             $content .= "
-                            <div class=\"form-row\">
+                            <div class=\"form-column\">
                             <?php 
                                 \$type = '{$typeVar}';
                             ?>\n
@@ -4789,6 +4789,7 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
     <script>
         const containers = <?php echo json_encode(\$containers); ?>;
         const tvNames = <?php echo json_encode(\$tv_names); ?>; 
+        const userDepartment = <?php echo json_encode($department); ?>;
 
         document.addEventListener('DOMContentLoaded', function() {
             $quillInitialization

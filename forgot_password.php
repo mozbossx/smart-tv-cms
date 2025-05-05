@@ -36,8 +36,8 @@ if (isset($_POST["submit"])) {
         $_SESSION['reset_token'] = $token;
         $_SESSION['reset_email'] = $email;
 
-        if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.10') {
-            $passwordResetLink = "http://192.168.1.10:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
+        if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.5') {
+            $passwordResetLink = "http://192.168.1.5:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
         } else {
             $passwordResetLink = "https://usccms.online/enter_new_forgot_password.php?token=$token";
         }
@@ -152,13 +152,21 @@ if (isset($_POST["submit"])) {
         .form-fields {
             display: flex;
             flex-direction: column;
-            gap: 0.6rem;
             margin-bottom: 1.2rem;
         }
 
         .form-field {
             position: relative;
             box-sizing: border-box;
+            margin-bottom: 2px;
+        }
+
+        .validation-message {
+            display: none;
+            color: #666;
+            font-size: 0.7rem;
+            padding-left: 10px;
+            margin-bottom: 8px;
         }
 
         .toggle-password {
@@ -313,6 +321,7 @@ if (isset($_POST["submit"])) {
                             <input type="email" name="email" value="<?php echo $email; ?>" 
                                    required placeholder="USC Email" id="emailInput">
                         </div>
+                        <div class="validation-message" id="emailValidation">Email must contain @usc.edu.ph</div>
                     </div>
                     
                     <div class="button-flex">
@@ -327,5 +336,28 @@ if (isset($_POST["submit"])) {
             </div>
         </div>
     </div>
+
+    <script>
+        const emailInput = document.getElementById('emailInput');
+        const emailValidation = document.getElementById('emailValidation');
+        let emailHasBeenFocused = false;
+
+        function validateEmail(email) {
+            return email.includes("@usc.edu.ph");
+        }
+
+        function updateEmailValidation() {
+            if (emailHasBeenFocused) {
+                emailValidation.style.display = validateEmail(emailInput.value) ? "none" : "block";
+            }
+        }
+
+        emailInput.addEventListener("focus", () => {
+            emailHasBeenFocused = true;
+            updateEmailValidation();
+        });
+        emailInput.addEventListener("input", updateEmailValidation);
+        emailInput.addEventListener("blur", updateEmailValidation);
+    </script>
 </body>
 </html>

@@ -1,12 +1,10 @@
 <div id="errorModalVersion2" class="modal">
     <div class="modal-content" style="padding: 15px">
-        <div class="red-bar-vertical">
-            <h1 style="font-size: 50px"><i class="fa fa-exclamation-circle" aria-hidden="true"></i></h1>
-            <p id="errorTextVersion2"></p>
-            <br>
-            <div style="align-items: right; text-align: right; right: 0">
-                <button type="button" id="okayButtonVersion2" class="red-button" style="margin: 0" onclick="closeErrorModalVersion2()">Okay</button>
-            </div>
+        <h1 style="color: <?php echo $dark_theme_color_40_percent; ?>; text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-exclamation-circle"></i> Error</h1>
+        <p id="errorTextVersion2" style="text-align: left; max-height: 200px; overflow: auto"></P>
+        <br>
+        <div style="align-items: right; text-align: right; right: 0">
+            <button type="button" id="okayButtonVersion2" class="red-button" style="margin: 0" onclick="closeErrorModalVersion2()">Okay</button>
         </div>
     </div>
 </div>

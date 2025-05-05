@@ -69,9 +69,8 @@ body {
 .main-container {
     position: relative;
     width: 100%;
-    height: calc(100% - 6.5vh);
-    background: none;
-    /* overflow: hidden; */
+    height: 100%;
+    overflow: hidden;
 }
 
 .main-container:hover {
@@ -81,21 +80,21 @@ body {
 
 .content-container {
     position: absolute;
-    width: 300px;
-    height: 200px;
-    min-width: 200px;
-    min-height: 250px;
-    padding: 5px;
-    box-sizing: border-box;
-    /* overflow: hidden; */
-    margin: 5px;
-    border-radius: 5px;
-    cursor: move;
-    top: 0;
-    left: 0;
+    touch-action: none;
     user-select: none;
-    display: flex;
-    flex-direction: column;
+    box-sizing: border-box;
+    border-radius: 10px;
+    /* transition: transform 0.3s ease; */
+    box-shadow: 0px 0px 12px 0px rgb(0 0 0 / 53%);
+    min-width: 200px;
+    min-height: 150px;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.content-container.dragging {
+    transition: none;
+    z-index: 1000;
 }
 
 /* 
@@ -107,8 +106,10 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border: black 1px solid;
-    border-radius: 5px;
+    border: #000000ba  2px solid;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-radius: 10px;
     /* overflow: hidden; */
 }
 
@@ -221,7 +222,6 @@ body {
 .content-title {
     font-weight: normal;
     user-select: none;
-    padding-bottom: 6px;
     margin: 0;
 }
 
@@ -253,9 +253,6 @@ body {
 .page-number-container {
     bottom: 0;
     text-align: center;
-    font-weight: bold;
-    margin-bottom: 10px;
-    margin-top: 10px;
 }
 
 .no-announcements-message {

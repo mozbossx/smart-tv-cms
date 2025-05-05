@@ -111,6 +111,7 @@ include 'misc/php/options_tv.php';
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo !empty($tv_names) ? json_encode($tv_names) : '{}'; ?>; 
         const contentType = document.querySelector('[name="type"]').value;
+        const userDepartment = <?php echo json_encode($department); ?>;
 
         let orgChartData = []; // Initialize an empty array to store org chart data
 

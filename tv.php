@@ -6,7 +6,41 @@ include 'config_connection.php';
 
 include 'tv_initialize.php';
 
+// Add device detection and restriction
 ?>
+<script>
+function detectDevice() {
+    // List of common Smart TV user agent keywords
+    const smartTVKeywords = [
+        'smart-tv',
+        'smarttv',
+        'opera tv',
+        'samsung',
+        'tizen',
+        'webos',
+        'vidaa',
+        'hbbtv',
+        'philips',
+        'lg netcast',
+        'viera',
+        'netcast',
+        'nettv',
+        'appletv',
+        'googletv',
+        'android tv'
+    ];
+
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isSmartTV = smartTVKeywords.some(keyword => userAgent.includes(keyword));
+
+    if (!isSmartTV) {
+        window.location.href = 'not_tv.php';
+    }
+}
+
+// Run device detection on page load
+window.onload = detectDevice;
+</script>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -22,6 +56,7 @@ include 'tv_initialize.php';
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style_tv.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="misc/js/treant-js-master/vendor/jquery.min.js"></script>
@@ -59,10 +94,12 @@ include 'tv_initialize.php';
                             display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
                             height: <?php echo $container['height_px']; ?>px;
                             width: <?php echo $container['width_px']; ?>px;
-                            transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);"
+                            transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);
+                            z-index: <?php echo $container['z_index']; ?>;"
                     onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
-                    <div>
-                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>;"><?php echo $container['container_name']; ?></h1>
+                    <div style="padding: 10px; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-evenly; align-items: anchor-center">
+                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>; flex: 2"><?php echo $container['container_name']; ?></h1>
+                        <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="page-number-container" style="margin-left: 5px; padding: 5px; background: #00000073; border-radius: 10px; color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
                     </div>
                     <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
                         style="background: <?php echo $container['child_background_color']; ?>;
@@ -71,7 +108,6 @@ include 'tv_initialize.php';
                                 font-family: <?php echo $container['child_font_family']; ?>">
                         <!-- Content for carousel-container will be displayed here -->
                     </div>
-                    <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="page-number-container" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
                 </div>        
             <?php endif; ?>
             <?php if ($container['type'] === 'orgchart'):  ?>
@@ -83,12 +119,12 @@ include 'tv_initialize.php';
                             display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
                             height: <?php echo $container['height_px']; ?>px;
                             width: <?php echo $container['width_px']; ?>px;
-                            min-height: 450px;
-                            min-width: 500px;
-                            transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);"
+                            transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);
+                            z-index: <?php echo $container['z_index']; ?>;"
                     onclick="openContentContainerRightSidePanel('<?php echo $container['container_id']; ?>')">
-                    <div>
-                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>;"><?php echo $container['container_name']; ?></h1>
+                    <div style="padding: 10px; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-evenly; align-items: anchor-center">
+                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>; flex: 2"><?php echo $container['container_name']; ?></h1>
+                        <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="page-number-container" style="margin-left: 5px; padding: 5px; background: #00000073; border-radius: 10px; color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
                     </div>
                     <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
                         style="background: <?php echo $container['child_background_color']; ?>;
@@ -97,14 +133,9 @@ include 'tv_initialize.php';
                                 font-family: <?php echo $container['child_font_family']; ?>">
                         <!-- Content for carousel-container will be displayed here -->
                     </div>
-                    <div id="<?php echo $containerNameLower; ?>PageNumberContainer" class="page-number-container" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; text-align: center"></div>
                 </div> 
             <?php endif; ?>
-
-            
         <?php endforeach; ?>
-
-            
         </div>
         <?php if ($topbarPosition === 'bottom') { ?>
             <?php include('tv_topbar.php'); ?>

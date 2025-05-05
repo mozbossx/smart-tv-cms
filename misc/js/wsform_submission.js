@@ -203,6 +203,28 @@ function sendDataToWebSocket(data, loadingModal) {
                 const isEditMode = form.querySelector('input[name="action_value"]')?.value === 'edit';
                 const action = isEditMode ? 'updated' : 'processed';
                 
+                // Send email notification for new posts from Student, Faculty, or Staff
+                if (userType === 'Student' || userType === 'Faculty' || userType === 'Staff') {
+                    // Send email notification
+                    const emailData = new FormData();
+                    emailData.append('content_type', capitalizeFirstLetter(contentType));
+                    emailData.append('author_name', full_name);
+                    emailData.append('author_type', userType);
+                    emailData.append('author_department', userDepartment);
+
+                    fetch('send_pending_content_email.php', {
+                        method: 'POST',
+                        body: emailData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Email notification status:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error sending email notification:', error);
+                    });
+                }
+
                 if (contentType === 'peo') {
                     document.getElementById('successMessage').textContent = `Program Educational Objective was successfully ${action}!`;                        
                 } else if (contentType === 'so') {

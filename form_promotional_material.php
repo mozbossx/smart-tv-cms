@@ -88,7 +88,7 @@ if ($isEditMode && isset($_GET['promaterial_id'])) {
                             </div>
                             <div class="form-container">
                                 <?php include('misc/php/upload_preview_media.php')?>
-                                <div class="form-row">
+                                <div class="form-column">
                                     <?php 
                                         $type = 'promaterial';
                                     ?>
@@ -127,6 +127,7 @@ if ($isEditMode && isset($_GET['promaterial_id'])) {
     <script>
         const containers = <?php echo json_encode($containers); ?>;
         const tvNames = <?php echo !empty($tv_names) ? json_encode($tv_names) : '{}'; ?>; 
+        const userDepartment = <?php echo json_encode($department); ?>;
     </script>
 </body>
 </html>

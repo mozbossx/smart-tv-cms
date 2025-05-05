@@ -17,11 +17,11 @@ function connectWebSocket() {
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
                        window.location.hostname === '192.168.1.12' ||
-                       window.location.hostname === '192.168.1.10';
+                       window.location.hostname === '192.168.1.5';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.1.10:8081'
+        ? 'ws://192.168.1.5:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -220,6 +220,24 @@ const formatTime = (timeString) => {
     return time.toLocaleTimeString('en-US', options).replace(/(:\d{2})$/, '').toLowerCase();
 };
 
+// Function to get user type priority (higher number = higher priority)
+const getUserTypePriority = (userType) => {
+    switch(userType) {
+        case 'Super Admin':
+            return 5;
+        case 'Admin':
+            return 4;
+        case 'Faculty':
+            return 3;
+        case 'Staff':
+            return 2;
+        case 'Student':
+            return 1;
+        default:
+            return 0;
+    }
+};
+
 // Unified function to update UI
 const updateUI = (data, type) => {
     const { carouselContainer, pageNumberContainer } = getContainerElements(type);
@@ -274,10 +292,10 @@ const updateUI = (data, type) => {
                     </div>
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div style="margin-left: auto; margin-top: auto">
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
                             <p class="display-time" style="text-align: right">
-                                <i class="fa fa-hourglass-half" aria-hidden="true"></i> 
+                                <i class="fa-solid fa-clock" aria-hidden="true"></i> 
                                 <span class="time-left">${data.display_time}s</span>
                             </p>
                         </div>
@@ -313,6 +331,23 @@ const updateUI = (data, type) => {
 
     let contentHTML = '';
 
+    const getUserTypeIcon = (userType) => {
+        switch(userType) {
+            case 'Super Admin':
+                return '<i class="fas fa-user-secret" title="Super Admin" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+            case 'Admin':
+                return '<i class="fas fa-user-tie" title="Admin" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+            case 'Faculty':
+                return '<i class="fas fa-chalkboard-teacher" title="Faculty" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+            case 'Staff':
+                return '<i class="fas fa-user-gear" title="Staff" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+            case 'Student':
+                return '<i class="fas fa-user-graduate" title="Student" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+            default:
+                return '<i class="fas fa-user" title="User" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+        }
+    };
+
     if (type === 'announcement') {
         contentHTML = `
             <div class="content-container-con" id="${type}ContentConContainer-${id}">
@@ -325,12 +360,12 @@ const updateUI = (data, type) => {
                     </div>
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -348,12 +383,12 @@ const updateUI = (data, type) => {
                     </div>
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -371,12 +406,12 @@ const updateUI = (data, type) => {
                     </div>
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -389,12 +424,12 @@ const updateUI = (data, type) => {
                     ${mediaContent ? `<div class="media-container" style="margin-bottom: auto; margin-top: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">${mediaContent}</div>` : ''}
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -413,12 +448,12 @@ const updateUI = (data, type) => {
                     </div>
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -437,12 +472,12 @@ const updateUI = (data, type) => {
                     </div>
                 </div>
                 <div class="content-details">
-                    <div style="display: flex; flex-direction: row; margin: 0">
-                        <div>
-                            <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                    <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
-                        <div style="margin-left: auto; margin-top: auto">
-                            <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                        <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                            <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                         </div>
                     </div>
                 </div>
@@ -465,12 +500,12 @@ const updateUI = (data, type) => {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -485,19 +520,18 @@ const updateUI = (data, type) => {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
         }
-        
     } else {
         // Generic handler for new features
         // 25 filtered keys
@@ -520,12 +554,12 @@ const updateUI = (data, type) => {
                         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px; height: 100%; max-height: 100%; object-fit: contain; border-radius: 5px;">${mediaContent}</div>` : ''}
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -551,12 +585,12 @@ const updateUI = (data, type) => {
                         </div>
                     </div>
                     <div class="content-details">
-                        <div style="display: flex; flex-direction: row; margin: 0">
-                            <div>
-                                <p class="author"><small>Posted on ${formattedCreatedDateTime}</small></p>
+                        <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                             </div>
-                            <div style="margin-left: auto; margin-top: auto">
-                                <p class="display-time" style="text-align: right"><i class="fa fa-hourglass-half" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
+                            <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
+                                <p class="display-time" style="text-align: right"><i class="fa-solid fa-clock" aria-hidden="true"></i> <span class="time-left">${data.display_time}s</span></p>
                             </div>
                         </div>
                     </div>
@@ -601,7 +635,6 @@ const updateUI = (data, type) => {
 
         containerDiv.style = `
             width: auto;
-            margin-bottom: 5px;
             height: 100%;
             border-radius: 5px;
         `;
@@ -1192,7 +1225,7 @@ const resetDisplayTime = (type) => {
     //     }
 
     //     let remainingTime = parseInt(originalDisplayTime, 10);
-    //     displayTimeElement.innerHTML = `<i class="fa fa-hourglass-half" aria-hidden="true"></i> ${remainingTime}s`;
+    //     displayTimeElement.innerHTML = `<i class="fa-solid fa-clock" aria-hidden="true"></i> ${remainingTime}s`;
 
     //     // Clear existing interval
     //     if (displayTimeIntervals[type]) {
@@ -1203,7 +1236,7 @@ const resetDisplayTime = (type) => {
     //     displayTimeIntervals[type] = setInterval(() => {
     //         remainingTime -= 1;
     //         if (displayTimeElement) {
-    //             displayTimeElement.innerHTML = `<i class="fa fa-hourglass-half" aria-hidden="true"></i> ${remainingTime}s`;
+    //             displayTimeElement.innerHTML = `<i class="fa-solid fa-clock" aria-hidden="true"></i> ${remainingTime}s`;
     //         }
     //         if (remainingTime < 0) {
     //             clearInterval(displayTimeIntervals[type]);
@@ -1221,7 +1254,7 @@ const resetDisplayTime = (type) => {
 
     if (displayTimeElement && originalDisplayTime) {
         let remainingTime = parseInt(originalDisplayTime, 10);
-        displayTimeElement.innerHTML = `<i class="fa fa-hourglass-half" aria-hidden="true"></i> ${remainingTime}s`;
+        displayTimeElement.innerHTML = `<i class="fa-solid fa-clock" aria-hidden="true"></i> ${remainingTime}s`;
 
         if (displayTimeIntervals[type]) {
             clearInterval(displayTimeIntervals[type]);
@@ -1229,7 +1262,7 @@ const resetDisplayTime = (type) => {
 
         displayTimeIntervals[type] = setInterval(() => {
             remainingTime -= 1;
-            displayTimeElement.innerHTML = `<i class="fa fa-hourglass-half" aria-hidden="true"></i> ${remainingTime}s`;
+            displayTimeElement.innerHTML = `<i class="fa-solid fa-clock" aria-hidden="true"></i> ${remainingTime}s`;
             if (remainingTime < 0) {
                 clearInterval(displayTimeIntervals[type]);
                 if (type === 'facility') {
@@ -1400,13 +1433,31 @@ const fetchAndUpdateContents = (type) => {
                                 item.isTrashed === 0 && 
                                 item.department === tvDepartment
                             );
+
+                            // OLD CODE
+                            // filteredData.forEach(item => updateUI(item, type));
+                            // if (contents[type + 's'].length > 0) {
+                            //     // Set the current index to 0 to start from the first item
+                            //     currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
+                            //     startCarousel(type);
+                            // } else {
+                            //     displayNoMessage(type); // Call displayNoMessage if no content
+                            // }
+
+                            // NEW CODE
+                            // Sort by user type priority and then by created_datetime
+                            filteredData.sort((a, b) => {
+                                const priorityDiff = getUserTypePriority(b.user_type) - getUserTypePriority(a.user_type);
+                                if (priorityDiff !== 0) return priorityDiff;
+                                return new Date(b.created_datetime) - new Date(a.created_datetime);
+                            });
+                            
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
-                                // Set the current index to 0 to start from the first item
-                                currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
+                                currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1);
                                 startCarousel(type);
                             } else {
-                                displayNoMessage(type); // Call displayNoMessage if no content
+                                displayNoMessage(type);
                             }
                         } else {
                             const filteredData = data.filter(item =>
@@ -1416,13 +1467,31 @@ const fetchAndUpdateContents = (type) => {
                                 item.isTrashed === 0 && 
                                 item.department === tvDepartment
                             );
+
+                            // OLD CODE
+                            // filteredData.forEach(item => updateUI(item, type));
+                            // if (contents[type + 's'].length > 0) {
+                            //     // Set the current index to 0 to start from the first item
+                            //     currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
+                            //     startCarousel(type);
+                            // } else {
+                            //     displayNoMessage(type); // Call displayNoMessage if no content
+                            // }
+
+                            // NEW CODE
+                            // Sort by user type priority and then by created_datetime
+                            filteredData.sort((a, b) => {
+                                const priorityDiff = getUserTypePriority(b.user_type) - getUserTypePriority(a.user_type);
+                                if (priorityDiff !== 0) return priorityDiff;
+                                return new Date(b.created_datetime) - new Date(a.created_datetime);
+                            });
+                            
                             filteredData.forEach(item => updateUI(item, type));
                             if (contents[type + 's'].length > 0) {
-                                // Set the current index to 0 to start from the first item
-                                currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
+                                currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1);
                                 startCarousel(type);
                             } else {
-                                displayNoMessage(type); // Call displayNoMessage if no content
+                                displayNoMessage(type);
                             }
                         }
                         // adjustFontSize(type);
@@ -1451,7 +1520,16 @@ const fetchAndUpdateContents = (type) => {
                                 item.tv_id === parseInt(tvId, 10) &&
                                 item.department === tvDepartment
                             );
+                            // Sort by user type priority and then by created_datetime
+                            filteredData.sort((a, b) => {
+                                const priorityDiff = getUserTypePriority(b.user_type) - getUserTypePriority(a.user_type);
+                                if (priorityDiff !== 0) return priorityDiff;
+                                return new Date(b.created_datetime) - new Date(a.created_datetime);
+                            });
+                            
                             filteredData.forEach(item => updateUI(item, type));
+                            
+                            // filteredData.forEach(item => updateUI(item, type));
                             
                             // Previous working code below
                             // data.forEach(item => {

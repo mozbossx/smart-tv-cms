@@ -1,5 +1,41 @@
 <?php
 
+// Server-side device detection
+function isSmartTV() {
+    $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
+    $smartTVKeywords = [
+        'smart-tv',
+        'smarttv',
+        'opera tv',
+        'samsung',
+        'tizen',
+        'webos',
+        'vidaa',
+        'hbbtv',
+        'philips',
+        'lg netcast',
+        'viera',
+        'netcast',
+        'nettv',
+        'appletv',
+        'googletv',
+        'android tv'
+    ];
+
+    foreach ($smartTVKeywords as $keyword) {
+        if (strpos($userAgent, $keyword) !== false) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Check if it's a Smart TV before proceeding
+if (!isSmartTV() && !isset($_GET['isIframe'])) {
+    header('Location: not_tv.php');
+    exit();
+}
+
 $tvId = $_GET['tvId'] ?? $_COOKIE['tv_id'] ?? null;
 $isIframe = $_GET['isIframe'] ?? null;
 

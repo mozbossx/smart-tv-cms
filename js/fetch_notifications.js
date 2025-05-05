@@ -12,11 +12,11 @@ function connectWebSocket() {
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
                        window.location.hostname === '192.168.1.12' ||
-                       window.location.hostname === '192.168.1.10';
+                       window.location.hostname === '192.168.1.5';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.1.10:8081'
+        ? 'ws://192.168.1.5:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -467,8 +467,8 @@ function createNotificationDiv(notification) {
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
                 <div class="notification-buttons-non-deletable">
-                    <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveModal(${notification.user_id}, '${notification.action_user_email}', '${notification.action_user_name}', '${notification.action_user_type}', '${full_name}', '${notification.action_user_department}', ${user_id})">Approve</button>
-                    <button type="button" class="red-button" style="margin: 0;" onclick="showConfirmRejectModal(${notification.user_id}, '${notification.action_user_email}', '${notification.action_user_name}', '${notification.action_user_type}', '${full_name}', '${notification.action_user_department}', ${user_id})">Reject</button>
+                    <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveModal(${notification.user_id}, '${notification.action_user_email}', '${notification.action_user_name}', '${notification.action_user_type}', '${full_name}', '${notification.action_user_department}', ${user_id})"><i class="fa fa-thumbs-up" aria-hidden="true"></i></button>
+                    <button type="button" class="red-button" style="margin: 0;" onclick="showConfirmRejectModal(${notification.user_id}, '${notification.action_user_email}', '${notification.action_user_name}', '${notification.action_user_type}', '${full_name}', '${notification.action_user_department}', ${user_id})"><i class="fa fa-thumbs-down" aria-hidden="true"></i></button>
                 </div>
             `;
         }
@@ -481,9 +481,9 @@ function createNotificationDiv(notification) {
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 </div>
                 <div class="notification-buttons-non-deletable">
-                    <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Approve</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})">Reject</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
+                    <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})"><i class="fa fa-thumbs-up" aria-hidden="true"></i></button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})"><i class="fa fa-thumbs-down" aria-hidden="true"></i></button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'"><i class="fa fa-eye" aria-hidden="true"></i></button>
                 </div>
             `;
         }
@@ -495,7 +495,7 @@ function createNotificationDiv(notification) {
                     <p class="content-post-notification"><i class="fa fa-clock-o"></i> Your ${notification.content_type} is pending for approval to be posted on TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                     <div class="notification-buttons-non-deletable">
-                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'">View</button>
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_pending_contents.php?pageid=ViewPendingContents&userId=${user_id}&userType=${userType}'"><i class="fa fa-eye" aria-hidden="true"></i></button>
                     </div>
                 </div>
             `;
@@ -771,7 +771,7 @@ function createNotificationDiv(notification) {
                     <p class="content-approved-notification">You approved ${notification.action_user_name}'s ${notification.content_type} on the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                     <div class="notification-buttons-deletable">
-                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_approved_contents.php?pageid=ViewApprovedContents&userId=${user_id}&userType=${userType}'">View</button>
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_approved_contents.php?pageid=ViewApprovedContents&userId=${user_id}&userType=${userType}'"><i class="fa fa-eye" aria-hidden="true"></i></button>
                     </div>
                 </div>
             `;
@@ -784,7 +784,7 @@ function createNotificationDiv(notification) {
                     <p class="content-approved-notification">${notification.evaluator_name} approved ${notification.action_user_name}'s ${notification.content_type} on the TV: ${notification.content_tv_name}.</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                     <div class="notification-buttons-deletable">
-                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_approved_contents.php?pageid=ViewApprovedContents&userId=${user_id}&userType=${userType}'">View</button>
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_approved_contents.php?pageid=ViewApprovedContents&userId=${user_id}&userType=${userType}'"><i class="fa fa-eye" aria-hidden="true"></i></button>
                     </div>
                 </div>
             `;
@@ -798,7 +798,7 @@ function createNotificationDiv(notification) {
                 <p class="content-approved-notification">Your ${notification.content_type} has been approved by ${notification.evaluator_name} to be posted on TV: ${notification.content_tv_name}.</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 <div class="notification-buttons-deletable">
-                    <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_approved_contents.php?pageid=ViewApprovedContents&userId=${user_id}&userType=${userType}'">View</button>
+                    <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_approved_contents.php?pageid=ViewApprovedContents&userId=${user_id}&userType=${userType}'"><i class="fa fa-eye" aria-hidden="true"></i></button>
                 </div>
             </div>
         `;
@@ -813,7 +813,7 @@ function createNotificationDiv(notification) {
                     <p class="evaluator-message-notification">Your Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                     <div class="notification-buttons-deletable">
-                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_rejected_contents.php?pageid=ViewRejectedContents&userId=${user_id}&userType=${userType}'">View</button>
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_rejected_contents.php?pageid=ViewRejectedContents&userId=${user_id}&userType=${userType}'"><i class="fa fa-eye" aria-hidden="true"></i></button>
                     </div>
                 </div>
             `;
@@ -827,7 +827,7 @@ function createNotificationDiv(notification) {
                     <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                     <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                     <div class="notification-buttons-deletable">
-                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_rejected_contents.php?pageid=ViewRejectedContents&userId=${user_id}&userType=${userType}'">View</button>
+                        <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_rejected_contents.php?pageid=ViewRejectedContents&userId=${user_id}&userType=${userType}'"><i class="fa fa-eye" aria-hidden="true"></i></button>
                     </div>
                 </div>
             `;
@@ -848,9 +848,9 @@ function createNotificationDiv(notification) {
                 <p class="evaluator-message-notification">Evaluator's Message: "${notification.evaluator_message}"</p>
                 <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
                 <div class="notification-buttons-non-deletable">
-                    <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_rejected_contents.php?pageid=ViewRejectedContents&userId=${user_id}&userType=${userType}'">View</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href = 'form_${notification.content_type}.php?${queryParams}'">Edit</button>
-                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmDeleteContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}', '${notification.action_user_name}', '${notification.action_user_type}', '${notification.action_user_department}', ${notification.content_tv_id})">Delete</button>
+                    <button type="button" class="green-button" style="margin: 0;" onclick="window.location.href='view_rejected_contents.php?pageid=ViewRejectedContents&userId=${user_id}&userType=${userType}'"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="window.location.href = 'form_${notification.content_type}.php?${queryParams}'"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+                    <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmDeleteContentModal(${notification.content_id}, '${notification.content_type}', ${notification.user_id}, '${full_name}', '${notification.action_user_name}', '${notification.action_user_type}', '${notification.action_user_department}', ${notification.content_tv_id})"><i class="fa fa-trash" aria-hidden="true"></i></button>
                 </div>
             </div>
         `;
@@ -1319,6 +1319,7 @@ function rejectUser(userId, email, fullName, userType, evaluatorName, department
 }
 
 function approveContent(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId) {
+    sendApprovedContentEmail(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId);
     Ws.send(JSON.stringify({
         action: 'approve_post',
         content_id: contentId,
@@ -1339,6 +1340,7 @@ function rejectContent(contentId, contentType, fullName, department, userId, con
         alert('Evaluator message is required.');
         return;
     }
+    sendRejectedContentEmail(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId, evaluatorMessage);
     Ws.send(JSON.stringify({
         action: 'reject_post',
         content_id: contentId,
@@ -1425,6 +1427,47 @@ function sendRejectedUserEmail(email, fullName, department, evaluatorName, evalu
     })
     .catch(error => {
         console.error('Error sending rejected user email:', error);
+    });
+}
+
+function sendApprovedContentEmail(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId) {
+    fetch('send_approved_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&full_name=${encodeURIComponent(fullName)}&department=${encodeURIComponent(department)}&user_id=${encodeURIComponent(userId)}&content_tv_id=${encodeURIComponent(contentTvId)}&evaluator_name=${encodeURIComponent(evaluatorName)}&evaluator_id=${encodeURIComponent(evaluatorId)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Approved content email sent successfully');
+        } else {
+            console.error('Failed to send approved content email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending approved content email:', error);
+    });
+}
+
+function sendRejectedContentEmail(contentId, contentType, fullName, department, userId, contentTvId, evaluatorName, evaluatorId, evaluatorMessage) {
+    fetch('send_rejected_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&full_name=${encodeURIComponent(fullName)}&department=${encodeURIComponent(department)}&user_id=${encodeURIComponent(userId)}&content_tv_id=${encodeURIComponent(contentTvId)}&evaluator_name=${encodeURIComponent(evaluatorName)}&evaluator_id=${encodeURIComponent(evaluatorId)}&evaluator_message=${encodeURIComponent(evaluatorMessage)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Rejected content email sent successfully');
+        } else {
+            console.error('Failed to send rejected content email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending rejected content email:', error);
     });
 }
 
@@ -2030,8 +2073,8 @@ Ws.addEventListener('message', function(event) {
                         ${contentHtml}
                         <br>
                         <div style="text-align: right;">
-                            <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${content[`${contentType}_id`]}, '${contentType}', ${content[`${contentType}_author_id`]}, '${full_name}')">Approve</button>
-                            <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${content[`${contentType}_id`]}, '${contentType}', ${content[`${contentType}_author_id`]}, '${full_name}')">Reject</button>
+                            <button type="button" class="green-button" style="margin: 0;" onclick="showConfirmApproveContentModal(${content[`${contentType}_id`]}, '${contentType}', ${content[`${contentType}_author_id`]}, '${full_name}')"><i class="fa fa-thumbs-up" aria-hidden="true"></i></button>
+                            <button type="button" class="light-green-button" style="margin: 0;" onclick="showConfirmRejectContentModal(${content[`${contentType}_id`]}, '${contentType}', ${content[`${contentType}_author_id`]}, '${full_name}')"><i class="fa fa-thumbs-down" aria-hidden="true"></i></button>
                             <button type="button" class="grey-button" onclick="closeModal('viewContent')">Close</button>
                         </div>
                     </div>

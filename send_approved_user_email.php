@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Initialize PHPMailer
     $mail = new PHPMailer(true);
 
-    if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.10') {
-        $loginPageLink = "http://192.168.1.10:8080/CMS%20Final/login.php?pageid=Login";
+    if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.5') {
+        $loginPageLink = "http://192.168.1.5:8080/CMS%20Final/login.php?pageid=Login";
     } else {
         $loginPageLink = "https://usccms.online/login.php?pageid=Login";
     }

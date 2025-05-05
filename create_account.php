@@ -2,6 +2,9 @@
 session_start();
 @include 'config_connection.php';
 
+// Initialize $successMessage
+$successMessage = "";
+
 // Check if the user is already logged in, redirect to user-home.php
 if (isset($_SESSION['full_name'])) {
     header('location: user_home.php');
@@ -217,13 +220,21 @@ if (isset($_POST["submit"])) {
         .form-fields {
             display: flex;
             flex-direction: column;
-            gap: 0.6rem;
             margin-bottom: 1.8rem;
         }
 
         .form-field {
             position: relative;
             box-sizing: border-box;
+            margin-bottom: 2px;
+        }
+
+        .validation-message {
+            display: none;
+            color: #666;
+            font-size: 0.7rem;
+            padding-left: 10px;
+            margin-bottom: 8px;
         }
 
         .toggle-password {
@@ -379,34 +390,38 @@ if (isset($_POST["submit"])) {
                         <div class="form-field">
                             <i class="bi bi-person"></i>
                             <input type="text" name="full_name" value="<?php echo $full_name; ?>" 
-                                   required placeholder="Full Name" oninput="capitalizeWords(this)">
+                                   required placeholder="Full Name" oninput="capitalizeWords(this)" id="fullNameInput">
                         </div>
+                        <div class="validation-message" id="fullNameValidation">Full Name must not contain symbols and numbers</div>
 
-                        <div class="form-field">
+                        <div class="form-field" style="margin-top: 5px;">
                             <i class="bi bi-envelope"></i>
                             <input type="email" name="email" value="<?php echo $email; ?>" 
                                    required placeholder="USC Email" id="emailInput">
                         </div>
+                        <div class="validation-message" id="emailValidation">Email must contain @usc.edu.ph</div>
 
-                        <div class="form-field">
+                        <div class="form-field" style="margin-top: 5px;">
                             <i class="bi bi-lock"></i>
                             <input type="password" name="password" required placeholder="Password" id="passwordInput" minlength="6">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="togglePasswordVisible"></i>
                             </span>
                         </div>
+                        <div class="validation-message" id="passwordValidation">Password must be at least 6 characters long</div>
 
-                        <div class="form-field">
+                        <div class="form-field" style="margin-top: 5px;">
                             <i class="bi bi-lock"></i>
                             <input type="password" name="confirmpassword" required placeholder="Confirm Password" id="confirmPasswordInput" minlength="6">
                             <span class="toggle-password">
                                 <i class="bi bi-eye-slash" id="toggleConfirmPassword"></i>
                             </span>
                         </div>
+                        <div class="validation-message" id="confirmPasswordValidation">Passwords must match</div>
 
-                        <div class="form-field">
+                        <div class="form-field" style="margin-top: 5px;">
                             <i class="bi bi-building"></i>
-                            <select name="department" required style="color: black">
+                            <select name="department" required style="color: black" id="departmentInput">
                                 <option value="">Select Department</option>
                                 <option value="COMPUTER ENGINEERING">Computer Engineering</option>
                                 <option value="CHEMICAL ENGINEERING">Chemical Engineering</option>
@@ -417,6 +432,7 @@ if (isset($_POST["submit"])) {
                                 <option value="ELECTRONICS ENGINEERING">Electronics Engineering</option>
                             </select>
                         </div>
+                        <div class="validation-message" id="departmentValidation">Please select a department</div>
                     </div>
 
                     <button type="submit" name="submit" class="signup-button-2">Create Account</button>
@@ -461,8 +477,116 @@ if (isset($_POST["submit"])) {
             this.classList.toggle("bi-eye-slash");
         });
 
+        // New validation code
+        const fullNameInput = document.getElementById('fullNameInput');
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+        const departmentInput = document.getElementById('departmentInput');
+
+        const fullNameValidation = document.getElementById('fullNameValidation');
+        const emailValidation = document.getElementById('emailValidation');
+        const passwordValidation = document.getElementById('passwordValidation');
+        const confirmPasswordValidation = document.getElementById('confirmPasswordValidation');
+        const departmentValidation = document.getElementById('departmentValidation');
+
+        let fullNameHasBeenFocused = false;
+        let emailHasBeenFocused = false;
+        let passwordHasBeenFocused = false;
+        let confirmPasswordHasBeenFocused = false;
+        let departmentHasBeenFocused = false;
+
+        function validateFullName(name) {
+            return !(/[~`!1@2#3\$4%5\^6&7\*8\(9\)0_\-+=:;"<>,.\/?\|]/.test(name));
+        }
+
+        function validateEmail(email) {
+            return email.includes("@usc.edu.ph");
+        }
+
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
+        function validateConfirmPassword() {
+            return passwordInput.value === confirmPasswordInput.value;
+        }
+
+        function validateDepartment(department) {
+            return department !== "";
+        }
+
+        function updateFullNameValidation() {
+            if (fullNameHasBeenFocused) {
+                fullNameValidation.style.display = validateFullName(fullNameInput.value) ? "none" : "block";
+            }
+        }
+
+        function updateEmailValidation() {
+            if (emailHasBeenFocused) {
+                emailValidation.style.display = validateEmail(emailInput.value) ? "none" : "block";
+            }
+        }
+
+        function updatePasswordValidation() {
+            if (passwordHasBeenFocused) {
+                passwordValidation.style.display = validatePassword(passwordInput.value) ? "none" : "block";
+            }
+        }
+
+        function updateConfirmPasswordValidation() {
+            if (confirmPasswordHasBeenFocused) {
+                confirmPasswordValidation.style.display = validateConfirmPassword() ? "none" : "block";
+            }
+        }
+
+        function updateDepartmentValidation() {
+            if (departmentHasBeenFocused) {
+                departmentValidation.style.display = validateDepartment(departmentInput.value) ? "none" : "block";
+            }
+        }
+
+        fullNameInput.addEventListener("focus", () => {
+            fullNameHasBeenFocused = true;
+            updateFullNameValidation();
+        });
+        fullNameInput.addEventListener("input", updateFullNameValidation);
+        fullNameInput.addEventListener("blur", updateFullNameValidation);
+
+        emailInput.addEventListener("focus", () => {
+            emailHasBeenFocused = true;
+            updateEmailValidation();
+        });
+        emailInput.addEventListener("input", updateEmailValidation);
+        emailInput.addEventListener("blur", updateEmailValidation);
+
+        passwordInput.addEventListener("focus", () => {
+            passwordHasBeenFocused = true;
+            updatePasswordValidation();
+        });
+        passwordInput.addEventListener("input", () => {
+            updatePasswordValidation();
+            if (confirmPasswordHasBeenFocused) {
+                updateConfirmPasswordValidation();
+            }
+        });
+        passwordInput.addEventListener("blur", updatePasswordValidation);
+
+        confirmPasswordInput.addEventListener("focus", () => {
+            confirmPasswordHasBeenFocused = true;
+            updateConfirmPasswordValidation();
+        });
+        confirmPasswordInput.addEventListener("input", updateConfirmPasswordValidation);
+        confirmPasswordInput.addEventListener("blur", updateConfirmPasswordValidation);
+
+        departmentInput.addEventListener("focus", () => {
+            departmentHasBeenFocused = true;
+            updateDepartmentValidation();
+        });
+        departmentInput.addEventListener("change", updateDepartmentValidation);
+        departmentInput.addEventListener("blur", updateDepartmentValidation);
+
         function capitalizeWords(input) {
-            // Convert the first character of each word to uppercase
             input.value = input.value.replace(/(?:^|\s)\S/g, function(letter) {
                 return letter.toUpperCase();
             });

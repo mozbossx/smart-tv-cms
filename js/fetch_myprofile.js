@@ -41,26 +41,6 @@ function changePasswordSubmit() {
     document.getElementById('changePasswordForm').submit();
 }
 
-const togglePassword = document.querySelector("#togglePassword");
-const password = document.querySelector("[name='password']");
-const toggleConfirmPassword = document.querySelector("#toggleConfirmPassword");
-const passwordConfirm = document.querySelector("[name='confirm_password']");
-
-togglePassword.addEventListener("click", function () {
-    const type = password.getAttribute("type") === "password" ? "text" : "password";
-    password.setAttribute("type", type);
-    this.classList.toggle("bi-eye");
-    this.classList.toggle("bi-eye-slash");
-});
-
-toggleConfirmPassword.addEventListener("click", function () {
-    const type = passwordConfirm.getAttribute("type") === "password" ? "text" : "password";
-    passwordConfirm.setAttribute("type", type);
-    this.classList.toggle("bi-eye");
-    this.classList.toggle("bi-eye-slash");
-});
-
-
 function updateTheme(color) {
     // Update the color picker value
     document.getElementById('theme_color').value = color;
