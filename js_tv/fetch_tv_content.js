@@ -1596,6 +1596,48 @@ const checkAllContentForExpiration = () => {
     });
 };
 
+// Function to check all containers for empty content
+const checkAllContainersForNoContent = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentTvId = urlParams.get('tvId');
+
+    // Get all content types from the containers
+    const containers = document.querySelectorAll('[id$="CarouselContainer"]');
+    const contentTypes = Array.from(containers).map(container => 
+        container.id.replace('CarouselContainer', '')
+    );
+    
+    contentTypes.forEach(type => {
+        // Skip types that don't use this check
+        if (type === 'orgchart' || type === 'facility' || type === 'peo' || type === 'so') return;
+
+        // Check if the type has any content
+        const hasContent = contents[`${type}s`] && contents[`${type}s`].length > 0;
+        
+        // Get the container element
+        const containerElement = document.querySelector(`[data-container-id][data-type="${type}"]`);
+        
+        if (containerElement && !hasContent) {
+            // Send WebSocket message to update visibility in database
+            if (isConnectedToWebSocket && Ws && Ws.readyState === WebSocket.OPEN) {
+                const containersData = {};
+                containersData[containerElement.dataset.containerId] = 0;
+                
+                const data = {
+                    action: 'show_hide_content',
+                    tv_id: currentTvId,
+                    containers: containersData
+                };
+                
+                Ws.send(JSON.stringify(data));
+            }
+        }
+    });
+};
+
+// Add periodic check for empty containers (every 2 minutes)
+setInterval(checkAllContainersForNoContent, 60000);
+
 // Add periodic check for expired content (every minute)
 setInterval(checkAllContentForExpiration, 60000);
 
@@ -1955,48 +1997,6 @@ function createContainerElement(container) {
     return containerDiv;
 }
 
-// Function to check all containers for empty content
-const checkAllContainersForNoContent = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentTvId = urlParams.get('tvId');
-
-    // Get all content types from the containers
-    const containers = document.querySelectorAll('[id$="CarouselContainer"]');
-    const contentTypes = Array.from(containers).map(container => 
-        container.id.replace('CarouselContainer', '')
-    );
-    
-    contentTypes.forEach(type => {
-        // Skip types that don't use this check
-        if (type === 'orgchart' || type === 'facility' || type === 'peo' || type === 'so') return;
-
-        // Check if the type has any content
-        const hasContent = contents[`${type}s`] && contents[`${type}s`].length > 0;
-        
-        // Get the container element
-        const containerElement = document.querySelector(`[data-container-id][data-type="${type}"]`);
-        
-        if (containerElement && !hasContent) {
-            // Send WebSocket message to update visibility in database
-            if (isConnectedToWebSocket && Ws && Ws.readyState === WebSocket.OPEN) {
-                const containersData = {};
-                containersData[containerElement.dataset.containerId] = 0;
-                
-                const data = {
-                    action: 'show_hide_content',
-                    tv_id: currentTvId,
-                    containers: containersData
-                };
-                
-                Ws.send(JSON.stringify(data));
-            }
-        }
-    });
-};
-
-// Add periodic check for empty containers (every 2 minutes)
-setInterval(checkAllContainersForNoContent, 60000);
-
 document.addEventListener('DOMContentLoaded', () => {
     // Get all content types from the containers
     const containers = document.querySelectorAll('[id$="CarouselContainer"]');
@@ -2017,8 +2017,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     checkAllContentForExpiration();
+    checkAllContainersForNoContent();
     fetchSmartTVDetails();
-    
-    // Initial check for empty containers
-    setTimeout(checkAllContainersForNoContent, 5000); // Check after 5 seconds to allow content to load
 });
