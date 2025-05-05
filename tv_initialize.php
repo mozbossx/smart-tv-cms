@@ -187,7 +187,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             $resultTopbarColorQuery = $stmtTopbarColor->get_result();
 
             // Fetch background colors for each container from the database
-            $containersQuery = "SELECT * FROM containers_tb WHERE tv_id = ? AND visible = 1";
+            $containersQuery = "SELECT * FROM containers_tb WHERE tv_id = ?";
             $stmtContainers = $conn->prepare($containersQuery);
             $stmtContainers->bind_param("i", $tvId);
             $stmtContainers->execute();

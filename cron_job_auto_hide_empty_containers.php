@@ -37,11 +37,6 @@ try {
             $containerId = $container['container_id'];
             $hasContent = false;
 
-            // Skip checking for orgchart and facility types as they don't use expiration
-            if ($type === 'orgchart' || $type === 'facility' || $type === 'peo' || $type === 'so') {
-                continue;
-            }
-
             // Determine table name based on type
             if ($type == 'announcement' || $type == 'event' || $type == 'promaterial') {
                 $tableName = "{$type}s_tb";

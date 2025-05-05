@@ -1570,9 +1570,6 @@ const checkAllContentForExpiration = () => {
     );
     
     contentTypes.forEach(type => {
-        // Skip types that don't use expiration
-        if (type === 'orgchart' || type === 'facility') return;
-
         const containers = document.querySelectorAll(`[data-${type}-id]`);
         containers.forEach(container => {
             if (container.dataset.expirationDatetime) {
@@ -1833,47 +1830,30 @@ Ws.addEventListener('message', function (event) {
             });
         }
     } else if (data.action === 'show_hide_content') {
-        const urlParams = new URLSearchParams(window.location.search);
-        const tvId = urlParams.get('tvId');
-        if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
-            location.reload();
+        if (data.success == true) {
+            const containers = data.containers;
+            containers.forEach(container => {
+                const containerElement = document.querySelector(`[data-container-id="${container.container_id}"]`);
+                if (containerElement) {
+                    containerElement.style.display = container.visible ? 'block' : 'none';
+                    
+                    // If hiding, clear content and intervals
+                    if (!container.visible) {
+                        const type = containerElement.dataset.type;
+                        contents[`${type}s`] = [];
+                        
+                        if (displayTimeIntervals[type]) {
+                            clearInterval(displayTimeIntervals[type]);
+                            displayTimeIntervals[type] = null;
+                        }
+                    } else {
+                        // If showing, fetch and update content
+                        const type = containerElement.dataset.type;
+                        fetchAndUpdateContents(type);
+                    }
+                }
+            });
         }
-        // TODO: Fix this
-        // if (data.success) {
-        //     const containers = data.containers;
-        //     const mainContainer = document.getElementById('main-container');
-            
-        //     containers.forEach(container => {
-        //         const containerElement = document.querySelector(`[data-container-id="${container.container_id}"]`);
-        //         const type = container.type;
-                
-        //         if (container.visible == 0 && containerElement) {
-        //             // Remove container from DOM if it's being hidden
-        //             containerElement.remove();
-                    
-        //             // Clear its content array
-        //             contents[`${type}s`] = [];
-                    
-        //             // Clear any existing intervals
-        //             if (displayTimeIntervals[type]) {
-        //                 clearInterval(displayTimeIntervals[type]);
-        //                 displayTimeIntervals[type] = null;
-        //             }
-        //         } else if (container.visible == 1 && !containerElement) {
-        //             // Create and add the new container
-        //             const newContainer = createContainerElement(container);
-        //             mainContainer.appendChild(newContainer);
-                    
-        //             // Initialize the content for this container
-        //             currentIndex[type] = 0;
-        //             contents[`${type}s`] = [];
-        //             displayTimeIntervals[type] = null;
-                    
-        //             // Fetch and load content for the new container
-        //             fetchAndUpdateContents(type);
-        //         }
-        //     });
-        // }
     } else if (data.action === 'update_background_color') {
         if (data.success) {
             const backgroundElement = document.getElementById('tvBackgroundColor');
