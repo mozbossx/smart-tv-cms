@@ -1593,10 +1593,19 @@ const checkAllContentForExpiration = () => {
     });
 };
 
+// Add periodic check for expired content (every minute)
+setInterval(checkAllContentForExpiration, 60000);
+
 // Function to check all containers for empty content
-const checkAllContainersForNoContent = () => {
+const checkContainersForContent = () => {
+    // Get the TV ID from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const currentTvId = urlParams.get('tvId');
+    const tvId = urlParams.get('tvId');
+    
+    if (!tvId) {
+        console.error('TV ID not found in URL');
+        return;
+    }
 
     // Get all content types from the containers
     const containers = document.querySelectorAll('[id$="CarouselContainer"]');
@@ -1604,39 +1613,41 @@ const checkAllContainersForNoContent = () => {
         container.id.replace('CarouselContainer', '')
     );
     
+    // Create an object to store container states
+    const containerVisibilityMap = {};
+    
     contentTypes.forEach(type => {
-        // Skip types that don't use this check
-        if (type === 'orgchart' || type === 'facility' || type === 'peo' || type === 'so') return;
-
-        // Check if the type has any content
-        const hasContent = contents[`${type}s`] && contents[`${type}s`].length > 0;
-        
         // Get the container element
-        const containerElement = document.querySelector(`[data-container-id][data-type="${type}"]`);
-        
-        if (containerElement && !hasContent) {
-            // Send WebSocket message to update visibility in database
-            if (isConnectedToWebSocket && Ws && Ws.readyState === WebSocket.OPEN) {
-                const containersData = {};
-                containersData[containerElement.dataset.containerId] = 0;
-                
-                const data = {
-                    action: 'show_hide_content',
-                    tv_id: currentTvId,
-                    containers: containersData
-                };
-                
-                Ws.send(JSON.stringify(data));
+        const containerElement = document.querySelector(`[data-type="${type}"]`);
+        if (containerElement) {
+            const containerId = containerElement.dataset.containerId;
+            const isVisible = containerElement.style.display !== 'none';
+            
+            // Check if there's any content for this type
+            const hasContent = contents[`${type}s`] && contents[`${type}s`].length > 0;
+            
+            // If container is visible but has no content, add it to the map
+            if (isVisible && !hasContent && containerId) {
+                // Map container ID to visibility state (0 for hidden)
+                containerVisibilityMap[containerId] = 0;
             }
         }
     });
+    
+    // If we found containers that need to be hidden, send the update
+    if (Object.keys(containerVisibilityMap).length > 0 && isConnectedToWebSocket && Ws) {
+        const message = {
+            action: 'show_hide_content',
+            tv_id: parseInt(tvId, 10),
+            containers: containerVisibilityMap
+        };
+        
+        Ws.send(JSON.stringify(message));
+    }
 };
 
-// Add periodic check for empty containers (every 2 minutes)
-setInterval(checkAllContainersForNoContent, 60000);
-
-// Add periodic check for expired content (every minute)
-setInterval(checkAllContentForExpiration, 60000);
+// Set up interval to check containers every 15 seconds
+setInterval(checkContainersForContent, 15000);
 
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
@@ -1835,21 +1846,29 @@ Ws.addEventListener('message', function (event) {
             containers.forEach(container => {
                 const containerElement = document.querySelector(`[data-container-id="${container.container_id}"]`);
                 if (containerElement) {
-                    containerElement.style.display = container.visible ? 'block' : 'none';
+                    const currentVisibility = containerElement.style.display !== 'none';
+                    const newVisibility = container.visible == 1;
                     
-                    // If hiding, clear content and intervals
-                    if (!container.visible) {
-                        const type = containerElement.dataset.type;
-                        contents[`${type}s`] = [];
+                    // Only update if visibility actually changed
+                    if (currentVisibility !== newVisibility) {
+                        containerElement.style.display = newVisibility ? 'block' : 'none';
                         
-                        if (displayTimeIntervals[type]) {
-                            clearInterval(displayTimeIntervals[type]);
-                            displayTimeIntervals[type] = null;
+                        // If hiding, clear content and intervals
+                        if (!newVisibility) {
+                            const type = containerElement.dataset.type;
+                            contents[`${type}s`] = [];
+                            
+                            if (displayTimeIntervals[type]) {
+                                clearInterval(displayTimeIntervals[type]);
+                                displayTimeIntervals[type] = null;
+                            }
+                        } else {
+                            // If showing, fetch and update content only if we don't already have content
+                            const type = containerElement.dataset.type;
+                            if (!contents[`${type}s`] || contents[`${type}s`].length === 0) {
+                                fetchAndUpdateContents(type);
+                            }
                         }
-                    } else {
-                        // If showing, fetch and update content
-                        const type = containerElement.dataset.type;
-                        fetchAndUpdateContents(type);
                     }
                 }
             });
@@ -1997,6 +2016,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     checkAllContentForExpiration();
-    checkAllContainersForNoContent();
+    checkContainersForContent();
     fetchSmartTVDetails();
 });
