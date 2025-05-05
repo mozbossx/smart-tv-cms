@@ -1957,6 +1957,9 @@ function createContainerElement(container) {
 
 // Function to check all containers for empty content
 const checkAllContainersForNoContent = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentTvId = urlParams.get('tvId');
+
     // Get all content types from the containers
     const containers = document.querySelectorAll('[id$="CarouselContainer"]');
     const contentTypes = Array.from(containers).map(container => 
@@ -1970,43 +1973,29 @@ const checkAllContainersForNoContent = () => {
         // Check if the type has any content
         const hasContent = contents[`${type}s`] && contents[`${type}s`].length > 0;
         
-        // Get the container element and its checkbox
+        // Get the container element
         const containerElement = document.querySelector(`[data-container-id][data-type="${type}"]`);
-        const checkbox = document.querySelector(`input[id^="container_"][id$="${containerElement?.dataset.containerId}"]`);
         
-        if (containerElement && checkbox) {
-            if (!hasContent && containerElement.style.display !== 'none') {
-                // Hide the container
-                containerElement.style.display = 'none';
+        if (containerElement && !hasContent) {
+            // Send WebSocket message to update visibility in database
+            if (isConnectedToWebSocket && Ws && Ws.readyState === WebSocket.OPEN) {
+                const containersData = {};
+                containersData[containerElement.dataset.containerId] = 0;
                 
-                // Disable and uncheck the checkbox
-                checkbox.checked = false;
-                checkbox.disabled = true;
+                const data = {
+                    action: 'show_hide_content',
+                    tv_id: currentTvId,
+                    containers: containersData
+                };
                 
-                // Send WebSocket message to update visibility in database
-                if (isConnectedToWebSocket && Ws && Ws.readyState === WebSocket.OPEN) {
-                    const containersData = {};
-                    containersData[containerElement.dataset.containerId] = 0;
-                    
-                    const data = {
-                        action: 'show_hide_content',
-                        tv_id: new URLSearchParams(window.location.search).get('tvId'),
-                        containers: containersData
-                    };
-                    
-                    Ws.send(JSON.stringify(data));
-                }
-            } else if (hasContent && containerElement.style.display === 'none') {
-                // Show the container if it has content but is hidden
-                containerElement.style.display = 'block';
-                checkbox.disabled = false;
+                Ws.send(JSON.stringify(data));
             }
         }
     });
 };
 
-// Set up periodic checks for empty containers (every 30 seconds)
-setInterval(checkAllContainersForNoContent, 30000);
+// Add periodic check for empty containers (every 2 minutes)
+setInterval(checkAllContainersForNoContent, 60000);
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get all content types from the containers
@@ -2028,14 +2017,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     checkAllContentForExpiration();
-    // initializeOrgCharts();
-    // const types = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so', 'orgchart'];
-    // types.forEach(type => {
-    //     adjustFontSize(type);
-    //     setupFontSizeObserver(type);
-    // });
     fetchSmartTVDetails();
     
-    // Initial check
-    checkAllContainersForNoContent();
+    // Initial check for empty containers
+    setTimeout(checkAllContainersForNoContent, 5000); // Check after 5 seconds to allow content to load
 });
