@@ -237,9 +237,36 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
                         const videoDuration = Math.ceil(tempVideo.duration);
                         
                         if (displayTimeSelect) {                           
-                            displayTimeSelect.innerHTML = `<option value="${videoDuration}">${videoDuration} seconds</option>`;
                             displayTimeSelect.value = videoDuration;
-                            displayTimeSelect.style.color = 'black';
+                            // Update the display time modal button and message
+                            const displayTimeModalButton = document.getElementById('displayTimeModalButton');
+                            const displayTimeMessage = document.getElementById('display-time-message');
+                            const displayTimeList = document.getElementById('displayTimeList');
+                            
+                            if (displayTimeModalButton) {
+                                displayTimeModalButton.textContent = `${videoDuration} seconds`;
+                            }
+                            if (displayTimeMessage) {
+                                displayTimeMessage.style.color = 'green';
+                                displayTimeMessage.innerHTML = `<i class="fa fa-check-circle"></i> Display time set to ${videoDuration} seconds`;
+                                displayTimeMessage.style.display = 'block';
+                            }
+                            if (displayTimeList) {
+                                // Store original options if not already stored
+                                if (!window.originalDisplayTimeList) {
+                                    window.originalDisplayTimeList = displayTimeList.innerHTML;
+                                }
+                                // Create a single radio option for video duration
+                                displayTimeList.innerHTML = `
+                                    <div class="radio-option">
+                                        <input type="radio" 
+                                               id="time_${videoDuration}" 
+                                               name="display_time" 
+                                               value="${videoDuration}"
+                                               checked>
+                                        <label for="time_${videoDuration}" style="width: 100%;">${videoDuration} seconds (Video Duration)</label>
+                                    </div>`;
+                            }
                         }
                     };
 
@@ -272,15 +299,14 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         var videoPreview = document.getElementById('video-preview');
         var imagePreview = document.getElementById('image-preview');
         var previewMedia = document.querySelector('.preview-media');
+        var displayTimeList = document.getElementById('displayTimeList');
         if (document.getElementById('cancelMediaButton')) {
             var cancelMediaButton = document.getElementById('cancelMediaButton');
         }
         // Re-enable display time selection and restore original options
         var displayTimeSelect = document.getElementById('display_time');
-        if (displayTimeSelect) {
-            displayTimeSelect.innerHTML = originalDisplayTimeOptions;
-            displayTimeSelect.style.color = '';
-        }
+        var displayTimeModalButton = document.getElementById('displayTimeModalButton');
+        var displayTimeMessage = document.getElementById('display-time-message');
 
         // If in edit mode and there's an existing media path, delete it via AJAX
         <?php if ($isEditMode && isset($contentData['media_path'])): ?>
@@ -309,6 +335,23 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
             return; // Don't proceed with clearing if user cancels
         }
         <?php endif; ?>
+
+        if (displayTimeSelect) {
+            displayTimeSelect.value = ''; // Reset the value
+        }
+        
+        if (displayTimeModalButton) {
+            displayTimeModalButton.textContent = 'Select Display Time';
+        }
+
+        if (displayTimeMessage) {
+            displayTimeMessage.style.display = 'none';
+        }
+
+        // Restore original display time list if it exists
+        if (displayTimeList && window.originalDisplayTimeList) {
+            displayTimeList.innerHTML = window.originalDisplayTimeList;
+        }
 
         // Reset the file input
         mediaInput.value = '';

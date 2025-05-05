@@ -171,6 +171,12 @@ $displayInterval = $displayTimeRange['display_interval'];
         });
 
         displayTimeModalButton.addEventListener("click", function () {
+            // Check if there's a video preview
+            const videoPreview = document.getElementById('video-preview');
+            if (videoPreview && videoPreview.style.display !== 'none') {
+                // If video is displayed, don't show the modal
+                return;
+            }
             displayTimeModal.style.display = "flex";
         });
 
