@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function() {
         updateValidationState(isValid, expirationDateTimeInput.value);
     }
 
-    // Add validation check to the validateAndOpenPreviewModal function
+    // validation check to the validateAndOpenPreviewModal function
     const originalValidateAndOpenPreviewModal = window.validateAndOpenPreviewModal;
     window.validateAndOpenPreviewModal = function() {
         // Check expiration date validity first
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    // Add form submission validation
+    // form submission validation
     if (document.querySelector('form')) {
         document.querySelector('form').addEventListener('submit', function(e) {
             const expirationInput = document.getElementById('expiration_datetime');

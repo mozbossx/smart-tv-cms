@@ -1,3 +1,4 @@
+// Function to format date and time
 function formatDateTime(dateTimeString) {
     const dateTime = new Date(dateTimeString);
     const dateOptions = {
@@ -15,6 +16,7 @@ function formatDateTime(dateTimeString) {
     return `${formattedDate} (${formattedTime})`;
 }
 
+// Function to create edit button
 const createEditButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
@@ -27,6 +29,7 @@ const createEditButton = (text, iconClass, onClick) => {
     return button;
 };
 
+// Function to create delete button
 const createDeleteButton = (text, iconClass, onClick) => {
     const button = document.createElement('button');
     button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i> ${text}`;
@@ -42,7 +45,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         <div class="content-container-con" style="padding: 0">
     `;
 
-    // Add media content if exists
+    // Only add media content if exists
     contentHtml += `
         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
     `;
@@ -66,8 +69,6 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
             }
     }
 
-    // if (data.author_name === full_name, display "Posted by you on ${formattedCreatedDateTime}"
-    // else display "Posted by ${data.author_name} on ${formattedCreatedDateTime}"
     contentHtml += `
             <div class="line-separator"></div>
             <p class="expiration-date" style="color: #6E6E6E"><small>Expires on ${formattedExpirationDateTime}</small></p>
@@ -83,7 +84,6 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
 const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
     const modal = document.getElementById(`confirmDelete${capitalizedType}Modal`);
-    console.log(modal);
     const modalContent = document.getElementById(`delete${capitalizedType}ModalContent`);
     modalContent.className = 'modal-content';
     modalContent.style = `
@@ -117,7 +117,7 @@ const showDeleteModal = (contentId, contentType, authorId, loggedInFullName, aut
     modal.style.display = 'flex';
 };
 
-// Helper function to get icon for content type
+// Function to get icon for content type
 const getTypeIcon = (type) => {
     // Default icons for built-in types
     const defaultIcons = {
@@ -200,7 +200,7 @@ const updateUI = async (data, type) => {
             margin-top: 10px;
         `;
 
-        // editButton onclick="showConfirmApproveContentModal(${notification.content_id}, '${notification.content_type}', '${notification.action_user_name}', '${notification.action_user_department}', ${notification.user_id}, ${notification.content_tv_id}, '${full_name}', ${user_id})"
+        // Create edit button
         const editButton = createEditButton('Edit', '', () => {
             const queryParams = new URLSearchParams({
                 [`${type}_id`]: data[`${type}_id`],
@@ -258,12 +258,12 @@ const hasPermissionToView = (content) => {
         return true;
     }
 
-    // Admin can see content from their department
+    // Admin can see content only from their department
     if (userType === 'Admin') {
         return content.author_department === department;
     }
 
-    // Students, Faculty, and Staff can only see their own content
+    // Students, Faculty, and Staff can only see their own content from their own department
     if (['Student', 'Faculty', 'Staff'].includes(userType)) {
         return parseInt(content[`${content.contentType}_author_id`]) === parseInt(user_id);
     }
@@ -303,7 +303,7 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
-// Helper function to format content type for display
+// Function to format content type for display
 const formatContentType = (type) => {
     // Default formats for built-in types
     const formats = {
@@ -325,25 +325,25 @@ const formatContentType = (type) => {
         .join(' ');
 };
 
-// Include tv_name
+// Function to fetch TV info
 const fetchTVInfo = async (type, tv_id) => {
     try {
         const response = await fetch(`database/fetch_tv_info.php?type=${type}&tvId=${tv_id}`);
         const data = await response.json();
         return {
             tv_display: data.tv_display,
-            tv_name: data.tv_name // Add this line
+            tv_name: data.tv_name 
         };
     } catch (error) {
         console.error('Error fetching TV info:', error);
         return { 
             tv_display: 'Error fetching TV info',
-            tv_name: 'Unknown TV' // Add this line
+            tv_name: 'Unknown TV'
         };
     }
 };
 
-// Function to display a "No items to be displayed" message
+// Function to display a "No approved items to be displayed" message
 const displayNoMessage = (type) => {
     const messageDiv = document.createElement('div');
     messageDiv.id = `no-${type}-message`;
@@ -529,7 +529,7 @@ function populateContentTypeDropdown() {
                 // Update "All" option with total count
                 select.options[0].textContent = `All (${totalCount})`;
 
-                // Add options for each content type with counts
+                // Options for each content type with counts
                 results.forEach(({ type, count }) => {
                     if (count > 0 || type === 'announcement' || type === 'event' || type === 'news' || type === 'promaterial') {
                         const option = document.createElement('option');
@@ -543,7 +543,7 @@ function populateContentTypeDropdown() {
                 console.error('Error fetching content type counts:', error);
             });
 
-            // Add change event listener
+            // Change event listener
             select.addEventListener('change', searchApprovedContents);
         })
         .catch(error => {
@@ -565,12 +565,11 @@ const fetchAndUpdateAll = async () => {
         // Get all available features first
         const response = await fetch('database/fetch_feature_info.php?type=all');
         const features = await response.json();
-        console.log(features);
         
         // Start with default content types
         const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
         
-        // Add dynamic features and store their icons
+        // Add dynamic features and store their icons to the featureIcons object
         if (Array.isArray(features)) {
             features.forEach(feature => {
                 const featureType = feature.type;
@@ -667,7 +666,6 @@ Ws.addEventListener('message', function(event) {
         case 'post_content':
         case 'update_archive_days':
             // Refresh all content for any change
-            console.log('Action received:', data.action);
             populateContentTypeDropdown();
             fetchAndUpdateAll();
             break;

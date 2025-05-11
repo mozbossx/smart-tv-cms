@@ -54,7 +54,7 @@ function updateTheme(color) {
         optionContainer.classList.remove('active');
     });
     
-    // Add active class to selected option
+    // Active class to selected option
     document.querySelector(`[data-color="${color}"]`).classList.add('active');
     document.querySelector(`[data-color-container="${color}"]`).classList.add('active');
     
@@ -79,7 +79,6 @@ function updateTheme(color) {
 document.addEventListener('DOMContentLoaded', function() {
     // Get the current color from the hidden input
     const currentColor = document.getElementById('theme_color').value;
-    console.log("Current theme color on load:", currentColor);
     
     // Find and activate the matching color option
     const colorOptions = document.querySelectorAll('.color-option');
@@ -95,19 +94,17 @@ document.addEventListener('DOMContentLoaded', function() {
         container.classList.remove('active');
     });
     
-    // Add active class to matching elements
+    // Active class to matching elements
     colorOptions.forEach(option => {
         if (option.getAttribute('data-color') === currentColor) {
             option.classList.add('active');
             matchFound = true;
-            console.log("Applied active class to color-option:", currentColor);
         }
     });
     
     colorOptionContainers.forEach(container => {
         if (container.getAttribute('data-color-container') === currentColor) {
             container.classList.add('active');
-            console.log("Applied active class to color-option-container:", currentColor);
         }
     });
     

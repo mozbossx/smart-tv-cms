@@ -200,7 +200,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
         
     }
 
-    // Add type-specific content
+    // Type-specific content
     switch(type) {
         case 'announcement':
         case 'event':
@@ -396,13 +396,13 @@ const updateUI = (data, type) => {
                 margin-top: 10px;
             `;
 
-            // Add delete button for orgchart
+            // Delete button for orgchart
             const deleteButton = createDeleteButton('Delete', 'fa fa-trash', () => showDeleteModal(data.orgchart_id, type, null, null, null, null, null, data.tv_id));
             if (userType === 'Super Admin' || (userType === 'Admin' && data.user_type !== 'Super Admin') || data.author_id === parseInt(user_id)) {
                 buttonContainer.appendChild(deleteButton);
             }
 
-            // Add edit button for orgchart
+            // Edit button for orgchart
             // const editButton = createEditButton('Edit', 'fa fa-pencil-square', () => {
             //     const queryParams = new URLSearchParams({
             //         orgchart_id: data.orgchart_id,
@@ -440,7 +440,6 @@ const updateUI = (data, type) => {
     if (type === 'facility') {
         // fetch facility images array by separating the comma in the facility_images_array
         const facilityImagesArray = data.facility_images_array.split(',');
-        // console.log("Facility Images Array:", facilityImagesArray);
     }
 
     if (data.media_path && type !== 'facility') {
@@ -605,8 +604,6 @@ const createOrgChart = (orgchartId, chartData) => {
             // First, make the Treant match the SVG dimensions
             const svgWidth = svg.width.baseVal.value;
             const svgHeight = svg.height.baseVal.value;
-            // console.log("svgWidth: ", svgWidth);
-            // console.log("svgHeight: ", svgHeight);
             
             // Set both width and height of Treant to match SVG
             treant.style.width = `${svgWidth}px`;
@@ -1202,7 +1199,7 @@ const checkAllContentForExpiration = () => {
     });
 };
 
-// Add periodic check for expired content (every minute)
+// Periodic check for expired content (every minute)
 setInterval(checkAllContentForExpiration, 60000);
 
 /* Web-Socket Server Connection */
@@ -1227,7 +1224,6 @@ Ws.addEventListener('message', function(event) {
                 const remainingItems = deletedContainer.querySelectorAll(`[data-${type}-id]`).length;
                 updateContentCount(type, Math.max(0, remainingItems));
             }
-            // console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been deleted.`);
             break;
         
         case 'trash_content':
@@ -1246,7 +1242,6 @@ Ws.addEventListener('message', function(event) {
                 const remainingItems = trashedContainer.querySelectorAll(`[data-${type}-id]`).length;
                 updateContentCount(type, Math.max(0, remainingItems));
             }
-            // console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been moved to Trash.`);
             break;
 
         case 'archive_content':
@@ -1261,7 +1256,6 @@ Ws.addEventListener('message', function(event) {
                 const remainingItems = archivedContainer.querySelectorAll(`[data-${type}-id]`).length;
                 updateContentCount(type, Math.max(0, remainingItems));
             }
-            // console.log(`${data.type} with ID ${data[`${data.type}_id`]} has been archived.`);
             break;
         case 'update_content':
         case 'restore_content':

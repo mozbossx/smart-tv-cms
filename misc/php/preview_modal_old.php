@@ -719,7 +719,7 @@
         }
     }
 
-    // Add event listener to tv_id select element
+    // event listener to tv_id select element
     document.addEventListener("DOMContentLoaded", function () {
         const tvCheckboxes = document.querySelectorAll('[name="tv_id[]"]');
         tvCheckboxes.forEach(checkbox => {

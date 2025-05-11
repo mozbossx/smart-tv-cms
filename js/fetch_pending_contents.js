@@ -46,7 +46,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
             ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
     `;
 
-    // Add type-specific content
+    // Type-specific content
     switch(type) {
         case 'announcement':
         case 'event':
@@ -235,13 +235,13 @@ const fetchTVInfo = async (type, tv_id) => {
         const data = await response.json();
         return {
             tv_display: data.tv_display,
-            tv_name: data.tv_name // Add this line
+            tv_name: data.tv_name 
         };
     } catch (error) {
         console.error('Error fetching TV info:', error);
         return { 
             tv_display: 'Error fetching TV info',
-            tv_name: 'Unknown TV' // Add this line
+            tv_name: 'Unknown TV' 
         };
     }
 };
@@ -277,7 +277,7 @@ const createModals = async () => {
         const features = await getFeatureInfo('all');
         const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
         
-        // Add dynamic features
+        // dynamic features
         if (features && Array.isArray(features)) {
             features.forEach(feature => {
                 if (!contentTypes.includes(feature.type)) {
@@ -333,12 +333,11 @@ const fetchAndUpdateAll = async () => {
         // Get all available features first
         const response = await fetch('database/fetch_feature_info.php?type=all');
         const features = await response.json();
-        console.log(features);
         
         // Start with default content types
         const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
         
-        // Add dynamic features and store their icons
+        // dynamic features and store their icons
         if (Array.isArray(features)) {
             features.forEach(feature => {
                 const featureType = feature.type;
@@ -376,7 +375,7 @@ const fetchAndUpdateAll = async () => {
                     hasPermissionToView({ ...item, contentType: type.toLowerCase() })
                 );
                 
-                // Add content type to each item
+                // content type to each item
                 filteredData.forEach(item => {
                     item.contentType = type;
                     allContent.push(item);
@@ -433,8 +432,6 @@ Ws.addEventListener('message', function(event) {
         case 'post_content':
         case 'update_archive_days':
             // Refresh all content for any change
-            console.log('Action received:', data.action);
-            // populateContentTypeDropdown();
             fetchAndUpdateAll();
             break;
 

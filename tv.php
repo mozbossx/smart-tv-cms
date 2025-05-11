@@ -6,7 +6,7 @@ include 'config_connection.php';
 
 include 'tv_initialize.php';
 
-// Add device detection and restriction
+// device detection and restriction
 ?>
 <script>
 function detectDevice() {
@@ -370,7 +370,7 @@ window.onload = detectDevice;
             return positions;
         }
 
-        // Add an event listener for messages from the parent window
+        // an event listener for messages from the parent window
         window.addEventListener('message', function(event) {
             if (event.data.action === 'updateTemplate') {
                 const positions = updateContainerPositions();

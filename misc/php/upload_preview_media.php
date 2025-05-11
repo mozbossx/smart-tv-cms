@@ -198,7 +198,7 @@ $mediaPath = ($isEditMode && isset($contentData['media_path'])) ? $contentData['
         sessionStorage.removeItem('preUploadedFile');
     }
 
-    // Add this function to check preUploadedFile status
+    // function to check preUploadedFile status
     function getPreUploadedFile() {
         return window.preUploadedFile || sessionStorage.getItem('preUploadedFile');
     }

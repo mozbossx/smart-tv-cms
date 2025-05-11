@@ -278,7 +278,7 @@ include 'misc/php/options_tv.php';
             //                 img.style.display = 'block'; // Make sure the image is visible
             //                 img.style.margin = 'auto'; // Center the image
 
-            //                 // Add delete button
+            //                 // delete button
             //                 const deleteBtn = document.createElement('button');
             //                 deleteBtn.className = 'delete-image-btn';
             //                 deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
@@ -403,7 +403,7 @@ include 'misc/php/options_tv.php';
                                             img.dataset.originalFileName = file.name;
                                             img.dataset.mediaType = file.type;
 
-                                            // Add delete button
+                                            // delete button
                                             const deleteBtn = document.createElement('button');
                                             deleteBtn.className = 'delete-image-btn';
                                             deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
@@ -616,7 +616,7 @@ include 'misc/php/options_tv.php';
             //     });
             // }
 
-            // Add pre-uploaded files info
+            // pre-uploaded files info
             if (uploadedImages.length > 0) {
                 data.preUploadedFiles = uploadedImages.map(container => {
                     const img = container.querySelector('img');
@@ -1165,7 +1165,7 @@ include 'misc/php/options_tv.php';
                     // // Apply transformations with adjusted position
                     // tvFrame.style.transform = `scale(${scale})`;
                     // tvFrame.style.transformOrigin = 'center top';
-                    // tvFrame.style.marginBottom = '50px'; // Add margin to ensure stand visibility
+                    // tvFrame.style.marginBottom = '50px'; // margin to ensure stand visibility
                 }
 
                 // Fit frame on load
@@ -1286,7 +1286,7 @@ include 'misc/php/options_tv.php';
             }
         }
 
-        // Add event listener to tv_id select element
+        // event listener to tv_id select element
         document.addEventListener("DOMContentLoaded", function () {
             const tvCheckboxes = document.querySelectorAll('[name="tv_id[]"]');
             tvCheckboxes.forEach(checkbox => {

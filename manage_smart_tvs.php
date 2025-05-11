@@ -162,7 +162,7 @@ if (!$resultAllSmartTVs) {
             }
         }
 
-        // Add event listener for clear button
+        // event listener for clear button
         document.getElementById("clearSearch").addEventListener("click", function() {
             document.getElementById("searchInput").value = "";
             searchSmartTVsTable();

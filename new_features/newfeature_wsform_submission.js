@@ -29,7 +29,7 @@ function submitFormViaWebSocket() {
     // Get content from all Quill editors
     const quillEditorContent = getNewFeatureQuillEditorContent(form);
 
-    // Add hidden inputs for Quill editor content
+    // hidden inputs for Quill editor content
     Object.keys(quillEditorContent).forEach(key => {
         let hiddenInput = form.querySelector(`input[name="${key}"]`);
         if (!hiddenInput) {
@@ -92,7 +92,7 @@ function submitFormViaWebSocket() {
 
         console.log('Debug - Adding pre-uploaded file to data:', preUploadedFile);
 
-        // Add all other form data
+        // all other form data
         formData.forEach((value, key) => {
             data[key] = value;
         });
@@ -213,7 +213,7 @@ function sendDataToWebSocket(data, loadingModal, contentTypeWithNoUnderscores, i
         tryReconnect();
     };
 
-    // Add error handling for WebSocket connection
+    // error handling for WebSocket connection
     ws.onerror = function(error) {
         loadingModal.style.display = 'none';
         document.getElementById('errorText').textContent = 'Connection error occurred. Please refresh the page and try again.';

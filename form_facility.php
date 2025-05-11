@@ -308,7 +308,7 @@ include 'misc/php/options_tv.php';
                                             img.dataset.originalFileName = file.name;
                                             img.dataset.mediaType = file.type;
 
-                                            // Add delete button
+                                            // delete button
                                             const deleteBtn = document.createElement('button');
                                             deleteBtn.className = 'delete-image-btn';
                                             deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
@@ -512,7 +512,7 @@ include 'misc/php/options_tv.php';
                 tv_ids: formData.getAll('tv_id[]')
             };
 
-            // Add pre-uploaded files info
+            // pre-uploaded files info
             if (uploadedImages.length > 0) {
                 data.preUploadedFiles = uploadedImages.map(container => {
                     const img = container.querySelector('img');
@@ -530,8 +530,6 @@ include 'misc/php/options_tv.php';
                     data[key] = value;
                 }
             });
-
-            console.log(data);
 
             sendDataToWebSocket(data, loadingModal);
         }
@@ -723,7 +721,7 @@ include 'misc/php/options_tv.php';
             }
         }
 
-        // Add event listener to tv_id select element
+        // event listener to tv_id select element
         document.addEventListener("DOMContentLoaded", function () {
             const tvCheckboxes = document.querySelectorAll('[name="tv_id[]"]');
             tvCheckboxes.forEach(checkbox => {

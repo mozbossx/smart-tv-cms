@@ -10,7 +10,7 @@ class ContentHandler implements MessageComponentInterface
     protected $clients;
     protected $pdo;
     protected $pingTimeouts = []; // Store timeouts for each client
-    protected $loop; // Add event loop property
+    protected $loop; // event loop property
     
     public function __construct($pdo) {
         $this->clients = new \SplObjectStorage;
@@ -1026,7 +1026,7 @@ class ContentHandler implements MessageComponentInterface
             $stmtFeatures->execute();
             $newFeatures = $stmtFeatures->fetchAll(PDO::FETCH_ASSOC);
 
-            // Add new features to validTypes
+            // new features to validTypes
             foreach ($newFeatures as $feature) {
                 $featureType = strtolower(str_replace(' ', '_', $feature['feature_name']));
                 $validTypes[$featureType] = [
@@ -1077,7 +1077,7 @@ class ContentHandler implements MessageComponentInterface
                     }
                 }
         
-                // Add common fields only for non-PEO/SO content
+                // common fields only for non-PEO/SO content
                 if ($type !== 'peo' && $type !== 'so' && $type !== 'facility') {
                     if (isset($data['expiration_datetime'])) {
                         $updateFields[] = "expiration_datetime = ?";
@@ -1090,7 +1090,7 @@ class ContentHandler implements MessageComponentInterface
                     $params[] = $data['display_time'];
                 }
         
-                // Add content_id to params
+                // content_id to params
                 $params[] = $content_id;
         
                 // Build and execute update query
@@ -2923,7 +2923,7 @@ class ContentHandler implements MessageComponentInterface
             $this->pdo->beginTransaction();
             
             try {
-                // Add to deleted TVs table first
+                // to deleted TVs table first
                 $stmtAddToDeleted = $this->pdo->prepare("INSERT INTO deleted_tvs_tb (tv_id, deleted_at) VALUES (?, NOW())");
                 $stmtAddToDeleted->execute([$tvId]);
         
@@ -3425,7 +3425,7 @@ class ContentHandler implements MessageComponentInterface
                             $values[] = $status;
                         }
                     
-                        // Add type-specific fields
+                        // type-specific fields
                         if ($data['type'] === 'event') {
                             $fields[] = 'event_body';
                             $fields[] = 'expiration_datetime';
@@ -3989,13 +3989,13 @@ class ContentHandler implements MessageComponentInterface
                             $type
                         ];
 
-                        // Add other fields specific to the content type
+                        // other fields specific to the content type
                         // if ($contentType === 'bulletin_board') {
                         //     $fields[] = 'president_name';
                         //     $values[] = $data['president_name'];
                         // }
 
-                        // Add all other fields from the form data
+                        // all other fields from the form data
                         // foreach ($data as $key => $value) {
                         //     if (!in_array($key, ['action', 'type', 'tv_ids', 'display_time', 'media']) && $key !== $authorField) {
                         //         $fields[] = $key;
@@ -4003,7 +4003,7 @@ class ContentHandler implements MessageComponentInterface
                         //     }
                         // }
             
-                        // Add type-specific fields, excluding those already added
+                        // type-specific fields, excluding those already added
                         foreach ($data as $key => $value) {
                             if (!in_array($key, [
                                 'action', 'type', 'tv_id[]', 'tv_ids', 
@@ -4334,7 +4334,7 @@ class ContentHandler implements MessageComponentInterface
                 )";
                 $this->pdo->exec($sql);
             
-                // Add columns based on inputs
+                // columns based on inputs
                 foreach ($data['inputs'] as $input) {
                     $columnName = strtolower(str_replace(' ', '_', $input['name']));
                     $columnType = ($input['type'] == 'text') ? 'TEXT' : 'VARCHAR(255)';
@@ -4350,7 +4350,7 @@ class ContentHandler implements MessageComponentInterface
                     }
                 }
             
-                // Add other necessary columns
+                // other necessary columns
                 $sql = "ALTER TABLE $tableName 
                         ADD COLUMN status VARCHAR(255) NOT NULL";
                 
@@ -4713,7 +4713,7 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                             $quillContentAssignment = "";
                             $hasImageInput = false;
 
-                            // Add input fields based on the feature's inputs
+                            // input fields based on the feature's inputs
                             foreach ($inputs as $input) {
                                 $content .= $this->generateInputField($input);
                                 if ($input['type'] == 'text') {
@@ -4737,7 +4737,7 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
                                         window.quillEditors = window.quillEditors || {};
                                         window.quillEditors.{$inputName}Quill = {$inputName}Quill;
                                         
-                                        // Add direct reference to window for cross-compatibility
+                                        // direct reference to window for cross-compatibility
                                         window.{$inputName}Quill = {$inputName}Quill;
 
                                     ";

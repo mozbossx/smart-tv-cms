@@ -227,7 +227,7 @@ include 'admin_access_only.php';
                 hasMediaInput = hasAnyMediaSelected;
             }
 
-            // Add event listeners to all input type selects
+            // event listeners to all input type selects
             document.querySelectorAll('.input-type-select').forEach(select => {
                 select.addEventListener('change', function() {
                     if (this.value === 'media') {

@@ -253,7 +253,7 @@ function populateContentTypeDropdown() {
             const select = document.getElementById('contentType');
             const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
             
-            // Add dynamic features
+            // dynamic features
             if (Array.isArray(features)) {
                 features.forEach(feature => {
                     const featureType = feature.type;
@@ -265,7 +265,7 @@ function populateContentTypeDropdown() {
                 });
             }
             
-            // Add admin-only content types
+            // admin-only content types
             if (userType === 'Admin' || userType === 'Super Admin') {
                 if (!contentTypes.includes('peo')) contentTypes.push('peo');
                 if (!contentTypes.includes('so')) contentTypes.push('so');
@@ -311,7 +311,7 @@ function populateContentTypeDropdown() {
                 // Update "All" option with total count
                 select.options[0].textContent = `All (${totalCount})`;
 
-                // Add options for each content type with counts
+                // options for each content type with counts
                 results.forEach(({ type, count }) => {
                     if (count > 0 || ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'].includes(type)) {
                         const option = document.createElement('option');
@@ -325,7 +325,7 @@ function populateContentTypeDropdown() {
                 console.error('Error fetching content type counts:', error);
             });
 
-            // Add change event listener
+            // change event listener
             select.addEventListener('change', searchTrash);
         })
         .catch(error => {
@@ -384,7 +384,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
             ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
     `;
 
-    // Add type-specific content
+    // type-specific content
     switch(type) {
         case 'announcement':
         case 'event':
@@ -596,13 +596,13 @@ const fetchTVInfo = async (type, tv_id) => {
         const data = await response.json();
         return {
             tv_display: data.tv_display,
-            tv_name: data.tv_name // Add this line
+            tv_name: data.tv_name
         };
     } catch (error) {
         console.error('Error fetching TV info:', error);
         return { 
             tv_display: 'Error fetching TV info',
-            tv_name: 'Unknown TV' // Add this line
+            tv_name: 'Unknown TV'
         };
     }
 };
@@ -823,7 +823,7 @@ const createModals = async () => {
         const features = await getFeatureInfo('all');
         const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
         
-        // Add dynamic features
+        // dynamic features
         if (features && Array.isArray(features)) {
             features.forEach(feature => {
                 if (!contentTypes.includes(feature.type)) {
@@ -996,12 +996,11 @@ const fetchAndUpdateAll = async () => {
         // Get all available features first
         const response = await fetch('database/fetch_feature_info.php?type=all');
         const features = await response.json();
-        console.log(features);
         
         // Start with default content types
         const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
         
-        // Add dynamic features and store their icons
+        // dynamic features and store their icons
         if (Array.isArray(features)) {
             features.forEach(feature => {
                 const featureType = feature.type;
@@ -1013,7 +1012,7 @@ const fetchAndUpdateAll = async () => {
             });
         }
 
-        // Add admin-only content types
+        // admin-only content types
         if (userType === 'Admin' || userType === 'Super Admin') {
             contentTypes.push('peo', 'so');
         }
@@ -1046,7 +1045,7 @@ const fetchAndUpdateAll = async () => {
                     hasPermissionToView({ ...item, contentType: type.toLowerCase() })
                 );
                 
-                // Add content type to each item
+                // content type to each item
                 filteredData.forEach(item => {
                     item.contentType = type;
                     allContent.push(item);
@@ -1101,7 +1100,6 @@ Ws.addEventListener('message', function(event) {
         case 'post_content':
         case 'update_archive_days':
             // Refresh all content for any change
-            console.log('Action received:', data.action);
             populateContentTypeDropdown();
             fetchAndUpdateAll();
             break;

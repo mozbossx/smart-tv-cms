@@ -45,7 +45,7 @@ if (isset($_POST["submit"])) {
         // Send an email to the user with the password reset link
         $mail = new PHPMailer();
 
-        // Configure the PHPMailer instance here (set From, Subject, Body, etc.)
+        // Configure the PHPMailer instance (set From, Subject, Body, etc.)
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->Port = 587;
@@ -62,7 +62,7 @@ if (isset($_POST["submit"])) {
 
         // HTML body
         $mail->isHTML(true);
-        $mail->addAddress($email); // Add the user's email here
+        $mail->addAddress($email); 
         $mail->Subject = 'Password Reset';
         $mail->Body = "To reset your password, click this link: $passwordResetLink";
         if ($mail->send()) {

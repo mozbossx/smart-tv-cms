@@ -1,8 +1,11 @@
 <?php
 session_start();
 
-// Include your database connection configuration
+// Include database connection configuration
 @include 'config_connection.php';
+
+// Initialize $successMessage
+$successMessage = "";
 
 require 'phpmailer/vendor/autoload.php';
 

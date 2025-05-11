@@ -23,7 +23,7 @@ try {
     $stmt = $pdo->query("SELECT type FROM features_tb");
     $contentTypes = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
-    // Add default content types
+    // default content types
     $defaultTypes = ['announcement', 'event', 'news', 'promaterial'];
     $contentTypes = array_merge($defaultTypes, $contentTypes);
     

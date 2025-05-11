@@ -374,7 +374,7 @@ function updateNewFeaturePreviewContent(contentBody) {
         });
         carouselHTML += '</div>';
 
-        // Add navigation buttons if there's more than one container
+        // navigation buttons if there's more than one container
         if (matchingContainers.length > 1) {
             const initialTvName = tvNames[matchingContainers[0].tv_id] || 'Unknown TV';
             carouselHTML += `
@@ -650,7 +650,7 @@ function formatDateTime(dateTimeString) {
     return new Intl.DateTimeFormat('en-US', options).format(dateTime);
 }
 
-// Add event listener to tv_id checkboxes
+// event listener to tv_id checkboxes
 document.addEventListener("DOMContentLoaded", function () {
     const tvCheckboxes = document.querySelectorAll('[name="tv_id[]"]');
     tvCheckboxes.forEach(checkbox => {

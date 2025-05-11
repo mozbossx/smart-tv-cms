@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $mail->setFrom('usccms.tv@gmail.com', 'USC CMS Notifications');
 
-        // Add all admin recipients
+        // all admin recipients
         foreach ($admins as $admin) {
             $mail->addAddress($admin['email']);
         }

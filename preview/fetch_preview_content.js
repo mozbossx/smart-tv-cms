@@ -211,7 +211,7 @@ function updatePreviewContent(previewData) {
         media_path: media || null
     };
     
-    // Add type-specific content
+    // type-specific content
     switch(type) {
         case 'announcement':
             mockData.announcement_body = content || '<p>Preview content</p>';

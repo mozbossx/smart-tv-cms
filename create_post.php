@@ -157,7 +157,6 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
             Ws.send(JSON.stringify(data));
         }
 
-        // Add this outside of any function, with your other WebSocket handlers
         Ws.onmessage = function(event) {
             const response = JSON.parse(event.data);
             

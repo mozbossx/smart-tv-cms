@@ -1,9 +1,10 @@
 <?php
-// Enable error reporting
+// Error reporting
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 // Database connection
+// PDO - PHP Data Objects
 try {
     $pdo = new PDO("mysql:host=localhost;dbname=smart_tv_cms_db", "root", "Mozar@123456", [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 } catch (PDOException $e) {
@@ -27,12 +28,7 @@ if ($type == 'announcement' || $type == 'event' || $type == 'promaterial') {
 $authorIdField = "{$type}_author_id";
 
 try {
-    // Fetch content with author names
-    // $query = "SELECT c.*, u.full_name as author_name, u.user_type as author_user_type, u.department as author_department, u.user_id as author_id
-    //         FROM {$tableName} c 
-    //         LEFT JOIN users_tb u ON c.{$authorIdField} = u.user_id
-    //         WHERE c.status = 'Approved'";
-
+    // Fetch approved contents
     $query = "SELECT c.*, 
             LOWER(REPLACE(c.category, ' ', '_')) as category, 
             u.full_name as author_name, 

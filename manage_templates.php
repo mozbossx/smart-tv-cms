@@ -181,7 +181,7 @@ $resultSelectExtistingTvs = mysqli_query($conn, $querySelectExtistingTvs);
             clearSearchButton.style.display = searchTerm ? 'block' : 'none';
         }
 
-        // Add event listener for the clear search button
+        // event listener for the clear search button
         if (document.getElementById('clearSearch')) {
             document.getElementById('clearSearch').addEventListener('click', function() {
                 const searchInput = document.getElementById('searchInput');

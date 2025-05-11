@@ -594,7 +594,7 @@ include 'misc/php/options_tv.php';
                     // Apply transformations with adjusted position
                     tvFrame.style.transform = `scale(${scale})`;
                     tvFrame.style.transformOrigin = 'center top';
-                    tvFrame.style.marginBottom = '50px'; // Add margin to ensure stand visibility
+                    tvFrame.style.marginBottom = '50px'; // margin to ensure stand visibility
                 }
 
                 // Fit frame on load
@@ -612,7 +612,7 @@ include 'misc/php/options_tv.php';
             });
         }
 
-        // Add event listener to tv_id select element
+        // event listener to tv_id select element
         document.addEventListener("DOMContentLoaded", function () {
             const tvCheckboxes = document.querySelectorAll('[name="tv_id[]"]');
             tvCheckboxes.forEach(checkbox => {
@@ -843,7 +843,7 @@ include 'misc/php/options_tv.php';
                         subTeeSeparation: 40,
                         callback: {
                             onTreeLoaded: function() {
-                                // Add a small delay to ensure the tree is fully rendered
+                                // a small delay to ensure the tree is fully rendered
                                 setTimeout(scaleOrgChart, 100);
                             }
                         }
@@ -897,7 +897,7 @@ include 'misc/php/options_tv.php';
                     picture: pictureBase64
                 };
 
-                orgChartData.push(newMember); // Add the new member to the org chart data
+                orgChartData.push(newMember); // the new member to the org chart data
                 createOrgChart(orgChartData); // Re-render the org chart
                 closeAddMemberModal(); // Close the modal after adding the member
             };

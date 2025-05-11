@@ -1,5 +1,6 @@
 let isConnectedToWebSocket = false;
 
+// Check if we're in an iframe - move this function to the top
 function isIframe() {
     return window.self !== window.top;
 }
@@ -10,9 +11,7 @@ function updateTvStatus(status) {
     Ws.send(JSON.stringify({ action: 'update_tv_status', status: status, tvId: currentTvId }));
 }
 
-function connectWebSocket() {
-    console.log('Attempting WebSocket connection...');
-    
+function connectWebSocket() {    
     // Determine if we're in localhost or production
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
@@ -32,17 +31,14 @@ function connectWebSocket() {
         const heartbeat = () => {
             clearTimeout(clientPingTimeout);
             clientPingTimeout = setTimeout(() => {
-                // console.log('Client: Connection lost - no pong received');
                 ws.close();
             }, 20000); // 20 second timeout
         };
         
         ws.onopen = function() {
-            // console.log('Client: WebSocket Connected Successfully to:', wsUrl);
             isConnectedToWebSocket = true;
 
             if (!isIframe()) {
-                console.log('Client: Updating TV status to active');
                 // Periodic ping to update last_ping
                 setInterval(() => {
                     if (isConnectedToWebSocket && Ws && Ws.readyState === WebSocket.OPEN) {
@@ -54,7 +50,6 @@ function connectWebSocket() {
             // Client-initiated pings
             clientPingInterval = setInterval(() => {
                 if (ws.readyState === WebSocket.OPEN) {
-                    // console.log('Client: Sending ping to server');
                     ws.send(JSON.stringify({ action: 'ping' }));
                     heartbeat();
                 }
@@ -77,25 +72,21 @@ function connectWebSocket() {
             switch(data.action) {
                 case 'ping':
                     // Respond to server's ping
-                    // console.log('Client: Received ping from server, sending pong!');
                     ws.send(JSON.stringify({ action: 'pong' }));
                     return;
                 case 'pong':
                     // Reset client's heartbeat timeout
-                    // console.log('Client: Received pong from server, resetting heartbeat timeout!');
                     heartbeat();
                     return;
             }
         };
         
         ws.onclose = function(event) {
-            // console.log('Client: WebSocket connection closed');
             isConnectedToWebSocket = false;
             clearInterval(clientPingInterval);
             clearTimeout(clientPingTimeout);
 
             updateTvStatus('inactive');
-            // console.log('Client: Cleared all timers');
 
             if (loadingWebsocketConnectionModal) {
                 loadingWebsocketConnectionModal.style.display = 'flex';
@@ -105,7 +96,6 @@ function connectWebSocket() {
 
             // Attempt to reconnect
             setTimeout(() => {
-                console.log('Client: Attempting to reconnect.......');
                 Ws = connectWebSocket();
             }, 5000);
         };
@@ -130,8 +120,6 @@ let Ws = null;
 try {
     Ws = connectWebSocket();
 } catch (error) {
-    console.error('Error initializing WebSocket:', error);
-    console.log('Attempting reconnection in 5 seconds...');
     setTimeout(() => {
         Ws = connectWebSocket();
     }, 5000);
@@ -238,7 +226,7 @@ const getUserTypePriority = (userType) => {
     }
 };
 
-// Unified function to update UI
+// Function to update UI
 const updateUI = (data, type) => {
     const { carouselContainer, pageNumberContainer } = getContainerElements(type);
     const currentIndexKey = type;
@@ -334,13 +322,13 @@ const updateUI = (data, type) => {
     const getUserTypeIcon = (userType) => {
         switch(userType) {
             case 'Super Admin':
-                return '<i class="fas fa-user-secret" title="Super Admin" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<i class="fas fa-crown" title="Super Admin" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
             case 'Admin':
-                return '<i class="fas fa-user-tie" title="Admin" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<i class="fas fa-user-gear" title="Admin" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
             case 'Faculty':
-                return '<i class="fas fa-chalkboard-teacher" title="Faculty" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<i class="fas fa-chalkboard-user" title="Faculty" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
             case 'Staff':
-                return '<i class="fas fa-user-gear" title="Staff" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<i class="fas fa-clipboard" title="Staff" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
             case 'Student':
                 return '<i class="fas fa-user-graduate" title="Student" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
             default:
@@ -1021,7 +1009,7 @@ const createNodeStructure = (members) => {
     };
 };
 
-// Add resize observer to handle container resizing
+// resize observer to handle container resizing
 const setupOrgChartResizeObserver = (container) => {
     let resizeTimeout;
     const resizeObserver = new ResizeObserver((entries) => {
@@ -1121,7 +1109,7 @@ const showNextContent = (type) => {
         // Increment the index and wrap around if necessary
         currentIndex[currentIndexKey] = (currentIndex[currentIndexKey] + 1) % contentsArray.length;
 
-        // Add active class to the new current item
+        // active class to the new current item
         if (contentsArray[currentIndex[currentIndexKey]]) {
             const newItem = contentsArray[currentIndex[currentIndexKey]];
             newItem.classList.add('active');
@@ -1169,7 +1157,7 @@ const showNextContent = (type) => {
                     showNextContent(type);
                 };
 
-                // Add ended event listener
+                // ended event listener
                 newVideo.addEventListener('ended', handleVideoEnd, { once: true });
 
                 // Start playing the video
@@ -1369,6 +1357,9 @@ const displayNoMessage = (type) => {
 
 // Function to fetch and update contents
 const fetchAndUpdateContents = (type) => {
+    // Set loading status to true when starting to fetch
+    contentLoadingStatus[type] = true;
+    
     const previousIndex = currentIndex[type]; // Save the current index
     contents[type + 's'] = [];
     const { carouselContainer, pageNumberContainer } = getContainerElements(type); // Get the containers dynamically
@@ -1380,6 +1371,15 @@ const fetchAndUpdateContents = (type) => {
 
     // List of predefined content types
     const predefinedTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so', 'orgchart'];
+
+    const finishLoading = () => {
+        contentLoadingStatus[type] = false;
+        // Check if all content types have finished loading
+        const allContentLoaded = Object.values(contentLoadingStatus).every(status => status === false);
+        if (allContentLoaded) {
+            checkContainersForContent();
+        }
+    };
 
     if (tvId && predefinedTypes.includes(type)) {
         fetch(`database/fetch_smart_tvs.php?tvId=${tvId}`)
@@ -1393,12 +1393,6 @@ const fetchAndUpdateContents = (type) => {
                         .then(data => {
                             let hasMatchingOrgchart = false;
                             Object.entries(data).forEach(([orgchartId, orgchartData]) => {
-                                // updateUI({
-                                //     orgchart_id: orgchartId,
-                                //     chartData: orgchartData,
-                                //     display_time: orgchartData.display_time
-                                // }, 'orgchart');
-                                // Check if the orgchart's department matches the TV's department
                                 if (orgchartData.members && orgchartData.members.length > 0 && 
                                     orgchartData.members[0].department === tvDepartment) {
                                     hasMatchingOrgchart = true;
@@ -1410,103 +1404,85 @@ const fetchAndUpdateContents = (type) => {
                                 }
                             });
 
-                            // Show "no message" if no matching orgcharts were found
                             if (!hasMatchingOrgchart) {
                                 displayNoMessage('orgchart');
                             } else {
                                 currentIndex['orgchart'] = Math.min(currentIndex['orgchart'], contents['orgcharts'].length - 1);
                                 startCarousel('orgchart');
                             }
+                            finishLoading();
                         })
                         .catch(error => {
                             console.error('Error fetching orgcharts:', error);
                             displayNoMessage('orgchart');
+                            finishLoading();
                         });
                 } else if (type !== 'orgchart') {
                     fetch(`database/fetch_${type}.php`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (type === 'peo' || type === 'so') {
-                            const filteredData = data.filter(item =>
-                                item.tv_id === parseInt(tvId, 10) &&
-                                item.isArchived === 0 &&
-                                item.isTrashed === 0 && 
-                                item.department === tvDepartment
-                            );
+                        .then(response => response.json())
+                        .then(data => {
+                            if (type === 'peo' || type === 'so') {
+                                const filteredData = data.filter(item =>
+                                    item.tv_id === parseInt(tvId, 10) &&
+                                    item.isArchived === 0 &&
+                                    item.isTrashed === 0 && 
+                                    item.department === tvDepartment
+                                );
 
-                            // OLD CODE
-                            // filteredData.forEach(item => updateUI(item, type));
-                            // if (contents[type + 's'].length > 0) {
-                            //     // Set the current index to 0 to start from the first item
-                            //     currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
-                            //     startCarousel(type);
-                            // } else {
-                            //     displayNoMessage(type); // Call displayNoMessage if no content
-                            // }
-
-                            // NEW CODE
-                            // Sort by user type priority and then by created_datetime
-                            filteredData.sort((a, b) => {
-                                const priorityDiff = getUserTypePriority(b.user_type) - getUserTypePriority(a.user_type);
-                                if (priorityDiff !== 0) return priorityDiff;
-                                return new Date(b.created_datetime) - new Date(a.created_datetime);
-                            });
-                            
-                            filteredData.forEach(item => updateUI(item, type));
-                            if (contents[type + 's'].length > 0) {
-                                currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1);
-                                startCarousel(type);
+                                filteredData.sort((a, b) => {
+                                    const priorityDiff = getUserTypePriority(b.user_type) - getUserTypePriority(a.user_type);
+                                    if (priorityDiff !== 0) return priorityDiff;
+                                    return new Date(b.created_datetime) - new Date(a.created_datetime);
+                                });
+                                
+                                filteredData.forEach(item => updateUI(item, type));
+                                if (contents[type + 's'].length > 0) {
+                                    currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1);
+                                    startCarousel(type);
+                                } else {
+                                    displayNoMessage(type);
+                                }
                             } else {
-                                displayNoMessage(type);
-                            }
-                        } else {
-                            const filteredData = data.filter(item =>
-                                item.status === 'Approved' &&
-                                item.tv_id === parseInt(tvId, 10) &&
-                                item.isArchived === 0 &&
-                                item.isTrashed === 0 && 
-                                item.department === tvDepartment
-                            );
+                                const filteredData = data.filter(item =>
+                                    item.status === 'Approved' &&
+                                    item.tv_id === parseInt(tvId, 10) &&
+                                    item.isArchived === 0 &&
+                                    item.isTrashed === 0 && 
+                                    item.department === tvDepartment
+                                );
 
-                            // OLD CODE
-                            // filteredData.forEach(item => updateUI(item, type));
-                            // if (contents[type + 's'].length > 0) {
-                            //     // Set the current index to 0 to start from the first item
-                            //     currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
-                            //     startCarousel(type);
-                            // } else {
-                            //     displayNoMessage(type); // Call displayNoMessage if no content
-                            // }
-
-                            // NEW CODE
-                            // Sort by user type priority and then by created_datetime
-                            filteredData.sort((a, b) => {
-                                const priorityDiff = getUserTypePriority(b.user_type) - getUserTypePriority(a.user_type);
-                                if (priorityDiff !== 0) return priorityDiff;
-                                return new Date(b.created_datetime) - new Date(a.created_datetime);
-                            });
-                            
-                            filteredData.forEach(item => updateUI(item, type));
-                            if (contents[type + 's'].length > 0) {
-                                currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1);
-                                startCarousel(type);
-                            } else {
-                                displayNoMessage(type);
+                                filteredData.sort((a, b) => {
+                                    const priorityDiff = getUserTypePriority(b.user_type) - getUserTypePriority(a.user_type);
+                                    if (priorityDiff !== 0) return priorityDiff;
+                                    return new Date(b.created_datetime) - new Date(a.created_datetime);
+                                });
+                                
+                                filteredData.forEach(item => updateUI(item, type));
+                                if (contents[type + 's'].length > 0) {
+                                    currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1);
+                                    startCarousel(type);
+                                } else {
+                                    displayNoMessage(type);
+                                }
                             }
-                        }
-                        // adjustFontSize(type);
-                    })
-                    .catch(error => console.error(`Error fetching ${type}s:`, error));
+                            finishLoading();
+                        })
+                        .catch(error => {
+                            console.error(`Error fetching ${type}s:`, error);
+                            finishLoading();
+                        });
                 }
             })
-            .catch(error => console.error('Error fetching TV data:', error));
+            .catch(error => {
+                console.error('Error fetching TV data:', error);
+                finishLoading();
+            });
     } else if (tvId && !predefinedTypes.includes(type)) {
         fetch(`database/fetch_smart_tvs.php?tvId=${tvId}`)
             .then(response => response.json())
             .then(data => {
                 const tvName = data.tv_name;
                 const tvDepartment = data.tv_department;
-                // Use fetch_content.php for new features
                 fetch(`database/fetch_content.php?type=${type}&tvId=${tvId}`)
                     .then(response => response.json())
                     .then(data => {
@@ -1520,7 +1496,6 @@ const fetchAndUpdateContents = (type) => {
                                 item.tv_id === parseInt(tvId, 10) &&
                                 item.department === tvDepartment
                             );
-                            // Sort by user type priority and then by created_datetime
                             filteredData.sort((a, b) => {
                                 const priorityDiff = getUserTypePriority(b.user_type) - getUserTypePriority(a.user_type);
                                 if (priorityDiff !== 0) return priorityDiff;
@@ -1528,36 +1503,32 @@ const fetchAndUpdateContents = (type) => {
                             });
                             
                             filteredData.forEach(item => updateUI(item, type));
-                            
-                            // filteredData.forEach(item => updateUI(item, type));
-                            
-                            // Previous working code below
-                            // data.forEach(item => {
-                            //     if (item.tv_id === parseInt(tvId, 10)) {
-                            //         updateUI(item, type);
-                            //     }
-                            // });
                         } else if (data && typeof data === 'object' && 
                                 data.tv_id === parseInt(tvId, 10) &&
                                 data.department === tvDepartment) {
                             updateUI(data, type);
                         }
 
-                        // Start carousel if there's content
                         if (contents[`${type}s`].length > 0) {
-                            // currentIndex[type] = 0;
-                            currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1); // Starts at the first item
-                            // showNextContent(type); // Initialize first content
-                            resetDisplayTime(type); // Start the countdown timer
+                            currentIndex[type] = Math.min(currentIndex[type], contents[type + 's'].length - 1);
+                            resetDisplayTime(type);
                         } else {
                             displayNoMessage(type);
                         }
+                        finishLoading();
                     })
-                    .catch(error => console.error(`Error fetching new feature ${type}:`, error));
+                    .catch(error => {
+                        console.error(`Error fetching new feature ${type}:`, error);
+                        finishLoading();
+                    });
             })
-            .catch(error => console.error('Error fetching TV data:', error));
+            .catch(error => {
+                console.error('Error fetching TV data:', error);
+                finishLoading();
+            });
     } else {
         console.error('TV ID not found in URL');
+        finishLoading();
     }
 };
 
@@ -1593,7 +1564,7 @@ const checkAllContentForExpiration = () => {
     });
 };
 
-// Add periodic check for expired content (every minute)
+// periodic check for expired content (every minute)
 setInterval(checkAllContentForExpiration, 60000);
 
 // Function to check all containers for empty content
@@ -1615,6 +1586,10 @@ const checkContainersForContent = () => {
     
     // Create an object to store container states
     const containerVisibilityMap = {};
+    let hasEmptyContainers = false;
+    
+    // Create a map of container IDs to content status
+    const containerContentMap = {};
     
     contentTypes.forEach(type => {
         // Get the container element
@@ -1626,15 +1601,29 @@ const checkContainersForContent = () => {
             // Check if there's any content for this type
             const hasContent = contents[`${type}s`] && contents[`${type}s`].length > 0;
             
+            // Store content status for each container
+            if (containerId) {
+                containerContentMap[containerId] = hasContent;
+            }
+            
             // If container is visible but has no content, add it to the map
             if (isVisible && !hasContent && containerId) {
                 // Map container ID to visibility state (0 for hidden)
                 containerVisibilityMap[containerId] = 0;
+                hasEmptyContainers = true;
             }
         }
     });
     
-    // If we found containers that need to be hidden, send the update
+    // Send container content status to parent window if in iframe
+    if (isIframe()) {
+        window.parent.postMessage({
+            action: 'containerContentStatus',
+            containerContentMap: containerContentMap
+        }, '*');
+    }
+    
+    // If we found containers that need to be hidden, send the update and auto-tile
     if (Object.keys(containerVisibilityMap).length > 0 && isConnectedToWebSocket && Ws) {
         const message = {
             action: 'show_hide_content',
@@ -1643,11 +1632,154 @@ const checkContainersForContent = () => {
         };
         
         Ws.send(JSON.stringify(message));
+
+        // After hiding empty containers, apply auto-tiling
+        if (hasEmptyContainers) {
+            setTimeout(() => {
+                autoTileContainers(tvId);
+            }, 1000);
+        }
     }
 };
 
-// Set up interval to check containers every 15 seconds
-setInterval(checkContainersForContent, 15000);
+// Function to auto-tile containers
+const autoTileContainers = (tvId) => {
+    const mainContainer = document.querySelector('.main-container');
+    const containers = document.querySelectorAll('.content-container');
+    
+    if (!mainContainer || containers.length === 0) return;
+    
+    const GAP = 3.5; // Gap between containers and from edges
+    const mainRect = mainContainer.getBoundingClientRect();
+    const containerArray = Array.from(containers).filter(container => 
+        container.style.display !== 'none'
+    );
+    
+    const numContainers = containerArray.length;
+    if (numContainers === 0) return;
+
+    // Calculate available space considering gaps
+    const availableWidth = mainRect.width - (GAP * 2); // Account for left and right edge gaps
+    const availableHeight = mainRect.height - (GAP * 2); // Account for top and bottom edge gaps
+
+    // Handle different layout cases based on number of visible containers
+    if (numContainers === 1) {
+        // Single container - fill entire space with gaps
+        const container = containerArray[0];
+        container.style.width = `${availableWidth}px`;
+        container.style.height = `${availableHeight}px`;
+        container.style.transform = `translate(${GAP}px, ${GAP}px)`;
+        container.setAttribute('data-x', GAP);
+        container.setAttribute('data-y', GAP);
+    } 
+    else if (numContainers === 2) {
+        // Two containers - split horizontally with equal width
+        const containerWidth = (availableWidth - GAP) / 2; // Account for gap between containers
+        const containerHeight = availableHeight;
+        
+        containerArray.forEach((container, index) => {
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            const x = GAP + (index * (containerWidth + GAP));
+            container.style.transform = `translate(${x}px, ${GAP}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', GAP);
+        });
+    }
+    else if (numContainers === 3) {
+        // Three containers - split horizontally with equal width
+        const containerWidth = (availableWidth - (GAP * 2)) / 3; // Account for gaps between containers
+        const containerHeight = availableHeight;
+        
+        containerArray.forEach((container, index) => {
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            const x = GAP + (index * (containerWidth + GAP));
+            container.style.transform = `translate(${x}px, ${GAP}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', GAP);
+        });
+    }
+    else {
+        // More than 3 containers - create a grid layout
+        const numColumns = 3; // Maximum 3 columns
+        const numRows = Math.ceil(numContainers / numColumns);
+        
+        const containerWidth = (availableWidth - (GAP * (numColumns - 1))) / numColumns;
+        const containerHeight = (availableHeight - (GAP * (numRows - 1))) / numRows;
+        
+        containerArray.forEach((container, index) => {
+            const row = Math.floor(index / numColumns);
+            const col = index % numColumns;
+            
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            
+            const x = GAP + (col * (containerWidth + GAP));
+            const y = GAP + (row * (containerHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        });
+    }
+
+    // Send the updated positions to the server
+    const positions = Array.from(containerArray).map(container => ({
+        id: container.dataset.containerId,
+        x: parseFloat(container.getAttribute('data-x')),
+        y: parseFloat(container.getAttribute('data-y')),
+        width: parseFloat(container.style.width),
+        height: parseFloat(container.style.height)
+    }));
+
+    if (isConnectedToWebSocket && Ws) {
+        Ws.send(JSON.stringify({
+            action: 'update_container_positions',
+            tv_id: parseInt(tvId, 10),
+            positions: positions
+        }));
+    }
+};
+
+// a function to specifically send content status without affecting visibility
+const updateContainerContentStatus = () => {
+    // Get the TV ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tvId = urlParams.get('tvId');
+    
+    if (!tvId) {
+        console.error('TV ID not found in URL');
+        return;
+    }
+
+    // Get all content types from the containers
+    const containers = document.querySelectorAll('[data-container-id]');
+    
+    // Create a map of container IDs to content status
+    const containerContentMap = {};
+    
+    containers.forEach(container => {
+        const containerId = container.dataset.containerId;
+        const type = container.dataset.type;
+        
+        if (containerId && type) {
+            // Check if there's any content for this type
+            const hasContent = contents[`${type}s`] && contents[`${type}s`].length > 0;
+                        
+            // Store content status for each container
+            containerContentMap[containerId] = hasContent;
+        }
+    });
+        
+    // Send container content status to parent window if in iframe
+    if (isIframe()) {
+        window.parent.postMessage({
+            action: 'containerContentStatus',
+            containerContentMap: containerContentMap
+        }, '*');
+    }
+};
 
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
@@ -1657,7 +1789,6 @@ Ws.addEventListener('message', function (event) {
         const id = data[`${type}_id`]; 
 
         if (type == 'orgchart') {
-            // Refresh TV since there's an issue for the orgchart when posting it
             const urlParams = new URLSearchParams(window.location.search);
             const tvId = urlParams.get('tvId');
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
@@ -1696,7 +1827,6 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents('so');
         } else {
             // For new features 
-            // Refresh TV since there's an issue for the new feature when posting it
             const urlParams = new URLSearchParams(window.location.search);
             const tvId = urlParams.get('tvId');
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
@@ -1749,7 +1879,6 @@ Ws.addEventListener('message', function (event) {
                 location.reload();
             }
         } else if (data.type === 'facility') {
-            // Refresh TV since there's an issue for the facility when posting it
             const urlParams = new URLSearchParams(window.location.search);
             const tvId = urlParams.get('tvId');
 
@@ -1782,50 +1911,66 @@ Ws.addEventListener('message', function (event) {
         }
     } else if (data.action === 'update_topbar_position') {
         if (data.success) {
-            const topbarElement = document.getElementById('topbar');
-            const mainContainer = document.getElementById('main-container');
-            
-            // Remove topbar from its current position
-            topbarElement.remove();
-            
-            if (data.topbar_position === 'top') {
-                // Insert before main container
-                mainContainer.parentNode.insertBefore(topbarElement, mainContainer);
-            } else {
-                // Insert after main container
-                mainContainer.parentNode.insertBefore(topbarElement, mainContainer.nextSibling);
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                const topbarElement = document.getElementById('topbar');
+                const mainContainer = document.getElementById('main-container');
+                
+                // Remove topbar from its current position
+                topbarElement.remove();
+                
+                if (data.topbar_position === 'top') {
+                    // Insert before main container
+                    mainContainer.parentNode.insertBefore(topbarElement, mainContainer);
+                } else {
+                    // Insert after main container
+                    mainContainer.parentNode.insertBefore(topbarElement, mainContainer.nextSibling);
+                }
             }
         }
     } else if (data.action === 'update_department_logo') {
         if (data.success) {
-            const departmentLogoTopbar = document.getElementById('department_logo_topbar');
-            departmentLogoTopbar.src = '';
-            departmentLogoTopbar.src = data.department_logo_path;
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                const departmentLogoTopbar = document.getElementById('department_logo_topbar');
+                departmentLogoTopbar.src = '';
+                departmentLogoTopbar.src = data.department_logo_path;
+            }
         }
     } else if (data.action === 'update_background_image') {
         if (data.success) {
-            const backgroundElement = document.getElementById('tvBackgroundColor');
-            backgroundElement.style.backgroundImage = '';
-            backgroundElement.style.backgroundImage = `url('servers/tv_backgrounds/${data.tv_id}/${data.background_image_path}')`;
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                const backgroundElement = document.getElementById('tvBackgroundColor');
+                backgroundElement.style.backgroundImage = '';
+                backgroundElement.style.backgroundImage = `url('servers/tv_backgrounds/${data.tv_id}/${data.background_image_path}')`;
+            }
         }
     } else if (data.action === 'update_background_type') {
         if (data.success) {
-            const backgroundElement = document.getElementById('tvBackgroundColor');
-            if (data.isStaticBackground == 1) {
-                // Handle static background color
-                backgroundElement.style.background = data.background_hex_color;
-                // Clear any existing background image
-                backgroundElement.style.backgroundImage = '';
-                backgroundElement.style.backgroundSize = '';
-                backgroundElement.style.backgroundPosition = '';
-                backgroundElement.style.backgroundRepeat = '';
-            } else if (data.isImageBackground == 1) {
-                // Handle background image
-                backgroundElement.style.backgroundImage = `url('servers/tv_backgrounds/${data.tv_id}/${data.background_image_path}')`;
-                backgroundElement.style.backgroundSize = 'cover';
-                backgroundElement.style.backgroundPosition = 'center';
-                backgroundElement.style.backgroundRepeat = 'no-repeat';
-                // Clear any existing background color
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                const backgroundElement = document.getElementById('tvBackgroundColor');
+                if (data.isStaticBackground == 1) {
+                    // Handle static background color
+                    backgroundElement.style.background = data.background_hex_color;
+                    // Clear any existing background image
+                    backgroundElement.style.backgroundImage = '';
+                    backgroundElement.style.backgroundSize = '';
+                    backgroundElement.style.backgroundPosition = '';
+                    backgroundElement.style.backgroundRepeat = '';
+                } else if (data.isImageBackground == 1) {
+                    // Handle background image
+                    backgroundElement.style.backgroundImage = `url('servers/tv_backgrounds/${data.tv_id}/${data.background_image_path}')`;
+                    backgroundElement.style.backgroundSize = 'cover';
+                    backgroundElement.style.backgroundPosition = 'center';
+                    backgroundElement.style.backgroundRepeat = 'no-repeat';
+                    // Clear any existing background color
+                }
             }
         }
     } else if (data.action === 'update_container_positions') {
@@ -1848,35 +1993,46 @@ Ws.addEventListener('message', function (event) {
                 if (containerElement) {
                     const currentVisibility = containerElement.style.display !== 'none';
                     const newVisibility = container.visible == 1;
-                    
+                    const type = containerElement.dataset.type;
+                                        
                     // Only update if visibility actually changed
                     if (currentVisibility !== newVisibility) {
                         containerElement.style.display = newVisibility ? 'block' : 'none';
                         
                         // If hiding, clear content and intervals
                         if (!newVisibility) {
-                            const type = containerElement.dataset.type;
-                            contents[`${type}s`] = [];
-                            
-                            if (displayTimeIntervals[type]) {
-                                clearInterval(displayTimeIntervals[type]);
-                                displayTimeIntervals[type] = null;
+                            if (type) {
+                                // Don't clear the content array - just keep track of visibility
+                                // This is important to accurately report content status
+                                
+                                if (displayTimeIntervals[type]) {
+                                    clearInterval(displayTimeIntervals[type]);
+                                    displayTimeIntervals[type] = null;
+                                }
                             }
                         } else {
                             // If showing, fetch and update content only if we don't already have content
-                            const type = containerElement.dataset.type;
-                            if (!contents[`${type}s`] || contents[`${type}s`].length === 0) {
+                            if (type && (!contents[`${type}s`] || contents[`${type}s`].length === 0)) {
                                 fetchAndUpdateContents(type);
                             }
                         }
                     }
                 }
             });
+            
+            // Always update container content status after visibility changes
+            setTimeout(() => {
+                updateContainerContentStatus();
+            }, 1000); // Small delay to allow content to load/unload
         }
     } else if (data.action === 'update_background_color') {
         if (data.success) {
-            const backgroundElement = document.getElementById('tvBackgroundColor');
-            backgroundElement.style.backgroundColor = data.background_hex_color;
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                const backgroundElement = document.getElementById('tvBackgroundColor');
+                backgroundElement.style.backgroundColor = data.background_hex_color;
+            }
         }
     } else if (data.action === 'update_container_colors') {
         if (data.success) {
@@ -1920,24 +2076,28 @@ Ws.addEventListener('message', function (event) {
         }
     } else if (data.action === 'update_topbar_color') {
         if (data.success) {
-            const topbarElement = document.getElementById('topbar');
-            if (topbarElement) {
-                topbarElement.style.backgroundColor = data.topbar_hex_color;
-                topbarElement.querySelector('.tv-name').style.color = data.topbar_tvname_font_color;
-                topbarElement.querySelector('.tv-name').style.fontStyle = data.topbar_tvname_font_style;
-                topbarElement.querySelector('.tv-name').style.fontFamily = data.topbar_tvname_font_family;
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+                const topbarElement = document.getElementById('topbar');
+                if (topbarElement) {
+                    topbarElement.style.backgroundColor = data.topbar_hex_color;
+                    topbarElement.querySelector('.tv-name').style.color = data.topbar_tvname_font_color;
+                    topbarElement.querySelector('.tv-name').style.fontStyle = data.topbar_tvname_font_style;
+                    topbarElement.querySelector('.tv-name').style.fontFamily = data.topbar_tvname_font_family;
 
-                topbarElement.querySelector('.tv-id').style.color = data.topbar_tvid_font_color;
-                topbarElement.querySelector('.tv-id').style.fontStyle = data.topbar_tvid_font_style;
-                topbarElement.querySelector('.tv-id').style.fontFamily = data.topbar_tvid_font_family;
+                    topbarElement.querySelector('.tv-id').style.color = data.topbar_tvid_font_color;
+                    topbarElement.querySelector('.tv-id').style.fontStyle = data.topbar_tvid_font_style;
+                    topbarElement.querySelector('.tv-id').style.fontFamily = data.topbar_tvid_font_family;
 
-                topbarElement.querySelector('.time').style.color = data.topbar_time_font_color;
-                topbarElement.querySelector('.time').style.fontStyle = data.topbar_time_font_style;
-                topbarElement.querySelector('.time').style.fontFamily = data.topbar_time_font_family;
+                    topbarElement.querySelector('.time').style.color = data.topbar_time_font_color;
+                    topbarElement.querySelector('.time').style.fontStyle = data.topbar_time_font_style;
+                    topbarElement.querySelector('.time').style.fontFamily = data.topbar_time_font_family;
 
-                topbarElement.querySelector('.date').style.color = data.topbar_date_font_color;
-                topbarElement.querySelector('.date').style.fontStyle = data.topbar_date_font_style;
-                topbarElement.querySelector('.date').style.fontFamily = data.topbar_date_font_family;
+                    topbarElement.querySelector('.date').style.color = data.topbar_date_font_color;
+                    topbarElement.querySelector('.date').style.fontStyle = data.topbar_date_font_style;
+                    topbarElement.querySelector('.date').style.fontFamily = data.topbar_date_font_family;
+                }
             }
         }
     } else if (data.action === 'save_layout') {
@@ -1996,6 +2156,8 @@ function createContainerElement(container) {
     return containerDiv;
 }
 
+let contentLoadingStatus = {};
+
 document.addEventListener('DOMContentLoaded', () => {
     // Get all content types from the containers
     const containers = document.querySelectorAll('[id$="CarouselContainer"]');
@@ -2011,11 +2173,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!displayTimeIntervals[type]) {
             displayTimeIntervals[type] = null;
         }
+        // Initialize loading status for each type
+        contentLoadingStatus[type] = false;
         // Fetch content for each type
         fetchAndUpdateContents(type);
     });
 
     checkAllContentForExpiration();
-    checkContainersForContent();
     fetchSmartTVDetails();
 });
+
+// a window message listener to handle parent window requests
+if (isIframe()) {
+    window.addEventListener('message', function(event) {
+        // Check the origin for security
+        if (event.data.action === 'requestContentStatus') {
+            // Send the current content status back to the parent
+            updateContainerContentStatus();
+        }
+    });
+}

@@ -85,7 +85,7 @@ const displayUserTable = (data) => {
     tableHtml += `</tbody></table>`;
     userTableContainer.innerHTML = tableHtml;
 
-    // Add event listeners for checkboxes
+    // event listeners for checkboxes
     document.querySelectorAll('.user-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', updateDeleteSelectedButton);
     });

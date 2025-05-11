@@ -926,7 +926,7 @@
     
     // Also update existing event listeners to handle live preview updates
     document.addEventListener("DOMContentLoaded", function() {
-        // Add live update for QuillEditor content
+        // live update for QuillEditor content
         if (typeof quillEditors !== 'undefined') {
             // For each type of editor, add a text-change event
             if (quillEditors.announcementBodyQuill) {
@@ -942,7 +942,7 @@
             // [Add similar handlers for other editor types]
         }
         
-        // Add live update for media uploads
+        // live update for media uploads
         const mediaInput = document.getElementById('media');
         if (mediaInput) {
             mediaInput.addEventListener('change', function() {
@@ -953,7 +953,7 @@
             });
         }
         
-        // Add live update for display time changes
+        // live update for display time changes
         const displayTimeInput = document.querySelector('[name="display_time"]');
         if (displayTimeInput) {
             displayTimeInput.addEventListener('input', function() {
@@ -1015,7 +1015,7 @@
                         signalElement.dataset.type = previewData.type;
                         signalElement.dataset.hasMedia = !!previewData.media;
                         
-                        // Add the element to trigger any observers
+                        // the element to trigger any observers
                         iframeDoc.body.appendChild(signalElement);
                         
                         // Remove after a moment

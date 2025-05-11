@@ -252,7 +252,7 @@ function populateContentTypeDropdown() {
             const select = document.getElementById('contentType');
             const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
             
-            // Add dynamic features
+            // Add dynamic features to the contentTypes array
             if (Array.isArray(features)) {
                 features.forEach(feature => {
                     const featureType = feature.type;
@@ -264,7 +264,7 @@ function populateContentTypeDropdown() {
                 });
             }
             
-            // Add admin-only content types
+            // Admin-only content types
             if (userType === 'Admin' || userType === 'Super Admin') {
                 if (!contentTypes.includes('peo')) contentTypes.push('peo');
                 if (!contentTypes.includes('so')) contentTypes.push('so');
@@ -310,7 +310,7 @@ function populateContentTypeDropdown() {
                 // Update "All" option with total count
                 select.options[0].textContent = `All (${totalCount})`;
 
-                // Add options for each content type with counts
+                // Options for each content type with counts
                 results.forEach(({ type, count }) => {
                     if (count > 0 || type === 'announcement' || type === 'event' || type === 'news' || type === 'promaterial' || type === 'peo' || type === 'so') {
                         const option = document.createElement('option');
@@ -371,7 +371,7 @@ const createContentDiv = (data, mediaContent, formattedCreatedDateTime, formatte
             ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
     `;
 
-    // Add type-specific content
+    // Type-specific content
     switch(type) {
         case 'announcement':
         case 'event':
@@ -581,13 +581,13 @@ const fetchTVInfo = async (type, tv_id) => {
         const data = await response.json();
         return {
             tv_display: data.tv_display,
-            tv_name: data.tv_name // Add this line
+            tv_name: data.tv_name 
         };
     } catch (error) {
         console.error('Error fetching TV info:', error);
         return { 
             tv_display: 'Error fetching TV info',
-            tv_name: 'Unknown TV' // Add this line
+            tv_name: 'Unknown TV' 
         };
     }
 };
@@ -607,8 +607,6 @@ const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorN
 
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
     const modal = document.getElementById(`confirmRestore${capitalizedType}Modal`);
-
-    console.log(evaluatorMessage);
     
     let action = 'restore_content';
     let data = {
@@ -773,7 +771,7 @@ const createModals = async () => {
         const features = await getFeatureInfo('all');
         const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
         
-        // Add dynamic features
+        // Dynamic features
         if (features && Array.isArray(features)) {
             features.forEach(feature => {
                 if (!contentTypes.includes(feature.type)) {
@@ -947,12 +945,11 @@ const fetchAndUpdateAll = async () => {
         // Get all available features first
         const response = await fetch('database/fetch_feature_info.php?type=all');
         const features = await response.json();
-        console.log(features);
         
         // Start with default content types
         const contentTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so'];
         
-        // Add dynamic features and store their icons
+        // Add dynamic features and store their icons to the featureIcons object
         if (Array.isArray(features)) {
             features.forEach(feature => {
                 const featureType = feature.type;
@@ -964,7 +961,7 @@ const fetchAndUpdateAll = async () => {
             });
         }
 
-        // Add admin-only content types
+        // Admin-only content types
         if (userType === 'Admin' || userType === 'Super Admin') {
             contentTypes.push('peo', 'so');
         }
@@ -1052,7 +1049,6 @@ Ws.addEventListener('message', function(event) {
         case 'post_content':
         case 'update_archive_days':
             // Refresh all content for any change
-            console.log('Action received:', data.action);
             populateContentTypeDropdown();
             fetchAndUpdateAll();
             break;

@@ -1,13 +1,11 @@
-// Add a global variable to track connection status
+// A global variable to track connection status
 let isConnected = false;
 const loadingWebsocketConnectionModal = document.getElementById('loadingWebsocketConnectionModal');
 const successWebsocketConnectionModal = document.getElementById('successWebsocketConnectionModal');
 const loadingWebsocketConnectionMessage = document.getElementById('loadingWebsocketConnectionMessage');
 const successWebsocketConnectionMessage = document.getElementById('successWebsocketConnectionMessage');
 
-function connectWebSocket() {
-    console.log('Attempting WebSocket connection...');
-    
+function connectWebSocket() {    
     // Determine if we're in localhost or production
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
@@ -33,7 +31,7 @@ function connectWebSocket() {
         };
         
         ws.onopen = function() {
-            // console.log('Client: WebSocket Connected Successfully to:', wsUrl);
+            console.log('Server Connected Successfully');
             isConnected = true;
 
             // Client-initiated pings
@@ -44,12 +42,6 @@ function connectWebSocket() {
                     heartbeat();
                 }
             }, 10000); // 10 second interval
-
-            // if (loadingWebsocketConnectionModal.style.display === 'flex' && successWebsocketConnectionModal) {
-            //     loadingWebsocketConnectionModal.style.display = 'none';
-            //     successWebsocketConnectionModal.style.display = 'flex';
-            //     successWebsocketConnectionMessage.textContent = 'Server Connected Successfully!';
-            // }
 
             // Fetch initial data after connection
             fetchNotifications();
@@ -68,12 +60,10 @@ function connectWebSocket() {
             switch(data.action) {
                 case 'ping':
                     // Respond to server's ping
-                    // console.log('Client: Received ping from server, sending pong!');
                     ws.send(JSON.stringify({ action: 'pong' }));
                     return;
                 case 'pong':
                     // Reset client's heartbeat timeout
-                    // console.log('Client: Received pong from server, resetting heartbeat timeout!');
                     heartbeat();
                     return;
                 case 'new_notification':
@@ -108,19 +98,12 @@ function connectWebSocket() {
         };
         
         ws.onclose = function(event) {
-            // console.log('Client: WebSocket connection closed');
+            console.log('Server connection closed');
             isConnected = false;
             clearInterval(clientPingInterval);
             clearTimeout(clientPingTimeout);
-            // console.log('Client: Cleared all timers');
 
-            // if (loadingWebsocketConnectionModal) {
-            //     loadingWebsocketConnectionModal.style.display = 'flex';
-            //     successWebsocketConnectionModal.style.display = 'none';
-            //     loadingWebsocketConnectionMessage.textContent = 'Server Disconnected. Reconnecting...';
-            // }
-
-            // Attempt to reconnect
+            // Attempt to reconnect for 2.5 seconds
             setTimeout(() => {
                 console.log('Client: Attempting to reconnect.......');
                 Ws = connectWebSocket();
@@ -129,7 +112,7 @@ function connectWebSocket() {
         
         return ws;
     } catch (error) {
-        // console.error('Client: Error creating WebSocket:', error.message);
+        console.error('Client: Error creating WebSocket:', error.message);
         isConnected = false;
         
         loadingWebsocketConnectionModal.style.display = 'none';
@@ -147,8 +130,6 @@ let Ws = null;
 try {
     Ws = connectWebSocket();
 } catch (error) {
-    // console.error('Error initializing WebSocket:', error);
-    // console.log('Attempting reconnection in 5 seconds...');
     setTimeout(() => {
         Ws = connectWebSocket();
     }, 2500);
@@ -447,7 +428,7 @@ function createNotificationDiv(notification) {
     const notificationDiv = document.createElement('div');
     notificationDiv.className = 'notification';
 
-    // Add data attributes here
+    // Data attributes
     notificationDiv.setAttribute('data-content-id', notification.content_id);
     notificationDiv.setAttribute('data-content-type', notification.content_type);
 
@@ -1523,7 +1504,7 @@ function updateArchivesCount() {
             // Start with default content types
             const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
             
-            // Add dynamic features
+            // Dynamic features
             if (Array.isArray(features)) {
                 features.forEach(feature => {
                     const featureType = feature.type;
@@ -1533,7 +1514,7 @@ function updateArchivesCount() {
                 });
             }
 
-            // Add admin-only content types
+            // Admin-only content types
             if (userType === 'Admin' || userType === 'Super Admin') {
                 if (!contentTypes.includes('peo')) contentTypes.push('peo');
                 if (!contentTypes.includes('so')) contentTypes.push('so');
@@ -1615,7 +1596,7 @@ function updateTrashCount() {
             // Start with default content types
             const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
             
-            // Add dynamic features
+            // Dynamic features
             if (Array.isArray(features)) {
                 features.forEach(feature => {
                     const featureType = feature.type;
@@ -1625,7 +1606,7 @@ function updateTrashCount() {
                 });
             }
 
-            // Add admin-only content types
+            // Admin-only content types
             if (userType === 'Admin' || userType === 'Super Admin') {
                 if (!contentTypes.includes('peo')) contentTypes.push('peo');
                 if (!contentTypes.includes('so')) contentTypes.push('so');
@@ -1706,7 +1687,7 @@ function updateApprovedCount() {
             // Start with default content types
             const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
             
-            // Add dynamic features
+            // Dynamic features
             if (Array.isArray(features)) {
                 features.forEach(feature => {
                     const featureType = feature.type;
@@ -1716,7 +1697,7 @@ function updateApprovedCount() {
                 });
             }
 
-            // Add admin-only content types
+            // Admin-only content types
             if (userType === 'Admin' || userType === 'Super Admin') {
                 if (!contentTypes.includes('peo')) contentTypes.push('peo');
                 if (!contentTypes.includes('so')) contentTypes.push('so');
@@ -1797,7 +1778,7 @@ function updateRejectedCount() {
             // Start with default content types
             const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
             
-            // Add dynamic features
+            // Dynamic features
             if (Array.isArray(features)) {
                 features.forEach(feature => {
                     const featureType = feature.type;
@@ -1807,7 +1788,7 @@ function updateRejectedCount() {
                 });
             }
 
-            // Add admin-only content types
+            // Admin-only content types
             if (userType === 'Admin' || userType === 'Super Admin') {
                 if (!contentTypes.includes('peo')) contentTypes.push('peo');
                 if (!contentTypes.includes('so')) contentTypes.push('so');
@@ -1887,7 +1868,7 @@ function updatePendingCount() {
             // Start with default content types
             const contentTypes = ['announcement', 'event', 'news', 'promaterial'];
             
-            // Add dynamic features
+            // Dynamic features
             if (Array.isArray(features)) {
                 features.forEach(feature => {
                     const featureType = feature.type;
@@ -1897,7 +1878,7 @@ function updatePendingCount() {
                 });
             }
 
-            // Add admin-only content types
+            // Admin-only content types
             if (userType === 'Admin' || userType === 'Super Admin') {
                 if (!contentTypes.includes('peo')) contentTypes.push('peo');
                 if (!contentTypes.includes('so')) contentTypes.push('so');
@@ -2004,7 +1985,6 @@ Ws.addEventListener('message', function(event) {
             }
             break;
         case 'update_tv_status':
-            console.log("update_tv_status called: ", data.tvId);
             // Get the status element for this specific TV
             const activeTvStatus = document.getElementById(`activeTvStatus_${data.tvId}`);
             if (activeTvStatus) {
@@ -2031,7 +2011,7 @@ Ws.addEventListener('message', function(event) {
                         ${mediaContent ? `<div class="media-container" style="margin-bottom: 5px">${mediaContent}</div>` : ''}
                 `;
 
-                // Add type-specific content
+                // Type-specific content
                 switch(contentType) {
                     case 'announcement':
                     case 'event':
@@ -2120,7 +2100,7 @@ document.addEventListener('click', function(event) {
     const triangle = document.getElementById('triangle');
     const triangleMobile = document.getElementById('triangleMobile');
 
-    // Add check for delete button clicks
+    // Check for delete button clicks
     if (event.target.closest('.delete-notification') || event.target.classList.contains('delete-notification')) {
         return; // Exit early if clicking the delete button (does not close the dropdown if it is open)
     }

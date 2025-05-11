@@ -192,7 +192,7 @@ const displayUserTable = (data) => {
     tableHtml += `</tbody></table>`;
     userTableContainer.innerHTML = tableHtml;
 
-    // Add event listeners for checkboxes
+    // event listeners for checkboxes
     document.querySelectorAll('.user-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', updateDeleteSelectedButton);
     });
@@ -282,7 +282,6 @@ const showDeleteConfirmModal = (userCount, evaluatorName, selectedUsers) => {
 
         // Log each user being processed
         selectedUsers.forEach(user => {
-            console.log("Processing user:", user);
             sendWebSocketMessage({
                 action: 'delete_user',
                 user_id: user.userId,
@@ -371,22 +370,9 @@ const deleteSelectedUsers = () => {
     const userType = loggedInUserType;
     const department = loggedInUserDepartment;
 
-    console.log("evaluatorName: " + evaluatorName);
-    console.log("evaluatorId: " + evaluatorId);
-    console.log("userType: " + userType);
-    console.log("department: " + department);
-
     // Get user details from the table rows
     const selectedUsers = Array.from(checkedBoxes).map(checkbox => {
         const row = checkbox.closest('tr');
-        // Log the row data for debugging
-        console.log("Row data:", {
-            userId: checkbox.getAttribute('data-user-id'),
-            fullName: row.querySelector('td:nth-child(3)').textContent.trim(),
-            email: row.querySelector('td:nth-child(4)').textContent.trim(),
-            userType: row.querySelector('td:nth-child(5)').textContent.trim(),
-            department: row.querySelector('td:nth-child(6)').textContent.trim()
-        });
         
         return {
             userId: checkbox.getAttribute('data-user-id'),
@@ -633,7 +619,7 @@ const showAutoDeleteModal = () => {
             const modal = createModal('AutoDeleteModal', modalContent);
             modal.style.display = 'flex';
 
-            // Add event listeners
+            // event listeners
             document.getElementById('closeAutoDeleteModalButton').onclick = () => {
                 modal.style.display = 'none';
             };
@@ -642,7 +628,7 @@ const showAutoDeleteModal = () => {
                 modal.style.display = 'none';
             };
 
-            // Add event listeners for checkboxes
+            // event listeners for checkboxes
             document.querySelectorAll('.enable-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     const inputField = this.parentElement.querySelector('.days-input');
@@ -975,7 +961,6 @@ const sendFormData = (formData) => {
                         document.getElementById('successMessageVersion2').textContent = `User added successfully! The temporary password is sent to the user's email.`;
                         document.getElementById('AddUserModal').style.display = 'none';
                         document.getElementById('successMessageModalVersion2').style.display = 'flex';
-                        console.log("Form Data: ", formData);
                     } else if (message.success == false) {
                         document.getElementById('errorTextVersion2').textContent = message.message;
                         document.getElementById('AddUserModal').style.display = 'none';
@@ -997,7 +982,7 @@ const sendFormData = (formData) => {
                         // Send temporary password emails for each successfully added user
                         if (message.addedUsers && message.addedUsers.length > 0) {
                             message.addedUsers.forEach(user => {
-                                // Add a small delay between emails to prevent overwhelming the server
+                                // a small delay between emails to prevent overwhelming the server
                                 setTimeout(() => {
                                     sendTempPasswordEmail(
                                         user.email,
@@ -1019,7 +1004,6 @@ const sendFormData = (formData) => {
                     document.getElementById('successMessageVersion2').innerHTML = 'User updated successfully!';
                     document.getElementById('EditUserModal').style.display = 'none';
                     document.getElementById('successMessageModalVersion2').style.display = 'flex';
-                    console.log("Form Data Email: ", formData.get('email'));
                     sendUpdatedUserEmail(formData.get('email'), formData.get('full_name'), formData.get('department'), formData.get('user_type'), full_name);
                     Ws.close();
                 } 

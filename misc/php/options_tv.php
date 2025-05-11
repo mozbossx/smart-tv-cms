@@ -28,7 +28,7 @@ $tv_count = 0;
 
 while ($row = mysqli_fetch_assoc($result)) {
     $tv_count++;
-    // Add pointer-events-none class in edit mode
+    // pointer-events-none class in edit mode
     $labelStyle = $isEditMode ? 'display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px; pointer-events: none;' : 'display: block; margin-bottom: 7px; padding: 10px; background: #f3f3f3; border-radius: 5px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;';
     $options_tv .= '<label style="' . $labelStyle . '">';
 
@@ -38,7 +38,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     // In edit mode, make the checkbox checked and disabled
     if ($isEditMode) {
         $options_tv .= '<input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '" data-tv-name="' . $row['tv_name'] . '" checked disabled style="pointer-events: none;">';
-        // Add a hidden input to ensure the value is still submitted when the checkbox is disabled
+        // a hidden input to ensure the value is still submitted when the checkbox is disabled
         $options_tv .= '<input type="hidden" name="tv_id[]" value="' . $row['tv_id'] . '">';
     } else {
         // $options_tv .= '<input type="checkbox" name="tv_id[]" value="' . $row['tv_id'] . '" data-tv-name="' . $row['tv_name'] . '">';

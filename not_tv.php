@@ -97,7 +97,8 @@
     <div class="container">
         <i class="fas fa-tv icon"></i>
         <h1>Access Restricted</h1>
-        <p>This page is only accessible through Smart TV devices. If you're trying to access this content, please use a Smart TV instead of a mobile device, laptop, or desktop computer.</p>
+        <p style="margin-bottom: 0">This page is only accessible through Smart TVs.</p>
+        <p style="font-size: 1rem; color: #878c91; font-weight: 100">If you're trying to access this content, please use a Smart TV instead of a mobile device, laptop, or desktop computer.</p>
         <button class="back-button" onclick="goBack()">Go Back</button>
     </div>
 

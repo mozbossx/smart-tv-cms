@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Create email body with a professional template
         $body = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                <div style='background-color: #02592b; color: white; padding: 20px; text-align: center;'>
+                <div style='background-color:#590202; color: white; padding: 20px; text-align: center;'>
                     <h1 style='margin: 0;'>Content Rejected</h1>
                 </div>
                 
@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p style='color: #666;'>Your content has been reviewed but could not be approved at this time.</p>
                     
                     <div style='background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0;'>
-                        <h2 style='color: #02592b; margin-top: 0;'>Content Details</h2>
+                        <h2 style='color: #590202; margin-top: 0;'>Content Details</h2>
                         <table style='width: 100%; border-collapse: collapse;'>
                             <tr>
                                 <td style='padding: 8px 0; color: #666;'><strong>Content Type:</strong></td>
@@ -129,14 +129,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                     <div style='background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0;'>
-                        <h2 style='color: #02592b; margin-top: 0;'>Feedback</h2>
+                        <h2 style='color: #590202; margin-top: 0;'>Feedback</h2>
                         <p style='color: #666; margin-bottom: 0;'>{$evaluator_message}</p>
                     </div>
 
                     <div style='text-align: center; margin-top: 20px;'>
                         <p style='margin-bottom: 20px;'>You can view and edit your rejected content on the USC CMS.</p>
                         <a href='https://usccms.online/view_rejected_contents.php?pageid=ViewRejectedContents'
-                           style='background-color: #02592b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>
+                           style='background-color: #590202; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>
                             View Content
                         </a>
                     </div>

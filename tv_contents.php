@@ -150,7 +150,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                 $contentTypes = ['announcement', 'event',  'news', 'promaterial', 'peo', 'so', 'orgchart', 'facility'];
                 // echo '<p>'; print_r($contentTypes); echo '</p>';
 
-                // Add new features to the content types array
+                // new features to the content types array
                 foreach ($featuresNewFeatures as $feature) {
                     $contentTypes[] = strtolower(str_replace(' ', '_', $feature['feature_name']));
                 }

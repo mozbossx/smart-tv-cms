@@ -233,6 +233,7 @@ $conn->close();
                                             <label class="option-div">
                                                 <input type="checkbox" id="container_<?php echo $container['container_id']; ?>" name="container_<?php echo $container['container_id']; ?>" <?php echo $container['visible'] ? 'checked' : ''; ?> style="margin-right: 10px;">
                                                 <label for="container_<?php echo $container['container_id']; ?>"><?php echo htmlspecialchars($container['container_name']); ?></label>
+                                                <span id="container_content_status_<?php echo $container['container_id']; ?>">(Empty)</span>
                                             </label>
                                         <?php endforeach; ?>
                                     </form>
@@ -465,6 +466,25 @@ $conn->close();
         var containers = <?php echo json_encode($containers); ?>;
         const contentContainerForm = document.getElementById('editContentContainerForm');
         let currentTarget = null;
+        // Track which containers have content
+        let containersWithContent = {};
+
+        // Initialize the containersWithContent object
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with optimistic values (assume all have content until we know otherwise)
+            // This prevents checkboxes from being disabled incorrectly on initial load
+            containers.forEach(container => {
+                containersWithContent[container.container_id] = true;
+            });
+            
+            // Request content status from iframe once it's loaded
+            const iframe = document.getElementById('tv-iframe');
+            iframe.addEventListener('load', function() {
+                setTimeout(() => {
+                    iframe.contentWindow.postMessage({ action: 'requestContentStatus' }, '*');
+                }, 1500);
+            });
+        });
 
         function closeLeftSidebar() {
             leftSidebar.classList.remove('open');
@@ -523,7 +543,7 @@ $conn->close();
             iframe.contentWindow.postMessage({action: 'updateTemplate'}, '*');
         });
 
-        // Add an event listener for messages from the iframe
+        // an event listener for messages from the iframe
         window.addEventListener('message', function(event) {
             if (event.data.action === 'containerPositionsUpdated') {
                 const positions = event.data.positions;
@@ -539,7 +559,7 @@ $conn->close();
             templateChanged = true;
         }
 
-        // Add event listener for messages from tv.php iframe
+        // event listener for messages from tv.php iframe
         window.addEventListener('message', function(event) {
             if (event.data.action === 'containerMoved') {
                 showUpdateButton();
@@ -548,7 +568,7 @@ $conn->close();
             }
         });
 
-        // Add event listener for the Update Template button
+        // event listener for the Update Template button
         updateTemplateButton.addEventListener('click', function() {
             const iframe = document.getElementById('tv-iframe');
             iframe.contentWindow.postMessage({action: 'updateTemplate'}, '*');
@@ -556,7 +576,7 @@ $conn->close();
             updateTemplateButton.style.display = 'none';
         });
 
-        // Add beforeunload event listener
+        // beforeunload event listener
         window.addEventListener('beforeunload', function (e) {
             if (templateChanged) {
                 e.preventDefault();
@@ -782,7 +802,13 @@ $conn->close();
 
             // Handle messages from iframe
             window.addEventListener('message', function(event) {
-                if (event.data.action === 'containerClicked') {
+                if (event.data.action === 'containerContentStatus') {
+                    // Update our tracking of which containers have content
+                    containersWithContent = event.data.containerContentMap;
+                    
+                    // Update checkbox disabled states
+                    updateCheckboxStates();
+                } else if (event.data.action === 'containerClicked') {
                     currentTarget = {
                         type: 'container',
                         id: event.data.containerId
@@ -792,7 +818,6 @@ $conn->close();
                     document.getElementById('editTopbarText').style.display = 'none';
                     showFloatingMenuAboveContainer(event.data.containerRect);
                 } else if (event.data.action === 'backgroundClicked') {
-                    console.log('Background click detected'); // Debug log
                     currentTarget = {
                         type: 'background'
                     };
@@ -801,7 +826,6 @@ $conn->close();
                     document.getElementById('editTopbarText').style.display = 'none';
                     showFloatingMenuAboveContainer(event.data.containerRect);
                 } else if (event.data.action === 'topbarClicked') {
-                    console.log('Topbar click detected'); // Debug log
                     currentTarget = {
                         type: 'topbar'
                     };
@@ -809,6 +833,10 @@ $conn->close();
                     document.getElementById('editBackgroundText').style.display = 'none';
                     document.getElementById('editTopbarText').style.display = 'inline';
                     showFloatingMenuAboveContainer(event.data.containerRect);
+                } else if (event.data.action === 'containerMoved') {
+                    showUpdateButton();
+                } else if (event.data.action === 'containerPositionsUpdated') {
+                    updateContainerPositionsOnServer(event.data.positions);
                 }
             });
 
@@ -952,7 +980,7 @@ $conn->close();
 
             updateSections();
 
-            // Add click handler to hide menu when clicking elsewhere
+            // click handler to hide menu when clicking elsewhere
             document.addEventListener('click', function(e) {
                 if (floatingMenu && !floatingMenu.contains(e.target)) {
                     floatingMenu.style.display = 'none';
@@ -1102,14 +1130,60 @@ $conn->close();
                 } 
             });
 
+            // Function to update checkbox disabled states based on content
+            function updateCheckboxStates() {                
+                visibilityForm.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    const containerId = checkbox.id.split('_')[1];
+                    
+                    // Check if this container has content
+                    const hasContent = containersWithContent[containerId];
+                    
+                    const statusElement = document.getElementById(`container_content_status_${containerId}`);
+                    
+                    // Update status indicator
+                    if (statusElement) {
+                        if (hasContent === false) {
+                            statusElement.textContent = "(Empty)";
+                            statusElement.style.display = "inline";
+                        } else {
+                            statusElement.textContent = "";
+                            statusElement.style.display = "none";
+                        }
+                    }
+                    
+                    // IMPORTANT: Only empty containers that are unchecked should be disabled
+                    if (hasContent === false && !checkbox.checked) {
+                        // Empty AND unchecked container - disable it (can't be checked)
+                        checkbox.disabled = true;
+                        checkbox.parentElement.title = "This container has no content to display";
+                        checkbox.parentElement.classList.add('disabled-option');
+                    } else {
+                        // All other containers (non-empty or checked empty ones) can be modified
+                        checkbox.disabled = false;
+                        checkbox.parentElement.title = hasContent === false && checkbox.checked ? 
+                            "This container is empty. You can uncheck to hide it." : "";
+                        checkbox.parentElement.classList.remove('disabled-option');
+                    }
+                });
+            }
+
             // Automatically submit the visibility form when changes are made
             visibilityForm.querySelectorAll('input[type="checkbox"]').forEach(input => {
                 input.addEventListener('change', () => {
+                    const containerId = input.id.split('_')[1];
+                    const isChecked = input.checked;
+                    const hasContent = containersWithContent[containerId];
+                    
+                    // If trying to check an empty container, prevent it
+                    // if (isChecked && hasContent === false) {
+                    //     input.checked = false;
+                    //     alert('Cannot display an empty container. Please add content to this container first.');
+                    //     return;
+                    // }
+                    
+                    // Proceed with the visibility update
                     const containersData = {};
-                    visibilityForm.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                        const containerId = checkbox.id.split('_')[1];
-                        containersData[containerId] = checkbox.checked ? 1 : 0;
-                    });
+                    containersData[containerId] = isChecked ? 1 : 0;
 
                     const data = {
                         action: 'show_hide_content',
@@ -1118,6 +1192,17 @@ $conn->close();
                     };
 
                     Ws.send(JSON.stringify(data));
+                    
+                    // After sending visibility update, update visual state
+                    setTimeout(() => {
+                        // Request fresh content status after visibility change
+                        const iframe = document.getElementById('tv-iframe');
+                        iframe.contentWindow.postMessage({ action: 'requestContentStatus' }, '*');
+                    }, 1000);
+
+                    setTimeout(() => {
+                        autoTileContainers();
+                    }, 1500);
                 });
             });
 
@@ -1214,5 +1299,30 @@ $conn->close();
             autoTileButton.addEventListener('click', autoTileContainers);
         });
     </script>
+    <style>
+        .disabled-option {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        .disabled-option input[type="checkbox"] {
+            cursor: not-allowed;
+        }
+        [id^="container_content_status_"] {
+            color: #ff6b6b;
+            font-size: 11px;
+            margin-left: 5px;
+            font-weight: bold;
+            display: none;
+            vertical-align: middle;
+        }
+        .option-div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .option-div label {
+            margin-right: 5px;
+        }
+    </style>
 </body>
 </html>

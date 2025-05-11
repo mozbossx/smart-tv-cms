@@ -394,7 +394,7 @@ include 'misc/php/options_tv.php';
                         },
                         callback: {
                             onTreeLoaded: function() {
-                                // Add a small delay to ensure the tree is fully rendered
+                                // a small delay to ensure the tree is fully rendered
                                 setTimeout(scaleOrgChart, 100);
                             }
                         }
@@ -448,7 +448,7 @@ include 'misc/php/options_tv.php';
                     picture: pictureBase64
                 };
 
-                orgChartData.push(newMember); // Add the new member to the org chart data
+                orgChartData.push(newMember); // the new member to the org chart data
                 createOrgChart(orgChartData); // Re-render the org chart
                 closeAddMemberModal(); // Close the modal after adding the member
             };
@@ -468,8 +468,6 @@ include 'misc/php/options_tv.php';
                 createOrgChart(orgChartData);
                 closeAddMemberModal();
             }
-
-            console.log("Org Chart Data:", orgChartData);
             
             const addMemberForm = document.getElementById('addMemberForm');
             addMemberForm.reset();

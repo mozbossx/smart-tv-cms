@@ -439,7 +439,7 @@ if (isset($_SESSION['mail'])) {
             };
         });
 
-        // Add event listeners for faculty and staff buttons
+        // event listeners for faculty and staff buttons
         document.getElementById('facultyBtn').addEventListener('click', function() {
             updateUserType('Faculty');
             window.location.href = "login.php?pageid=Login";
