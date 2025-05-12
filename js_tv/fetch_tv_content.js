@@ -1318,11 +1318,14 @@ const fetchAndUpdateContents = (type) => {
     const predefinedTypes = ['announcement', 'event', 'news', 'promaterial', 'peo', 'so', 'orgchart'];
 
     const finishLoading = () => {
-        contentLoadingStatus[type] = false;
+        contentLoadingStatus[type] = false;        
         // Check if all content types have finished loading
         const allContentLoaded = Object.values(contentLoadingStatus).every(status => status === false);
         if (allContentLoaded) {
-            checkContainersForContent();
+            // small delay before checking containers to ensure DOM is fully updated
+            setTimeout(() => {
+                checkContainersForContent();
+            }, 1000);
         }
     };
 
@@ -1551,8 +1554,12 @@ const checkContainersForContent = () => {
                 containerContentMap[containerId] = hasContent;
             }
             
-            // If container is visible but has no content, add it to the map
-            if (isVisible && !hasContent && containerId) {
+            // Only hide the container if:
+            // 1. It's currently visible
+            // 2. It has no content
+            // 3. Content loading for this type is complete
+            // 4. We have a valid container ID
+            if (isVisible && !hasContent && !contentLoadingStatus[type] && containerId) {
                 // Map container ID to visibility state (0 for hidden)
                 containerVisibilityMap[containerId] = 0;
                 hasEmptyContainers = true;
@@ -2218,6 +2225,12 @@ Ws.addEventListener('message', function (event) {
             const tvId = urlParams.get('tvId');
             const message = JSON.stringify({ action: 'load_layout', tv_id: tvId });
             Ws.send(message);
+        }
+    } else if (data.action === 'refresh_content' || data.action === 'manual_refresh_tv') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tvId = urlParams.get('tvId');
+        if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+            location.reload();
         }
     }
 });

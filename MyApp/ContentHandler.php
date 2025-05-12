@@ -4549,6 +4549,19 @@ class ContentHandler implements MessageComponentInterface
             $from->send(json_encode($response));
         }
 
+        else if (isset($data['action']) && $data['action'] === 'refresh_content') {
+            $tvId = $data['tv_id'];
+            $response = ['action' => 'refresh_content', 'success' => true, 'tv_id' => $tvId];
+            $from->send(json_encode($response));
+
+            error_log("Refresh content message sent to TV ID {$tvId}");
+            // Broadcast the message to all connected clients
+            foreach ($this->clients as $client) {
+                if ($client !== $from) {
+                    $client->send(json_encode($data));
+                }
+            }
+        }
         // Broadcast the message to all connected clients
         foreach ($this->clients as $client) {
             if ($client !== $from) {

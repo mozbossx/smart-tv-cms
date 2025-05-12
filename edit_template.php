@@ -224,8 +224,9 @@ $conn->close();
                             <!-- Sidebar -->
                             <div class="left-sidebar" id="leftSidebar">
                                 <div class="content-container" style="margin-top: 0; position: fixed; width: 245px; height: 57vh; overflow-y: auto;">
-                                    <div class="panel-close-btn">
+                                    <div class="panel-close-btn" style="display: flex; flex-direction: row-reverse; justify-content: space-between;">
                                         <button onclick="closeLeftSidebar()"><i class="fa fa-chevron-left" aria-hidden="true"></i> Collapse</button>
+                                        <button type="button" id="manualRefreshButton"><i class="fa fa-refresh"></i></button>
                                     </div>
                                     <p style="color: <?php echo $theme_color; ?>; padding: 8px; border-top-left-radius: 5px; border-top-right-radius: 5px;"><b>Show/Hide Content Containers</b></p>
                                     <form id="visibilitySettingsForm" style="padding: 8px; height: 42vh; overflow-y: auto;">
@@ -483,6 +484,20 @@ $conn->close();
                 setTimeout(() => {
                     iframe.contentWindow.postMessage({ action: 'requestContentStatus' }, '*');
                 }, 1500);
+            });
+
+            // Event listener for manual refresh button
+            const manualRefreshButton = document.getElementById('manualRefreshButton');
+            manualRefreshButton.addEventListener('click', function() {                
+                // Send WebSocket message to refresh just this TV
+                if (typeof Ws !== 'undefined' && Ws.readyState === WebSocket.OPEN) {
+                    Ws.send(JSON.stringify({
+                        action: 'refresh_content',
+                        tv_id: <?php echo $tvId; ?>
+                    }));
+                } else {
+                    console.error('WebSocket is not open');
+                }
             });
         });
 
