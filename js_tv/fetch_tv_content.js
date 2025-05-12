@@ -298,7 +298,9 @@ const updateUI = (data, type) => {
             existingDiv.innerHTML = contentHTML;
             existingDiv.chartData = data.chartData;
             resetCountdown(existingDiv, data.display_time, currentIndexKey);
-            setupOrgChartResizeObserver(existingDiv.querySelector('.orgchart-container'));
+            setTimeout(() => {
+                createOrgChart(id, data.chartData);
+            }, 100);
         } else {
             contentsArray.push(containerDiv);
             carouselContainer.appendChild(containerDiv);
@@ -308,7 +310,6 @@ const updateUI = (data, type) => {
                 // Render the first chart immediately
                 setTimeout(() => {
                     createOrgChart(id, data.chartData);
-                    setupOrgChartResizeObserver(containerDiv.querySelector('.orgchart-container'));
                 }, 100);
             }
         }
@@ -794,77 +795,6 @@ const showNextFacilityContent = () => {
     }
 };
 
-
-// function adjustFontSize(type) {
-//     const carouselContainer = document.getElementById(`${type}CarouselContainer`);
-    
-//     if (!carouselContainer) {
-//         console.warn(`${type}CarouselContainer not found`);
-//         return;
-//     }
-
-//     const textContainers = carouselContainer.querySelectorAll('.main-message');
-//     if (!textContainers.length) {
-//         return; // No text containers found, exit quietly
-//     }
-
-//     textContainers.forEach((textContainer) => {
-//         // Get container dimensions
-//         const containerWidth = carouselContainer.offsetWidth;
-//         const containerHeight = carouselContainer.offsetHeight;
-
-//         // Reset styles to get proper measurements
-//         textContainer.style.fontSize = '10px';
-//         textContainer.style.lineHeight = '1.2';
-
-//         // Incrementally adjust font size
-//         let fontSize = 10;
-//         const maxFontSize = 24; // Maximum font size
-        
-//         while (
-//             fontSize < maxFontSize &&
-//             textContainer.scrollHeight <= containerHeight * 0.9 && // Use 90% of container height
-//             textContainer.scrollWidth <= containerWidth * 0.9 // Use 90% of container width
-//         ) {
-//             fontSize++;
-//             textContainer.style.fontSize = `${fontSize}px`;
-//         }
-
-//         // Step back one size to ensure fit
-//         fontSize = Math.max(10, fontSize - 1);
-//         textContainer.style.fontSize = `${fontSize}px`;
-
-//         // Adjust line height for readability
-//         textContainer.style.lineHeight = '1.4';
-//     });
-// }
-
-// Set up a MutationObserver to watch for changes in a specific carousel container
-// function setupFontSizeObserver(type) {
-//     const observer = new MutationObserver((mutations) => {
-//         mutations.forEach((mutation) => {
-//             if (mutation.type === 'childList' || mutation.type === 'characterData') {
-//                 adjustFontSize(type);
-//             }
-//         });
-//     });
-
-//     const carouselContainer = document.getElementById(`${type}CarouselContainer`);
-//     if (carouselContainer) {
-//         observer.observe(carouselContainer, { childList: true, subtree: true, characterData: true });
-//     }
-// }
-
-// Function to fetch org chart data
-// const fetchOrgChartData = () => {
-//     return fetch('database/fetch_orgchart.php')
-//         .then(response => response.json())
-//         .catch(error => {
-//             console.error('Error fetching org chart data:', error);
-//             return {};
-//         });
-// };
-
 // Function to create org chart
 const createOrgChart = (orgchartId, chartData) => {
     const containerId = `orgChartContainer-${orgchartId}`;
@@ -917,44 +847,86 @@ const createOrgChart = (orgchartId, chartData) => {
             const treant = document.querySelector(`#${containerId}`).closest('.Treant');
             const svg = treant ? treant.querySelector('svg') : null;
 
-            if (!treant) {
-                console.error(`Treant not found for orgchart ${orgchartId}`);
+            if (!treant || !svg) {
                 return;
             }
 
-            if (!svg) {
-                console.error(`SVG not found for orgchart ${orgchartId}`);
-                return;
-            }
-
-            // First, make the Treant match the SVG dimensions
-            const svgWidth = svg.width.baseVal.value;
-            const svgHeight = svg.height.baseVal.value;
+            // Apply initial scaling
+            applyOrgChartScaling(treant, svg, containerParent);
             
-            // Set both width and height of Treant to match SVG
-            treant.style.width = `${svgWidth}px`;
-            treant.style.height = `${svgHeight}px`;
-
-            // Reset transform to get true dimensions
-            treant.style.transform = 'none';
-            
-            // Calculate scale ratios
-            const containerWidth = containerParent.offsetWidth;
-            const containerHeight = containerParent.offsetHeight;
-            const scale = Math.min(
-                containerWidth / svgWidth,
-                containerHeight / svgHeight,
-                1
-            ) * 0.9;
-
-            // Apply the transform
-            treant.style.zoom = `${scale}`;
-            treant.style.transformOrigin = 'center center';
+            // Set up resize observer for this specific chart
+            setupOrgChartResizeObserver(containerParent, treant, svg);
         });
     } catch (error) {
         console.error('Error creating org chart:', error);
         contentDiv.innerHTML = '<p style="text-align: center; color: #264B2B; font-size: 1.2em; padding: 20px;">Error loading organizational chart.</p>';
     }
+};
+
+// Function to apply scaling to the org chart
+const applyOrgChartScaling = (treant, svg, containerParent) => {
+    if (!treant || !svg || !containerParent) return;
+    
+    // First, make the Treant match the SVG dimensions
+    const svgWidth = svg.width.baseVal.value;
+    const svgHeight = svg.height.baseVal.value;
+    
+    // Set both width and height of Treant to match SVG
+    treant.style.width = `${svgWidth}px`;
+    treant.style.height = `${svgHeight}px`;
+
+    // Reset transform to get true dimensions
+    treant.style.transform = 'none';
+    
+    // Calculate scale ratios
+    const containerWidth = containerParent.offsetWidth;
+    const containerHeight = containerParent.offsetHeight;
+    const scale = Math.min(
+        containerWidth / svgWidth,
+        containerHeight / svgHeight,
+        1
+    ) * 0.9;
+
+    // Apply the transform
+    treant.style.zoom = `${scale}`;
+    treant.style.transformOrigin = 'center center';
+};
+
+// resize observer to handle container resizing
+const setupOrgChartResizeObserver = (container, treant, svg) => {
+    if (!container || !treant || !svg) {
+        console.error('Cannot setup resize observer: Missing required elements');
+        return;
+    }
+
+    // Create a resize observer that will apply scaling when the container resizes
+    const resizeObserver = new ResizeObserver(debounce(() => {
+        applyOrgChartScaling(treant, svg, container);
+    }, 100));
+
+    // Start observing the container
+    resizeObserver.observe(container);
+    
+    // Observe the parent container as well (for layout changes)
+    const parentContainer = container.closest('.content-container');
+    if (parentContainer) {
+        resizeObserver.observe(parentContainer);
+    }
+    
+    return resizeObserver;
+};
+
+// Debounce function to avoid excessive recalculations
+const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 };
 
 // Helper function to create node structure with dynamic sizing
@@ -1007,33 +979,6 @@ const createNodeStructure = (members) => {
         HTMLclass: "hidden-node",
         children: rootNodes
     };
-};
-
-// resize observer to handle container resizing
-const setupOrgChartResizeObserver = (container) => {
-    let resizeTimeout;
-    const resizeObserver = new ResizeObserver((entries) => {
-        // Clear any existing timeout
-        if (resizeTimeout) {
-            clearTimeout(resizeTimeout);
-        }
-
-        // Set a new timeout to debounce the resize event
-        resizeTimeout = setTimeout(() => {
-            for (const entry of entries) {
-                const activeItem = entry.target.closest('.carousel-item');
-                if (activeItem && activeItem.classList.contains('active')) {
-                    const chartData = activeItem.chartData;
-                    if (chartData) {
-                        createOrgChart(activeItem.dataset.orgchartId, chartData);
-                    }
-                }
-            }
-        }, 1000); // Small delay for performance
-    });
-
-    resizeObserver.observe(container);
-    return resizeObserver;
 };
 
 const renderVisibleOrgChart = () => {
@@ -1181,7 +1126,7 @@ const showNextContent = (type) => {
                     if (currentChart.chartData) {
                         createOrgChart(currentChart.dataset.orgchartId, currentChart.chartData);
                     }
-                }, 100);
+                }, 1000);
             }
         }
     } else {
@@ -1673,7 +1618,7 @@ const autoTileContainers = (tvId) => {
         container.setAttribute('data-y', GAP);
     } 
     else if (numContainers === 2) {
-        // Two containers - split horizontally with equal width
+        // Two containers - side by side horizontally
         const containerWidth = (availableWidth - GAP) / 2; // Account for gap between containers
         const containerHeight = availableHeight;
         
@@ -1687,21 +1632,188 @@ const autoTileContainers = (tvId) => {
         });
     }
     else if (numContainers === 3) {
-        // Three containers - split horizontally with equal width
-        const containerWidth = (availableWidth - (GAP * 2)) / 3; // Account for gaps between containers
-        const containerHeight = availableHeight;
+        // Layout: 2 containers on top row, 1 container on bottom row (full width)
+        const topContainerWidth = (availableWidth - GAP) / 2; // Width for top row containers
+        const topContainerHeight = availableHeight / 2; // Half height for top row
+        const bottomContainerWidth = availableWidth; // Full width for bottom container
+        const bottomContainerHeight = availableHeight / 2 - GAP; // Half height for bottom container
         
-        containerArray.forEach((container, index) => {
-            container.style.width = `${containerWidth}px`;
-            container.style.height = `${containerHeight}px`;
-            const x = GAP + (index * (containerWidth + GAP));
+        // Place the first two containers side by side on top
+        for (let i = 0; i < 2; i++) {
+            const container = containerArray[i];
+            container.style.width = `${topContainerWidth}px`;
+            container.style.height = `${topContainerHeight}px`;
+            const x = GAP + (i * (topContainerWidth + GAP));
             container.style.transform = `translate(${x}px, ${GAP}px)`;
             container.setAttribute('data-x', x);
             container.setAttribute('data-y', GAP);
+        }
+        
+        // Place the third container at the bottom, full width
+        const bottomContainer = containerArray[2];
+        bottomContainer.style.width = `${bottomContainerWidth}px`;
+        bottomContainer.style.height = `${bottomContainerHeight}px`;
+        bottomContainer.style.transform = `translate(${GAP}px, ${GAP + topContainerHeight + GAP}px)`;
+        bottomContainer.setAttribute('data-x', GAP);
+        bottomContainer.setAttribute('data-y', GAP + topContainerHeight + GAP);
+    }
+    else if (numContainers === 4) {
+        // Layout: 2x2 grid
+        const containerWidth = (availableWidth - GAP) / 2; // Width accounting for gap
+        const containerHeight = (availableHeight - GAP) / 2; // Height accounting for gap
+        
+        containerArray.forEach((container, index) => {
+            const row = Math.floor(index / 2);
+            const col = index % 2;
+            
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            
+            const x = GAP + (col * (containerWidth + GAP));
+            const y = GAP + (row * (containerHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        });
+    }
+    else if (numContainers === 5) {
+        // Layout: 3 containers on top row, 2 containers on bottom row
+        const topContainerWidth = (availableWidth - (GAP * 2)) / 3; // Width for top row (3 containers)
+        const bottomContainerWidth = (availableWidth - GAP) / 2; // Width for bottom row (2 containers)
+        const containerHeight = (availableHeight - GAP) / 2; // Height for all containers
+        
+        // Top row - 3 containers
+        for (let i = 0; i < 3; i++) {
+            const container = containerArray[i];
+            container.style.width = `${topContainerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            const x = GAP + (i * (topContainerWidth + GAP));
+            container.style.transform = `translate(${x}px, ${GAP}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', GAP);
+        }
+        
+        // Bottom row - 2 containers
+        for (let i = 0; i < 2; i++) {
+            const container = containerArray[i + 3];
+            container.style.width = `${bottomContainerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            const x = GAP + (i * (bottomContainerWidth + GAP));
+            const y = GAP + containerHeight + GAP;
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        }
+    }
+    else if (numContainers === 6) {
+        // Layout: 3x2 grid
+        const containerWidth = (availableWidth - (GAP * 2)) / 3; // Width for all containers
+        const containerHeight = (availableHeight - GAP) / 2; // Height for all containers
+        
+        containerArray.forEach((container, index) => {
+            const row = Math.floor(index / 3);
+            const col = index % 3;
+            
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            
+            const x = GAP + (col * (containerWidth + GAP));
+            const y = GAP + (row * (containerHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        });
+    }
+    else if (numContainers === 7) {
+        // Layout: 3 containers on top row, 3 containers on middle row, 1 full-width container on bottom row
+        const topContainerWidth = (availableWidth - (GAP * 2)) / 3; // Width for top and middle rows
+        const rowHeight = (availableHeight - (GAP * 2)) / 3; // Height for each row
+        
+        // Top and middle rows - 3 containers each
+        for (let i = 0; i < 6; i++) {
+            const container = containerArray[i];
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            
+            container.style.width = `${topContainerWidth}px`;
+            container.style.height = `${rowHeight}px`;
+            
+            const x = GAP + (col * (topContainerWidth + GAP));
+            const y = GAP + (row * (rowHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        }
+        
+        // Bottom row - 1 full-width container
+        const bottomContainer = containerArray[6];
+        bottomContainer.style.width = `${availableWidth}px`;
+        bottomContainer.style.height = `${rowHeight}px`;
+        const y = GAP + (2 * (rowHeight + GAP));
+        bottomContainer.style.transform = `translate(${GAP}px, ${y}px)`;
+        bottomContainer.setAttribute('data-x', GAP);
+        bottomContainer.setAttribute('data-y', y);
+    }
+    else if (numContainers === 8) {
+        // Layout: 3 containers on top row, 3 containers on middle row, 2 containers on bottom row
+        const topContainerWidth = (availableWidth - (GAP * 2)) / 3; // Width for top and middle rows
+        const bottomContainerWidth = (availableWidth - GAP) / 2; // Width for bottom row
+        const rowHeight = (availableHeight - (GAP * 2)) / 3; // Height for each row
+        
+        // Top and middle rows - 3 containers each
+        for (let i = 0; i < 6; i++) {
+            const container = containerArray[i];
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            
+            container.style.width = `${topContainerWidth}px`;
+            container.style.height = `${rowHeight}px`;
+            
+            const x = GAP + (col * (topContainerWidth + GAP));
+            const y = GAP + (row * (rowHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        }
+        
+        // Bottom row - 2 containers
+        for (let i = 0; i < 2; i++) {
+            const container = containerArray[i + 6];
+            container.style.width = `${bottomContainerWidth}px`;
+            container.style.height = `${rowHeight}px`;
+            const x = GAP + (i * (bottomContainerWidth + GAP));
+            const y = GAP + (2 * (rowHeight + GAP));
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        }
+    }
+    else if (numContainers === 9) {
+        // Layout: 3x3 grid
+        const containerWidth = (availableWidth - (GAP * 2)) / 3; // Width for all containers
+        const containerHeight = (availableHeight - (GAP * 2)) / 3; // Height for all containers
+        
+        containerArray.forEach((container, index) => {
+            const row = Math.floor(index / 3);
+            const col = index % 3;
+            
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            
+            const x = GAP + (col * (containerWidth + GAP));
+            const y = GAP + (row * (containerHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
         });
     }
     else {
-        // More than 3 containers - create a grid layout
+        // For more than 9 containers, use a standard grid layout
         const numColumns = 3; // Maximum 3 columns
         const numRows = Math.ceil(numContainers / numColumns);
         

@@ -1241,7 +1241,7 @@ $conn->close();
                     container.setAttribute('data-y', GAP);
                 } 
                 else if (numContainers === 2) {
-                    // Two containers - split horizontally with equal width
+                    // Two containers - side by side horizontally
                     const containerWidth = (availableWidth - GAP) / 2; // Account for gap between containers
                     const containerHeight = availableHeight;
                     
@@ -1255,21 +1255,188 @@ $conn->close();
                     });
                 }
                 else if (numContainers === 3) {
-                    // Three containers - split horizontally with equal width
-                    const containerWidth = (availableWidth - (GAP * 2)) / 3; // Account for gaps between containers
-                    const containerHeight = availableHeight;
+                    // Layout: 2 containers on top row, 1 container on bottom row (full width)
+                    const topContainerWidth = (availableWidth - GAP) / 2; // Width for top row containers
+                    const topContainerHeight = availableHeight / 2; // Half height for top row
+                    const bottomContainerWidth = availableWidth; // Full width for bottom container
+                    const bottomContainerHeight = availableHeight / 2 - GAP; // Half height for bottom container
                     
-                    containerArray.forEach((container, index) => {
-                        container.style.width = `${containerWidth}px`;
-                        container.style.height = `${containerHeight}px`;
-                        const x = GAP + (index * (containerWidth + GAP));
+                    // Place the first two containers side by side on top
+                    for (let i = 0; i < 2; i++) {
+                        const container = containerArray[i];
+                        container.style.width = `${topContainerWidth}px`;
+                        container.style.height = `${topContainerHeight}px`;
+                        const x = GAP + (i * (topContainerWidth + GAP));
                         container.style.transform = `translate(${x}px, ${GAP}px)`;
                         container.setAttribute('data-x', x);
                         container.setAttribute('data-y', GAP);
+                    }
+                    
+                    // Place the third container at the bottom, full width
+                    const bottomContainer = containerArray[2];
+                    bottomContainer.style.width = `${bottomContainerWidth}px`;
+                    bottomContainer.style.height = `${bottomContainerHeight}px`;
+                    bottomContainer.style.transform = `translate(${GAP}px, ${GAP + topContainerHeight + GAP}px)`;
+                    bottomContainer.setAttribute('data-x', GAP);
+                    bottomContainer.setAttribute('data-y', GAP + topContainerHeight + GAP);
+                }
+                else if (numContainers === 4) {
+                    // Layout: 2x2 grid
+                    const containerWidth = (availableWidth - GAP) / 2; // Width accounting for gap
+                    const containerHeight = (availableHeight - GAP) / 2; // Height accounting for gap
+                    
+                    containerArray.forEach((container, index) => {
+                        const row = Math.floor(index / 2);
+                        const col = index % 2;
+                        
+                        container.style.width = `${containerWidth}px`;
+                        container.style.height = `${containerHeight}px`;
+                        
+                        const x = GAP + (col * (containerWidth + GAP));
+                        const y = GAP + (row * (containerHeight + GAP));
+                        
+                        container.style.transform = `translate(${x}px, ${y}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', y);
+                    });
+                }
+                else if (numContainers === 5) {
+                    // Layout: 3 containers on top row, 2 containers on bottom row
+                    const topContainerWidth = (availableWidth - (GAP * 2)) / 3; // Width for top row (3 containers)
+                    const bottomContainerWidth = (availableWidth - GAP) / 2; // Width for bottom row (2 containers)
+                    const containerHeight = (availableHeight - GAP) / 2; // Height for all containers
+                    
+                    // Top row - 3 containers
+                    for (let i = 0; i < 3; i++) {
+                        const container = containerArray[i];
+                        container.style.width = `${topContainerWidth}px`;
+                        container.style.height = `${containerHeight}px`;
+                        const x = GAP + (i * (topContainerWidth + GAP));
+                        container.style.transform = `translate(${x}px, ${GAP}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', GAP);
+                    }
+                    
+                    // Bottom row - 2 containers
+                    for (let i = 0; i < 2; i++) {
+                        const container = containerArray[i + 3];
+                        container.style.width = `${bottomContainerWidth}px`;
+                        container.style.height = `${containerHeight}px`;
+                        const x = GAP + (i * (bottomContainerWidth + GAP));
+                        const y = GAP + containerHeight + GAP;
+                        container.style.transform = `translate(${x}px, ${y}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', y);
+                    }
+                }
+                else if (numContainers === 6) {
+                    // Layout: 3x2 grid
+                    const containerWidth = (availableWidth - (GAP * 2)) / 3; // Width for all containers
+                    const containerHeight = (availableHeight - GAP) / 2; // Height for all containers
+                    
+                    containerArray.forEach((container, index) => {
+                        const row = Math.floor(index / 3);
+                        const col = index % 3;
+                        
+                        container.style.width = `${containerWidth}px`;
+                        container.style.height = `${containerHeight}px`;
+                        
+                        const x = GAP + (col * (containerWidth + GAP));
+                        const y = GAP + (row * (containerHeight + GAP));
+                        
+                        container.style.transform = `translate(${x}px, ${y}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', y);
+                    });
+                }
+                else if (numContainers === 7) {
+                    // Layout: 3 containers on top row, 3 containers on middle row, 1 full-width container on bottom row
+                    const topContainerWidth = (availableWidth - (GAP * 2)) / 3; // Width for top and middle rows
+                    const rowHeight = (availableHeight - (GAP * 2)) / 3; // Height for each row
+                    
+                    // Top and middle rows - 3 containers each
+                    for (let i = 0; i < 6; i++) {
+                        const container = containerArray[i];
+                        const row = Math.floor(i / 3);
+                        const col = i % 3;
+                        
+                        container.style.width = `${topContainerWidth}px`;
+                        container.style.height = `${rowHeight}px`;
+                        
+                        const x = GAP + (col * (topContainerWidth + GAP));
+                        const y = GAP + (row * (rowHeight + GAP));
+                        
+                        container.style.transform = `translate(${x}px, ${y}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', y);
+                    }
+                    
+                    // Bottom row - 1 full-width container
+                    const bottomContainer = containerArray[6];
+                    bottomContainer.style.width = `${availableWidth}px`;
+                    bottomContainer.style.height = `${rowHeight}px`;
+                    const y = GAP + (2 * (rowHeight + GAP));
+                    bottomContainer.style.transform = `translate(${GAP}px, ${y}px)`;
+                    bottomContainer.setAttribute('data-x', GAP);
+                    bottomContainer.setAttribute('data-y', y);
+                }
+                else if (numContainers === 8) {
+                    // Layout: 3 containers on top row, 3 containers on middle row, 2 containers on bottom row
+                    const topContainerWidth = (availableWidth - (GAP * 2)) / 3; // Width for top and middle rows
+                    const bottomContainerWidth = (availableWidth - GAP) / 2; // Width for bottom row
+                    const rowHeight = (availableHeight - (GAP * 2)) / 3; // Height for each row
+                    
+                    // Top and middle rows - 3 containers each
+                    for (let i = 0; i < 6; i++) {
+                        const container = containerArray[i];
+                        const row = Math.floor(i / 3);
+                        const col = i % 3;
+                        
+                        container.style.width = `${topContainerWidth}px`;
+                        container.style.height = `${rowHeight}px`;
+                        
+                        const x = GAP + (col * (topContainerWidth + GAP));
+                        const y = GAP + (row * (rowHeight + GAP));
+                        
+                        container.style.transform = `translate(${x}px, ${y}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', y);
+                    }
+                    
+                    // Bottom row - 2 containers
+                    for (let i = 0; i < 2; i++) {
+                        const container = containerArray[i + 6];
+                        container.style.width = `${bottomContainerWidth}px`;
+                        container.style.height = `${rowHeight}px`;
+                        const x = GAP + (i * (bottomContainerWidth + GAP));
+                        const y = GAP + (2 * (rowHeight + GAP));
+                        container.style.transform = `translate(${x}px, ${y}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', y);
+                    }
+                }
+                else if (numContainers === 9) {
+                    // Layout: 3x3 grid
+                    const containerWidth = (availableWidth - (GAP * 2)) / 3; // Width for all containers
+                    const containerHeight = (availableHeight - (GAP * 2)) / 3; // Height for all containers
+                    
+                    containerArray.forEach((container, index) => {
+                        const row = Math.floor(index / 3);
+                        const col = index % 3;
+                        
+                        container.style.width = `${containerWidth}px`;
+                        container.style.height = `${containerHeight}px`;
+                        
+                        const x = GAP + (col * (containerWidth + GAP));
+                        const y = GAP + (row * (containerHeight + GAP));
+                        
+                        container.style.transform = `translate(${x}px, ${y}px)`;
+                        container.setAttribute('data-x', x);
+                        container.setAttribute('data-y', y);
                     });
                 }
                 else {
-                    // More than 3 containers - create a grid layout
+                    // For more than 9 containers, use a standard grid layout
                     const numColumns = 3; // Maximum 3 columns
                     const numRows = Math.ceil(numContainers / numColumns);
                     
