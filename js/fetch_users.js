@@ -843,11 +843,11 @@ const showAddUserModal = (userId) => {
                     userTypeContainerAddUser.innerHTML = `
                         <select name="user_type" id="add_user_type" style="height: 100%" required class="floating-label-input-text-area">
                             <option value="">Select Role</option>
+                            <option value="Super Admin">Super Admin</option>
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
                             <option value="Staff">Staff</option>
                             <option value="Student">Student</option>
-                            <option value="Super Admin">Super Admin</option>
                         </select>
                         <label for="add_user_type" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Role</label>
                     `;
@@ -1187,11 +1187,11 @@ const populateEditUserModal = (userId) => {
                 } else if (loggedInUserType === 'Super Admin') {
                     userTypeContainerEditUser.innerHTML = `
                         <select name="user_type" id="edit_user_type" style="height: 100%" class="floating-label-input-text-area">
+                            <option value="Super Admin">Super Admin</option>
                             <option value="Admin">Admin</option>
                             <option value="Faculty">Faculty</option>
                             <option value="Staff">Staff</option>
                             <option value="Student">Student</option>
-                            <option value="Super Admin">Super Admin</option>
                         </select>
                         <label for="edit_user_type" style="width: auto; padding-top: 5px; border-radius: 0" class="floating-label-text-area">Role</label>
                     `;
