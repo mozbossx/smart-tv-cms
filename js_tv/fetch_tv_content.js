@@ -16,11 +16,11 @@ function connectWebSocket() {
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
                        window.location.hostname === '192.168.1.12' ||
-                       window.location.hostname === '192.168.1.5';
+                       window.location.hostname === '192.168.10.80';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.1.5:8081'
+        ? 'ws://192.168.10.80:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -323,17 +323,17 @@ const updateUI = (data, type) => {
     const getUserTypeIcon = (userType) => {
         switch(userType) {
             case 'Super Admin':
-                return '<i class="fas fa-crown" title="Super Admin" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-crown" title="Super Admin" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> S-Admin</span>';
             case 'Admin':
-                return '<i class="fas fa-user-gear" title="Admin" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-user-gear" title="Admin" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> Admin</span>';
             case 'Faculty':
-                return '<i class="fas fa-chalkboard-user" title="Faculty" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-chalkboard-user" title="Faculty" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> Faculty</span>';
             case 'Staff':
-                return '<i class="fas fa-clipboard" title="Staff" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-clipboard" title="Staff" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> Staff</span>';
             case 'Student':
-                return '<i class="fas fa-user-graduate" title="Student" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-user-graduate" title="Student" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> Student</span>';
             default:
-                return '<i class="fas fa-user" title="User" style="font-size: 1rem; background-color: #9393933b; padding: 5px; border-radius: 100%;"></i>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-user" title="User" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> User</span>';
         }
     };
 

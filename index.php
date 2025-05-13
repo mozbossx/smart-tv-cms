@@ -15,6 +15,41 @@ $welcomeMessage = "Smart TV Content Management System";
 $subheading = "Interactive Digital Displays for the University of San Carlos";
 ?>
 
+<script>
+function detectDevice() {
+    // List of common Smart TV user agent keywords
+    const smartTVKeywords = [
+        'smart-tv',
+        'smarttv',
+        'opera tv',
+        'samsung',
+        'tizen',
+        'webos',
+        'vidaa',
+        'hbbtv',
+        'philips',
+        'lg netcast',
+        'viera',
+        'netcast',
+        'nettv',
+        'appletv',
+        'googletv',
+        'android tv'
+    ];
+
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isSmartTV = smartTVKeywords.some(keyword => userAgent.includes(keyword));
+
+    if (isSmartTV) {
+        const addTvButton = document.getElementById('addTvButton');
+        addTvButton.style.display = 'block';
+    }
+}
+
+// Run device detection on page load
+window.onload = detectDevice;
+</script>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,12 +61,14 @@ $subheading = "Interactive Digital Displays for the University of San Carlos";
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style_index.css">
     <title>Smart TV CMS</title>
 </head>
 <body>
     <section class="hero-section">
         <div class="nav-buttons">
+            <a href="tv.php" id="addTvButton" style="display: none;" class="nav-button login-btn">Add TV <i class="fas fa-tv" style="margin-left: 5px;"></i></a>
             <a href="login.php?pageid=Login" class="nav-button login-btn">Login</a>
             <a href="create_account.php?pageid=CreateAccount" class="nav-button create-account-btn">Create Account</a>
         </div>
