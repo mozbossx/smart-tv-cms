@@ -22,6 +22,7 @@ include 'admin_access_only.php';
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
@@ -134,10 +135,8 @@ include 'admin_access_only.php';
                                 </div>
                                 <div id="featureIconsModal" class="modal">
                                     <div class="modal-content" style="padding: 15px">
-                                        <h1 style="font-size: 50px"><i class="fa fa-info-circle" aria-hidden="true"></i></h1>
-                                        <p>Select Feature Icon</p>
-                                        <br>
-                                        <div id="featureIconsGridList" class="icon-grid" style="height: 150px; max-height: 200px; overflow: auto; text-align: left; padding-right: 10px">
+                                        <h1 style="color: <?php echo $dark_theme_color_40_percent; ?>; text-align: left; font-size: 25px; padding-bottom: 15px"><i class="fa fa-info-circle"></i> Feature Icon</h1>
+                                        <div id="featureIconsGridList" class="icon-grid" style="height: 300px; max-height: 300px; overflow: auto; text-align: left; padding-right: 10px">
                                             <!-- Grid List with Font Awesome Icons -->
                                         </div>
                                         <br>

@@ -773,18 +773,9 @@
                 carouselHTML += `
                     <div class="carousel-item ${index === 0 ? 'active' : ''}" style="display: none;" data-tv-id="${matchingContainer.tv_id}">
                         <div class="tv-frame-parent" style="width: auto; height: 100%; background: none; cursor: default;">
-                            ${matchingContainer.visible !== '1' ? `
-                                <div style="display: flex; position: absolute; justify-content: center; align-items: center; height: auto; width: auto; text-align: center; padding: 20px; background: #0000007a; z-index: 1000; border-radius: 15px">
-                                    <h3 style="background: <?php echo $dark_theme_color_20_percent ?>; padding: 10px; color: white; padding: 10px; border-radius: 10px; border: white solid 2px">${selectedType} container not visible</h3>
-                                </div>
-                                <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center;">
-                                    <iframe id='tv-iframe' frameborder='0' src='preview/tv_preview.php?tvId=${matchingContainer.tv_id}&isIframe=true' class='tv-screen' style='height: ${matchingContainer.height_px}px; width: ${matchingContainer.width_px}px; border: none;'></iframe>
-                                </div>
-                            ` : `
-                                <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center;">
-                                    <iframe id='tv-iframe' frameborder='0' src='preview/tv_preview.php?tvId=${matchingContainer.tv_id}&isIframe=true' class='tv-screen' style='height: ${matchingContainer.height_px}px; width: ${matchingContainer.width_px}px; border: none;'></iframe>
-                                </div>
-                            `}
+                            <div class="tv-frame" id="tvFrame-${matchingContainer.tv_id}" style="position: relative; display: flex; flex-direction: column; align-items: center;">
+                                <iframe id='tv-iframe' frameborder='0' src='preview/tv_preview.php?tvId=${matchingContainer.tv_id}&isIframe=true' class='tv-screen' style='height: ${matchingContainer.height_px}px; width: ${matchingContainer.width_px}px; border: none;'></iframe>
+                            </div>
                         </div>
                     </div>
                 `;

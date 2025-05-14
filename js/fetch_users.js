@@ -957,7 +957,7 @@ const sendFormData = (formData) => {
                 if (message.action === 'add_user') {
                     if (message.success == true) {
                         // Send email with temporary password
-                        sendTempPasswordEmail(formData.get('email'), formData.get('password'), formData.get('full_name'), formData.get('department'), full_name);
+                        sendTempPasswordEmail(formData.get('email'), formData.get('password'), formData.get('full_name'), formData.get('department'), formData.get('evaluator_name'), formData.get('user_type'));
                         document.getElementById('successMessageVersion2').textContent = `User added successfully! The temporary password is sent to the user's email.`;
                         document.getElementById('AddUserModal').style.display = 'none';
                         document.getElementById('successMessageModalVersion2').style.display = 'flex';
@@ -989,7 +989,8 @@ const sendFormData = (formData) => {
                                         user.password,
                                         user.full_name,
                                         user.department,
-                                        formData.get('evaluator_name')
+                                        formData.get('evaluator_name'),
+                                        user.user_type
                                     );
                                 }, 500); // 500ms delay between each email
                             });
@@ -1023,13 +1024,13 @@ const sendFormData = (formData) => {
         });
 };
 
-const sendTempPasswordEmail = (email, password, full_name, department, evaluator_name) => {
+const sendTempPasswordEmail = (email, password, full_name, department, evaluator_name, user_type) => {
     fetch('send_temp_password_email.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&full_name=${encodeURIComponent(full_name)}&department=${encodeURIComponent(department)}&evaluator_name=${encodeURIComponent(evaluator_name)}`
+        body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&full_name=${encodeURIComponent(full_name)}&department=${encodeURIComponent(department)}&evaluator_name=${encodeURIComponent(evaluator_name)}&user_type=${encodeURIComponent(user_type)}`
     })
     .then(response => response.json())
     .then(data => {
@@ -1044,13 +1045,13 @@ const sendTempPasswordEmail = (email, password, full_name, department, evaluator
     });
 };
 
-const sendDeletedUserEmail = (email, full_name, department, evaluator_name, evaluator_message) => {
+const sendDeletedUserEmail = (email, full_name, department, evaluator_name, evaluator_message, user_type) => {
     fetch('send_deleted_user_email.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `email=${encodeURIComponent(email)}&full_name=${encodeURIComponent(full_name)}&department=${encodeURIComponent(department)}&evaluator_name=${encodeURIComponent(evaluator_name)}&evaluator_message=${encodeURIComponent(evaluator_message)}`
+        body: `email=${encodeURIComponent(email)}&full_name=${encodeURIComponent(full_name)}&department=${encodeURIComponent(department)}&evaluator_name=${encodeURIComponent(evaluator_name)}&evaluator_message=${encodeURIComponent(evaluator_message)}&user_type=${encodeURIComponent(user_type)}`
     })
     .then(response => response.json())
     .then(data => {
@@ -1271,7 +1272,7 @@ const sendWebSocketMessage = (data) => {
                                 document.getElementById('successMessageModalVersion2').style.display = 'flex';
                             }
                             if (message.email) {
-                                sendDeletedUserEmail(message.email, message.full_name, message.department, message.evaluator_name, message.evaluator_message);
+                                sendDeletedUserEmail(message.email, message.full_name, message.department, message.evaluator_name, message.evaluator_message, message.user_type);
                             }
                             break;
                     }

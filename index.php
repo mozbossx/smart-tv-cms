@@ -43,6 +43,11 @@ function detectDevice() {
     if (isSmartTV) {
         const addTvButton = document.getElementById('addTvButton');
         addTvButton.style.display = 'block';
+    } else {
+        const loginButton = document.getElementById('loginButton');
+        const createAccountButton = document.getElementById('createAccountButton');
+        loginButton.style.display = 'block';
+        createAccountButton.style.display = 'block';
     }
 }
 
@@ -62,6 +67,7 @@ window.onload = detectDevice;
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style_index.css">
     <title>Smart TV CMS</title>
 </head>
@@ -69,8 +75,8 @@ window.onload = detectDevice;
     <section class="hero-section">
         <div class="nav-buttons">
             <a href="tv.php" id="addTvButton" style="display: none;" class="nav-button login-btn">Add TV <i class="fas fa-tv" style="margin-left: 5px;"></i></a>
-            <a href="login.php?pageid=Login" class="nav-button login-btn">Login</a>
-            <a href="create_account.php?pageid=CreateAccount" class="nav-button create-account-btn">Create Account</a>
+            <a href="login.php?pageid=Login" id="loginButton" style="display: none;" class="nav-button login-btn">Login</a>
+            <a href="create_account.php?pageid=CreateAccount" id="createAccountButton" style="display: none;" class="nav-button create-account-btn">Create Account</a>
         </div>
         <div class="hero-content">           
             <h1 class="hero-title"><?php echo htmlspecialchars($welcomeMessage); ?></h1>

@@ -35,6 +35,7 @@ if ($isEditMode && isset($_GET['event_id'])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
@@ -98,6 +99,7 @@ if ($isEditMode && isset($_GET['event_id'])) {
                                         <input type="hidden" id="existing_event_content" value="<?php echo htmlspecialchars($contentData['event_body']); ?>">
                                     <?php endif; ?>
                                 </div>
+                                <?php include('misc/php/urgent_post.php')?>
                                 <?php include('misc/php/upload_preview_media.php')?>
                                 <div class="form-column">
                                     <?php 

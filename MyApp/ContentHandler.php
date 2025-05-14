@@ -1085,6 +1085,12 @@ class ContentHandler implements MessageComponentInterface
                     }
                 }
 
+                // Handle is_urgent_post for announcement, news, event, promaterial
+                if (($type === 'announcement' || $type === 'news' || $type === 'event' || $type === 'promaterial') && isset($data['is_urgent_post'])) {
+                    $updateFields[] = "is_urgent_post = ?";
+                    $params[] = $data['is_urgent_post'];
+                }
+
                 if (isset($data['display_time'])) {
                     $updateFields[] = "display_time = ?";
                     $params[] = $data['display_time'];
@@ -2312,7 +2318,7 @@ class ContentHandler implements MessageComponentInterface
             $evaluator_message = isset($data['evaluator_message']) ? htmlspecialchars($data['evaluator_message']) : '';
 
             // Fetch user details before deletion
-            $stmtFetchUser = $this->pdo->prepare("SELECT full_name, email, department FROM users_tb WHERE user_id = ?");
+            $stmtFetchUser = $this->pdo->prepare("SELECT full_name, email, department, user_type FROM users_tb WHERE user_id = ?");
             $stmtFetchUser->execute([$user_id]);
             $userDetails = $stmtFetchUser->fetch(PDO::FETCH_ASSOC);
         
@@ -2395,6 +2401,7 @@ class ContentHandler implements MessageComponentInterface
                     'email' => $userDetails['email'],
                     'full_name' => $userDetails['full_name'],
                     'department' => $userDetails['department'],
+                    'user_type' => $userDetails['user_type'],
                     'evaluator_name' => $evaluator_name,
                     'evaluator_message' => $evaluator_message
                 ];
@@ -3072,7 +3079,8 @@ class ContentHandler implements MessageComponentInterface
                     'content_updated' => $content_updated,
                     'type' => $content_type, 
                     'user_id' => $user_id,
-                    'data' => $data
+                    'data' => $data,
+                    'is_urgent_post' => $content_updated['is_urgent_post']
                 ];
 
                 // $response = [
@@ -3424,6 +3432,12 @@ class ContentHandler implements MessageComponentInterface
                             $fields[] = 'status';
                             $values[] = $status;
                         }
+                        
+                        // Add is_urgent_post field if it exists in the data for announcement, news, event, promaterial
+                        if (($data['type'] === 'announcement' || $data['type'] === 'news' || $data['type'] === 'event' || $data['type'] === 'promaterial') && isset($data['is_urgent_post'])) {
+                            $fields[] = 'is_urgent_post';
+                            $values[] = $data['is_urgent_post'];
+                        }
                     
                         // type-specific fields
                         if ($data['type'] === 'event') {
@@ -3680,7 +3694,12 @@ class ContentHandler implements MessageComponentInterface
                             //     $data['media_path'] = $filename;
                             // }
 
-                            $response = ['action' => 'post_content', 'success' => true, 'user_id' => $user_id, 'data' => $data];
+                            // check if is_urgent_post exists
+                            if (isset($data['is_urgent_post'])) {
+                                $response = ['action' => 'post_content', 'success' => true, 'user_id' => $user_id, 'data' => $data, 'is_urgent_post' => $data['is_urgent_post'], 'status' => $data['status']];
+                            } else {
+                                $response = ['action' => 'post_content', 'success' => true, 'user_id' => $user_id, 'data' => $data, 'status' => $data['status']];
+                            }
                             echo ucfirst($data['type']) . " " . ($mediaUploaded ? 'with' : 'without') . " media uploaded!\n";
                         } else {
                             $response = ['action' => 'post_content', 'success' => false, 'error' => 'Error processing ' . $data['type'] . '. Try again later'];
@@ -4252,6 +4271,53 @@ class ContentHandler implements MessageComponentInterface
             }
         }
 
+        // Handle clearing urgent post flag
+        else if (isset($data['action']) && $data['action'] === 'clear_urgent_post') {
+            // Get the content type and ID
+            $type = $data['type'];
+            $contentId = $data['content_id'];
+            
+            // Define valid content types and their table structures
+            $validTypes = [
+                'announcement' => ['table' => 'announcements_tb', 'idField' => 'announcement_id'],
+                'event' => ['table' => 'events_tb', 'idField' => 'event_id'],
+                'news' => ['table' => 'news_tb', 'idField' => 'news_id'],
+                'promaterial' => ['table' => 'promaterials_tb', 'idField' => 'promaterial_id'],
+            ];
+            
+            // Check if the content type is valid
+            if (isset($validTypes[$type])) {
+                $table = $validTypes[$type]['table'];
+                $idField = $validTypes[$type]['idField'];
+                
+                // Update the is_urgent_post flag to 0
+                $stmtClearUrgentFlag = $this->pdo->prepare("UPDATE $table SET is_urgent_post = 0 WHERE $idField = ? AND is_urgent_post = 1");
+                $success = $stmtClearUrgentFlag->execute([$contentId]);
+                
+                // Prepare and send response
+                $response = [
+                    'action' => 'clear_urgent_post',
+                    'success' => $success,
+                    'type' => $type,
+                    'content_id' => $contentId
+                ];
+                
+                $from->send(json_encode($response));
+                error_log("Cleared urgent flag for $type $contentId\n");
+            } else {
+                // Invalid content type
+                $response = [
+                    'action' => 'clear_urgent_post',
+                    'success' => false,
+                    'message' => 'Invalid content type specified',
+                    'type' => $type,
+                    'content_id' => $contentId
+                ];
+                $from->send(json_encode($response));
+                error_log("Invalid content type specified when clearing urgent flag: $type $contentId\n");
+            }
+        }
+
         // For Creating New Feature only
         else if (isset($data['action']) && $data['action'] === 'post_new_feature') {
             try {
@@ -4330,7 +4396,8 @@ class ContentHandler implements MessageComponentInterface
                     datetime_trashed DATETIME DEFAULT NULL,
                     created_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (tv_id) REFERENCES smart_tvs_tb(tv_id),
-                    FOREIGN KEY ({$featureId}_author_id) REFERENCES users_tb(user_id)
+                    FOREIGN KEY ({$featureId}_author_id) REFERENCES users_tb(user_id),
+                    is_urgent_post TINYINT(1) DEFAULT 0
                 )";
                 $this->pdo->exec($sql);
             
@@ -4667,6 +4734,7 @@ if (\$isEditMode && isset(\$_GET['{$typeVar}_id'])) {
     <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>
     <link href=\"https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap\" rel=\"stylesheet\">
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\">
+    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css\">
     <link href=\"https://fonts.googleapis.com/css2?family=Questrial&display=swap\" rel=\"stylesheet\">
     <link rel=\"stylesheet\" href=\"style.css\">
     <link href=\"https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css\" rel=\"stylesheet\" />

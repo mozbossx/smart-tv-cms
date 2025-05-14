@@ -1,5 +1,3 @@
-
-
 <?php
 include("config_connection.php");
 
@@ -60,6 +58,16 @@ $displayTimeRange = $displayTimeQuery->fetch_assoc();
 $minTime = $displayTimeRange['display_seconds_range_first'];
 $maxTime = $displayTimeRange['display_seconds_range_last'];
 $displayInterval = $displayTimeRange['display_interval'];
+
+// Get icon for each user type
+$userTypeIcons = [
+    'Super Admin' => 'fas fa-crown',
+    'Admin' => 'fas fa-user-gear',
+    'Faculty' => 'fas fa-chalkboard-user',
+    'Staff' => 'fas fa-clipboard',
+    'Student' => 'fas fa-user-graduate',
+    'User' => 'fas fa-user'
+];
 ?>
 
 <div class="header">
@@ -95,13 +103,13 @@ $displayInterval = $displayTimeRange['display_interval'];
                 </li>
                 <li style="float: right; margin-right: 5px; margin-top: 3px;">
                     <a href="profile.php?pageid=Profile?userId=<?php echo $user_id; ?>''<?php echo $full_name; ?>"
-                    <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color:black;"' : ''; ?>><?php echo $full_name; ?></a>
+                    <?php echo $current_page === 'profile.php' ? 'class="active-header-content" style="color: black; padding: 0; padding-top: 0.5px; padding-bottom: 10px; padding-right: 18px; padding-left: 18px;"' : 'style="padding: 0; padding-top: 0.5px; padding-bottom: 10px; padding-right: 18px; padding-left: 18px;"'; ?>><?php echo $full_name; ?> <i class="<?php echo $userTypeIcons[$user_type]; ?>" style="padding: 7px; border-radius: 50%; margin-top: 7px; background-color: <?php echo $light_theme_color_80_percent; ?>; color: <?php echo $dark_theme_color_40_percent; ?>; margin-left: 5px; border: 3px solid <?php echo $dark_theme_color_40_percent; ?>;"></i></a>
                 </li>
                 <li style="float: right; margin-right: 2px; margin-top: 23px; margin-right: 30px;">
                     <button id="notifications-button" class="notifications-button" <?php echo $current_page === 'notifications.php' ? 'class="active-header-content" style="border-radius: 20px;"' : ''; ?>" onclick="toggleNotificationsDropdown(false)"><i class="fa fa-bell"></i></button>
                     <span id="notificationCount" class="notification-count"><?php echo $notificationCount; ?></span>
                     <span id="triangle" class="triangle"></span>
-                    <div id="notificationsDropdown" class="dropdown-notifications" style="display: none; position: absolute; right: -10px; top: 30px; background-color: white; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; width: 300px; height: 400px; max-height: 400px; overflow-y: auto; padding: 10px;">
+                    <div id="notificationsDropdown" class="dropdown-notifications" style="display: none; position: absolute; right: -10px; top: 28px; background-color: white; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; width: 300px; height: 400px; max-height: 400px; overflow-y: auto; padding: 10px;">
                         <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Notifications <span class="all-notifications-count-2"></span></p>
                         <div id="notificationsContainer" class="notifications-container">
                             <!-- Notifications will be dynamically inserted here -->

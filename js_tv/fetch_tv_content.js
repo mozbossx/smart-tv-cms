@@ -16,11 +16,11 @@ function connectWebSocket() {
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
                        window.location.hostname === '192.168.1.12' ||
-                       window.location.hostname === '192.168.10.80';
+                       window.location.hostname === '192.168.1.5';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.10.80:8081'
+        ? 'ws://192.168.1.5:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -243,7 +243,7 @@ const updateUI = (data, type) => {
             return;
         }
     } else {
-        if (data.status !== 'Approved' || data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) {
+        if (data.status !== 'Approved' && data.is_urgent_post !== 1 || data.isArchived === 1 || data.isTrashed === 1 || !data[`${type}_id`]) {
             return;
         }
     }
@@ -251,7 +251,7 @@ const updateUI = (data, type) => {
     const formattedCreatedDateTime = type !== 'orgchart' ? formatDateTime(data.created_datetime) : '';
     const id = data[`${type}_id`]; 
 
-    // const existingDiv = document.querySelector(`[data-${type}-id="${data[`${type}_id`]}"]`);
+    // Check if content with this ID already exists
     const existingDiv = document.querySelector(`[data-${type}-id="${id}"]`);
     
     let mediaContent = '';
@@ -323,17 +323,17 @@ const updateUI = (data, type) => {
     const getUserTypeIcon = (userType) => {
         switch(userType) {
             case 'Super Admin':
-                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-crown" title="Super Admin" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> S-Admin</span>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 5px; border-radius: 10px; margin-right: 5px;"><i class="fas fa-crown" title="Super Admin" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px; margin-right: 3px;"></i> S-Admin</span>';
             case 'Admin':
-                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-user-gear" title="Admin" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> Admin</span>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 5px; border-radius: 10px; margin-right: 5px;"><i class="fas fa-user-gear" title="Admin" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px; margin-right: 3px;"></i> Admin</span>';
             case 'Faculty':
-                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-chalkboard-user" title="Faculty" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> Faculty</span>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 5px; border-radius: 10px; margin-right: 5px;"><i class="fas fa-chalkboard-user" title="Faculty" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px; margin-right: 3px;"></i> Faculty</span>';
             case 'Staff':
-                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-clipboard" title="Staff" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> Staff</span>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 5px; border-radius: 10px; margin-right: 5px;"><i class="fas fa-clipboard" title="Staff" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px; margin-right: 3px;"></i> Staff</span>';
             case 'Student':
-                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-user-graduate" title="Student" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> Student</span>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 5px; border-radius: 10px; margin-right: 5px;"><i class="fas fa-user-graduate" title="Student" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px; margin-right: 3px;"></i> Student</span>';
             default:
-                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 15px; border-radius: 15px; font-family: "default";"><i class="fas fa-user" title="User" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px;"></i> User</span>';
+                return '<span style="font-size: 0.85rem; background-color: #9393933b; padding: 5px; border-radius: 10px; margin-right: 5px;"><i class="fas fa-user" title="User" style="font-size: 0.85rem; padding-top: 5px; padding-bottom: 5px; margin-right: 3px;"></i> User</span>';
         }
     };
 
@@ -350,7 +350,7 @@ const updateUI = (data, type) => {
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                             <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -373,7 +373,7 @@ const updateUI = (data, type) => {
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                             <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -396,7 +396,7 @@ const updateUI = (data, type) => {
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                             <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -414,7 +414,7 @@ const updateUI = (data, type) => {
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                             <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -438,7 +438,7 @@ const updateUI = (data, type) => {
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                             <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -462,7 +462,7 @@ const updateUI = (data, type) => {
                 </div>
                 <div class="content-details">
                     <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                        <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                             <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                         </div>
                         <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -490,7 +490,7 @@ const updateUI = (data, type) => {
                     </div>
                     <div class="content-details">
                         <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                                 <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                             </div>
                             <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -510,7 +510,7 @@ const updateUI = (data, type) => {
                     </div>
                     <div class="content-details">
                         <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                                 <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                             </div>
                             <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -544,7 +544,7 @@ const updateUI = (data, type) => {
                     </div>
                     <div class="content-details">
                         <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                                 <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                             </div>
                             <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -575,7 +575,7 @@ const updateUI = (data, type) => {
                     </div>
                     <div class="content-details">
                         <div style="display: flex; flex-direction: row; margin: 0; justify-content: space-between; align-items: center;">
-                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            <div style="flex: 1; text-overflow: ellipsis; overflow: hidden; padding-top: 5px; white-space: nowrap;">
                                 <p class="author"><small>${getUserTypeIcon(data.user_type)} ${formattedCreatedDateTime}</small></p>
                             </div>
                             <div style="background: #9393933b; padding: 5px; border-radius: 10px;">
@@ -1018,6 +1018,192 @@ const resetCountdown = (div, newDisplayTime, type) => {
     }
 };
 
+// Track urgent posts status
+let urgentPostsInProgress = {};
+// Add queue for urgent posts
+let urgentPostsQueue = {};
+// Store the original content index to return to after urgent posts
+let originalContentIndices = {};
+
+// Function to handle urgent posts
+const handleUrgentPost = (type, postData) => {
+    // Check if we're already processing an urgent post for this type
+    const alreadyInProgress = urgentPostsInProgress[type];
+    
+    // Ensure content ID is a number
+    const contentId = parseInt(postData[`${type}_id`]);
+    console.log(`Handling urgent post for ${type} with ID ${contentId}`);
+    
+    // Initialize the queue for this type if it doesn't exist
+    if (!urgentPostsQueue[type]) {
+        urgentPostsQueue[type] = [];
+    }
+    
+    // If there's already an urgent post in progress, add this one to the queue and return
+    if (alreadyInProgress) {
+        console.log(`Urgent post for ${type} with ID ${contentId} queued - waiting for current urgent post to finish`);
+        
+        // Check if this post is already in the queue to avoid duplicates
+        const alreadyQueued = urgentPostsQueue[type].some(item => 
+            parseInt(item[`${type}_id`]) === contentId);
+        
+        if (!alreadyQueued) {
+            urgentPostsQueue[type].push(postData);
+        }
+        return;
+    }
+    
+    // Mark that we're now processing an urgent post
+    urgentPostsInProgress[type] = true;
+    
+    // Save current state to resume later - but only if this is the first urgent post
+    // (not if we're coming from another urgent post in the queue)
+    if (originalContentIndices[type] === undefined) {
+        originalContentIndices[type] = currentIndex[type];
+        console.log(`Saving original content index: ${originalContentIndices[type]} for type ${type}`);
+    }
+    
+    const currentItem = contents[`${type}s`][currentIndex[type]];
+    
+    // Clear existing interval
+    if (displayTimeIntervals[type]) {
+        clearInterval(displayTimeIntervals[type]);
+        displayTimeIntervals[type] = null;
+    }
+    
+    // Remove active class from current item and handle video cleanup
+    if (currentItem) {
+        const currentVideo = currentItem.querySelector('video');
+        if (currentVideo) {
+            currentVideo.pause();
+            currentVideo.removeAttribute('src');
+            currentVideo.load();
+            currentVideo.replaceWith(currentVideo.cloneNode(true));
+        }
+        currentItem.classList.remove('active');
+    }
+    
+    // Check if this content already exists in the array or add it at the appropriate position
+    let urgentPostIndex = -1;
+    for (let i = 0; i < contents[`${type}s`].length; i++) {
+        if (parseInt(contents[`${type}s`][i].dataset[`${type}Id`]) === contentId) {
+            urgentPostIndex = i;
+            break;
+        }
+    }
+    
+    if (urgentPostIndex === -1) {
+        // Add the content to the array at the appropriate position based on priority
+        urgentPostIndex = updateUI(postData, type);
+        console.log(`Urgent post added at position ${urgentPostIndex} based on priority`);
+    }
+    
+    // Set current index to the urgent post
+    currentIndex[type] = urgentPostIndex;
+    
+    // Make the urgent post active
+    contents[`${type}s`].forEach(item => item.classList.remove('active'));
+    contents[`${type}s`][urgentPostIndex].classList.add('active');
+    updatePageNumber(type);
+    
+    // Handle display time manually for urgent posts
+    const displayTime = parseInt(postData.display_time, 10);
+    const urgentItem = contents[`${type}s`][urgentPostIndex];
+    const timeLeftElement = urgentItem.querySelector('.time-left');
+    
+    // Make sure the display time is correctly set
+    urgentItem.dataset.displayTime = displayTime;
+    
+    if (timeLeftElement) {
+        let remainingTime = displayTime;
+        timeLeftElement.textContent = `${remainingTime}s`;
+        
+        // Set up a new interval just for this urgent post
+        displayTimeIntervals[type] = setInterval(() => {
+            remainingTime--;
+            timeLeftElement.textContent = `${remainingTime}s`;
+            
+            if (remainingTime <= 0) {
+                clearInterval(displayTimeIntervals[type]);
+                
+                // Handle the transition after urgent post completes
+                handleUrgentPostComplete();
+            }
+        }, 1000);
+    } else {
+        // Fallback if time element isn't found
+        setTimeout(handleUrgentPostComplete, displayTime * 1000);
+    }
+    
+    // Function to handle what happens when urgent post completes
+    function handleUrgentPostComplete() {
+        // Clear urgent flag by sending message to the server
+        if (isConnectedToWebSocket && Ws) {
+            Ws.send(JSON.stringify({
+                action: 'clear_urgent_post',
+                type: type,
+                content_id: contentId
+            }));
+        }
+        
+        console.log(`Urgent post for ${type} ID ${contentId} completed. Queue length: ${urgentPostsQueue[type] ? urgentPostsQueue[type].length : 0}`);
+        
+        // Check if there are more urgent posts in the queue
+        if (urgentPostsQueue[type] && urgentPostsQueue[type].length > 0) {
+            // Get the next urgent post from the queue
+            const nextUrgentPost = urgentPostsQueue[type].shift();
+            console.log(`Processing next urgent post in queue for ${type} with ID ${nextUrgentPost[`${type}_id`]}`);
+            
+            // We need to set the flag to false before processing the next post,
+            // otherwise the next urgent post will be queued instead of displayed
+            urgentPostsInProgress[type] = false;
+            
+            // Use setTimeout to create a small delay between posts
+            // This ensures the current post cleanup is complete before showing the next one
+            setTimeout(() => {
+                // Process the next urgent post immediately
+                handleUrgentPost(type, nextUrgentPost);
+            }, 100);
+        } else {
+            // No more urgent posts in queue, resume normal display
+            urgentPostsInProgress[type] = false;
+            
+            // Get the original content index from our global store
+            const returnToIndex = originalContentIndices[type];
+            console.log(`Attempting to return to original content at index ${returnToIndex} for type ${type}`);
+            
+            // Reset the original content index for next time
+            originalContentIndices[type] = undefined;
+            
+            // If the original content is still valid, return to it
+            if (typeof returnToIndex === 'number' && returnToIndex < contents[`${type}s`].length) {
+                currentIndex[type] = returnToIndex;
+                console.log(`Returning to original content at index ${returnToIndex}`);
+            } else {
+                // Otherwise just use the first item
+                currentIndex[type] = 0;
+                console.log(`Could not return to original index ${returnToIndex}, using index 0 instead`);
+            }
+            
+            // Show the content based on the restored index
+            const contentToShow = contents[`${type}s`][currentIndex[type]];
+            if (contentToShow) {
+                // Clear active class from all items
+                contents[`${type}s`].forEach(item => item.classList.remove('active'));
+                
+                // Activate the post we want to resume with
+                contentToShow.classList.add('active');
+                updatePageNumber(type);
+                
+                // Use a small delay before resetting display time to ensure UI is updated
+                setTimeout(() => {
+                    resetDisplayTime(type);
+                }, 50);
+            }
+        }
+    }
+};
+
 // Function to update page number
 const updatePageNumber = (type) => {
     const { pageNumberContainer } = getContainerElements(type); // Get the page number container dynamically
@@ -1125,11 +1311,11 @@ const showNextContent = (type) => {
                 setTimeout(() => {
                     if (currentChart.chartData) {
                         createOrgChart(currentChart.dataset.orgchartId, currentChart.chartData);
-                    }
-                }, 1000);
+                }
+            }, 1000);
             }
         }
-    } else {
+        } else {
         clearInterval(displayTimeIntervals[currentIndexKey]);
     }
 };
@@ -1189,12 +1375,12 @@ const resetDisplayTime = (type) => {
         let remainingTime = parseInt(originalDisplayTime, 10);
         displayTimeElement.innerHTML = `<i class="fa-solid fa-clock" aria-hidden="true"></i> ${remainingTime}s`;
 
-        if (displayTimeIntervals[type]) {
-            clearInterval(displayTimeIntervals[type]);
-        }
-
-        displayTimeIntervals[type] = setInterval(() => {
-            remainingTime -= 1;
+            if (displayTimeIntervals[type]) {
+                clearInterval(displayTimeIntervals[type]);
+            }
+            
+            displayTimeIntervals[type] = setInterval(() => {
+                remainingTime -= 1;
             displayTimeElement.innerHTML = `<i class="fa-solid fa-clock" aria-hidden="true"></i> ${remainingTime}s`;
             if (remainingTime < 0) {
                 clearInterval(displayTimeIntervals[type]);
@@ -1211,7 +1397,7 @@ const resetDisplayTime = (type) => {
 // Function to set carousel interval
 const setCarouselInterval = (displayTime, type) => {
     if (displayTimeIntervals[type]) {
-        clearInterval(displayTimeIntervals[type]);
+                    clearInterval(displayTimeIntervals[type]);
     }
     let timeLeft = displayTime;
 
@@ -1336,6 +1522,7 @@ const fetchAndUpdateContents = (type) => {
                 const tvName = data.tv_name;
                 const tvDepartment = data.tv_department;
                 if (type === 'orgchart') {
+                    // Orgchart handling stays the same
                     fetch(`database/fetch_orgchart.php?tvId=${tvId}`)
                         .then(response => response.json())
                         .then(data => {
@@ -1852,13 +2039,13 @@ const autoTileContainers = (tvId) => {
         height: parseFloat(container.style.height)
     }));
 
-    if (isConnectedToWebSocket && Ws) {
-        Ws.send(JSON.stringify({
+                    if (isConnectedToWebSocket && Ws) {
+                        Ws.send(JSON.stringify({
             action: 'update_container_positions',
             tv_id: parseInt(tvId, 10),
             positions: positions
-        }));
-    }
+                        }));
+                    }
 };
 
 // a function to specifically send content status without affecting visibility
@@ -1913,7 +2100,7 @@ Ws.addEventListener('message', function (event) {
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
                 location.reload();
             }
-        } else {
+                    } else {
             const removeContent = (type, id) => {
                 const contentDiv = document.querySelector(`[data-${type}-id="${id}"]`);
                 if (contentDiv) {
@@ -1932,17 +2119,26 @@ Ws.addEventListener('message', function (event) {
             } 
         } 
     } else if (data.action === 'restore_content' || data.action === 'restore_content_and_update_expiration') {
-        if (data.type === 'announcement') {
+        const type = data.type;
+        let shouldAutoTile = false;
+        
+        // Check if the container for this type is currently hidden
+        const containerForType = document.querySelector(`[data-type="${type}"]`);
+        if (containerForType && containerForType.style.display === 'none') {
+            shouldAutoTile = true;
+        }
+
+        if (type === 'announcement') {
             fetchAndUpdateContents('announcement');
-        } else if (data.type === 'event') {
+        } else if (type === 'event') {
             fetchAndUpdateContents('event');
-        } else if (data.type === 'news') {
+        } else if (type === 'news') {
             fetchAndUpdateContents('news');
-        } else if (data.type === 'promaterial') {
+        } else if (type === 'promaterial') {
             fetchAndUpdateContents('promaterial');
-        } else if (data.type === 'peo') {
+        } else if (type === 'peo') {
             fetchAndUpdateContents('peo');
-        } else if (data.type === 'so') {
+        } else if (type === 'so') {
             fetchAndUpdateContents('so');
         } else {
             // For new features 
@@ -1951,6 +2147,35 @@ Ws.addEventListener('message', function (event) {
             if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
                 location.reload();
             }
+        }
+        
+        // Only auto-tile if the container was previously hidden
+        if (shouldAutoTile) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            
+            // First make the container visible by sending a show_hide_content message
+            if (containerForType && isConnectedToWebSocket && Ws) {
+                const containerId = containerForType.dataset.containerId;
+                const containerVisibilityMap = {};
+                containerVisibilityMap[containerId] = 1; // Set visibility to true (1)
+                
+                const message = {
+                    action: 'show_hide_content',
+                    tv_id: parseInt(tvId, 10),
+                    containers: containerVisibilityMap
+                };
+                
+                Ws.send(JSON.stringify(message));
+                
+                // Make it visible immediately in the UI as well
+                containerForType.style.display = 'block';
+            }
+            
+            // Then auto-tile after a short delay
+            setTimeout(() => {
+                autoTileContainers(tvId);
+            }, 1000);
         }
     } else if (data.action === 'update_content') {
         if (data.type === 'announcement') {
@@ -1978,44 +2203,215 @@ Ws.addEventListener('message', function (event) {
             fetchAndUpdateContents(type);
         }
     } else if (data.action === 'post_content') {
-        if (data.type === 'announcement') {
-            fetchAndUpdateContents('announcement');
-        } else if (data.type === 'event') {
-            fetchAndUpdateContents('event');
-        } else if (data.type === 'news') {
-            fetchAndUpdateContents('news');
-        } else if (data.type === 'promaterial') {
-            fetchAndUpdateContents('promaterial');
-        } else if (data.type === 'peo') {
-            fetchAndUpdateContents('peo');
-        } else if (data.type === 'so') {
-            fetchAndUpdateContents('so');
-        } else if (data.type === 'orgchart') {
-            const urlParams = new URLSearchParams(window.location.search);
-            const tvId = urlParams.get('tvId');
-
-            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
-                location.reload();
+        const type = data.type;
+        let shouldAutoTile = false;
+        
+        // Check if the container for this type is currently hidden
+        const containerForType = document.querySelector(`[data-type="${type}"]`);
+        // Check if the data.status is Approved
+        if (containerForType && containerForType.style.display === 'none' && data.status === 'Approved') {
+            shouldAutoTile = true;
+        }
+        // Check if this is an urgent post and don't immediately display posts from Faculty and Staff since they need to be approved
+        if (data.is_urgent_post === 1 && data.user_type !== 'Faculty' && data.user_type !== 'Staff') {
+            // Get the content ID and ensure it's an integer
+            const contentId = parseInt(data[`${type}_id`]);
+            console.log(`Received urgent post for ${type} with ID ${contentId}`);
+            
+            // First try to find the content in the existing array if it's already been loaded
+            let foundContent = null;
+            if (contents[`${type}s`] && contents[`${type}s`].length > 0) {
+                for (let i = 0; i < contents[`${type}s`].length; i++) {
+                    const item = contents[`${type}s`][i];
+                    if (parseInt(item.dataset[`${type}Id`]) === contentId) {
+                        foundContent = item._data; // Access stored data if available
+                        break;
+                    }
+                }
             }
-        } else if (data.type === 'facility') {
-            const urlParams = new URLSearchParams(window.location.search);
-            const tvId = urlParams.get('tvId');
-
-            if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
-                location.reload();
+            
+            if (foundContent) {
+                // Use the content already in memory
+                handleUrgentPost(type, foundContent);
+            } else {
+                // Fetch the content if it's not already loaded
+                // Use the full fetch_all endpoint to get all data, because the individual fetch may not be implemented
+                fetch(`database/fetch_${type}.php`)
+                    .then(response => response.json())
+                    .then(allContentData => {
+                        // Find the urgent post in all content
+                        const contentData = Array.isArray(allContentData) ? 
+                            allContentData.find(item => parseInt(item[`${type}_id`]) === contentId) : 
+                            null;
+                            
+                        if (contentData) {
+                            // Update or add the urgent post to the content array
+                            updateUI(contentData, type);
+                            
+                            // Immediately handle the urgent post display
+                            handleUrgentPost(type, contentData);
+                        } else {
+                            console.error(`Could not find ${type} with ID ${contentId} in data`);
+                            fetchAndUpdateContents(type);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching urgent ${type}:`, error);
+                        // Fall back to regular fetching if we can't get the urgent post
+                        fetchAndUpdateContents(type);
+                    });
             }
         } else {
-            // For new features 
-            const type = data.type;
-            fetchAndUpdateContents(type);
+            // Handle regular post content as before
+            if (type === 'announcement') {
+                fetchAndUpdateContents('announcement');
+            } else if (type === 'event') {
+                fetchAndUpdateContents('event');
+            } else if (type === 'news') {
+                fetchAndUpdateContents('news');
+            } else if (type === 'promaterial') {
+                fetchAndUpdateContents('promaterial');
+            } else if (type === 'peo') {
+                fetchAndUpdateContents('peo');
+            } else if (type === 'so') {
+                fetchAndUpdateContents('so');
+            } else if (type === 'orgchart') {
+                const urlParams = new URLSearchParams(window.location.search);
+                const tvId = urlParams.get('tvId');
+
+                if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
+                    location.reload();
+                }
+            } else if (type === 'facility') {
+                const urlParams = new URLSearchParams(window.location.search);
+                const tvId = urlParams.get('tvId');
+
+                if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
+                    location.reload();
+                }
+            } else {
+                // For new features 
+                fetchAndUpdateContents(type);
+            }
+        }
+        
+        // Only auto-tile if the container was previously hidden
+        if (shouldAutoTile) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            
+            // First make the container visible by sending a show_hide_content message
+            if (containerForType && isConnectedToWebSocket && Ws) {
+                const containerId = containerForType.dataset.containerId;
+                const containerVisibilityMap = {};
+                containerVisibilityMap[containerId] = 1; // Set visibility to true (1)
+                
+                const message = {
+                    action: 'show_hide_content',
+                    tv_id: parseInt(tvId, 10),
+                    containers: containerVisibilityMap
+                };
+                
+                Ws.send(JSON.stringify(message));
+                
+                // Make it visible immediately in the UI as well
+                containerForType.style.display = 'block';
+            }
+            
+            // Then auto-tile after a short delay
+            setTimeout(() => {
+                autoTileContainers(tvId);
+            }, 1000);
         }
     } else if (data.action === 'approve_post') {
         const type = data.content_type || data.type;
+        let shouldAutoTile = false;
         
-        // Fetch and update the content immediately
-        setTimeout(() => {
+        // First, check if the container for this type is currently hidden
+        const containerForType = document.querySelector(`[data-type="${type}"]`);
+        if (containerForType && containerForType.style.display === 'none') {
+            shouldAutoTile = true;
+        }
+        
+        // When approving a post, we need to fetch the content to check if it's an urgent post
+        // because the server response may not have the correct urgent flag
+        const contentId = parseInt(data.content_id);
+        console.log(`Post approved for ${type} with ID ${contentId}`);
+        
+        if (contentId) {
+            // Fetch the content to check if it's an urgent post
+            fetch(`database/fetch_${type}.php`)
+                .then(response => response.json())
+                .then(allContentData => {
+                    // Find the content by ID
+                    let contentData = null;
+                    if (Array.isArray(allContentData)) {
+                        contentData = allContentData.find(item => parseInt(item[`${type}_id`]) === contentId);
+                    }
+                    
+                    if (contentData && contentData.is_urgent_post === 1) {
+                        console.log(`Approved content is an urgent post: ${type} with ID ${contentId}`);
+                        
+                        // First try to find the content in the existing array
+                        let foundContent = false;
+                        if (contents[`${type}s`] && contents[`${type}s`].length > 0) {
+                            for (let i = 0; i < contents[`${type}s`].length; i++) {
+                                const item = contents[`${type}s`][i];
+                                if (parseInt(item.dataset[`${type}Id`]) === contentId) {
+                                    foundContent = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Update or add the urgent post
+                        updateUI(contentData, type);
+                        
+                        // Handle it as an urgent post
+                        handleUrgentPost(type, contentData);
+                    } else {
+                        // Regular approved post, just fetch and update
+                        fetchAndUpdateContents(type);
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error fetching approved ${type}:`, error);
+                    // Fall back to regular fetching
+                    fetchAndUpdateContents(type);
+                });
+        } else {
+            // No content ID, just do a regular update
             fetchAndUpdateContents(type);
-        }, 500);
+        }
+        
+        // Only auto-tile if the container was previously hidden
+        if (shouldAutoTile) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tvId = urlParams.get('tvId');
+            
+            // First make the container visible by sending a show_hide_content message
+            if (containerForType && isConnectedToWebSocket && Ws) {
+                const containerId = containerForType.dataset.containerId;
+                const containerVisibilityMap = {};
+                containerVisibilityMap[containerId] = 1; // Set visibility to true (1)
+                
+                const message = {
+                    action: 'show_hide_content',
+                    tv_id: parseInt(tvId, 10),
+                    containers: containerVisibilityMap
+                };
+                
+                Ws.send(JSON.stringify(message));
+                
+                // Make it visible immediately in the UI as well
+                containerForType.style.display = 'block';
+            }
+            
+            // Then auto-tile after a short delay
+            setTimeout(() => {
+                autoTileContainers(tvId);
+            }, 1000);
+        }
     } else if (data.action === 'edit_smart_tv' || data.action === 'delete_user' || data.action === 'user_deleted' || data.action === 'edit_user' || data.action === 'user_edited') {
         location.reload();
         // fetchSmartTVDetails();
@@ -2232,6 +2628,10 @@ Ws.addEventListener('message', function (event) {
         if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
             location.reload();
         }
+    } else if (data.action === 'clear_urgent_post') {
+        // When server confirms the urgent post is cleared, no additional action needed
+        // as our client-side timeout will handle the transition back to normal content
+        console.log(`Urgent post cleared for ${data.type}`);
     }
 });
 
@@ -2290,8 +2690,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = container.id.replace('CarouselContainer', '');
         // Initialize arrays for new types if they don't exist
         if (!currentIndex[type]) {
-            currentIndex[type] = 0;
-        }
+                        currentIndex[type] = 0;
+                    }
         if (!contents[`${type}s`]) {
             contents[`${type}s`] = [];
         }

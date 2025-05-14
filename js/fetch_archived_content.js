@@ -597,12 +597,13 @@ const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorN
     const evaluatorMessageElement = document.getElementById('evaluator_message_restore');
     let evaluatorMessage = null;
 
-    if (evaluatorMessageElement) {
+    if (evaluatorMessageElement && user_id != authorId) {
         evaluatorMessage = evaluatorMessageElement.value;
         if (!evaluatorMessage) {
             alert('Evaluator message is required.');
             return;
         }
+        sendRestoreContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId);
     }
 
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
@@ -653,6 +654,28 @@ const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorN
     Ws.send(JSON.stringify(data));
 };
 
+
+// Function to send restore content email (send to the author and to all the Super Admins and Admins within the same department)
+function sendRestoreContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId) {
+    fetch('send_restore_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&author_name=${encodeURIComponent(authorName)}&author_user_type=${encodeURIComponent(authorUserType)}&author_department=${encodeURIComponent(authorDepartment)}&logged_in_full_name=${encodeURIComponent(loggedInFullName)}&evaluator_message=${encodeURIComponent(evaluatorMessage)}&tv_id=${encodeURIComponent(tvId)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Restore content email sent successfully');
+        } else {
+            console.error('Failed to send restore content email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending restore content email:', error);
+    });
+}
+
 // Function to trash an item
 const trashItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
     let evaluatorMessage;
@@ -663,12 +686,13 @@ const trashItem = (contentId, contentType, authorId, loggedInFullName, authorNam
     } else {
         // Manual trash by user
         const evaluatorMessageTrash = document.getElementById('evaluator_message_trash');
-        if (evaluatorMessageTrash) {
+        if (evaluatorMessageTrash && user_id != authorId) {
             evaluatorMessage = evaluatorMessageTrash.value;
             if (!evaluatorMessage) {
                 alert('Evaluator message is required.');
                 return;
             }
+            sendTrashContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId);
         }
     }
 
@@ -691,6 +715,27 @@ const trashItem = (contentId, contentType, authorId, loggedInFullName, authorNam
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
+// Function to send trash content email
+function sendTrashContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId) {
+    fetch('send_trash_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&author_name=${encodeURIComponent(authorName)}&author_user_type=${encodeURIComponent(authorUserType)}&author_department=${encodeURIComponent(authorDepartment)}&logged_in_full_name=${encodeURIComponent(loggedInFullName)}&evaluator_message=${encodeURIComponent(evaluatorMessage)}&tv_id=${encodeURIComponent(tvId)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Trash content email sent successfully');
+        } else {
+            console.error('Failed to send trash content email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending trash content email:', error);
+    });
+}
+
 // const startExpirationChecker = () => {
 //     // Check immediately when the page loads
 //     checkAndTrashExpiredItems();
@@ -704,12 +749,13 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
     const evaluatorMessageDeleteForever = document.getElementById('evaluator_message_delete');
     let evaluatorMessage = null;
 
-    if (evaluatorMessageDeleteForever) {
+    if (evaluatorMessageDeleteForever && user_id != authorId) {
         evaluatorMessage = evaluatorMessageDeleteForever.value;
         if (!evaluatorMessage) {
             alert('Evaluator message is required.');
             return;
         }
+        sendDeleteContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId);
     }
 
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
@@ -732,6 +778,27 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
     confirmDeleteModal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
+
+// Function to send delete content email (send to the author and to all the Super Admins and Admins within the same department)
+function sendDeleteContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId) {
+    fetch('send_delete_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&author_name=${encodeURIComponent(authorName)}&author_user_type=${encodeURIComponent(authorUserType)}&author_department=${encodeURIComponent(authorDepartment)}&logged_in_full_name=${encodeURIComponent(loggedInFullName)}&evaluator_message=${encodeURIComponent(evaluatorMessage)}&tv_id=${encodeURIComponent(tvId)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Delete content email sent successfully');
+        } else {
+            console.error('Failed to send delete content email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending delete content email:', error);
+    });
+}
 
 // Function to display a "No items to be displayed" message
 const displayNoMessage = (type) => {

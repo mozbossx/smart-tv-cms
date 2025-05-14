@@ -36,8 +36,8 @@ if (isset($_POST["submit"])) {
         $_SESSION['reset_token'] = $token;
         $_SESSION['reset_email'] = $email;
 
-        if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.10.80') {
-            $passwordResetLink = "http://192.168.10.80:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
+        if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '192.168.1.5') {
+            $passwordResetLink = "http://192.168.1.5:8080/CMS%20Final/enter_new_forgot_password.php?token=$token";
         } else {
             $passwordResetLink = "https://usccms.online/enter_new_forgot_password.php?token=$token";
         }
@@ -80,6 +80,41 @@ if (isset($_POST["submit"])) {
     $email = "";
 }
 ?>
+<script>
+function detectDevice() {
+    // List of common Smart TV user agent keywords
+    const smartTVKeywords = [
+        'smart-tv',
+        'smarttv',
+        'opera tv',
+        'samsung',
+        'tizen',
+        'webos',
+        'vidaa',
+        'hbbtv',
+        'philips',
+        'lg netcast',
+        'viera',
+        'netcast',
+        'nettv',
+        'appletv',
+        'googletv',
+        'android tv'
+    ];
+
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isSmartTV = smartTVKeywords.some(keyword => userAgent.includes(keyword));
+
+    if (isSmartTV) {
+        // Redirect to unauthorized access page since Smart TVs are not allowed to access the login page
+        window.location.href = 'unauthorized_access.php';
+    }
+}
+
+// Run device detection on page load
+window.onload = detectDevice;
+</script>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -38,6 +38,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
         .form-field {
@@ -123,7 +124,7 @@ $featuresNewFeatures = $stmtNewFeatures->fetchAll(PDO::FETCH_ASSOC);
                     <div id="rejectedContentsList" class="content-container" style="height: calc(100vh - 160px); overflow: hidden; padding: 0">
                         <div style="background: <?php echo $theme_color; ?>; padding: 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
                             <h1 class="content-title" style="text-align: left; font-size: 20px; padding: 5px">
-                                <i class="fa fa-check" style="margin-right: 6px" aria-hidden="true"></i>Rejected Contents
+                                <i class="fa fa-times" style="margin-right: 6px" aria-hidden="true"></i>Rejected Contents
                             </h1>
                             <form id="searchByContentTypeForm">
                                 <div>

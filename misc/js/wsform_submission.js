@@ -108,6 +108,12 @@ function submitFormViaWebSocket() {
         tv_ids: formData.getAll('tv_id[]')
     };
 
+    // Check if urgent post checkbox is checked
+    const isUrgentPost = document.getElementById('isUrgentPost');
+    if (isUrgentPost && isUrgentPost.checked) {
+        data.is_urgent_post = 1;
+    }
+
     // If in edit mode, add the content ID
     if (isEditMode) {
         // Add hidden input for content ID if it doesn't exist

@@ -274,12 +274,13 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
     const evaluatorMessageDeleteForever = document.getElementById('evaluator_message_delete');
     let evaluatorMessage = null;
 
-    if (evaluatorMessageDeleteForever) {
+    if (evaluatorMessageDeleteForever && user_id != authorId) {
         evaluatorMessage = evaluatorMessageDeleteForever.value;
         if (!evaluatorMessage) {
             alert('Evaluator message is required.');
             return;
         }
+        sendDeleteContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId);
     }
 
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
@@ -300,6 +301,27 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
     confirmDeleteModal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
+
+// Function to send delete content email (send to the author and to all the Super Admins and Admins within the same department)
+function sendDeleteContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId) {
+    fetch('send_delete_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&author_name=${encodeURIComponent(authorName)}&author_user_type=${encodeURIComponent(authorUserType)}&author_department=${encodeURIComponent(authorDepartment)}&logged_in_full_name=${encodeURIComponent(loggedInFullName)}&evaluator_message=${encodeURIComponent(evaluatorMessage)}&tv_id=${encodeURIComponent(tvId)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Delete content email sent successfully');
+        } else {
+            console.error('Failed to send delete content email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending delete content email:', error);
+    });
+}
 
 // Helper function to format content type for display
 const formatContentType = (type) => {

@@ -24,6 +24,7 @@ if (isset($_SESSION['mail'])) {
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Email Verification</title>
     <style>
@@ -324,11 +325,11 @@ if (isset($_SESSION['mail'])) {
             // Determine if we're in localhost or production
             const isLocalhost = window.location.hostname === 'localhost' || 
                             window.location.hostname === '127.0.0.1' ||
-                            window.location.hostname === '192.168.10.80';
+                            window.location.hostname === '192.168.1.5';
             
             // Choose WebSocket URL based on environment
             const wsUrl = isLocalhost 
-                ? 'ws://192.168.10.80:8081?email=<?php echo urlencode($email); ?>'
+                ? 'ws://192.168.1.5:8081?email=<?php echo urlencode($email); ?>'
                 : 'wss://usccms.online/ws?email=<?php echo urlencode($email); ?>';
 
             const newWs = new WebSocket(wsUrl);

@@ -612,12 +612,13 @@ const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorN
     const evaluatorMessageElement = document.getElementById('evaluator_message_restore');
     let evaluatorMessage = null;
 
-    if (evaluatorMessageElement) {
+    if (evaluatorMessageElement && user_id != authorId) {
         evaluatorMessage = evaluatorMessageElement.value;
         if (!evaluatorMessage) {
             alert('Evaluator message is required.');
             return;
         }
+        sendRestoreContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId);
     }
 
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
@@ -668,43 +669,47 @@ const restoreItem = (contentId, contentType, authorId, loggedInFullName, authorN
     Ws.send(JSON.stringify(data));
 };
 
-// Function to trash an item
-const trashItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
-    let evaluatorMessage;
-
-    if (loggedInFullName === 'System') {
-        // Automatic system-generated message
-        evaluatorMessage = `Content automatically moved to Trash after ${currentTrashDays} days in Trash`;
-    } else {
-        // Manual trash by user
-        const evaluatorMessageTrash = document.getElementById('evaluator_message_trash');
-        if (evaluatorMessageTrash) {
-            evaluatorMessage = evaluatorMessageTrash.value;
-            if (!evaluatorMessage) {
-                alert('Evaluator message is required.');
-                return;
-            }
+// Function to send restore content email (send to the author and to all the Super Admins and Admins within the same department)
+function sendRestoreContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId) {
+    fetch('send_restore_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&author_name=${encodeURIComponent(authorName)}&author_user_type=${encodeURIComponent(authorUserType)}&author_department=${encodeURIComponent(authorDepartment)}&logged_in_full_name=${encodeURIComponent(loggedInFullName)}&evaluator_message=${encodeURIComponent(evaluatorMessage)}&tv_id=${encodeURIComponent(tvId)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Restore content email sent successfully');
+        } else {
+            console.error('Failed to send restore content email:', data.message);
         }
-    }
+    })
+    .catch(error => {
+        console.error('Error sending restore content email:', error);
+    });
+}
 
-    const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
-    const confirmTrashModal = document.getElementById(`confirmTrash${capitalizedType}Modal`);
-    const data = {
-        action: 'trash_content',
-        type: contentType,
-        [`${contentType}_id`]: contentId, // Dynamically set the ID based on the type
-        user_id: user_id,
-        author_id: authorId,
-        author_name: authorName,
-        author_user_type: authorUserType,
-        author_department: authorDepartment,
-        evaluator_name: loggedInFullName,
-        evaluator_message: evaluatorMessage,
-        tv_id: tvId
-    };
-    confirmTrashModal.style.display = 'none';
-    Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
-};
+// Function to send trash content email
+function sendTrashContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId) {
+    fetch('send_trash_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&author_name=${encodeURIComponent(authorName)}&author_user_type=${encodeURIComponent(authorUserType)}&author_department=${encodeURIComponent(authorDepartment)}&logged_in_full_name=${encodeURIComponent(loggedInFullName)}&evaluator_message=${encodeURIComponent(evaluatorMessage)}&tv_id=${encodeURIComponent(tvId)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Trash content email sent successfully');
+        } else {
+            console.error('Failed to send trash content email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending trash content email:', error);
+    });
+}
 
 // const startExpirationChecker = () => {
 //     // Check immediately when the page loads
@@ -724,12 +729,13 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
     } else {
         // Manual trash by user
         const evaluatorMessageDeleteForever = document.getElementById('evaluator_message_delete');
-        if (evaluatorMessageDeleteForever) {
+        if (evaluatorMessageDeleteForever && user_id != authorId) {
             evaluatorMessage = evaluatorMessageDeleteForever.value;
             if (!evaluatorMessage) {
                 alert('Evaluator message is required.');
                 return;
             }
+            sendDeleteContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId);
         }
     }
 
@@ -754,17 +760,39 @@ const deleteItem = (contentId, contentType, authorId, loggedInFullName, authorNa
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
 
+// Function to send delete content email (send to the author and to all the Super Admins and Admins within the same department)
+function sendDeleteContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId) {
+    fetch('send_delete_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&author_name=${encodeURIComponent(authorName)}&author_user_type=${encodeURIComponent(authorUserType)}&author_department=${encodeURIComponent(authorDepartment)}&logged_in_full_name=${encodeURIComponent(loggedInFullName)}&evaluator_message=${encodeURIComponent(evaluatorMessage)}&tv_id=${encodeURIComponent(tvId)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Delete content email sent successfully');
+        } else {
+            console.error('Failed to send delete content email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending delete content email:', error);
+    });
+}
+
 // Function to archive an item
 const archiveItem = (contentId, contentType, authorId, loggedInFullName, authorName, authorUserType, authorDepartment, tvId) => {
     const evaluatorMessageArchive = document.getElementById('evaluator_message_archive');
     let evaluatorMessage = null;
 
-    if (evaluatorMessageArchive) {
+    if (evaluatorMessageArchive && user_id != authorId) {
         evaluatorMessage = evaluatorMessageArchive.value;
         if (!evaluatorMessage) {
             alert('Evaluator message is required.');
             return;
         }
+        sendArchiveContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId);
     }
 
     const capitalizedType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
@@ -785,6 +813,27 @@ const archiveItem = (contentId, contentType, authorId, loggedInFullName, authorN
     modal.style.display = 'none';
     Ws.send(JSON.stringify(data)); // Send the data to the WebSocket server
 };
+
+// function to send archive content email
+function sendArchiveContentEmail(contentId, contentType, authorName, authorUserType, authorDepartment, loggedInFullName, evaluatorMessage, tvId) {
+    fetch('send_archive_content_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `content_id=${encodeURIComponent(contentId)}&content_type=${encodeURIComponent(contentType)}&author_name=${encodeURIComponent(authorName)}&author_user_type=${encodeURIComponent(authorUserType)}&author_department=${encodeURIComponent(authorDepartment)}&logged_in_full_name=${encodeURIComponent(loggedInFullName)}&evaluator_message=${encodeURIComponent(evaluatorMessage)}&tv_id=${encodeURIComponent(tvId)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Archive content email sent successfully');
+        } else {
+            console.error('Failed to send archive content email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending archive content email:', error);
+    });
+}
 
 // Function to display a "No items to be displayed" message
 const displayNoMessage = (type) => {

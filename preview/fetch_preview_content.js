@@ -199,6 +199,22 @@ function updatePreviewContent(previewData) {
         console.error(`Container for type '${type}' not found`);
         return;
     }
+    
+    // Show the content container for this type, even if it was hidden
+    const containerParent = container.closest('.content-container');
+    if (containerParent) {
+        // Show this container regardless of its visibility status
+        containerParent.style.display = 'block';
+        autoTileContainers();
+        
+        // Hide other containers that have visible=0
+        const allContainers = document.querySelectorAll('.content-container');
+        allContainers.forEach(otherContainer => {
+            if (otherContainer !== containerParent && otherContainer.getAttribute('data-visible') === '0') {
+                otherContainer.style.display = 'none';
+            }
+        });
+    }
         
     // Create a mock data object
     const mockData = {
@@ -1404,6 +1420,256 @@ function createContainerElement(container) {
     return containerDiv;
 }
 
+// Function to auto-tile containers
+const autoTileContainers = () => {
+    const mainContainer = document.querySelector('.main-container');
+    const containers = document.querySelectorAll('.content-container');
+    
+    if (!mainContainer || containers.length === 0) return;
+    
+    const GAP = 3.5; // Gap between containers and from edges
+    const mainRect = mainContainer.getBoundingClientRect();
+    const containerArray = Array.from(containers).filter(container => 
+        container.style.display !== 'none'
+    );
+    
+    const numContainers = containerArray.length;
+    if (numContainers === 0) return;
+
+    // Calculate available space considering gaps
+    const availableWidth = mainRect.width - (GAP * 2); // Account for left and right edge gaps
+    const availableHeight = mainRect.height - (GAP * 2); // Account for top and bottom edge gaps
+
+    // Handle different layout cases based on number of visible containers
+    if (numContainers === 1) {
+        // Single container - fill entire space with gaps
+        const container = containerArray[0];
+        container.style.width = `${availableWidth}px`;
+        container.style.height = `${availableHeight}px`;
+        container.style.transform = `translate(${GAP}px, ${GAP}px)`;
+        container.setAttribute('data-x', GAP);
+        container.setAttribute('data-y', GAP);
+    } 
+    else if (numContainers === 2) {
+        // Two containers - side by side horizontally
+        const containerWidth = (availableWidth - GAP) / 2; // Account for gap between containers
+        const containerHeight = availableHeight;
+        
+        containerArray.forEach((container, index) => {
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            const x = GAP + (index * (containerWidth + GAP));
+            container.style.transform = `translate(${x}px, ${GAP}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', GAP);
+        });
+    }
+    else if (numContainers === 3) {
+        // Layout: 2 containers on top row, 1 container on bottom row (full width)
+        const topContainerWidth = (availableWidth - GAP) / 2; // Width for top row containers
+        const topContainerHeight = availableHeight / 2; // Half height for top row
+        const bottomContainerWidth = availableWidth; // Full width for bottom container
+        const bottomContainerHeight = availableHeight / 2 - GAP; // Half height for bottom container
+        
+        // Place the first two containers side by side on top
+        for (let i = 0; i < 2; i++) {
+            const container = containerArray[i];
+            container.style.width = `${topContainerWidth}px`;
+            container.style.height = `${topContainerHeight}px`;
+            const x = GAP + (i * (topContainerWidth + GAP));
+            container.style.transform = `translate(${x}px, ${GAP}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', GAP);
+        }
+        
+        // Place the third container at the bottom, full width
+        const bottomContainer = containerArray[2];
+        bottomContainer.style.width = `${bottomContainerWidth}px`;
+        bottomContainer.style.height = `${bottomContainerHeight}px`;
+        bottomContainer.style.transform = `translate(${GAP}px, ${GAP + topContainerHeight + GAP}px)`;
+        bottomContainer.setAttribute('data-x', GAP);
+        bottomContainer.setAttribute('data-y', GAP + topContainerHeight + GAP);
+    }
+    else if (numContainers === 4) {
+        // Layout: 2x2 grid
+        const containerWidth = (availableWidth - GAP) / 2; // Width accounting for gap
+        const containerHeight = (availableHeight - GAP) / 2; // Height accounting for gap
+        
+        containerArray.forEach((container, index) => {
+            const row = Math.floor(index / 2);
+            const col = index % 2;
+            
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            
+            const x = GAP + (col * (containerWidth + GAP));
+            const y = GAP + (row * (containerHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        });
+    }
+    else if (numContainers === 5) {
+        // Layout: 3 containers on top row, 2 containers on bottom row
+        const topContainerWidth = (availableWidth - (GAP * 2)) / 3; // Width for top row (3 containers)
+        const bottomContainerWidth = (availableWidth - GAP) / 2; // Width for bottom row (2 containers)
+        const containerHeight = (availableHeight - GAP) / 2; // Height for all containers
+        
+        // Top row - 3 containers
+        for (let i = 0; i < 3; i++) {
+            const container = containerArray[i];
+            container.style.width = `${topContainerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            const x = GAP + (i * (topContainerWidth + GAP));
+            container.style.transform = `translate(${x}px, ${GAP}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', GAP);
+        }
+        
+        // Bottom row - 2 containers
+        for (let i = 0; i < 2; i++) {
+            const container = containerArray[i + 3];
+            container.style.width = `${bottomContainerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            const x = GAP + (i * (bottomContainerWidth + GAP));
+            const y = GAP + containerHeight + GAP;
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        }
+    }
+    else if (numContainers === 6) {
+        // Layout: 3x2 grid
+        const containerWidth = (availableWidth - (GAP * 2)) / 3; // Width for all containers
+        const containerHeight = (availableHeight - GAP) / 2; // Height for all containers
+        
+        containerArray.forEach((container, index) => {
+            const row = Math.floor(index / 3);
+            const col = index % 3;
+            
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            
+            const x = GAP + (col * (containerWidth + GAP));
+            const y = GAP + (row * (containerHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        });
+    }
+    else if (numContainers === 7) {
+        // Layout: 3 containers on top row, 3 containers on middle row, 1 full-width container on bottom row
+        const topContainerWidth = (availableWidth - (GAP * 2)) / 3; // Width for top and middle rows
+        const rowHeight = (availableHeight - (GAP * 2)) / 3; // Height for each row
+        
+        // Top and middle rows - 3 containers each
+        for (let i = 0; i < 6; i++) {
+            const container = containerArray[i];
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            
+            container.style.width = `${topContainerWidth}px`;
+            container.style.height = `${rowHeight}px`;
+            
+            const x = GAP + (col * (topContainerWidth + GAP));
+            const y = GAP + (row * (rowHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        }
+        
+        // Bottom row - 1 full-width container
+        const bottomContainer = containerArray[6];
+        bottomContainer.style.width = `${availableWidth}px`;
+        bottomContainer.style.height = `${rowHeight}px`;
+        const y = GAP + (2 * (rowHeight + GAP));
+        bottomContainer.style.transform = `translate(${GAP}px, ${y}px)`;
+        bottomContainer.setAttribute('data-x', GAP);
+        bottomContainer.setAttribute('data-y', y);
+    }
+    else if (numContainers === 8) {
+        // Layout: 3 containers on top row, 3 containers on middle row, 2 containers on bottom row
+        const topContainerWidth = (availableWidth - (GAP * 2)) / 3; // Width for top and middle rows
+        const bottomContainerWidth = (availableWidth - GAP) / 2; // Width for bottom row
+        const rowHeight = (availableHeight - (GAP * 2)) / 3; // Height for each row
+        
+        // Top and middle rows - 3 containers each
+        for (let i = 0; i < 6; i++) {
+            const container = containerArray[i];
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            
+            container.style.width = `${topContainerWidth}px`;
+            container.style.height = `${rowHeight}px`;
+            
+            const x = GAP + (col * (topContainerWidth + GAP));
+            const y = GAP + (row * (rowHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        }
+        
+        // Bottom row - 2 containers
+        for (let i = 0; i < 2; i++) {
+            const container = containerArray[i + 6];
+            container.style.width = `${bottomContainerWidth}px`;
+            container.style.height = `${rowHeight}px`;
+            const x = GAP + (i * (bottomContainerWidth + GAP));
+            const y = GAP + (2 * (rowHeight + GAP));
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        }
+    }
+    else if (numContainers === 9) {
+        // Layout: 3x3 grid
+        const containerWidth = (availableWidth - (GAP * 2)) / 3; // Width for all containers
+        const containerHeight = (availableHeight - (GAP * 2)) / 3; // Height for all containers
+        
+        containerArray.forEach((container, index) => {
+            const row = Math.floor(index / 3);
+            const col = index % 3;
+            
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            
+            const x = GAP + (col * (containerWidth + GAP));
+            const y = GAP + (row * (containerHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        });
+    }
+    else {
+        // For more than 9 containers, use a standard grid layout
+        const numColumns = 3; // Maximum 3 columns
+        const numRows = Math.ceil(numContainers / numColumns);
+        
+        const containerWidth = (availableWidth - (GAP * (numColumns - 1))) / numColumns;
+        const containerHeight = (availableHeight - (GAP * (numRows - 1))) / numRows;
+        
+        containerArray.forEach((container, index) => {
+            const row = Math.floor(index / numColumns);
+            const col = index % numColumns;
+            
+            container.style.width = `${containerWidth}px`;
+            container.style.height = `${containerHeight}px`;
+            
+            const x = GAP + (col * (containerWidth + GAP));
+            const y = GAP + (row * (containerHeight + GAP));
+            
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            container.setAttribute('data-x', x);
+            container.setAttribute('data-y', y);
+        });
+    }
+};
+
 Ws.addEventListener('message', function (event) {
     const data = JSON.parse(event.data);
 
@@ -1481,6 +1747,22 @@ Ws.addEventListener('message', function (event) {
         const urlParams = new URLSearchParams(window.location.search);
         const tvId = urlParams.get('tvId');
         if (parseInt(tvId, 10) === parseInt(data.tv_id, 10)) {
+            // Get the current visible preview container type before reloading
+            let currentPreviewType = null;
+            document.querySelectorAll('.content-container').forEach(container => {
+                const carouselContainer = container.querySelector('.carousel-container');
+                if (carouselContainer && carouselContainer.querySelector('.preview-item')) {
+                    // Extract the type from the carousel container ID (e.g., "announcementCarouselContainer")
+                    const containerId = carouselContainer.id;
+                    currentPreviewType = containerId.replace('CarouselContainer', '');
+                }
+            });
+            
+            if (currentPreviewType) {
+                // Store the current preview type in sessionStorage
+                sessionStorage.setItem('currentPreviewType', currentPreviewType);
+            }
+            
             location.reload();
         }
         // TODO: Fix this
@@ -1548,17 +1830,6 @@ Ws.addEventListener('message', function (event) {
                     } else {
                         console.error(`Carousel container not found for type: ${container.type}`);
                     }
-                    
-                    // Update the page number container styles
-                    const { pageNumberContainer, containerName } = getContainerElements(container.type);
-                    if (pageNumberContainer) {
-                        pageNumberContainer.style.color = container.parent_font_color; // Change the color
-                        pageNumberContainer.style.fontFamily = container.parent_font_family; // Change the font family
-                        pageNumberContainer.style.fontStyle = container.parent_font_style; // Change the font style
-                        containerName.style.textAlign = container.container_name_text_align;
-                    } else {
-                        console.error(`Page number container not found for type: ${container.type}`);
-                    }
                 } else {
                     // console.error(`Container not found for ID: ${container.container_id}`);
                 }
@@ -1598,6 +1869,28 @@ Ws.addEventListener('message', function (event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchSmartTVDetails();
+    
+    // Check if we need to restore a preview state
+    const savedPreviewType = sessionStorage.getItem('currentPreviewType');
+    if (savedPreviewType) {
+        // Get container for this type
+        const containerParent = document.querySelector(`#${savedPreviewType}CarouselContainer`).closest('.content-container');
+        if (containerParent) {
+            // Show this container regardless of its visibility status
+            containerParent.style.display = 'block';
+            
+            // Hide other containers that have visible=0
+            const allContainers = document.querySelectorAll('.content-container');
+            allContainers.forEach(otherContainer => {
+                if (otherContainer !== containerParent && otherContainer.getAttribute('data-visible') === '0') {
+                    otherContainer.style.display = 'none';
+                }
+            });
+            
+            // Clear the saved state after using it
+            sessionStorage.removeItem('currentPreviewType');
+        }
+    }
 });
 
 // Call this function after creating preview content

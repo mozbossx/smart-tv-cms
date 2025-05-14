@@ -53,16 +53,48 @@ include 'tv_initialize_preview.php';
         <?php foreach ($containers as $container): ?>
             <?php if ($container['type'] !== 'orgchart'):  ?>
                 <?php $containerNameLower = strtolower($container['type']); ?>
+                <?php
+                // Set icon based on container type
+                $iconClass = '';
+                switch ($containerNameLower) {
+                    case 'announcement':
+                        $iconClass = '<i class="fa fa-bullhorn" style="margin-right: 6px" aria-hidden="true"></i>';
+                        break;
+                    case 'event':
+                        $iconClass = '<i class="fa fa-calendar-check-o" style="margin-right: 6px" aria-hidden="true"></i>';
+                        break;
+                    case 'news':
+                        $iconClass = '<i class="fa fa-newspaper-o" style="margin-right: 6px" aria-hidden="true"></i>';
+                        break;
+                    case 'promaterial':
+                        $iconClass = '<i class="fa fa-object-group" style="margin-right: 6px" aria-hidden="true"></i>';
+                        break;
+                    case 'peo':
+                        $iconClass = '<i class="fa fa-map" style="margin-right: 6px" aria-hidden="true"></i>';
+                        break;
+                    case 'so':
+                        $iconClass = '<i class="fa fa-graduation-cap" style="margin-right: 6px" aria-hidden="true"></i>';
+                        break;
+                    case 'facility':
+                        $iconClass = '<i class="fa fa-building" style="margin-right: 6px" aria-hidden="true"></i>';
+                        break;
+                    default:
+                        // For custom features, check if there's a matching entry in features_tb
+                        $iconClass = '<i class="fa fa-'.$containerNameLower.'" style="margin-right: 6px" aria-hidden="true"></i>';
+                        break;
+                }
+                ?>
                 <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
                     data-x="<?php echo $container['xaxis']; ?>"
                     data-y="<?php echo $container['yaxis']; ?>"
+                    data-visible="<?php echo $container['visible']; ?>"
                     style="background: <?php echo $container['parent_background_color']; ?>;
-                            display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
+                            display: <?php echo $container['visible'] == 1 ? 'block' : 'none'; ?>;
                             height: <?php echo $container['height_px']; ?>px;
                             width: <?php echo $container['width_px']; ?>px;
                             transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);">
                     <div style="padding: 10px; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-evenly; align-items: anchor-center">
-                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>; flex: 2"><?php echo $container['container_name']; ?></h1>
+                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>; flex: 2"><?php echo $iconClass; ?> <?php echo $container['container_name']; ?></h1>
                     </div>
                     <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
                         style="background: <?php echo $container['child_background_color']; ?>;
@@ -75,16 +107,18 @@ include 'tv_initialize_preview.php';
             <?php endif; ?>
             <?php if ($container['type'] === 'orgchart'):  ?>
                 <?php $containerNameLower = strtolower($container['type']); ?>
+                <?php $iconClass = '<i class="fa fa-sitemap" style="margin-right: 6px" aria-hidden="true"></i>'; ?>
                 <div id="<?php echo $container['container_name']; ?>" class="content-container" data-container-id="<?php echo $container['container_id'];?>" 
                     data-x="<?php echo $container['xaxis']; ?>"
                     data-y="<?php echo $container['yaxis']; ?>"
+                    data-visible="<?php echo $container['visible']; ?>"
                     style="background: <?php echo $container['parent_background_color']; ?>;
-                            display: <?php echo $container['visible'] ? 'block' : 'none'; ?>;
+                            display: <?php echo $container['visible'] == 1 ? 'block' : 'none'; ?>;
                             height: <?php echo $container['height_px']; ?>px;
                             width: <?php echo $container['width_px']; ?>px;
                             transform: translate(<?php echo $container['xaxis']; ?>px, <?php echo $container['yaxis']; ?>px);">
                     <div style="padding: 10px; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-evenly; align-items: anchor-center">
-                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>; flex: 2"><?php echo $container['container_name']; ?></h1>
+                        <h1 id="<?php echo $containerNameLower; ?>ContainerName" class="content-title" style="color: <?php echo $container['parent_font_color']; ?>; font-style: <?php echo $container['parent_font_style']?>; font-family: <?php echo $container['parent_font_family']?>; width: 100%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: <?php echo $container['container_name_text_align']; ?>; flex: 2"><?php echo $iconClass; ?> <?php echo $container['container_name']; ?></h1>
                     </div>
                     <div id="<?php echo $containerNameLower; ?>CarouselContainer" class="carousel-container"
                         style="background: <?php echo $container['child_background_color']; ?>;
