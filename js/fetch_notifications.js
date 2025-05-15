@@ -1138,6 +1138,46 @@ function createNotificationDiv(notification) {
             </div>
         `;
     }
+
+    if (notification.notification_type === 'tv_updated' && notification.status == 'approved' && notification.user_id == user_id && notification.evaluator_name != full_name) {
+        notificationDiv.classList.add('approved-notification');
+        content = `
+            <div class="notification-details">
+                <p class="evaluator-message-notification">${notification.evaluator_message}</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
+
+    if (notification.notification_type === 'tv_updated' && notification.status == 'approved' && notification.user_id == user_id && notification.evaluator_name == full_name) {
+        notificationDiv.classList.add('approved-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">${notification.evaluator_message}</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
+
+    if (notification.notification_type === 'tv_deleted' && notification.status == 'deleted' && notification.user_id == user_id && notification.evaluator_name != full_name) {
+        notificationDiv.classList.add('deleted-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">${notification.evaluator_message}</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
+
+    if (notification.notification_type === 'tv_deleted' && notification.status == 'deleted' && notification.user_id == user_id && notification.evaluator_name == full_name) {
+        notificationDiv.classList.add('deleted-notification');
+        content = `
+            <div class="notification-details">
+                <p class="content-approved-notification">${notification.evaluator_message}</p>
+                <p class="created-at-notification">${formatRelativeTime(notification.created_at)}</p>
+            </div>
+        `;
+    }
     
     // If content is still empty, it means no condition was met
     if (content == '') {

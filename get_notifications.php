@@ -51,10 +51,12 @@ if ($user_type === 'Admin' || $user_type === 'Faculty' || $user_type === 'Studen
         (n.notification_type = 'content_trashed_by_admin' AND n.status = 'trashed' AND u.department = ?) OR
         (n.notification_type = 'content_trashed_by_system' AND n.status = 'trashed' AND u.department = ?) OR
         (n.notification_type = 'content_restored' AND n.status = 'restored' AND u.department = ?) OR
-        (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored' AND u.department = ?)
+        (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored' AND u.department = ?) OR
+        (n.notification_type = 'tv_updated' AND n.status = 'approved' AND u.department = ?) OR 
+        (n.notification_type = 'tv_deleted' AND n.status = 'deleted' AND u.department = ?)
     ";
-    $params = array_fill(0, 30, $department);
-    $types = str_repeat('s', 30);
+    $params = array_fill(0, 32, $department);
+    $types = str_repeat('s', 32);
 } else if ($user_type === 'Super Admin') {
     $query .= "
         n.status = 'pending' OR
@@ -86,7 +88,9 @@ if ($user_type === 'Admin' || $user_type === 'Faculty' || $user_type === 'Studen
         (n.notification_type = 'content_trashed_by_admin' AND n.status = 'trashed') OR
         (n.notification_type = 'content_trashed_by_system' AND n.status = 'trashed') OR
         (n.notification_type = 'content_restored' AND n.status = 'restored') OR
-        (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored')
+        (n.notification_type = 'content_restored_by_admin' AND n.status = 'restored') OR
+        (n.notification_type = 'tv_updated' AND n.status = 'approved') OR
+        (n.notification_type = 'tv_deleted' AND n.status = 'deleted')
     ";
     $params = [];
     $types = '';

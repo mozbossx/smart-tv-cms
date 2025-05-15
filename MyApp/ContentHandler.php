@@ -2878,6 +2878,11 @@ class ContentHandler implements MessageComponentInterface
             $tvBrand = $data['tv_brand'];
             $tvDepartment = $data['tv_department'];
 
+            $evaluator_id = $data['evaluator_id'];
+            $evaluator_name = $data['evaluator_name'];
+            $user_type = $data['user_type'];
+            $department = $data['department'];
+
             // Check if TV name already exists for a different TV
             $stmtCheck = $this->pdo->prepare("SELECT COUNT(*) FROM smart_tvs_tb WHERE tv_name = ? AND tv_id != ?");
             $stmtCheck->execute([$tvName, $tvId]);
@@ -2908,8 +2913,70 @@ class ContentHandler implements MessageComponentInterface
                     'tv_id' => $tvId,
                     'tv_name' => $tvName,
                     'tv_brand' => $tvBrand,
-                    'tv_department' => $tvDepartment
+                    'tv_department' => $tvDepartment,
+                    'evaluator_name' => $evaluator_name,
+                    'user_type' => $user_type,
+                    'department' => $department
                 ];
+
+                // Get the user_id of the user who made the update
+                $stmtUserId = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE full_name = ?");
+                $stmtUserId->execute([$evaluator_name]);
+                $user_id = $stmtUserId->fetchColumn();
+
+                // evaluator message is different for the person who made the update and the others
+                if ($user_id == $evaluator_id) {
+                    $evaluator_message = "You updated the TV: " . $tvName;
+                } else {
+                    $evaluator_message = "The TV details have been updated by " . $evaluator_name;
+                }
+
+                // Notify all super admins
+                $stmtSuperAdmins = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_type = 'Super Admin'");
+                $stmtSuperAdmins->execute();
+                $superAdmins = $stmtSuperAdmins->fetchAll(PDO::FETCH_COLUMN);
+                
+                foreach ($superAdmins as $adminId) {
+                    // Set personalized message for each recipient
+                    $personalizedMessage = ($adminId == $evaluator_id) ? 
+                        "You updated the TV: " . $tvName : 
+                        "The TV details have been updated by " . $evaluator_name;
+                        
+                    $stmtNotify = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_type, action_user_department, action_user_name, evaluator_message)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmtNotify->execute([$adminId, 'tv_updated', 'approved', $evaluator_name, $user_type, $department, $evaluator_name, $personalizedMessage]);
+                    
+                    // Increment the notification count of each super admin
+                    $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateSuperAdminNotificationCount->execute([$adminId]);
+                }
+
+                // Notify all admins
+                $stmtAdmins = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_type = 'Admin'");
+                $stmtAdmins->execute();
+                $admins = $stmtAdmins->fetchAll(PDO::FETCH_COLUMN);
+                
+                foreach ($admins as $adminId) {
+                    // Set personalized message for each recipient
+                    $personalizedMessage = ($adminId == $evaluator_id) ? 
+                        "You updated the TV: " . $tvName : 
+                        "The TV details have been updated by " . $evaluator_name;
+                        
+                    $stmtNotify = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_type, action_user_department, action_user_name, evaluator_message)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmtNotify->execute([$adminId, 'tv_updated', 'approved', $evaluator_name, $user_type, $department, $evaluator_name, $personalizedMessage]);
+
+                    // Increment the notification count of each admin
+                    $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateAdminNotificationCount->execute([$adminId]);
+                }
+
+                $this->broadcastNotification('new_notification');
+                
                 // Notify the client who sent the request
                 foreach ($this->clients as $client) {
                     $client->send(json_encode($response));
@@ -2925,11 +2992,75 @@ class ContentHandler implements MessageComponentInterface
 
         else if (isset($data['action']) && $data['action'] === 'delete_smart_tv') {
             $tvId = $data['tv_id'];
+            $tvName = $data['tv_name'];
+
+            $evaluator_id = $data['evaluator_id'];
+            $evaluator_name = $data['evaluator_name'];
+            $user_type = $data['user_type'];
+            $department = $data['department'];
         
             // Start transaction
             $this->pdo->beginTransaction();
             
             try {
+                // Get the user_id of the user who made the update
+                $stmtUserId = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE full_name = ?");
+                $stmtUserId->execute([$evaluator_name]);
+                $user_id = $stmtUserId->fetchColumn();
+
+                // evaluator message is different for the person who made the update and the others
+                if ($user_id == $evaluator_id) {
+                    $evaluator_message = "You deleted the TV: " . $tvName;
+                } else {
+                    $evaluator_message = "The TV: " . $tvName . " has been deleted by " . $evaluator_name;
+                }
+
+                // Notify all super admins
+                $stmtSuperAdmins = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_type = 'Super Admin'");
+                $stmtSuperAdmins->execute();
+                $superAdmins = $stmtSuperAdmins->fetchAll(PDO::FETCH_COLUMN);
+                
+                foreach ($superAdmins as $adminId) {
+                    // Set personalized message for each recipient
+                    $personalizedMessage = ($adminId == $evaluator_id) ? 
+                        "You deleted the TV: " . $tvName : 
+                        "The TV: " . $tvName . " has been deleted by " . $evaluator_name;
+                        
+                    $stmtNotify = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_type, action_user_department, action_user_name, evaluator_message)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmtNotify->execute([$adminId, 'tv_deleted', 'deleted', $evaluator_name, $user_type, $department, $evaluator_name, $personalizedMessage]);
+                    
+                    // Increment the notification count of each super admin
+                    $stmtUpdateSuperAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateSuperAdminNotificationCount->execute([$adminId]);
+                }
+
+                // Notify all admins
+                $stmtAdmins = $this->pdo->prepare("SELECT user_id FROM users_tb WHERE user_type = 'Admin'");
+                $stmtAdmins->execute();
+                $admins = $stmtAdmins->fetchAll(PDO::FETCH_COLUMN);
+                
+                foreach ($admins as $adminId) {
+                    // Set personalized message for each recipient
+                    $personalizedMessage = ($adminId == $evaluator_id) ? 
+                        "You deleted the TV: " . $tvName : 
+                        "The TV: " . $tvName . " has been deleted by " . $evaluator_name;
+                        
+                    $stmtNotify = $this->pdo->prepare("
+                        INSERT INTO notifications_tb (user_id, notification_type, status, evaluator_name, action_user_type, action_user_department, action_user_name, evaluator_message)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmtNotify->execute([$adminId, 'tv_deleted', 'deleted', $evaluator_name, $user_type, $department, $evaluator_name, $personalizedMessage]);
+
+                    // Increment the notification count of each admin
+                    $stmtUpdateAdminNotificationCount = $this->pdo->prepare("UPDATE users_tb SET notification_count = notification_count + 1 WHERE user_id = ?");
+                    $stmtUpdateAdminNotificationCount->execute([$adminId]);
+                }
+
+                $this->broadcastNotification('new_notification');
+                
                 // to deleted TVs table first
                 $stmtAddToDeleted = $this->pdo->prepare("INSERT INTO deleted_tvs_tb (tv_id, deleted_at) VALUES (?, NOW())");
                 $stmtAddToDeleted->execute([$tvId]);

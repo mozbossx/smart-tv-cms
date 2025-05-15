@@ -22,7 +22,7 @@ const displaySmartTVTable = (data) => {
             <td style="text-align: left;">${row.tv_department}</td>
             <td style="text-align:center;">
                 <button type="button" class="green-button" style="width: 100%; margin-bottom: 5px" onclick="showEditSmartTVModal(${row.tv_id})">Edit</button>
-                <button type="button" class="red-button" style="width: 100%;" onclick="showDeleteSmartTVModal(${row.tv_id})">Delete</button>
+                <button type="button" class="red-button" style="width: 100%;" onclick="showDeleteSmartTVModal(${row.tv_id}, '${row.tv_name}')">Delete</button>
             </td>
         </tr>`;
     });
@@ -75,11 +75,13 @@ const sendWebSocketMessage = (data) => {
                                 successMessage = 'Smart TV updated successfully!';
                                 document.getElementById('editSmartTVModal').style.display = 'none';
                                 showSuccessModal(successMessage);
+                                sendEditedSmartTVEmail(message.tv_name, message.tv_brand, message.tv_department, message.evaluator_name, message.user_type, message.department);
                                 break;
                             case 'delete_smart_tv':
                                 successMessage = 'Smart TV deleted successfully!';
                                 document.getElementById('confirmDeleteSmartTVModal').style.display = 'none';
                                 showSuccessModal(successMessage);
+                                sendSmartTVDeletedEmail(message.tv_name, message.evaluator_name, message.user_type, message.department);
                                 break;
                         }
                         // Fetch fresh data after successful operation
@@ -123,6 +125,48 @@ const sendWebSocketMessage = (data) => {
 
     connect(); // Initial connection attempt
 };
+
+// Function to send edited smart tv email (send to the author and to all the Super Admins and Admins within the same department)
+function sendEditedSmartTVEmail(tvName, tvBrand, tvDepartment, evaluatorName, userType, department) {
+    fetch('send_edited_smart_tv_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `tv_name=${encodeURIComponent(tvName)}&tv_brand=${encodeURIComponent(tvBrand)}&tv_department=${encodeURIComponent(tvDepartment)}&evaluator_name=${encodeURIComponent(evaluatorName)}&user_type=${encodeURIComponent(userType)}&department=${encodeURIComponent(department)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Edited smart tv email sent successfully');
+        } else {
+            console.error('Failed to send edited smart tv email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending edited smart tv email:', error);
+    });
+}
+
+// Function to send smart tv deleted email (send to all the Super Admins and Admins within the same department)
+function sendSmartTVDeletedEmail(tvName, evaluatorName, userType, department) {
+    fetch('send_deleted_smart_tv_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `tv_name=${encodeURIComponent(tvName)}&evaluator_name=${encodeURIComponent(evaluatorName)}&user_type=${encodeURIComponent(userType)}&department=${encodeURIComponent(department)}`
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Deleted smart tv email sent successfully');
+        } else {
+            console.error('Failed to send deleted smart tv email:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending deleted smart tv email:', error);
+    });
+}
 
 const showSuccessModal = (message) => {
     const modalContent = `
@@ -181,7 +225,7 @@ const createModal = (id, content) => {
 };
 
 // Show delete smart TV modal
-const showDeleteSmartTVModal = (tvId) => {
+const showDeleteSmartTVModal = (tvId, tvName) => {
     insertDeleteSmartTVModalContent(tvId);
     const modal = document.getElementById('confirmDeleteSmartTVModal');
     const deleteSmartTVButton = document.getElementById('deleteSmartTVButton');
@@ -192,7 +236,7 @@ const showDeleteSmartTVModal = (tvId) => {
 
     deleteSmartTVButton.onclick = () => {
         // Delete smart TV logic here
-        deleteSmartTV(tvId);
+        deleteSmartTV(tvId, tvName, full_name, userType, department, user_id);
         modal.style.display = 'none';
     };
 
@@ -206,11 +250,16 @@ const showDeleteSmartTVModal = (tvId) => {
 };
 
 // Function to Delete smart TV
-const deleteSmartTV = (tv_id) => {
+const deleteSmartTV = (tv_id, tv_name, full_name, user_type, department, user_id) => {
     // Data to send to WebSocket server
     const data = {
         action: 'delete_smart_tv',
-        tv_id: tv_id
+        tv_id: tv_id,
+        tv_name: tv_name,
+        evaluator_name: full_name,
+        user_type: user_type,
+        department: department,
+        evaluator_id: user_id
     };
 
     sendWebSocketMessage(data);
@@ -335,7 +384,7 @@ const showEditSmartTVModal = (tvId) => {
             return;
         }
 
-        editSmartTV(tvId, tvName, tvBrand, tvDepartment);
+        editSmartTV(tvId, tvName, tvBrand, tvDepartment, full_name, userType, department, user_id);
         modal.style.display = 'none';
     };
   
@@ -348,14 +397,18 @@ const showEditSmartTVModal = (tvId) => {
     };
 };
 
-const editSmartTV = (tv_id, tv_name, tv_brand, tv_department) => {
+const editSmartTV = (tv_id, tv_name, tv_brand, tv_department, full_name, user_type, department, user_id) => {
     // Data to send to WebSocket server
     const data = {
         action: 'edit_smart_tv',
         tv_id: tv_id,
         tv_name: tv_name,
         tv_brand: tv_brand,
-        tv_department: tv_department
+        tv_department: tv_department,
+        evaluator_name: full_name,
+        user_type: user_type,
+        department: department,
+        evaluator_id: user_id
     };
 
     sendWebSocketMessage(data);
