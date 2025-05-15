@@ -16,11 +16,11 @@ function connectWebSocket() {
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
                        window.location.hostname === '192.168.1.12' ||
-                       window.location.hostname === '192.168.1.5';
+                       window.location.hostname === '192.168.10.249';
     
     // Choose WebSocket URL based on environment
     const wsUrl = isLocalhost 
-        ? 'ws://192.168.1.5:8081'
+        ? 'ws://192.168.10.249:8081'
         : 'wss://usccms.online/ws';
     
     try {
@@ -598,7 +598,11 @@ const updateUI = (data, type) => {
                 contentDiv.innerHTML = contentHTML;
             }
             resetCountdown(existingDiv, data.display_time, currentIndexKey);
-            updatePageNumber(currentIndexKey);
+            
+            // Only update page number if no urgent post is in progress
+            if (!urgentPostsInProgress[type]) {
+                updatePageNumber(currentIndexKey);
+            }
         }
         // Apply text fitting after updating content
         setTimeout(() => initializeTextFitting(type, id), 0);
@@ -620,8 +624,6 @@ const updateUI = (data, type) => {
 
         const contentDiv = document.createElement('div');
 
-        // containerDiv.setAttribute('data-announcement-id', data.announcement_id);
-
         containerDiv.style = `
             width: auto;
             height: 100%;
@@ -641,18 +643,27 @@ const updateUI = (data, type) => {
         containerDiv.appendChild(contentDiv);
         contentsArray.push(containerDiv);
         carouselContainer.appendChild(containerDiv);
-        // carouselContainer.appendChild(pageNumberContainer);
 
         if (contentsArray.length === 1) {
             containerDiv.classList.add('active');
-            updatePageNumber(currentIndexKey);
+            
+            // Only update page number if no urgent post is in progress
+            if (!urgentPostsInProgress[type]) {
+                updatePageNumber(currentIndexKey);
+            }
         } else {
-            updatePageNumber(currentIndexKey);
+            // Only update page number if no urgent post is in progress
+            if (!urgentPostsInProgress[type]) {
+                updatePageNumber(currentIndexKey);
+            }
         }
 
         // Apply text fitting after updating content
         setTimeout(() => initializeTextFitting(type, id), 0);
     }
+    
+    // Return the index of the newly added content
+    return contentsArray.length - 1;
 };
 
 function initializeTextFitting(type, id) {
@@ -1104,7 +1115,14 @@ const handleUrgentPost = (type, postData) => {
     // Make the urgent post active
     contents[`${type}s`].forEach(item => item.classList.remove('active'));
     contents[`${type}s`][urgentPostIndex].classList.add('active');
-    updatePageNumber(type);
+    
+    // Store the original page number text so we can restore it later
+    const { pageNumberContainer } = getContainerElements(type);
+    const originalPageNumber = pageNumberContainer.textContent;
+    pageNumberContainer._originalPageNumber = originalPageNumber;
+    
+    // Change the page number to display "URGENT" in red
+    pageNumberContainer.innerHTML = '<span style="font-weight: bolder;">URGENT <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>';
     
     // Handle display time manually for urgent posts
     const displayTime = parseInt(postData.display_time, 10);
@@ -1121,13 +1139,16 @@ const handleUrgentPost = (type, postData) => {
         // Set up a new interval just for this urgent post
         displayTimeIntervals[type] = setInterval(() => {
             remainingTime--;
-            timeLeftElement.textContent = `${remainingTime}s`;
-            
-            if (remainingTime <= 0) {
+
+            // Only proceed if remaining time is 0 or less, not before
+            if (remainingTime < 0) {
                 clearInterval(displayTimeIntervals[type]);
                 
                 // Handle the transition after urgent post completes
                 handleUrgentPostComplete();
+            } else {
+                // Update the display with current remaining time
+                timeLeftElement.textContent = `${remainingTime}s`;
             }
         }, 1000);
     } else {
@@ -1174,6 +1195,13 @@ const handleUrgentPost = (type, postData) => {
             
             // Reset the original content index for next time
             originalContentIndices[type] = undefined;
+
+            // Restore the original page number display
+            const { pageNumberContainer } = getContainerElements(type);
+            if (pageNumberContainer._originalPageNumber) {
+                pageNumberContainer.textContent = pageNumberContainer._originalPageNumber;
+                delete pageNumberContainer._originalPageNumber;
+            }
             
             // If the original content is still valid, return to it
             if (typeof returnToIndex === 'number' && returnToIndex < contents[`${type}s`].length) {
@@ -2280,14 +2308,22 @@ Ws.addEventListener('message', function (event) {
                 const tvId = urlParams.get('tvId');
 
                 if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
-                    location.reload();
+                    shouldAutoTile = true;
+                    // Add a small delay to ensure the content is loaded
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
                 }
             } else if (type === 'facility') {
                 const urlParams = new URLSearchParams(window.location.search);
                 const tvId = urlParams.get('tvId');
 
                 if (parseInt(tvId, 10) === parseInt(data.tv_id, 10) || parseInt(tvId, 10) === parseInt(data.tv_ids, 10)) {
-                    location.reload();
+                    shouldAutoTile = true;
+                    // Add a small delay to ensure the content is loaded
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
                 }
             } else {
                 // For new features 
